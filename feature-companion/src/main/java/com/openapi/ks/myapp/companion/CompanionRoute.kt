@@ -313,7 +313,7 @@ fun CompanionRoute(
                     null
                 },
             ),
-            // 摄像头还没接：按钮置灰，点了给一句明确说法，而不是点了没反应。
+            // 摄像头目前不支持；由按钮显示不可用状态，不注入点击回调。
             cameraAvailable = false,
             waveOptions = waveOptions,
             onWaveOptionsChange = { next ->
@@ -330,7 +330,7 @@ fun CompanionRoute(
                     chatViewModel.toggleMute()
                 }
             },
-            onToggleCamera = { toast(context, "摄像头即将支持，先用声音陪她吧") },
+            onToggleCamera = {},
             onSendText = { text ->
                 chatViewModel.onInputChange(text)
                 chatViewModel.send()

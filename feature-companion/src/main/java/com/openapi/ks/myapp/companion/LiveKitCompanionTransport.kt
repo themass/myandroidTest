@@ -1,6 +1,8 @@
 package com.openapi.ks.myapp.companion
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
+import android.os.SystemClock
 import com.openapi.ks.myapp.avatar.ProactiveKind
 import io.livekit.android.LiveKit
 import io.livekit.android.events.RoomEvent
@@ -12,6 +14,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.UUID
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import livekit.org.webrtc.AudioTrackSink
@@ -46,7 +52,13 @@ class LiveKitCompanionTransport(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val bus = MutableSharedFlow<CompanionEvent>(extraBufferCapacity = EVENT_BUFFER)
     private val _connection = MutableStateFlow(TransportConnection.DISCONNECTED)
+    private val _lastConnectionError = MutableStateFlow<String?>(null)
+    val lastConnectionError: StateFlow<String?> = _lastConnectionError.asStateFlow()
     private var room: Room? = null
+    @Volatile private var activeAttemptId: String = "none"
+    @Volatile private var connectStartedAtMs: Long = 0L
+    @Volatile private var firstRemotePcmLogged = false
+    @Volatile private var firstLocalPcmLogged = false
 
     /** 最近一次麦克风意图。房间还没建好时先存着，连上后补偿执行。 */
     private var micIntent: Boolean? = null
@@ -92,42 +104,52 @@ class LiveKitCompanionTransport(
         require(session.livekitUrl.isNotBlank() && session.token.isNotBlank()) {
             "会话缺少房间地址或入场凭证"
         }
+        activeAttemptId = UUID.randomUUID().toString().take(8)
+        connectStartedAtMs = SystemClock.elapsedRealtime()
+        firstRemotePcmLogged = false
+        firstLocalPcmLogged = false
+        logInfo("attempt=$activeAttemptId event=connect_start")
         _connection.value = TransportConnection.CONNECTING
+        _lastConnectionError.value = null
         val newRoom = LiveKit.create(appContext)
         room = newRoom
+        logInfo("attempt=$activeAttemptId event=room_created elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
 
-        // 事件收集器必须在 connect() 之前订阅。
-        //
-        // SDK 的事件总线是 MutableSharedFlow(replay = 0)：订阅之前发出的事件**永久丢失**，
-        // 不会补放。以前先 connect、再 launch 收集器，而麦克风发布（LocalTrackPublished）
-        // 往往在这两句话之间就发生了——事件被丢掉，attachSelfSink 永远不执行，
-        // 底部「你的声音」波形只能一直是 0。先把两个收集器挂好，再建连，事件就无处可漏。
+        // SDK events are not replayed: subscribe before starting the signal handshake.
         scope.launch {
             newRoom.events.events.collect { event ->
                 when (event) {
                     is RoomEvent.DataReceived -> handleData(event.topic, event.data)
-                    // 她那一路上麦：只有远端音频轨能算振幅，本地轨是用户自己的声音。
+                    is RoomEvent.Connected -> {
+                        logInfo("attempt=$activeAttemptId event=room_connected elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
+                    }
+                    is RoomEvent.FailedToConnect -> {
+                        _connection.value = TransportConnection.DISCONNECTED
+                        _lastConnectionError.value = safeError(event.error.message)
+                        logWarn("attempt=$activeAttemptId event=room_failed_to_connect type=${event.error.javaClass.simpleName} message=${safeError(event.error.message)}")
+                    }
                     is RoomEvent.TrackSubscribed -> {
-                        android.util.Log.i(
-                            TAG,
-                            "RoomEvent.TrackSubscribed: kind=${event.track.kind} sid=${event.track.sid} identity=${event.participant.identity}",
-                        )
-                        if (event.participant.identity != newRoom.localParticipant.identity) {
-                            attachMouthSink(event.track)
-                        }
+                        logInfo("attempt=$activeAttemptId event=track_subscribed kind=${event.track.kind} sid=${event.track.sid}")
+                        if (event.participant.identity != newRoom.localParticipant.identity) attachMouthSink(event.track)
                     }
                     is RoomEvent.TrackUnsubscribed -> {
-                        android.util.Log.i(TAG, "RoomEvent.TrackUnsubscribed: sid=${event.track.sid}")
+                        logInfo("attempt=$activeAttemptId event=track_unsubscribed sid=${event.track.sid}")
                         detachMouthSink()
                     }
-                    is RoomEvent.Reconnecting -> _connection.value = TransportConnection.RECONNECTING
+                    is RoomEvent.Reconnecting -> {
+                        _connection.value = TransportConnection.RECONNECTING
+                        logWarn("attempt=$activeAttemptId event=reconnecting")
+                    }
                     is RoomEvent.Reconnected -> {
                         _connection.value = TransportConnection.CONNECTED
-                        // 重连会重新协商发布轨：补偿挂一次，防止重连后事件又没接住。
+                        _lastConnectionError.value = null
+                        logInfo("attempt=$activeAttemptId event=reconnected elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
                         attachSelfSink(newRoom)
                     }
                     is RoomEvent.Disconnected -> {
                         _connection.value = TransportConnection.DISCONNECTED
+                        _lastConnectionError.value = safeError(event.error?.message).ifBlank { "连接已断开" }
+                        logWarn("attempt=$activeAttemptId event=disconnected reason=${event.reason} error=${safeError(event.error?.message)}")
                         bus.emit(CompanionEvent.Error("连接已断开"))
                     }
                     else -> Unit
@@ -135,20 +157,19 @@ class LiveKitCompanionTransport(
             }
         }
 
-        // 本地麦克风发布走的是 ParticipantEvent，而 ParticipantEvent 与 RoomEvent 是两个
-        // 平行的 sealed 类（都只继承 Event），**不会**出现在 newRoom.events 里。
+        // Participant events are a separate stream from Room.events.
         scope.launch {
             newRoom.localParticipant.events.events.collect { event ->
                 when (event) {
                     is io.livekit.android.events.ParticipantEvent.LocalTrackPublished -> {
-                        android.util.Log.i(
-                            TAG,
-                            "LocalTrackPublished: kind=${event.publication.kind} sid=${event.publication.sid}",
-                        )
-                        if (event.publication.kind == Track.Kind.AUDIO) attachSelfSink(newRoom)
+                        logInfo("attempt=$activeAttemptId event=local_track_published kind=${event.publication.kind} sid=${event.publication.sid}")
+                        if (event.publication.kind == Track.Kind.AUDIO) {
+                            val published = event.publication.track
+                            if (published is AudioTrack) attachSelfSink(published) else attachSelfSink(newRoom)
+                        }
                     }
                     is io.livekit.android.events.ParticipantEvent.LocalTrackUnpublished -> {
-                        android.util.Log.i(TAG, "LocalTrackUnpublished: kind=${event.publication.kind}")
+                        logInfo("attempt=$activeAttemptId event=local_track_unpublished kind=${event.publication.kind}")
                         if (event.publication.kind == Track.Kind.AUDIO) detachSelfSink()
                     }
                     else -> Unit
@@ -156,17 +177,32 @@ class LiveKitCompanionTransport(
             }
         }
 
-        newRoom.connect(session.livekitUrl, session.token)
-        _connection.value = TransportConnection.CONNECTED
-        // 建连前用户就点进了通话（建连通常要一两秒）：那时麦克风意图先记着，现在补上。
+        logInfo("attempt=$activeAttemptId event=room_connect_begin")
+        try {
+            withTimeout(CONNECT_TIMEOUT_MS) { newRoom.connect(session.livekitUrl, session.token) }
+            if (newRoom.state == Room.State.CONNECTED) {
+                _connection.value = TransportConnection.CONNECTED
+                logInfo("attempt=$activeAttemptId event=room_connect_success elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
+            } else {
+                throw IllegalStateException("LiveKit connect returned with state=${newRoom.state}")
+            }
+        } catch (e: CancellationException) {
+            _connection.value = TransportConnection.DISCONNECTED
+            logWarn("attempt=$activeAttemptId event=room_connect_cancelled elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
+            throw e
+        } catch (e: Exception) {
+            _connection.value = TransportConnection.DISCONNECTED
+            _lastConnectionError.value = safeError(e.message)
+            val timedOut = e is TimeoutCancellationException
+            logError("attempt=$activeAttemptId event=room_connect_failure elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs} type=${e.javaClass.simpleName} timeout=$timedOut message=${safeError(e.message)}")
+            throw if (timedOut) IllegalStateException("连接超时，请重试", e) else e
+        }
+        // 建连前用户就点进了通话（建连通常要一两秒）：那时麦克风意图先记着，现在补偿执行。
         micIntent?.let { applyMic(newRoom, it) }
-        // 兜底：如果麦克风轨在收集器订阅之前就已经发布（replay=0，事件不会补放），
-        // 这里直接按当前发布状态补挂一次。attachSelfSink 内部先摘后挂，重复调用幂等。
         attachSelfSink(newRoom)
 
         newRoom.registerTextStreamHandler(TEXT_OUT_TOPIC) { reader, identity ->
             scope.launch {
-                // 只取 agent 那一路：用户自己的语音转写不应被当作她的回复。
                 if (identity == newRoom.localParticipant.identity) return@launch
                 reader.flow.collect { chunk -> bus.emit(CompanionEvent.TextDelta(chunk)) }
                 bus.emit(CompanionEvent.TurnDone)
@@ -244,16 +280,11 @@ class LiveKitCompanionTransport(
         detachMouthSink()
         android.util.Log.i(TAG, "attachMouthSink: 已挂上远端音频轨 sid=${track.sid}")
 
-        // 诊断用：每 25 个回调打印一次原始 RMS 与换算后的电平。
-        // 素材还没有，嘴型在真机上看不见，所以「增益够不够、阈值对不对」只能靠这两个数判断。
-        // 定下来之后应当降级到 verbose 或整段删掉。
+        // Reduce diagnostics to one first-frame event and a ten-second aggregate.
         var callbacks = 0L
-        var selfSamples = 0L
-        var rawMax = 0.0
-        var rawMin = Double.MAX_VALUE
+        var windowStartedAt = SystemClock.elapsedRealtime()
         var rawSum = 0.0
         var levelMax = 0f
-        var levelMeanAcc = 0f
 
         val sink = object : AudioTrackSink {
             override fun onData(
@@ -288,38 +319,30 @@ class LiveKitCompanionTransport(
                 _mouthLevel.value = level
 
                 callbacks++
-                rawMax = maxOf(rawMax, rms)
-                rawMin = minOf(rawMin, rms)
                 rawSum += rms
                 levelMax = maxOf(levelMax, level)
-                levelMeanAcc += level
-                if (callbacks == 1L) {
-                    android.util.Log.i(
-                        TAG,
-                        "onData 首次回调: frames=$frames ch=$numberOfChannels rate=$sampleRate rms=$rms",
-                    )
+                if (callbacks == 1L && !firstRemotePcmLogged) {
+                    firstRemotePcmLogged = true
+                    logInfo("attempt=$activeAttemptId event=remote_pcm_first frames=$frames channels=$numberOfChannels rate=$sampleRate rms=${"%.4f".format(rms)}")
                 }
-                if (callbacks % 25L == 0L) {
-                    val mean = rawSum / 25.0
-                    val range = if (rawMin.isFinite()) "%.4f..%.4f" else "%.4f..%.4f"
-                    android.util.Log.i(
-                        TAG,
-                        "振幅统计#${callbacks / 25}: raw_rms mean=%.4f 区间[${range}] | level mean=%.3f max=%.3f | 满幅参考=%.2f".format(
-                            mean, rawMin, rawMax, levelMeanAcc / 25.0, levelMax, FULL_SCALE_RMS,
-                        ),
-                    )
-                    rawMax = 0.0
-                    rawMin = Double.MAX_VALUE
+                val now = SystemClock.elapsedRealtime()
+                if (now - windowStartedAt >= PCM_LOG_INTERVAL_MS) {
+                    logInfo("attempt=$activeAttemptId event=remote_pcm_summary samples=$callbacks meanRms=${"%.4f".format(rawSum / callbacks)} maxLevel=${"%.3f".format(levelMax)} windowMs=${now - windowStartedAt}")
+                    callbacks = 0L
                     rawSum = 0.0
                     levelMax = 0f
-                    levelMeanAcc = 0f
+                    windowStartedAt = now
                 }
             }
         }
-        audio.addSink(sink)
-        mouthSink = sink
-        mouthTrack = audio
-        remoteAudio = audio as? io.livekit.android.room.track.RemoteAudioTrack
+        val result = runCatching { audio.addSink(sink) }
+        result.onFailure { logError("attempt=$activeAttemptId event=remote_sink_attach_failed sid=${audio.sid} type=${it.javaClass.simpleName}") }
+        if (result.isSuccess) {
+            mouthSink = sink
+            mouthTrack = audio
+            remoteAudio = audio as? io.livekit.android.room.track.RemoteAudioTrack
+            logInfo("attempt=$activeAttemptId event=remote_sink_attached sid=${audio.sid}")
+        }
     }
 
     /** 摘掉音频 sink。SDK 不会替我们摘：留在 track 上就是一个永不释放的回调。 */
@@ -354,14 +377,14 @@ class LiveKitCompanionTransport(
      * SDK 在麦克风发布之后才创建采集轨，所以这里从 `localParticipant.audioTrackPublications`
      * 里找已经发布的那一条，而不是自己造轨。
      */
+    /** 建连后/重连后的补偿路径：从 participant 的 publication map 里找本地音频轨。 */
     private fun attachSelfSink(current: Room) {
-        detachSelfSink()
         val publications = current.localParticipant.audioTrackPublications
         android.util.Log.i(TAG, "attachSelfSink: 当前本地音频 publication 数=${publications.size}")
         val publication = publications
             .firstOrNull { it.second != null }
             ?: run {
-                // 这不是错误：麦克风可能还在发布中，LocalTrackPublished 事件到达时会再进来一次。
+                // 这不是错误：麦克风可能还在发布中，LocalTrackPublished 事件到达时会走轨直挂路径。
                 android.util.Log.i(TAG, "attachSelfSink: 本地还没有已发布的音频轨，等 LocalTrackPublished 事件")
                 return
             }
@@ -370,12 +393,19 @@ class LiveKitCompanionTransport(
                 android.util.Log.w(TAG, "attachSelfSink: publication 不是 AudioTrack，实际=${publication.second?.javaClass?.name}")
                 return
             }
+        attachSelfSink(audio)
+    }
+
+    /**
+     * 把 PCM sink 挂到给定的本地音频轨上。LocalTrackPublished 事件直接带着轨对象走这里，
+     * 绕开「事件已到、participant map 还没更新」的时序窗口。先摘后挂，重复调用幂等。
+     */
+    private fun attachSelfSink(audio: AudioTrack) {
+        detachSelfSink()
         var callbacks = 0L
-        var rawMax = 0.0
-        var rawMin = Double.MAX_VALUE
+        var windowStartedAt = SystemClock.elapsedRealtime()
         var rawSum = 0.0
         var levelMax = 0f
-        var levelSum = 0f
         val sink = object : AudioTrackSink {
             override fun onData(
                 data: ByteBuffer,
@@ -394,41 +424,30 @@ class LiveKitCompanionTransport(
                 _selfLevel.value = level
 
                 callbacks++
-                rawMax = maxOf(rawMax, rms)
-                rawMin = minOf(rawMin, rms)
                 rawSum += rms
                 levelMax = maxOf(levelMax, level)
-                levelSum += level
-                if (callbacks == 1L) {
-                    android.util.Log.i(
-                        TAG,
-                        "self onData 首次回调: frames=$frames ch=$numberOfChannels rate=$sampleRate rms=$rms",
-                    )
+                if (callbacks == 1L && !firstLocalPcmLogged) {
+                    firstLocalPcmLogged = true
+                    logInfo("attempt=$activeAttemptId event=local_pcm_first frames=$frames channels=$numberOfChannels rate=$sampleRate rms=${"%.4f".format(rms)}")
                 }
-                if (callbacks % 25L == 0L) {
-                    android.util.Log.i(
-                        TAG,
-                        "本地电平#${callbacks / 25}: raw_rms mean=%.5f 区间[%.5f..%.5f] | level mean=%.3f max=%.3f | 门限=%.4f 参考=%.2f".format(
-                            rawSum / 25.0, rawMin, rawMax, levelSum / 25.0, levelMax,
-                            SELF_NOISE_GATE, SELF_FULL_SCALE_RMS,
-                        ),
-                    )
-                    rawMax = 0.0
-                    rawMin = Double.MAX_VALUE
+                val now = SystemClock.elapsedRealtime()
+                if (now - windowStartedAt >= PCM_LOG_INTERVAL_MS) {
+                    logInfo("attempt=$activeAttemptId event=local_pcm_summary samples=$callbacks meanRms=${"%.4f".format(rawSum / callbacks)} maxLevel=${"%.3f".format(levelMax)} windowMs=${now - windowStartedAt}")
+                    callbacks = 0L
                     rawSum = 0.0
                     levelMax = 0f
-                    levelSum = 0f
+                    windowStartedAt = now
                 }
             }
         }
         // LocalAudioTrack.addSink 走的是 AudioRecordSamplesDispatcher（SDK 源码确认），
         // 默认 JavaAudioDeviceModule 下麦克风一启动就有 PCM；失败要可见，不能静默。
         val result = runCatching { audio.addSink(sink) }
-        result.onFailure { android.util.Log.e(TAG, "attachSelfSink: addSink 失败", it) }
+        result.onFailure { logError("attempt=$activeAttemptId event=local_sink_attach_failed sid=${audio.sid} type=${it.javaClass.simpleName}") }
         if (result.isSuccess) {
             selfSink = sink
             selfTrack = audio
-            android.util.Log.i(TAG, "attachSelfSink: 已挂上本地采集轨 sid=${audio.sid}")
+            logInfo("attempt=$activeAttemptId event=local_sink_attached sid=${audio.sid}")
         }
     }
 
@@ -552,5 +571,27 @@ class LiveKitCompanionTransport(
         const val SELF_FULL_SCALE_RMS = 0.35
 
         const val TAG = "MouthLevel"
+        const val CONNECT_TIMEOUT_MS = 20_000L
+        const val PCM_LOG_INTERVAL_MS = 10_000L
     }
+
+    private fun logInfo(message: String) {
+        if (isDebugBuild) android.util.Log.i(TAG, message)
+    }
+
+    private fun logWarn(message: String) {
+        if (isDebugBuild) android.util.Log.w(TAG, message)
+    }
+
+    private fun logError(message: String) {
+        if (isDebugBuild) android.util.Log.e(TAG, message)
+    }
+
+    private val isDebugBuild: Boolean
+        get() = appContext.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+
+    private fun safeError(message: String?): String =
+        message.orEmpty()
+            .replace(Regex("(?i)(token|authorization|bearer)\\s*[:=]\\s*[^ ,;]+"), "$1=<redacted>")
+            .take(180)
 }

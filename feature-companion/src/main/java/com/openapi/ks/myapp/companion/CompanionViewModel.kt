@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.companion
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openapi.ks.myapp.avatar.ProactiveKind
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +33,7 @@ class CompanionViewModel(
 
     private var characterId: String? = null
     private var collectJob: Job? = null
+    private var startupJob: Job? = null
     private var inboxJob: Job? = null
     private var connectionJob: Job? = null
 
@@ -58,20 +60,24 @@ class CompanionViewModel(
 
     /** 没有 [CompanionApi] 时直接连替身，用于预览与离线调试。 */
     fun start(characterId: String) {
-        if (this.characterId == characterId && collectJob?.isActive == true) return
+        // 同一个角色：已经连上/正在重连/启动流程还在跑，都不能再建一个房间（会泄漏上一个 Room）。
+        // 只有出错或空闲（启动流程已结束）才允许重试。
+        if (this.characterId == characterId) {
+            val connection = _state.value.connection
+            val inFlight = startupJob?.isActive == true
+            if (inFlight || connection == CompanionConnection.CONNECTED || connection == CompanionConnection.RECONNECTING) return
+        }
         this.characterId = characterId
         _state.update { it.copy(connection = CompanionConnection.CONNECTING, error = null) }
-        viewModelScope.launch {
+        startupJob?.cancel()
+        startupJob = viewModelScope.launch {
             try {
                 val session = api?.createSession(characterId) ?: offlineSession(characterId)
-                // 先读历史，再连房间。顺序很重要：历史是纯 HTTP，不依赖 LiveKit；
-                // 放在 connect() 之后的话，房间建连一慢（或失败），用户盯着的是一个空页面，
-                // 而历史其实一直写在服务端（真机上就是这么空着的）。
+                if (transport is LiveKitCompanionTransport) observeConnection()
                 restoreHistory(session)
+                if (transport !is LiveKitCompanionTransport) listen()
                 transport.connect(session)
-                _state.update { it.copy(connection = CompanionConnection.CONNECTED) }
-                listen()
-                observeConnection()
+                if (transport is LiveKitCompanionTransport) listen() else observeConnection()
                 startInboxPolling()
                 restorePendingActions()
             } catch (e: CancellationException) {
@@ -240,7 +246,7 @@ class CompanionViewModel(
      */
     private fun observeConnection() {
         connectionJob?.cancel()
-        connectionJob = viewModelScope.launch {
+        connectionJob = viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
             transport.connection.collect { transportConnection ->
                 val mapped = when (transportConnection) {
                     TransportConnection.CONNECTING -> CompanionConnection.CONNECTING
@@ -248,7 +254,17 @@ class CompanionViewModel(
                     TransportConnection.RECONNECTING -> CompanionConnection.RECONNECTING
                     TransportConnection.DISCONNECTED -> CompanionConnection.ERROR
                 }
-                _state.update { it.copy(connection = mapped) }
+                _state.update { current ->
+                    current.copy(
+                        connection = mapped,
+                        error = when (mapped) {
+                            CompanionConnection.CONNECTED, CompanionConnection.RECONNECTING -> null
+                            CompanionConnection.ERROR -> current.error
+                            CompanionConnection.CONNECTING -> null
+                            CompanionConnection.IDLE -> current.error
+                        },
+                    )
+                }
             }
         }
     }
@@ -490,6 +506,7 @@ class CompanionViewModel(
 
     override fun onCleared() {
         collectJob?.cancel()
+        startupJob?.cancel()
         inboxJob?.cancel()
         connectionJob?.cancel()
         viewModelScope.launch { transport.disconnect() }

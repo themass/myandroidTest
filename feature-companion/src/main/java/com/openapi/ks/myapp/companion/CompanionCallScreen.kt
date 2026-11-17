@@ -87,6 +87,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -237,6 +240,9 @@ private const val RING_FOLLOW_MS = 280
 /** 波形各条独立相位的循环时长。太快像噪点，太慢像卡住；1.6s 接近说话的语气节奏。 */
 private const val PHASE_CYCLE_MS = 1600
 
+/** 中央呼吸环波纹的循环时长。刻意慢：5.2s 一圈，两圈错相，每 2.6s 荡出一圈柔波。 */
+private const val RIPPLE_CYCLE_MS = 7000
+
 /** 字幕淡入淡出时长。 */
 private const val CAPTION_FADE_MS = 260
 
@@ -262,8 +268,7 @@ private const val WAVE_BAR_COUNT = 23
  * @param onToggleMute 切换静音。
  * @param onToggleCamera 切换摄像头。切到开时会同时让调用方去开本地视频轨。
  * @param onSendText 通话中发出的文字。本页负责清空输入框和关闭浮层，不负责别的。
- * @param cameraAvailable 摄像头能力是否可用。false 时按钮画成置灰态（文案「即将支持」），
- *   但**仍然可点**——点了由调用方给一句提示，比一个完全没反应的灰按钮好。
+ * @param cameraAvailable 摄像头能力是否可用。false 时按钮显示「即将支持」，不可点击且暴露 disabled 语义。
  * @param modifier 外部布局约束。
  * @param avatarContent 头像插槽。**优先于** [CompanionCallState.avatarEmoji]，
  *   给了就整块渲染在圆形裁剪里（真实形象渲染器从这儿接）。
@@ -319,15 +324,10 @@ fun CompanionCallScreen(
     // 注意：这个 State 只在 Canvas 的 draw lambda 里读，不在 composable 里读，
     // 所以每帧只触发重绘（invalidate），不触发重组。60fps 下这是必要的，
     // 否则每帧重建整棵子树，长通话会明显发烫。
-    val phase = rememberInfiniteTransition(label = "callMotion").animateFloat(
-        initialValue = 0f,
-        targetValue = (2f * PI).toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = tween(PHASE_CYCLE_MS, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "callPhase",
-    )
+    // 相位改由帧时钟驱动，而不是 rememberInfiniteTransition：后者受系统「动画时长缩放」
+    // 控制，缩放为 0（开发者选项关动画、很多测试机的常态）时会整个停转，
+    // 表现就是「波形/波纹完全不动」。帧时钟不受这个设置影响。
+    val phase = rememberFramePhase(PHASE_CYCLE_MS)
 
     var composerOpen by rememberSaveable { mutableStateOf(false) }
 
@@ -391,7 +391,7 @@ fun CompanionCallScreen(
                     particles = waveOptions.particles,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(140.dp),
+                        .height(150.dp),
                 )
                 Spacer(Modifier.height(6.dp))
             }
@@ -553,9 +553,15 @@ private fun CallHeader(
             Spacer(Modifier.width(8.dp))
             Text(
                 text = statusHint ?: statusText(connection, elapsedSeconds),
-                color = if (connection == CallConnection.RECONNECTING) CallColors.Amber else CallColors.TextSecondary,
-                fontSize = 13.sp,
-                letterSpacing = 0.4.sp,
+                color = when (connection) {
+                    CallConnection.RECONNECTING -> CallColors.Amber
+                    CallConnection.ENDED -> Color(0xFFFF9297)
+                    CallConnection.CONNECTED -> CallColors.Violet
+                    CallConnection.CONNECTING -> CallColors.TextPrimary
+                },
+                fontSize = if (connection == CallConnection.CONNECTING || connection == CallConnection.ENDED || statusHint != null) 15.sp else 13.sp,
+                fontWeight = if (connection == CallConnection.CONNECTING || connection == CallConnection.ENDED || statusHint != null) FontWeight.Medium else FontWeight.Normal,
+                letterSpacing = 0.sp,
             )
             if (isMuted) {
                 Spacer(Modifier.width(10.dp))
@@ -584,11 +590,19 @@ private fun CallHeader(
 private fun WaveStyleMenu(options: WaveOptions, onChange: (WaveOptions) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
-        IconButton(onClick = { open = true }, modifier = Modifier.size(40.dp)) {
+        // 玻璃底板 + 描边 + 亮色图标：深色背景上只有一个灰色小图标时，用户根本发现不了入口。
+        IconButton(
+            onClick = { open = true },
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(CallColors.Glass)
+                .border(1.dp, CallColors.GlassBorder, CircleShape),
+        ) {
             Icon(
                 imageVector = Icons.Filled.MoreVert,
-                contentDescription = "波形样式",
-                tint = CallColors.TextSecondary,
+                contentDescription = "切换波形样式",
+                tint = CallColors.TextPrimary,
             )
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
@@ -652,7 +666,7 @@ private fun statusText(connection: CallConnection, elapsedSeconds: Long): String
         CallConnection.CONNECTING -> "正在接通…"
         CallConnection.CONNECTED -> formatDuration(elapsedSeconds)
         CallConnection.RECONNECTING -> "连接不稳定，正在重连…"
-        CallConnection.ENDED -> "通话已结束"
+        CallConnection.ENDED -> "连接失败或已断开"
     }
 
 private fun formatDuration(totalSeconds: Long): String {
@@ -696,7 +710,6 @@ private fun VoiceStage(
             if (centerEffect == CenterEffect.Ring) {
                 BreathingRing(
                     level = ringLevel,
-                    phase = phase,
                     isMuted = state.isMuted,
                     isSpeaking = state.isAgentSpeaking,
                     reducedMotion = reducedMotion,
@@ -736,18 +749,21 @@ private fun VoiceStage(
 }
 
 /**
- * 呼吸环：三圈同心描边 + 一层径向填充。
+ * 呼吸环：三圈同心描边 + 一层径向填充 + 两圈向屏幕边缘荡开的柔波。
  *
  * 三圈的半径和透明度都随 [level] 变化，但**变化幅度不同**（内圈最灵敏，外圈最迟钝），
  * 这样电平上去的时候环会"一层层往外推"，而不是整组等比例放大——后者看起来像一个
  * 缩放动画，没有"声音顶出来"的物理感。
+ *
+ * 波纹用自己的慢速相位（5.2s 一圈），不与底部波形共用时钟：荡漾要柔和、要慢，
+ * 从头像附近一路荡出屏幕边缘（终点 1.04 unit），淡出而不是在屏内突然消失。
+ * 中央舞台**不画粒子**——粒子只属于底部「你的声音」。
  *
  * 静音时换成青灰，并且压低不透明度：静音是"我关了麦"，不是错误，不该用红色。
  */
 @Composable
 private fun BreathingRing(
     level: State<Float>,
-    phase: State<Float>,
     isMuted: Boolean,
     isSpeaking: Boolean,
     reducedMotion: Boolean,
@@ -755,21 +771,18 @@ private fun BreathingRing(
 ) {
     // 空场呼吸：即使她完全不说话，环也要缓慢起伏一点，否则整页像挂了一张静态图，
     // 用户会怀疑是不是卡了。幅度上限 0.16，远小于说话时的 1.0，不抢戏。
-    val idleBreath = rememberInfiniteTransition(label = "callBreath").animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3400, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "callBreathValue",
-    )
+    // 3.4s 一个来回；同样走帧时钟，避免系统动画缩放为 0 时整个停住。
+    val breathPhase = rememberFramePhase(6800)
+
+    // 波纹专属慢相位：5.2s 走完 2π，两圈错相，每 2.6s 放出一圈，速度只有旧版的六成，
+    // 视觉上是"荡漾"而不是"脉冲"。
+    val ripplePhase = rememberFramePhase(RIPPLE_CYCLE_MS)
 
     val ringColor = if (isMuted) CallColors.Slate else CallColors.Violet
 
     Canvas(modifier = modifier) {
         // 减少动效时把呼吸压到极小、相位固定：不追求"活着"，只保证有边界。
-        val idle = if (reducedMotion) 0.5f else idleBreath.value
+        val idle = if (reducedMotion) 0.5f else (1f - kotlin.math.cos(breathPhase.value)) / 2f
         // 说话下限：VAD 判定在说话、但电平恰好过零时，保住 0.12，避免环瞬间塌回去。
         val speakingFloor = if (isSpeaking) 0.12f else 0f
         val lv = maxOf(level.value, speakingFloor)
@@ -782,23 +795,23 @@ private fun BreathingRing(
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    ringColor.copy(alpha = 0.20f + 0.14f * lv),
+                    ringColor.copy(alpha = 0.18f + 0.12f * lv),
                     Color.Transparent,
                 ),
                 center = center,
-                radius = unit * (0.62f + 0.22f * lv + breath),
+                radius = unit * (0.70f + 0.24f * lv + breath),
             ),
-            radius = unit * (0.62f + 0.22f * lv + breath),
+            radius = unit * (0.70f + 0.24f * lv + breath),
             center = center,
         )
 
-        // 三圈描边。画布放大到整个舞台后重新标定：内圈贴着头像（0.42），
-        // 外圈满电平可推到 0.86，接近屏幕边缘。[sensitivity] 递增，
-        // 电平上去时外圈走得更远，制造"声音把环一层层往外顶"的感觉。
+        // 三圈描边，整体比旧版放大一圈：内圈仍贴着头像（0.48），外圈满电平推到 0.94，
+        // 已经贴近屏幕边缘。[sensitivity] 递增，电平上去时外圈走得更远，
+        // 制造"声音把环一层层往外顶"的感觉。
         val rings = listOf(
-            Triple(0.42f, 0.10f, 0.55f),
-            Triple(0.54f, 0.17f, 0.34f),
-            Triple(0.66f, 0.20f, 0.20f),
+            Triple(0.48f, 0.10f, 0.50f),
+            Triple(0.62f, 0.16f, 0.30f),
+            Triple(0.76f, 0.18f, 0.18f),
         )
         rings.forEachIndexed { index, (baseFraction, sensitivity, baseAlpha) ->
             val radius = unit * (baseFraction + sensitivity * lv + breath * (1f + index * 0.4f))
@@ -810,21 +823,35 @@ private fun BreathingRing(
             )
         }
 
-        // 两圈"荡开"的冲击波：半径随相位单向从头像边缘推到近屏幕边缘（0.97 unit），
-        // 透明度按距离衰减。这是用户要的"波纹荡远一些、一直到屏幕边上"。
-        // 只在非减少动效时画；静音时也保留极淡的一圈，暗示通话还活着。
-        if (!reducedMotion) {
-            val cycle = phase.value / (2f * PI.toFloat())
-            for (k in 0..1) {
-                val p = (cycle * 0.5f + k * 0.5f) % 1f
-                val radius = unit * (0.44f + p * 0.53f)
-                val rippleAlpha = (1f - p) * (1f - p) * (0.06f + 0.34f * lv)
-                if (rippleAlpha <= 0.01f) continue
+        // 扩散波纹：三圈圆形，从头像边缘一路荡到屏幕两侧边缘之外（画布裁掉），边走边淡。
+        // 上一版把透明度压到 ≤0.08、又改成按舞台长宽拉伸的椭圆，结果几乎看不见也到不了边——
+        // 这里改回正圆（终点按短边=屏幕宽度算，横向一定到边），透明度有可见的底（静默也看得见），
+        // 说话时随电平加深。淡入很短（前 12%），淡出用 (1-p)^1.6，越靠边越柔。
+        // 波纹是「她在说话」的反馈而不是装饰，不随「减少动效」关掉；
+        // 否则系统动画缩放为 0 的设备上，中央就只剩一圈死边界。
+        run {
+            val cycle = ripplePhase.value / (2f * PI.toFloat())
+            val startRadius = unit * 0.40f
+            val endRadius = unit * 1.12f
+            for (k in 0..2) {
+                val p = (cycle + k / 3f) % 1f
+                val fadeIn = (p / 0.12f).coerceAtMost(1f)
+                val fadeOut = Math.pow((1f - p).toDouble(), 1.6).toFloat()
+                val alpha = (fadeIn * fadeOut * (0.24f + 0.30f * lv)).coerceIn(0f, 0.6f)
+                if (alpha < 0.01f) continue
+                val radius = startRadius + (endRadius - startRadius) * p
+                // 先画一层宽而淡的光晕，再画细描边：只有一条细线时会显得"硬"。
                 drawCircle(
-                    color = ringColor.copy(alpha = rippleAlpha.coerceAtMost(0.6f)),
+                    color = ringColor.copy(alpha = alpha * 0.35f),
                     radius = radius,
                     center = center,
-                    style = Stroke(width = (2.4f * (1f - p) + 0.5f).dp.toPx()),
+                    style = Stroke(width = (7f * (1f - p) + 2f).dp.toPx()),
+                )
+                drawCircle(
+                    color = ringColor.copy(alpha = alpha),
+                    radius = radius,
+                    center = center,
+                    style = Stroke(width = (2.2f * (1f - p) + 0.8f).dp.toPx()),
                 )
             }
         }
@@ -832,10 +859,10 @@ private fun BreathingRing(
         // 最外圈加一条"掠过的亮弧"：用一个短弧沿圆周慢速旋转，暗示持续在听。
         // 只在非减少动效时画；它比让整圈闪烁安静得多。
         if (!reducedMotion) {
-            val sweepRadius = unit * (0.72f + 0.12f * lv)
+            val sweepRadius = unit * (0.82f + 0.12f * lv)
             drawArc(
-                color = ringColor.copy(alpha = 0.38f),
-                startAngle = (phase.value * 180f / PI.toFloat()) % 360f,
+                color = ringColor.copy(alpha = 0.30f),
+                startAngle = (ripplePhase.value * 180f / PI.toFloat()) % 360f,
                 sweepAngle = 54f,
                 useCenter = false,
                 topLeft = Offset(center.x - sweepRadius, center.y - sweepRadius),
@@ -1170,13 +1197,13 @@ private fun DrawScope.drawBars(lv: Float, ph: Float, color: Color, isMuted: Bool
     val centerY = size.height / 2f
     val minBar = 3.dp.toPx()
     // 容器加高到 140dp 后，条高若顶满整幅会显得凶；收成 72%，上下留出呼吸余量。
-    val maxBar = size.height * 0.72f
+    val maxBar = size.height * 0.48f
     val half = (WAVE_BAR_COUNT - 1) / 2f
 
     for (i in 0 until WAVE_BAR_COUNT) {
         val t = (i - half) / half
         val envelope = cos(t * (PI / 2) * 0.92).toFloat().coerceIn(0.10f, 1f)
-        val wobble = 0.55f + 0.45f * sin(ph + i * 0.55f)
+        val wobble = 0.88f + 0.12f * sin(ph * 0.45f + i * 0.73f)
         val barHeight = minBar + (maxBar - minBar) * lv * envelope * wobble
 
         val left = i * gap + (gap - barWidth) / 2f
@@ -1197,19 +1224,18 @@ private fun DrawScope.drawBars(lv: Float, ph: Float, color: Color, isMuted: Bool
  */
 private fun DrawScope.drawRibbon(lv: Float, ph: Float, color: Color, isMuted: Boolean) {
     val centerY = size.height / 2f
-    val amp = size.height * 0.46f * (0.15f + lv)
+    val amp = size.height * (0.012f + 0.26f * lv)
     val steps = 96
     val alpha = if (isMuted) 0.45f else 1f
 
     // 三层：主波 + 高频细节 + 慢速起伏。频率比不是整数，避免波形周期性重复。
     fun waveAt(x: Float): Float {
         val t = x / size.width
-        val a = sin((t * 6.2f + ph) * PI.toFloat())
-        val b = sin((t * 13.7f - ph * 1.7f) * PI.toFloat()) * 0.32f
-        val c = sin((t * 2.1f + ph * 0.6f) * PI.toFloat()) * 0.22f
+        val a = sin((t * 3.0f + ph * 0.16f) * PI.toFloat())
+        val b = sin((t * 1.1f - ph * 0.09f) * PI.toFloat()) * 0.12f
         // 两端收窄，避免曲线在边界被硬切
         val edge = sin(t * PI.toFloat()).coerceIn(0f, 1f)
-        return (a + b + c) * edge
+        return (a + b) * edge
     }
 
     // 上下两条对称路径，中间用渐变填充，像一条发光的带子
@@ -1539,7 +1565,8 @@ private class WaveInAppSim {
         if (lastFrameMs == 0L) lastFrameMs = nowMs
         val dt = (nowMs - lastFrameMs).coerceIn(0L, 64L)
         lastFrameMs = nowMs
-        if (reducedMotion) return
+        // 不再因 reducedMotion 直接返回：波形是用户声音的反馈，冻住就等于「声音没反应」。
+        // 减少动效只放慢相位（见下 speedScale），电平仍然驱动拱高。
 
         val target = when {
             muted -> 0f
@@ -1549,6 +1576,7 @@ private class WaveInAppSim {
         // 静音冻结相位（彻底平息）；静默时相位速度降到 1/4，只有轻微起伏；说话全速。
         val speedScale = when {
             muted -> 0f
+            reducedMotion -> 0.3f
             level <= 0.02f -> 0.25f
             else -> 1f
         }
@@ -1894,7 +1922,7 @@ private fun ControlButton(
     label: String,
     active: Boolean,
     onClick: () -> Unit,
-    /** false = 能力还没有，画成置灰态。仍然响应点击：调用方需要给出「即将支持」的提示。 */
+    /** false = 能力还没有，禁用点击并暴露 accessibility disabled 语义。 */
     enabled: Boolean = true,
 ) {
     val iconColor = when {
@@ -1907,7 +1935,16 @@ private fun ControlButton(
         modifier = Modifier
             .clip(RoundedCornerShape(18.dp))
             .background(Color.Transparent)
-            .pointerInput(enabled) { detectTapGestures(onTap = { onClick() }) }
+            .then(
+                if (enabled) Modifier.pointerInput(onClick) {
+                    detectTapGestures(onTap = { onClick() })
+                } else {
+                    Modifier.semantics(mergeDescendants = true) {
+                        contentDescription = "$label，暂不可用"
+                        disabled()
+                    }
+                },
+            )
             .padding(horizontal = 6.dp, vertical = 4.dp),
     ) {
         Box(
@@ -2142,6 +2179,29 @@ private fun TextComposerOverlay(
 // ============================================================================
 // 小工具
 // ============================================================================
+
+/**
+ * 帧时钟驱动的循环相位（0..2π，每 [periodMs] 一圈）。
+ *
+ * 不用 rememberInfiniteTransition：它受系统「动画时长缩放」影响，缩放为 0 时整条动画停转。
+ * withFrameMillis 只依赖 Choreographer 帧回调，与该设置无关。State 只在 draw 阶段读取，
+ * 每帧只重绘、不重组。
+ */
+@Composable
+private fun rememberFramePhase(periodMs: Int): State<Float> {
+    val phase = remember { mutableStateOf(0f) }
+    LaunchedEffect(periodMs) {
+        var startMs = -1L
+        while (true) {
+            withFrameMillis { now ->
+                if (startMs < 0L) startMs = now
+                val t = ((now - startMs) % periodMs).toFloat() / periodMs
+                phase.value = t * (2f * PI).toFloat()
+            }
+        }
+    }
+    return phase
+}
 
 /** 把外部电平收敛到 0f..1f。NaN / 越界值一律当作 0，避免画布出现负半径。 */
 private fun Float.toLevelOrZero(): Float =
