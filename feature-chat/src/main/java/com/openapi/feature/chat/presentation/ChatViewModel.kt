@@ -13,6 +13,7 @@ import com.openapi.feature.chat.domain.model.HistoryPage
 import com.openapi.feature.chat.domain.model.ChatStreamEvent
 import com.openapi.feature.chat.domain.model.DeliveryStatus
 import com.openapi.feature.chat.domain.model.MessageKind
+import com.openapi.feature.chat.domain.model.OutgoingAttachment
 import com.openapi.feature.chat.domain.model.VoiceAttachment
 import com.openapi.feature.chat.domain.usecase.LoadHistoryUseCase
 import com.openapi.feature.chat.domain.usecase.SendMessageUseCase
@@ -56,7 +57,11 @@ class ChatViewModel : ViewModel() {
     )
     private val attachments = AttachmentSender(
         repository, _uiState, streamer,
-        streamText = { t -> streamReply(t, userMessageId = null, persistUser = false, syncAfter = false) },
+        // 图文消息：图片已经传完，文字和图片引用一起进同一个回合——只回一次话。
+        streamWithAttachments = { text, messageId, persistUser, files ->
+            streamReply(text, userMessageId = messageId, persistUser = persistUser, syncAfter = false,
+                attachments = files)
+        },
     )
     private val resend = ResendActions(
         repository, _uiState, viewModelScope, streamer,
@@ -176,7 +181,8 @@ class ChatViewModel : ViewModel() {
         regenerate: Boolean = false,
         syncAfter: Boolean = true,
         replaceKey: String? = null,
-    ) = streamer.stream(text, userMessageId, persistUser, regenerate, syncAfter, replaceKey)
+        attachments: List<OutgoingAttachment> = emptyList(),
+    ) = streamer.stream(text, userMessageId, persistUser, regenerate, syncAfter, replaceKey, attachments)
 
     private fun updateByKey(key: String, transform: (ChatMessage) -> ChatMessage) = streamer.updateByKey(key, transform)
 

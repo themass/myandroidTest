@@ -29,6 +29,7 @@ class SendMessageUseCase(private val repository: ChatRepository) {
         roleId: String? = null,
         persistUserMessage: Boolean = true,
         clientMessageId: String? = null,
+        attachments: List<com.openapi.feature.chat.domain.model.OutgoingAttachment> = emptyList(),
     ): Flow<ChatStreamEvent> =
         repository.sendMessageStream(
             sessionId = repository.currentSessionId(),
@@ -37,5 +38,6 @@ class SendMessageUseCase(private val repository: ChatRepository) {
             roleId = roleId,
             persistUserMessage = persistUserMessage,
             clientMessageId = clientMessageId,
+            attachments = attachments,
         )
 }

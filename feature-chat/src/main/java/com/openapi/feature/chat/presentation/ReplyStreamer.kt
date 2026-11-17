@@ -4,6 +4,7 @@ import com.openapi.feature.chat.domain.model.ChatMessage
 import com.openapi.feature.chat.domain.model.ChatRole
 import com.openapi.feature.chat.domain.model.ChatStreamEvent
 import com.openapi.feature.chat.domain.model.DeliveryStatus
+import com.openapi.feature.chat.domain.model.OutgoingAttachment
 import com.openapi.feature.chat.domain.repository.ChatRepository
 import com.openapi.feature.chat.domain.usecase.SendMessageUseCase
 import kotlinx.coroutines.CoroutineScope
@@ -62,6 +63,8 @@ internal class ReplyStreamer(
         syncAfter: Boolean = true,
         /** 重新生成时：复用这条助手消息的气泡（同一个 key、同一个位置），而不是新增一条。 */
         replaceKey: String? = null,
+        /** 与 text 同属这一条用户消息的附件（已上传）。空表示纯文字。 */
+        attachments: List<OutgoingAttachment> = emptyList(),
     ) {
         val snapshot = state.value
         // 本轮是否会新建会话（请求时还没有当前会话）：结束后要同步会话列表
@@ -111,6 +114,7 @@ internal class ReplyStreamer(
                         snapshot.selectedRole?.id,
                         persistUser,
                         clientMessageId = userMessageId,
+                        attachments = attachments,
                     )
                 }
                 events.collect { event ->

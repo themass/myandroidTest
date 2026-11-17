@@ -7,6 +7,7 @@ import com.openapi.feature.chat.domain.model.ChatSession
 import com.openapi.feature.chat.domain.model.ChatStreamEvent
 import com.openapi.feature.chat.domain.model.HistoryPage
 import com.openapi.feature.chat.domain.model.MessageKind
+import com.openapi.feature.chat.domain.model.OutgoingAttachment
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -41,6 +42,8 @@ interface ChatRepository {
      * @param persistUserMessage 为 false 时不在本地缓存用户消息（已经缓存过的重发场景）
      * @param clientMessageId 客户端消息 id。重发（失败后重试）时传原来的 id，服务端据此去重；
      *   为 null 时由实现生成新的 id。
+     * @param attachments 已上传的附件引用。**与 text 一起在同一个回合里发出**——
+     *   拆成「附件一轮 + 文字一轮」会让同一句话得到两条回复，消息在界面上也失真。
      */
     fun sendMessageStream(
         sessionId: Long,
@@ -49,6 +52,7 @@ interface ChatRepository {
         roleId: String? = null,
         persistUserMessage: Boolean = true,
         clientMessageId: String? = null,
+        attachments: List<OutgoingAttachment> = emptyList(),
     ): Flow<ChatStreamEvent>
 
     /**
@@ -99,10 +103,23 @@ interface ChatRepository {
     )
 
     /**
+     * 上传一张图片，返回 `upload_id`。**不产生任何回复**——上传只是把字节放进存储，
+     * 真正的回合由 [sendMessageStream] 带着这个 id 发起。
+     *
+     * 与 [sendAttachment] 的区别就在这里：那个是「上传并让模型据此回一句」的旧语义，
+     * 用它发图文消息会把一句话拆成两条回复。图片要跟文字同属一条消息时用这个方法。
+     *
+     * @return 失败（网络、未登录、服务端拒绝等）返回 null
+     */
+    suspend fun uploadImage(localFile: java.io.File, fileName: String): String?
+
+    /**
      * 上传一个图片或文件附件，等待大模型的回复。
      *
      * 上传走旧版已有的接口（图片 `/chat/ai/recognize.json`，文件 `/chat/ai/local/file.json`），
      * [localFile] 必须已经是要上传的最终文件（图片已压缩）。
+     *
+     * **图片的图文消息不要用它**（见 [uploadImage]）。
      *
      * @param placeholderId 本地占位气泡的 id，服务端用它关联这次请求
      * @return 回复；失败（网络、未登录等）返回 null

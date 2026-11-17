@@ -8,6 +8,7 @@ import com.openapi.feature.chat.domain.model.ChatSession
 import com.openapi.feature.chat.domain.model.ChatStreamEvent
 import com.openapi.feature.chat.domain.model.HistoryPage
 import com.openapi.feature.chat.domain.model.MessageKind
+import com.openapi.feature.chat.domain.model.OutgoingAttachment
 import com.openapi.feature.chat.domain.repository.ChatRepository
 import com.openapi.common.net.http.BaseService
 import com.openapi.core.config.Constants
@@ -84,6 +85,7 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
         roleId: String?,
         persistUserMessage: Boolean,
         clientMessageId: String?,
+        attachments: List<OutgoingAttachment>,
     ): Flow<ChatStreamEvent> = streamClient.sendMessageStream(
         sessionId = sessionId,
         userText = userText,
@@ -137,8 +139,13 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
     override suspend fun localPendingMessages(sessionId: Long): List<ChatMessage> =
         withContext(Dispatchers.IO) { cache.localPending(sessionId) }
 
-    override suspend fun sendAttachment(
-        sessionId: Long,
+    /**
+     * 旧链路没有「只上传不回复」的接口（`recognize.json` 本身就是一次识别回合），
+     * 这里返回 null；图文消息只在 `/v1` 上成立。legacy 实现不再被用作运行时实现。
+     */
+    override suspend fun uploadImage(localFile: File, fileName: String): String? = null
+
+    override suspend fun sendAttachment(        sessionId: Long,
         kind: MessageKind,
         localFile: File,
         fileName: String,

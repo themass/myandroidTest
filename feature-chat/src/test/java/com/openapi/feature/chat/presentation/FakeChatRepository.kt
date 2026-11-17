@@ -7,6 +7,7 @@ import com.openapi.feature.chat.domain.model.ChatSession
 import com.openapi.feature.chat.domain.model.ChatStreamEvent
 import com.openapi.feature.chat.domain.model.HistoryPage
 import com.openapi.feature.chat.domain.model.MessageKind
+import com.openapi.feature.chat.domain.model.OutgoingAttachment
 import com.openapi.feature.chat.domain.repository.ChatRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -45,6 +46,7 @@ internal class FakeChatRepository : ChatRepository {
     override fun sendMessageStream(
         sessionId: Long, userText: String, characterId: Int?, roleId: String?,
         persistUserMessage: Boolean, clientMessageId: String?,
+        attachments: List<OutgoingAttachment>,
     ): Flow<ChatStreamEvent> = emptyFlow()
     override fun regenerateStream(sessionId: Long, characterId: Int?, roleId: String?): Flow<ChatStreamEvent> = emptyFlow()
     override suspend fun editMessage(sessionId: Long, messageId: String, text: String) = true
@@ -66,6 +68,7 @@ internal class FakeChatRepository : ChatRepository {
     override suspend fun saveMessage(sessionId: Long, message: ChatMessage) {
         saved += message
     }
+    override suspend fun uploadImage(localFile: java.io.File, fileName: String): String? = null
     override suspend fun sendAttachment(
         sessionId: Long, kind: MessageKind, localFile: java.io.File, fileName: String, placeholderId: String,
     ): ChatReply? = null
