@@ -94,6 +94,9 @@ android {
         exclude 'META-INF/DEPENDENCIES'
         // 依赖可能带入已废弃的 armeabi，打包时剔除
         exclude 'lib/armeabi/**'
+        // DH Lab native（duix-sdk）与 imaging onnxruntime / OpenCV 撞名
+        pickFirst 'lib/**/libonnxruntime.so'
+        pickFirst 'lib/**/libc++_shared.so'
     }
 
     // Google Play 推荐 AAB：按 ABI/密度/语言拆分，用户只下载对应架构（含 64 位 arm64-v8a）
