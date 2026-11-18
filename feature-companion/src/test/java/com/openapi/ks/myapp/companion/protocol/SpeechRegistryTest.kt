@@ -331,8 +331,45 @@ class SpeechRegistryTest {
     fun `不带 at 的 cue 立即执行`() {
         val r = registry()
         r.onCue("presentation.state", "m1", "idle", null, t0)
-        assertEquals(1, r.sweep(now = t0).apply.size)
+        val sweep = r.sweep(now = t0)
+        assertEquals(1, sweep.apply.size)
+        assertEquals(0L, sweep.apply.single().lateMs)
         assertEquals(1, r.cuesApplied)
+    }
+
+    @Test
+    fun `超过 max_late 的 cue 计 cuesExpired 并保留 lateMs 于 apply 路径之外`() {
+        val r = registry()
+        r.onSeg(seg("sp_1", idx = 0, est = 1000))
+        r.timeline("sp_1")!!.startNow(t0)
+        // 缺省 max_late_ms = 1500：目标在 t0，到 t0+2000 应 EXPIRED
+        r.onCue(
+            "presentation.emotion", "m1", "happy",
+            at("""{"speech":"sp_1","seg":0,"phase":"start"}"""),
+            now = t0,
+        )
+        val sweep = r.sweep(now = t0 + 2_000)
+        assertTrue(sweep.apply.isEmpty())
+        assertEquals(Decision.Reason.EXPIRED, sweep.dropped.single().reason)
+        assertEquals(1, r.cuesExpired)
+        assertEquals(1, r.cuesDropped)
+    }
+
+    @Test
+    fun `准时或略晚的 cue 带着 lateMs 进入 apply`() {
+        val r = registry()
+        r.onSeg(seg("sp_1", idx = 0, est = 1000))
+        r.timeline("sp_1")!!.startNow(t0)
+        r.onCue(
+            "presentation.emotion", "m1", "happy",
+            at("""{"speech":"sp_1","seg":0,"phase":"start"}"""),
+            now = t0,
+        )
+        val sweep = r.sweep(now = t0 + 900)
+        assertEquals(1, sweep.apply.size)
+        assertEquals("m1", sweep.apply.single().cue.id)
+        assertEquals(900L, sweep.apply.single().lateMs)
+        assertEquals(0, r.cuesExpired)
     }
 
     @Test
@@ -380,7 +417,7 @@ class SpeechRegistryTest {
 
         r.onSeg(seg("sp_1", idx = 1, est = 1000))
         val swept = r.sweep(now = t0 + 1000)
-        assertEquals(listOf("m1"), swept.apply.map { it.id })
+        assertEquals(listOf("m1"), swept.apply.map { it.cue.id })
         assertEquals(0, r.pendingCount)
     }
 }
