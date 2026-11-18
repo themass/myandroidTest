@@ -26,6 +26,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.TimeoutCancellationException
@@ -183,6 +184,11 @@ class LiveKitCompanionTransport(
                         // 带 `dst` 的定向消息全被当成「不是给我的」丢掉，而广播照常——
                         // 表现是「她单聊时说的话我收不到，群发都正常」，很难查。
                         protocolLink.bindIdentity(newRoom.localParticipant.identity?.value)
+                        // 握手在事件回调里发，而不是等 connect() 协程恢复。实测
+                        // 协程恢复比本回调晚 2–4 秒（首帧建连时更明显），而服务端
+                        // §7.3 只等 3 秒——hello 再可靠也救不回迟到的发送。
+                        sendHello(newRoom, protocolLink)
+                        scheduleHelloRetry(newRoom, protocolLink)
                         startHealthLoop(newRoom)
                         startSpeechLoop(newRoom)
                     }
@@ -216,6 +222,7 @@ class LiveKitCompanionTransport(
                         // （`speech_id` 不复用，留着无害，还能挡住迟到的 begin）。
                         speech.onReconnected()
                         sendHello(newRoom, protocolLink)
+                        scheduleHelloRetry(newRoom, protocolLink)
                     }
                     is RoomEvent.Disconnected -> {
                         _connection.value = TransportConnection.DISCONNECTED
@@ -291,9 +298,42 @@ class LiveKitCompanionTransport(
             }
         }
 
-        // 握手必须由客户端发起（§7.3）：老客户端从不发 hello，服务端只会等 3 秒然后
-        // 按 v1 处理。连上了还不发，这一整条连接就永远拿不到 cmp.*。
+        // 握手必须由客户端发起（§7.3）。首发在 Connected 事件里（赶在服务端 3 秒
+        // 窗口之前）；这里是第二枪：§7.3 明确「服务端必须容忍客户端重发 hello」，
+        // 序号状态机也只认更大 seq 的新 id——补发一条不会打挂任何一边。
         sendHello(newRoom, protocolLink)
+    }
+
+    /**
+     * 没收到 hello_ack 就一直按节拍补发，直到 ack 到达或预算用完（§6 A 类：
+     * 「发送方重试直到 ack 或超时」）。
+     *
+     * 为什么必须重试而不是补一枪：agent 进程冷启动（import、语音栈装配）实测
+     * 15–20 秒，而它的 3 秒 hello 窗口是**装配完成之后**才开始等的——客户端连接
+     * 时房间里根本还没有接收者。首连的所有 hello 都发给了一个还不存在的耳朵，
+     * 这不是竞态窗口能调掉的，是到达性问题，只有重试能解。
+     *
+     * 预算 60 秒：agent 最慢的冷启动也在这个量级内完成；用完仍无 ack 就接受
+     * v1 回落（功能不退化），不给每个失败会话留一个无限循环。
+     */
+    private fun scheduleHelloRetry(current: Room, protocolLink: CompanionProtocolLink) {
+        scope.launch {
+            var sent = 0
+            while (isActive && sent < HELLO_RETRY_MAX) {
+                delay(HELLO_RETRY_INTERVAL_MS)
+                // 房间可能已经换了一次（用户挂断又拨通）：旧 attempt 的定时器不许
+                // 往新房间补发。
+                if (room !== current) return@launch
+                if (protocolLink.negotiator.ack != null) return@launch
+                sent++
+                logInfo("attempt=$activeAttemptId event=hello_retry n=$sent")
+                sendHello(current, protocolLink)
+            }
+            // 走到这里说明预算用完还没谈成：这条连接按 v1 走，是设计内的降级。
+            if (room === current && protocolLink.negotiator.ack == null) {
+                logWarn("attempt=$activeAttemptId event=hello_gave_up after=$sent")
+            }
+        }
     }
 
     /**
@@ -948,6 +988,9 @@ class LiveKitCompanionTransport(
         const val TAG = "MouthLevel"
         const val CONNECT_TIMEOUT_MS = 20_000L
         const val PCM_LOG_INTERVAL_MS = 10_000L
+        /** 没收到 hello_ack 的补发节拍与预算（§6 A 类），见 scheduleHelloRetry。 */
+        const val HELLO_RETRY_INTERVAL_MS = 3_000L
+        const val HELLO_RETRY_MAX = 20
 
         /** `telemetry.health` 的上报周期（§8 表格：30 s）。 */
         const val HEALTH_INTERVAL_MS = 30_000L

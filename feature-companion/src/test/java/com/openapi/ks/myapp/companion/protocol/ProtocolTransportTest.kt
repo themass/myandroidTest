@@ -71,6 +71,23 @@ class ProtocolTransportTest {
     }
 
     @Test
+    fun `重发 hello 序号递增 id 换新——服务端补记而不是当重复丢`() {
+        // 实测的首连竞态：connect() 协程比 Connected 事件晚 2–4 秒恢复，赶不上
+        // 服务端 §7.3 的 3 秒窗口，只能靠补发。补发要能被服务端接受，靠的就是
+        // 这两条：seq 必须比第一条大（否则 STALE 丢弃），id 必须是新的
+        // （否则 DUPLICATE 丢弃）。epoch 反而必须不变——换 epoch 会把对端的
+        // 序号簿记整个清掉，那是重连才做的事。
+        val link = CompanionProtocolLink(identity = me)
+        val first = ProtocolCodec.decode(link.helloBytes()!!).envelope!!
+        val retry = ProtocolCodec.decode(link.helloBytes()!!).envelope!!
+
+        assertEquals("control.hello", retry.t)
+        assertEquals(1L, retry.seq)
+        assertNotEquals(first.id, retry.id)
+        assertEquals(first.ep, retry.ep)
+    }
+
+    @Test
     fun `协商之前不发 cue`() {
         val link = CompanionProtocolLink(identity = me)
         // 没握手就没有能力表：猜一个会让对端发来我处理不了的消息。
