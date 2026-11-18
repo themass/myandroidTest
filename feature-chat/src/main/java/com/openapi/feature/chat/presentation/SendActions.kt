@@ -128,14 +128,22 @@ internal class SendActions(
      */
     fun replaceDraftImage(target: java.io.File, edited: android.net.Uri, context: android.content.Context) {
         scope.launch {
-            val ok = withContext(Dispatchers.IO) {
-                runCatching {
-                    context.contentResolver.openInputStream(edited)?.use { input ->
-                        java.io.FileOutputStream(target).use { output -> input.copyTo(output) }
-                    } ?: false
-                }.getOrDefault(false)
+            val ok: Boolean = withContext(Dispatchers.IO) {
+                try {
+                    val input = context.contentResolver.openInputStream(edited)
+                    if (input == null) {
+                        android.util.Log.w("SendActions", "replaceDraftImage: openInputStream 返回 null, uri=$edited")
+                        false
+                    } else {
+                        input.use { src -> java.io.FileOutputStream(target).use { dst -> src.copyTo(dst) } }
+                        true
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.w("SendActions", "replaceDraftImage 写回失败: target=$target uri=$edited", e)
+                    false
+                }
             }
-            if (ok != true) state.update { it.copy(error = "编辑失败，已使用原图") }
+            if (!ok) state.update { it.copy(error = "编辑失败，已使用原图") }
             // 编辑产生的临时文件用完即删
             withContext(Dispatchers.IO) { com.openapi.mediaview.edit.PhotoEditExporter.delete(edited) }
         }
