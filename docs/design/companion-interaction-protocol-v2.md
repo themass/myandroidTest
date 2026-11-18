@@ -289,7 +289,7 @@ RELIABLE 通道理论上不丢包，但**不保证不丢**（对端进程崩溃�
 | `control.barge_in` | A | C→S | 端侧检测到用户开口 |
 | `control.input` | A | C→S | 端侧即时输入（`cmp.in`），目前是触摸：`{kind:"touch", region}` |
 | `speech.seg` | A | S→C | 一句语音的段声明（句级，按出句顺序，idx 连续），cap `speech.v1` |
-| `speech.end` | A | S→C | 该 `speech_id` 说完（该轮 TTS 全部排空） |
+| `speech.end` | A | S→C | 该 `speech_id` 的本轮 TTS **生成侧**已全部排空（不是扬声器播完） |
 | `presentation.state` | B | S→C | IDLE/LISTENING/THINKING/SPEAKING |
 | `presentation.emotion` | B | S→C | 情绪 |
 | `presentation.gesture` | B | S→C | 动作/手势 |
@@ -348,7 +348,7 @@ v1 草案的做法是"服务端估算 playback head"，但它算出来的只是"
 - **一个 `speech_id` 对应一轮回复**。`speech.seg` 每出一句发一条（句级，不是批次）。`idx` 从 0 开始连续递增。`idx == 0` 的 `speech.seg` 隐式开启该 `speech_id` 的时间线。
 - **`speech.seg(k)` 必须先于引用段 k 的 cue、以及段 k 的 TTS 开口发出**（§13 不变量 1）。
 - `est_ms` 必需。给不出就按字符数估（中文按 5 字/秒）。`chars` 只用于日志与估计复核，端侧调度不读它。
-- `speech.end` 在该轮 TTS 全部排空时发出。`speech.end` 之后不得再有该 `speech_id` 的 `speech.seg`。
+- `speech.end` 在该轮 TTS **生成侧**全部排空时发出：服务端 TTS 节点已把本轮全部音频帧交给传输。它**不是**「扬声器播完」——服务端没有播放时钟（§9.1 / D5），也测不到端侧播到哪。因此 `speech.end` 常会早于端侧 `t0`（短回复尤其常见）；端侧收到后把时间线标 DONE，但挂在这句上、尚未到点的 cue 不因此取消。`speech.end` 之后不得再有该 `speech_id` 的 `speech.seg`。
 - 段数上限 `MAX_SEGMENTS`（24）：超出的句子照常朗读，但不再发 `speech.seg`；锚在它们上的 cue 按 NO_ANCHOR 丢弃并计数。
 - **消息量**：N 句的一轮回复发 N+1 条语音消息（旧方案约 2N+2）。每条 `speech.seg` 远小于 200 B，远低于 `max_payload_bytes`。
 - 没有 `speech.v1` 能力的端侧：服务端不发任何 `speech.*`；锚到 `speech` 的 cue 在该端按 NO_ANCHOR 丢弃（与 v1 行为一致，不影响无锚的 cue）。
@@ -420,7 +420,7 @@ TTS 从文本到首帧通常 300–800 ms，这段时间就是 cue 的天然前�
 | `speech.begin` / `speech.extend` | 合并为句级的 `speech.seg`；流式出字时不需要"先声明全部段" | 无 | — |
 | `speech.segment`（`dur_ms` / `start_boundary`） | 每段多一条消息，换来的精度不足以抵消消息量与状态复杂度 | 段起点精度降到 ±500 ms 量级（§9.7） | 给 `speech.seg` 加可选 `dur_ms` |
 | `phase`（`before` / `during` / `after`）与 `offset_ms` | 段首锚 + TTS 前导已覆盖"同步"与"之前"；`during` 与段首同步等价 | "说完再做"无精确表达（见下） | 加新的锚点形态 |
-| "说完再做"（原 `after`） | 去掉 `phase` 的代价 | 近似为锚到**下一段段首**；最后一段之后的动作本协议不表达，需要时由客户端收到 `speech.end` 后本地触发（不在协议里约定） | 加 `{"speech","end":true}` 形态 |
+| "说完再做"（原 `after`） | 去掉 `phase` 的代价 | 近似为锚到**下一段段首**；最后一段之后的动作本协议不表达。`speech.end` 只表示生成侧排空，不能当「扬声器播完」用；需要时由客户端按本地 `est_ms`/`t0` 估算句尾后触发（不在协议里约定） | 加 `{"speech","end":true}` 形态 |
 | `wall` 绝对时间锚 | 当前没有跨播放器对齐的场景 | 无 | 加形态 |
 | `speech.timing` / `speech.extend` 两个能力 | 合并为一个 `speech.v1` | 无 | — |
 

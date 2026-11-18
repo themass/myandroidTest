@@ -321,8 +321,8 @@ class SpeechSchedulerTest {
 
     @Test
     fun `speech_end 之后 after 类动作仍然算得准`() {
-        // §17 P1 的验收项之一。end 只是「音频全排完了」，不该把时间线作废——
-        // 否则挂最后一段的 after（收尾动作）永远落空。
+        // §17 P1：speech.end = TTS 生成侧排空，不是扬声器播完，更不该把时间线作废——
+        // 否则挂最后一段的收尾动作永远落空。
         val tl = timeline(800, 900)
         tl.startNow(t0)
         tl.markDone()

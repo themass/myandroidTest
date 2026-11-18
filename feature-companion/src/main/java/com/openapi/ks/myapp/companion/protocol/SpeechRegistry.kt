@@ -91,7 +91,7 @@ class SpeechRegistry<P>(
         return true
     }
 
-    /** `speech.end`：音频排完了。**不取消**挂在这一句上的 `after`（§17 P1 验收）。 */
+    /** `speech.end`：服务端 TTS 生成侧排空（§9.3）。**不取消**挂在这一句上、尚未到点的 cue。 */
     @Synchronized
     fun onEnd(args: JSONObject) {
         val speechId = (args.opt("speech_id") as? String)?.takeIf { it.isNotBlank() } ?: return
