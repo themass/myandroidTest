@@ -19,7 +19,13 @@ object DhEngineRegistry {
             if (factory == null) {
                 DhEngineAvailability(id, available = false, reason = "未编入")
             } else {
-                factory(context).availability(context)
+                // 探测可用性时创建的实例不会挂到 UI：立刻 release，避免 Simple 眨眼协程泄漏。
+                val probe = factory(context)
+                try {
+                    probe.availability(context)
+                } finally {
+                    probe.release()
+                }
             }
         }
 

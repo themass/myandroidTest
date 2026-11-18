@@ -85,8 +85,8 @@ fun DigitalHumanLabHost(
         if (id == selected) return
         swapping = true
         status = null
-        val next = DhEngineRegistry.create(context, id)
-        bridge.swap(next)
+        // 先 release 再 create（Review Focus / §5.1），禁止双引擎重叠。
+        val next = bridge.replaceWith { DhEngineRegistry.create(context, id) }
         spec?.let { next.bind(it) }
         engine = next
         selected = id

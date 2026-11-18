@@ -17,6 +17,17 @@ class DigitalHumanBridge(
         engine = next
     }
 
+    /**
+     * 切换时先 release 旧引擎，再让 [factory] 创建新的——避免双 GL/双协程重叠。
+     * 切到同一实例时 no-op。
+     */
+    fun replaceWith(factory: () -> DigitalHumanEngine): DigitalHumanEngine {
+        engine.release()
+        val next = factory()
+        engine = next
+        return next
+    }
+
     fun onAvatarCommand(cmd: AvatarCommand) {
         engine.dispatch(cmd)
     }

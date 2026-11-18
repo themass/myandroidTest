@@ -70,6 +70,29 @@ class DhEngineRegistryTest {
     }
 
     @Test
+    fun available_does_not_retain_unreleased_engine_from_factory() {
+        var created = 0
+        var released = 0
+        DhEngineRegistry.resetForTests()
+        DhLabBootstrap.resetForTests()
+        DhEngineRegistry.register(DhEngineId.SIMPLE) {
+            created++
+            object : DigitalHumanEngine {
+                override val id = DhEngineId.SIMPLE
+                override val capabilities: Set<AvatarCapability> = emptySet()
+                override fun bind(spec: AvatarSpec) {}
+                override fun dispatch(command: AvatarCommand) {}
+                override fun release() { released++ }
+                override fun availability(context: Context) =
+                    DhEngineAvailability(DhEngineId.SIMPLE, available = true)
+            }
+        }
+        DhEngineRegistry.available(context)
+        assertEquals(1, created)
+        assertEquals("probe engines from available() must be released", 1, released)
+    }
+
+    @Test
     fun bridge_swap_releases_old_and_forwards_to_new() {
         val old = RecordingEngine(DhEngineId.SIMPLE)
         val neu = RecordingEngine(DhEngineId.SIMPLE)
@@ -79,6 +102,20 @@ class DhEngineRegistryTest {
         bridge.onMouthLevel(0.2f)
         assertTrue(old.commands.isEmpty())
         assertEquals(listOf(AvatarCommand.Mouth(0.2f)), neu.commands)
+    }
+
+    @Test
+    fun bridge_replace_with_releases_before_factory_runs() {
+        val order = mutableListOf<String>()
+        val old = object : DigitalHumanEngine by RecordingEngine(DhEngineId.SIMPLE) {
+            override fun release() { order += "release" }
+        }
+        val bridge = DigitalHumanBridge(old)
+        bridge.replaceWith {
+            order += "create"
+            RecordingEngine(DhEngineId.SIMPLE)
+        }
+        assertEquals(listOf("release", "create"), order)
     }
 
     private class RecordingEngine(override val id: DhEngineId) : DigitalHumanEngine {
