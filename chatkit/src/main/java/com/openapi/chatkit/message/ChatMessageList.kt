@@ -137,10 +137,19 @@ fun ChatMessageList(
 
     // 是否跟随最新内容：只由用户的滑动决定。用户停下来时如果在底部就跟随，往上翻了就不再抢滚动。
     // 内容增长（流式）本身不会改变这个状态，所以不会出现「刚长高一点就被判定为不在底部」。
+    //
+    // 关键：首帧 LazyColumn 停在 index=0，此时 canScrollForward=true、isScrollInProgress=false。
+    // 若把「从未滚动过」也当成「用户翻走了」去关 following，历史一进来就钉在第一条，
+    // 贴底逻辑全停。必须等用户真的拖过一次再评估。
     var following by remember { mutableStateOf(true) }
+    var userDragged by remember { mutableStateOf(false) }
     LaunchedEffect(state) {
         snapshotFlow { state.isScrollInProgress }.collect { scrolling ->
-            if (!scrolling) following = !state.canScrollForward
+            if (scrolling) {
+                userDragged = true
+            } else if (userDragged) {
+                following = !state.canScrollForward
+            }
         }
     }
 
