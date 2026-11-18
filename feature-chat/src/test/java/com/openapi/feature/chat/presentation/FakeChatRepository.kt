@@ -48,7 +48,12 @@ internal class FakeChatRepository : ChatRepository {
         persistUserMessage: Boolean, clientMessageId: String?,
         attachments: List<OutgoingAttachment>,
     ): Flow<ChatStreamEvent> = emptyFlow()
-    override fun regenerateStream(sessionId: Long, characterId: Int?, roleId: String?): Flow<ChatStreamEvent> = emptyFlow()
+    /** regenerateStream 被调了几次：验证「带图消息的重跑走服务端，而不是整条重发」。 */
+    var regenerateStreamCalls = 0
+    override fun regenerateStream(sessionId: Long, characterId: Int?, roleId: String?): Flow<ChatStreamEvent> {
+        regenerateStreamCalls++
+        return emptyFlow()
+    }
     override suspend fun editMessage(sessionId: Long, messageId: String, text: String) = true
     override suspend fun clearLocalMessages(sessionId: Long) {
         clearedLocal++
@@ -68,7 +73,13 @@ internal class FakeChatRepository : ChatRepository {
     override suspend fun saveMessage(sessionId: Long, message: ChatMessage) {
         saved += message
     }
-    override suspend fun uploadImage(localFile: java.io.File, fileName: String): String? = null
+    /** 非 null 时 uploadImage 直接返回它；同时记录每次调用的文件，验证「该不该重新上传」。 */
+    var uploadImageResult: String? = null
+    val uploadImageCalls = mutableListOf<java.io.File>()
+    override suspend fun uploadImage(localFile: java.io.File, fileName: String): String? {
+        uploadImageCalls += localFile
+        return uploadImageResult
+    }
     override suspend fun sendAttachment(
         sessionId: Long, kind: MessageKind, localFile: java.io.File, fileName: String, placeholderId: String,
     ): ChatReply? = null

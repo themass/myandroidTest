@@ -44,8 +44,11 @@ internal class ResendActions(
         if (lastUserIndex < 0) return
         val lastUser = snapshot.messages[lastUserIndex]
         val lastReply = snapshot.messages.lastOrNull()?.takeIf { it.role == ChatRole.ASSISTANT }
-        if (lastUser.images.isNotEmpty() || lastUser.files.isNotEmpty()) {
-            // 带附件的消息不走 regenerate（附件不在服务端历史里），按原样重新上传：这种情况仍然截断后重发
+        // 带图片的消息也走服务端 regenerate：图片引用跟着用户消息存进服务端 meta，
+        // 重跑时由服务端重新读图给模型。以前这里「重新上传后整条重发」，
+        // 会在服务端多出一条一模一样的用户消息（上一条还留在历史里）。
+        // 文件仍走 legacy 的逐条接口，服务端历史里没有文件引用，只能整条重发。
+        if (lastUser.files.isNotEmpty()) {
             state.update { it.copy(messages = snapshot.messages.subList(0, lastUserIndex + 1).toList()) }
             startAttachments(lastUser)
         } else if (lastReply != null) {
