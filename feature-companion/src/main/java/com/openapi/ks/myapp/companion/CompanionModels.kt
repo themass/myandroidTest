@@ -26,6 +26,16 @@ data class SessionResponse(
      * null 表示服务端没绑定聊天会话（老版本或未登录），此时不做历史回放。
      */
     val chatSessionId: Long? = null,
+    /**
+     * 这段通话走哪条 RTC 线路：`livekit`（默认）| `volcengine`。
+     *
+     * 权威在服务端——建会话时定，随 grant 下发；客户端不做探测也不自选，只照着
+     * [CompanionTransports] 分发（docs/companion-rtc-provider-switching.md §2）。
+     * 空串按 livekit 解释，所以老服务端/新客户端、新服务端/老客户端都不断。
+     */
+    val provider: String = CompanionTransports.PROVIDER_LIVEKIT,
+    /** provider 特定参数（火山线的 app_id/room_id/token 等）；livekit 时为 null。原样透传，由各家实现自己解读。 */
+    val providerConfig: JSONObject? = null,
 )
 
 // ---- 历史 ----

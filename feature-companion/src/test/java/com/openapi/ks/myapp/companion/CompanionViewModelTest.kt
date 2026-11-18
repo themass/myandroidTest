@@ -42,7 +42,7 @@ class CompanionViewModelTest {
                 listOf(InboxMessage("m1", "linche", "面试加油，你准备好了吗？", "in_app", "2026-11-07T10:00:00Z", "event_due")),
             ),
         )
-        val vm = CompanionViewModel(api = api, transport = FakeCompanionTransport(reply = ""), inboxPollMillis = 1_000)
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 1_000)
 
         vm.start("linche")
         runCurrent()
@@ -57,7 +57,7 @@ class CompanionViewModelTest {
     fun `the same inbox message is not shown twice`() = runTest(dispatcher) {
         val message = InboxMessage("m1", "linche", "记得吃药", "in_app", "2026-11-07T10:00:00Z", "event_due")
         val api = FakeCompanionApi(inboxBatches = mutableListOf(listOf(message), listOf(message)))
-        val vm = CompanionViewModel(api = api, transport = FakeCompanionTransport(reply = ""), inboxPollMillis = 1_000)
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 1_000)
 
         vm.start("linche")
         runCurrent()
@@ -75,7 +75,7 @@ class CompanionViewModelTest {
                 PendingAction("cfm-1", "linche", "create_reminder", "为你建一条提醒：吃药"),
             ),
         )
-        val vm = CompanionViewModel(api = api, transport = FakeCompanionTransport(reply = ""), inboxPollMillis = 60_000)
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
 
         vm.start("linche")
         runCurrent()
@@ -89,7 +89,7 @@ class CompanionViewModelTest {
         val api = FakeCompanionApi(
             pending = mutableListOf(PendingAction("cfm-1", "linche", "create_reminder", "建提醒")),
         )
-        val vm = CompanionViewModel(api = api, transport = FakeCompanionTransport(reply = ""), inboxPollMillis = 60_000)
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
 
         vm.start("linche")
         runCurrent()
@@ -106,7 +106,7 @@ class CompanionViewModelTest {
         val api = FakeCompanionApi(
             pending = mutableListOf(PendingAction("cfm-2", "linche", "create_reminder", "建提醒")),
         )
-        val vm = CompanionViewModel(api = api, transport = FakeCompanionTransport(reply = ""), inboxPollMillis = 60_000)
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
 
         vm.start("linche")
         runCurrent()
@@ -123,7 +123,7 @@ class CompanionViewModelTest {
             pending = mutableListOf(PendingAction("cfm-3", "linche", "create_reminder", "建提醒")),
             confirmFailure = CompanionApiException("登录已失效，请重新登录", statusCode = 401),
         )
-        val vm = CompanionViewModel(api = api, transport = FakeCompanionTransport(reply = ""), inboxPollMillis = 60_000)
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
 
         vm.start("linche")
         runCurrent()
@@ -146,7 +146,7 @@ class CompanionViewModelTest {
                 listOf(InboxMessage("m1", "linche", "记得吃药", "in_app", "2026-11-07T10:00:00Z", "event_due")),
             ),
         )
-        val vm = CompanionViewModel(api = api, transport = FakeCompanionTransport(reply = ""), inboxPollMillis = 60_000)
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
 
         vm.start("linche")
         runCurrent()
@@ -166,7 +166,7 @@ class CompanionViewModelTest {
         val api = FakeCompanionApi(
             pending = mutableListOf(PendingAction("cfm-1", "linche", "create_reminder", "建提醒")),
         )
-        val vm = CompanionViewModel(api = api, transport = FakeCompanionTransport(reply = ""), inboxPollMillis = 60_000)
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
 
         vm.start("linche")
         runCurrent()
@@ -196,7 +196,7 @@ class CompanionViewModelTest {
                 CompanionEvent.TurnDone,
             ),
         )
-        val vm = CompanionViewModel(api = null, transport = transport, inboxPollMillis = 60_000)
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
 
         vm.start("linche")
         runCurrent()
@@ -214,7 +214,7 @@ class CompanionViewModelTest {
         val transport = ScriptedTransport(
             listOf(CompanionEvent.Proactive("面试加油", ProactiveKind.EVENT), CompanionEvent.TurnDone),
         )
-        val vm = CompanionViewModel(api = null, transport = transport, inboxPollMillis = 60_000)
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
 
         vm.start("linche")
         runCurrent()
@@ -231,7 +231,7 @@ class CompanionViewModelTest {
     @Test
     fun `regenerating appends a streaming placeholder without duplicating the user message`() = runTest(dispatcher) {
         val transport = FakeCompanionTransport(reply = "")
-        val vm = CompanionViewModel(api = null, transport = transport, inboxPollMillis = 60_000)
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
 
         vm.start("linche")
         runCurrent()
@@ -253,15 +253,119 @@ class CompanionViewModelTest {
         assertTrue("重新回答应补一个流式占位", last.streaming)
         vm.stopListening()
     }
+
+    // ------------------------------------------------------ provider 分发
+
+    /**
+     * 线路切换的客户端一侧（docs/companion-rtc-provider-switching.md §2）：
+     * provider 由服务端在建会话时定、随 grant 下发；ViewModel 只把 grant 里的
+     * provider 递给工厂，自己不认识任何具体 RTC 实现。
+     */
+    @Test
+    fun `the factory gets the provider the server chose in the grant`() = runTest(dispatcher) {
+        val requested = mutableListOf<String>()
+        val api = FakeCompanionApi(
+            session = SessionResponse("s1", "room", "token", "wss://example.test", "", provider = "volcengine"),
+        )
+        val vm = CompanionViewModel(
+            api = api,
+            transportFactory = { provider -> requested += provider; RecordingProbe() },
+            inboxPollMillis = 60_000,
+        )
+
+        vm.start("linche")
+        runCurrent()
+
+        // 构造时按默认线路装配一次，拿到 grant 后发现服务端指定了别的线路再换。
+        assertEquals(listOf(CompanionTransports.PROVIDER_LIVEKIT, "volcengine"), requested)
+        vm.stopListening()
+    }
+
+    /** grant 里没有 provider（老服务端）→ 按 livekit 装配，行为与以前一致。 */
+    @Test
+    fun `a grant without a provider means livekit`() = runTest(dispatcher) {
+        val requested = mutableListOf<String>()
+        val vm = CompanionViewModel(
+            api = FakeCompanionApi(), // 默认 SessionResponse：provider 取默认值 livekit
+            transportFactory = { provider -> requested += provider; RecordingProbe() },
+            inboxPollMillis = 60_000,
+        )
+
+        vm.start("linche")
+        runCurrent()
+
+        assertEquals(listOf(CompanionTransports.PROVIDER_LIVEKIT), requested)
+        vm.stopListening()
+    }
+
+    /** 服务端没切线路（provider 没变）→ 不得重建 transport，否则会白白换掉替身。 */
+    @Test
+    fun `the same provider does not rebuild the transport`() = runTest(dispatcher) {
+        val probe = RecordingProbe()
+        var created = 0
+        val vm = CompanionViewModel(
+            api = FakeCompanionApi(),
+            transportFactory = { created++; probe },
+            inboxPollMillis = 60_000,
+        )
+
+        vm.start("linche")
+        runCurrent()
+        vm.start("linche") // 重进同一角色（重连路径）
+        runCurrent()
+
+        assertEquals("provider 没变就不该再向工厂要实现", 1, created)
+        assertEquals(1, probe.connects)
+        vm.stopListening()
+    }
+
+    /** 线路换了 → 旧实现先断开、新实现接上并连上新会话（容灾换线的客户端形态）。 */
+    @Test
+    fun `a provider change swaps the transport and connects the new one`() = runTest(dispatcher) {
+        val livekit = RecordingProbe()
+        val volc = RecordingProbe()
+        val api = FakeCompanionApi(
+            session = SessionResponse("s1", "room", "token", "wss://example.test", "", provider = "livekit"),
+        )
+        val vm = CompanionViewModel(
+            api = api,
+            transportFactory = { provider -> if (provider == "volcengine") volc else livekit },
+            inboxPollMillis = 60_000,
+        )
+
+        vm.start("linche")
+        runCurrent()
+        // 服务端把这个会话切到了火山线路：再发起一次通话必须换实现。
+        // 换一个角色 id 绕过「同角色不重连」的守卫，模拟的就是新通话。
+        api.session = SessionResponse("s2", "room2", "t2", "wss://example.test", "", provider = "volcengine")
+        vm.start("linche2")
+        runCurrent()
+
+        assertEquals("旧线路要先断开", 1, livekit.disconnects)
+        assertEquals("新线路要连上新会话", 1, volc.connects)
+        vm.stopListening()
+    }
 }
+
+/** 记录 connect/disconnect 次数的探针，用于验证 provider 换线时的实现交接。 */
+private class RecordingProbe : CompanionTransport {
+    var connects = 0
+    var disconnects = 0
+    override val events: kotlinx.coroutines.flow.Flow<CompanionEvent> =
+        kotlinx.coroutines.flow.MutableSharedFlow()
+    override suspend fun connect(session: SessionResponse) { connects++ }
+    override fun sendText(text: String) = Unit
+    override suspend fun disconnect() { disconnects++ }
+}
+
 
 /**
  * 按脚本吐事件的传输替身：用来验证「房间事件 → ViewModel state」这一段，
  * 不碰网络与 LiveKit。事件发完后保持打开（真实房间在一次会话里也是长连）。
  */
 class ScriptedTransport(private val script: List<CompanionEvent>) : CompanionTransport {
-    // replay = 脚本长度：ViewModel 是「先 connect 再 listen」，没有 replay 的话
-    // 在 connect 里发出的这些事件会在收集者出现之前就丢掉。
+    // replay = 脚本长度：ViewModel 统一「先 listen 再 connect」，这里保留 replay
+    // 只是为了对订阅时序不敏感（connect 前发出的事件也能被补上）。
     private val channel = kotlinx.coroutines.flow.MutableSharedFlow<CompanionEvent>(
         replay = script.size,
         extraBufferCapacity = 8,
@@ -283,12 +387,13 @@ class FakeCompanionApi(
     private val inboxBatches: MutableList<List<InboxMessage>> = mutableListOf(),
     private val pending: MutableList<PendingAction> = mutableListOf(),
     private val confirmFailure: Exception? = null,
+    /** 可以带 provider：验证「服务端在 grant 里指定线路 → ViewModel 按它取实现」。 */
+    var session: SessionResponse = SessionResponse("s1", "room", "token", "wss://example.test", ""),
 ) : CompanionApi {
 
     val confirmations = mutableListOf<Pair<String, Boolean>>()
 
-    override suspend fun createSession(characterId: String) =
-        SessionResponse("s1", "room", "token", "wss://example.test", "")
+    override suspend fun createSession(characterId: String) = session
 
     override suspend fun history(sessionId: Long, limit: Int): List<CompanionHistoryItem> = emptyList()
 
