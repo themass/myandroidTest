@@ -150,9 +150,16 @@ fun CompanionScreen(
     }
 
     // 新消息到达时滚到底。用消息条数与最后一条文本做 key：流式追加时也要跟。
+    // 首批历史（从没滚过）用无动画 jump：否则先画在第 0 条再 animate，用户会看到「停在第一条」。
+    var pinnedOnce by remember { mutableStateOf(false) }
     LaunchedEffect(state.messages.size, state.messages.lastOrNull()?.text) {
-        if (state.messages.isNotEmpty()) {
-            listState.animateScrollToItem(state.messages.lastIndex)
+        if (state.messages.isEmpty()) return@LaunchedEffect
+        val index = state.messages.lastIndex
+        if (!pinnedOnce) {
+            listState.scrollToItem(index)
+            pinnedOnce = true
+        } else {
+            listState.animateScrollToItem(index)
         }
     }
 

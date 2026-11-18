@@ -1031,10 +1031,16 @@ private fun CaptionStack(
     var followTail by remember { mutableStateOf(true) }
     // 我们自己触发的滚动不算「用户往上翻」，否则每次跟随都会被自己关掉。
     var autoScrolling by remember { mutableStateOf(false) }
+    // 首帧 LazyColumn 默认停在第 0 条，此时 canScrollForward=true。
+    // 若在「尚未出现过用户拖动」时就用它关掉 followTail，贴底滚动永远不会跑，
+    // 用户一进通话页就停在最早一句——这正是线上现象。只在用户真的拖过一次后再评估。
+    var userDragged by remember { mutableStateOf(false) }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrollInProgress }.collect { scrolling ->
-            if (!scrolling && !autoScrolling) {
+            if (scrolling && !autoScrolling) {
+                userDragged = true
+            } else if (!scrolling && userDragged && !autoScrolling) {
                 // 拖动结束时判断停在哪儿：还能往下滚说明用户停在历史里，就暂停跟随。
                 followTail = !listState.canScrollForward
             }
@@ -1045,7 +1051,12 @@ private fun CaptionStack(
         if (!followTail) return@LaunchedEffect
         autoScrolling = true
         try {
-            listState.animateScrollToItem(visible.lastIndex)
+            // 第一次直接跳到底，避免先闪一下顶部再动画下来。
+            if (!userDragged) {
+                listState.scrollToItem(visible.lastIndex)
+            } else {
+                listState.animateScrollToItem(visible.lastIndex)
+            }
         } finally {
             autoScrolling = false
         }
