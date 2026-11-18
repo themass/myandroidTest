@@ -146,6 +146,17 @@ class HttpCompanionApiTest {
         assertEquals("linche", JSONObject(fake.bodies.single()).getString("character_id"))
         assertEquals("companion-s1", s.roomName)
         assertEquals("wss://lk", s.livekitUrl)
+        // 老服务端没有 provider 字段：解析结果必须落到默认线路 livekit，不能让旧响应变成未知线路
+        assertEquals("livekit", s.provider)
+    }
+
+    @Test
+    fun `create session keeps the provider and provider config the server chose`() {
+        val fake = Fake(body = """{"session_id":"s1","room_name":"r","token":"t","livekit_url":"wss://lk","expires_at":"e","provider":"volcengine","provider_config":{"app_id":"a1","room_id":"r9"}}""")
+        val s = runBlocking { api(fake).createSession("linche") }
+        assertEquals("volcengine", s.provider)
+        assertEquals("a1", s.providerConfig?.getString("app_id"))
+        assertEquals("r9", s.providerConfig?.getString("room_id"))
     }
 
     @Test

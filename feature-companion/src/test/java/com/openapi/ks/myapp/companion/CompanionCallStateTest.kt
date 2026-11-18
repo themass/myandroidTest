@@ -42,7 +42,7 @@ class CompanionCallStateTest {
     @Test
     fun `entering a call without mic permission still opens the call, muted`() = runTest(dispatcher) {
         val transport = RecordingTransport()
-        val vm = CompanionViewModel(api = null, transport = transport, inboxPollMillis = 60_000)
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
 
         vm.start("linche")
         runCurrent()
@@ -60,7 +60,7 @@ class CompanionCallStateTest {
     @Test
     fun `mute switches both the ui state and the transport`() = runTest(dispatcher) {
         val transport = RecordingTransport()
-        val vm = CompanionViewModel(api = null, transport = transport, inboxPollMillis = 60_000)
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
 
         vm.start("linche")
         runCurrent()
@@ -82,7 +82,7 @@ class CompanionCallStateTest {
     @Test
     fun `hanging up leaves the call and turns the microphone off`() = runTest(dispatcher) {
         val transport = RecordingTransport()
-        val vm = CompanionViewModel(api = null, transport = transport, inboxPollMillis = 60_000)
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
 
         vm.start("linche")
         runCurrent()
@@ -99,7 +99,7 @@ class CompanionCallStateTest {
     @Test
     fun `room reconnecting and disconnecting reach the ui instead of staying connected`() = runTest(dispatcher) {
         val transport = RecordingTransport()
-        val vm = CompanionViewModel(api = null, transport = transport, inboxPollMillis = 60_000)
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
 
         vm.start("linche")
         runCurrent()

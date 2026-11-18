@@ -86,7 +86,12 @@ fun CompanionRoute(
 
     val chatViewModel: CompanionViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { CompanionViewModel(api = api, transport = LiveKitCompanionTransport(context)) }
+            initializer {
+                CompanionViewModel(
+                    api = api,
+                    transportFactory = { provider -> CompanionTransports.create(context, provider) },
+                )
+            }
         },
     )
 
