@@ -20,10 +20,20 @@ data class VoiceAttachment(
     val durationSeconds: Int,
 )
 
-/** 图片附件：已压缩并落在应用私有目录下的本地文件路径。 */
+/**
+ * 图片附件：已压缩并落在应用私有目录下的本地文件路径。
+ *
+ * 历史消息里的图片有两种来源：本机文件（发出前压缩的那份），或服务端签名 URL
+ * （本机文件已被清理、或换设备登录——历史接口只带 `upload_id`，客户端拿它换 URL）。
+ * [uploadId] 只有「这条消息确实上传过」才有：重发时要拿它重新绑定，不能重新上传一份。
+ */
 data class ImageAttachment(
     val path: String,
+    val source: ImageSource = ImageSource.FILE,
+    val uploadId: String? = null,
 )
+
+enum class ImageSource { FILE, REMOTE }
 
 /** 用户消息的投递状态。 */
 enum class DeliveryStatus { SENT, SENDING, FAILED }
@@ -73,6 +83,11 @@ data class ChatMessage(
     val files: List<FileAttachment> = emptyList(),
     val pending: Boolean = false,
     val delivery: DeliveryStatus = DeliveryStatus.SENT,
+    /**
+     * 发送这条消息时客户端自带的本地 id（服务端原样存下、历史原样带回）。
+     * 历史刷新用它把服务端行和本地富内容行（语音/图片）对成同一条；只存在于运行时，不落库。
+     */
+    val clientMessageId: String? = null,
 )
 
 /**

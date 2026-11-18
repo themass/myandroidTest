@@ -11,6 +11,8 @@ import com.openapi.feature.chat.domain.model.ChatRole
 import com.openapi.feature.chat.domain.model.ChatSession
 import com.openapi.feature.chat.domain.model.ChatStreamEvent
 import com.openapi.feature.chat.domain.model.HistoryPage
+import com.openapi.feature.chat.domain.model.ImageAttachment
+import com.openapi.feature.chat.domain.model.ImageSource
 import com.openapi.feature.chat.domain.model.MessageKind
 import com.openapi.feature.chat.domain.model.OutgoingAttachment
 import com.openapi.feature.chat.domain.repository.ChatRepository
@@ -122,6 +124,9 @@ class AgentBackedChatRepository(
                         ChatMessage(
                             id = clientId, role = ChatRole.USER, text = userText,
                             createdAtMillis = System.currentTimeMillis(),
+                            // submit 还没成功，这条此刻不是「已发送」：崩溃重启后
+                            // mergePending 才能把它认出来标成失败供重试，而不是被当成已落库的正式行。
+                            delivery = com.openapi.feature.chat.domain.model.DeliveryStatus.SENDING,
                         ),
                     )
                 }
@@ -292,6 +297,8 @@ class AgentBackedChatRepository(
                     ChatMessage(
                         id = clientMessageId, role = ChatRole.USER, text = userText,
                         createdAtMillis = System.currentTimeMillis(),
+                        // 走到这里 submit 已成功、回合已开始：发送中的临时状态到此为止。
+                        delivery = com.openapi.feature.chat.domain.model.DeliveryStatus.SENT,
                     ),
                 )
             }
@@ -327,9 +334,35 @@ class AgentBackedChatRepository(
         )
         val messages = page.items.map { it.toChatMessage() }
         if (messages.isNotEmpty()) {
-            withContext(Dispatchers.IO) { local.cacheRemote(sessionId, messages, replaceAll = beforeId == null) }
+            // 先缓存「未换 URL」的形态：库里只存 upload_id。签名 URL 只有 300 秒寿命，
+            // 写进缓存等于第二天打开会话时拿到一张坏图。
+            withContext(Dispatchers.IO) {
+                local.cacheRemote(sessionId, messages, replaceAll = beforeId == null)
+            }
         }
-        return HistoryPage(messages, page.hasMore)
+        return HistoryPage(hydrateImages(messages), page.hasMore)
+    }
+
+    /**
+     * 把一页历史里的远程图片换成可渲染的签名 URL（每张一次 `GET /uploads/{id}`，
+     * 服务端给 300 秒）。失败的那张保持空路径——下次刷新会再试，
+     * 但不能让一张图拉不动就整页报错。
+     */
+    private suspend fun hydrateImages(messages: List<ChatMessage>): List<ChatMessage> {
+        val ids = messages
+            .flatMap { m -> m.images.filter { it.source == ImageSource.REMOTE }.mapNotNull { it.uploadId } }
+            .distinct()
+        if (ids.isEmpty()) return messages
+        val urls = withContext(Dispatchers.IO) {
+            ids.associateWith { id -> runCatching { remote.attachmentUrl(id) }.getOrNull() }
+        }
+        return messages.map { m ->
+            if (m.images.none { it.source == ImageSource.REMOTE }) m
+            else m.copy(images = m.images.map { img ->
+                if (img.source != ImageSource.REMOTE) img
+                else img.copy(path = img.uploadId?.let { urls[it] }.orEmpty())
+            })
+        }
     }
 
     override suspend fun editMessage(sessionId: Long, messageId: String, text: String): Boolean {
@@ -540,14 +573,23 @@ class AgentBackedChatRepository(
 
     // ------------------------------------------------------------ 映射
 
-    private fun AgentMessageVo.toChatMessage(): ChatMessage = ChatMessage(
-        id = id.toString(),
-        role = if (role == "user") ChatRole.USER else ChatRole.ASSISTANT,
-        text = content,
-        createdAtMillis = parseIso(createdAt),
-        // /v1 只有一个 kind：chat。语音/图片是附件形态，客户端本地记录才是权威。
-        kind = MessageKind.TEXT,
-    )
+    private fun AgentMessageVo.toChatMessage(): ChatMessage {
+        // 历史里的图片只带 upload_id（字节在对象存储）。先挂成 REMOTE 形态，
+        // loadHistoryPage 再逐个换签名 URL；有图就把 kind 判成 IMAGE，
+        // 本地缓存才有富类型可保（TEXT 行会被刷新清掉）。
+        val images = attachments.filter { it.kind == "image" }.map {
+            ImageAttachment(path = "", source = ImageSource.REMOTE, uploadId = it.uploadId)
+        }
+        return ChatMessage(
+            id = id.toString(),
+            role = if (role == "user") ChatRole.USER else ChatRole.ASSISTANT,
+            text = content,
+            createdAtMillis = parseIso(createdAt),
+            kind = if (images.isNotEmpty()) MessageKind.IMAGE else MessageKind.TEXT,
+            images = images,
+            clientMessageId = clientMessageId,
+        )
+    }
 
     private fun AgentSessionVo.toChatSession(): ChatSession = ChatSession(
         id = id,
@@ -640,9 +682,15 @@ class LocalChatStore(private val context: Context) {
             )
         }
 
+    /**
+     * 本地行里「还没送达」的那些：SENDING（上次没发完）或 FAILED（可重试）。
+     * 已 SENT 的 local- 行不算——服务端历史里一定有它的正式版（对不上 id 也对得上内容），
+     * 再合进列表就是同一句话显示两遍。整页刷新保留 local- 行以后，这里必须按状态过滤。
+     */
     fun localPending(sessionId: Long): List<ChatMessage> =
         loadCached(sessionId).filter {
-            it.role == ChatRole.USER && it.id.startsWith("local-")
+            it.role == ChatRole.USER && it.id.startsWith("local-") &&
+                it.delivery != com.openapi.feature.chat.domain.model.DeliveryStatus.SENT
         }
 
     fun persist(sessionId: Long, message: ChatMessage) {
@@ -656,11 +704,60 @@ class LocalChatStore(private val context: Context) {
         db().chatLogDao().save(log)
     }
 
+    /**
+     * 把服务端一页消息写进本地缓存。
+     *
+     * 服务端历史只有文字和 upload_id；语音时长、图片的本机文件路径只存在本地行里，
+     * 所以整页刷新只能清「服务端能原样重建」的纯文字行——以前的 deleteBySession
+     * 连富内容行一起删，图片/语音消息退出重进就再也回不来。
+     *
+     * 每条服务端消息先找本地同一次发送的行（chatId == 服务端带回的 client_message_id，
+     * 或已经并过的服务端 id）：文字用服务端的，附件优先本机文件（文件还在就直接显示，
+     * 不依赖 5 分钟的签名 URL），upload_id 两边合到一起，然后整体改挂到服务端正式 id 下、
+     * 删掉旧的临时 id 行。合并后缓存与历史一一对应，不会「同一句话存两行」。
+     */
     fun cacheRemote(sessionId: Long, messages: List<ChatMessage>, replaceAll: Boolean) {
-        if (replaceAll) {
-            db().chatLogDao().deleteBySession(sessionId)
+        val dao = db().chatLogDao()
+        if (replaceAll) dao.deleteSessionTextOnly(sessionId)
+        val local = dao.bySession(sessionId).mapNotNull { log ->
+            com.openapi.feature.chat.data.mapper.ChatLogMapper.toDomain(
+                chatId = log.chatId, who = log.who, msgType = log.msgType,
+                rawContent = log.content, createdAtMillis = log.createTime?.time ?: 0L,
+            )?.let { (log.chatId ?: "") to it }
+        }.toMap()
+        messages.forEach { message ->
+            val client = message.clientMessageId
+            val mine = local[message.id] ?: client?.let { local[it] }
+            if (mine == null) {
+                persist(sessionId, message)
+                return@forEach
+            }
+            // 本机文件还在就继续用本机文件；否则退回服务端对象（渲染时换签名 URL）
+            val keepLocalImages = mine.images.isNotEmpty() && mine.images.size == message.images.size &&
+                mine.images.all { it.source == com.openapi.feature.chat.domain.model.ImageSource.FILE && java.io.File(it.path).exists() }
+            val images = if (keepLocalImages) {
+                mine.images.mapIndexed { i, img -> img.copy(uploadId = message.images[i].uploadId ?: img.uploadId) }
+            } else {
+                message.images
+            }
+            persist(
+                sessionId,
+                mine.copy(
+                    id = message.id,
+                    text = message.text.ifBlank { mine.text },
+                    createdAtMillis = message.createdAtMillis,
+                    kind = when {
+                        mine.kind != MessageKind.TEXT -> mine.kind
+                        images.isNotEmpty() -> MessageKind.IMAGE
+                        else -> MessageKind.TEXT
+                    },
+                    images = images,
+                    delivery = com.openapi.feature.chat.domain.model.DeliveryStatus.SENT,
+                    clientMessageId = null,
+                ),
+            )
+            if (mine.id != message.id) dao.deleteByChatId(mine.id)
         }
-        messages.forEach { persist(sessionId, it) }
     }
 
     fun delete(messageId: String) {

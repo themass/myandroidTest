@@ -26,6 +26,14 @@ public interface ChatLogDao {
     @Query("DELETE FROM ChatLog WHERE sessionId = :sessionId")
     void deleteBySession(long sessionId);
 
+    /**
+     * 只删某个会话的纯文字缓存行。刷新历史页时用这个代替 deleteBySession：
+     * 语音/图片/文件（msgType != 0）与本地临时行（local- 前缀）必须活过刷新——
+     * 附件的本机路径与语音时长只存在这些行里，服务端历史里没有。
+     */
+    @Query("DELETE FROM ChatLog WHERE sessionId = :sessionId AND msgType = 0 AND chatId NOT LIKE 'local-%'")
+    void deleteSessionTextOnly(long sessionId);
+
     @Query("DELETE FROM ChatLog")
     void deleteAll();
 
