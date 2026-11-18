@@ -214,7 +214,7 @@ RELIABLE 通道理论上不丢包，但**不保证不丢**（对端进程崩溃�
 
 | 类 | 语义 | 丢了的后果 | 例子 |
 |---|---|---|---|
-| **A 必须到达** | 发送方重试直到 ack 或超时；接收方幂等 | 功能断掉 | `hello` / `hello_ack` / `control.cancel` / `control.request` / `control.response` / `speech.begin` |
+| **A 必须到达** | 发送方重试直到 ack 或超时；接收方幂等 | 功能断掉 | `hello` / `hello_ack` / `control.cancel` / `control.request` / `control.response` / `speech.seg` |
 | **B 有截止期** | 不重传；超过 `at` 的 `max_late_ms` 即丢弃 | 少一个表情，可接受 | `presentation.emotion` / `presentation.gesture` / `presentation.state` |
 | **C 可丢** | LOSSY 通道，采样 | 无感 | `telemetry.attention` |
 

@@ -124,6 +124,34 @@ class ProtocolHandshakeTest {
     }
 
     @Test
+    fun `speech 事件按 speech 能力协商而不是按自己的名字`() {
+        val ack = ProtocolHandshake.parseAck(
+            ackJson(caps = JSONObject().put("speech.v1", 1))
+        )!!
+        for (name in listOf("speech.seg", "speech.end", "control.cancel")) {
+            assertTrue("$name 应该随 speech.v1 一起谈成", ProtocolHandshake.supports(ack, name))
+        }
+        // 反向：能力为 0 时，这三个都必须收不到。
+        val off = ProtocolHandshake.parseAck(ackJson(caps = JSONObject().put("speech.v1", 0)))!!
+        for (name in listOf("speech.seg", "speech.end", "control.cancel")) {
+            assertFalse("$name 不该在 speech.v1 为 0 时可用", ProtocolHandshake.supports(off, name))
+        }
+    }
+
+    @Test
+    fun `客户端能力映射覆盖服务端的同一批事件`() {
+        // 服务端 CAP_FOR_EVENT 也把这三个挂在 speech.v1 下；两侧不一致会让
+        // 「服务端愿意发、客户端以为收不到」或反过来。
+        assertEquals(
+            setOf("speech.seg", "speech.end", "control.cancel"),
+            ProtocolHandshake.CAP_FOR_EVENT.keys,
+        )
+        for (cap in ProtocolHandshake.CAP_FOR_EVENT.values) {
+            assertTrue("$cap 必须在 CLIENT_CAPS 里", cap in ProtocolHandshake.CLIENT_CAPS)
+        }
+    }
+
+    @Test
     fun `v1 连接收不到任何 cmp 事件`() {
         val ack = ProtocolHandshake.parseAck(
             ackJson(caps = JSONObject().put("presentation.emotion", 1), compat = "v1")

@@ -42,6 +42,18 @@ object ProtocolHandshake {
         "clock_skew_ms" to 0,
     )
 
+    /**
+     * 有些 `t` 不以自己的名字协商，而是挂在一个能力名下。与服务端 `CAP_FOR_EVENT` 对称。
+     *
+     * `caps` 的键是能力名（`speech.v1`），不是消息类型；按消息类型直接查会让
+     * `speech.*` 与 `control.cancel` 永远算成「对方没开」，哪怕能力已经谈成了。
+     */
+    val CAP_FOR_EVENT: Map<String, String> = mapOf(
+        "speech.seg" to "speech.v1",
+        "speech.end" to "speech.v1",
+        "control.cancel" to "speech.v1",
+    )
+
     /** 客户端身份，进 hello 的 `client` 字段，只用于诊断。 */
     data class ClientInfo(
         val app: String = "",
@@ -123,7 +135,8 @@ object ProtocolHandshake {
      */
     fun supports(ack: HelloAck, eventType: String): Boolean {
         if (ack.compat != "v2") return false
-        return (ack.caps[eventType] ?: 0) > 0
+        val cap = CAP_FOR_EVENT[eventType] ?: eventType
+        return (ack.caps[cap] ?: 0) > 0
     }
 
     /**
