@@ -44,11 +44,18 @@ import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.feature.companion.R
 import com.openapi.core.config.Constants
 import com.openapi.ks.myapp.avatar.AvatarPackStore
+import com.openapi.ks.myapp.avatar.BundledAvatars
+import com.openapi.ks.myapp.avatar.LayeredAvatar
+import com.openapi.ks.myapp.avatar.LayeredAvatarPack
 import com.openapi.ks.myapp.avatar.AvatarPortrait
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.SimpleAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberUpdatedState
 
 /** 陪伴界面里能去的页面。聊天是主页面，其余三个从顶部进入。 */
 enum class CompanionPage { CHAT, CHARACTERS, MEMORY, SETTINGS }
@@ -79,7 +86,12 @@ fun CompanionRoute(
 
     val chatViewModel: CompanionViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { CompanionViewModel(api = api, transport = LiveKitCompanionTransport(context)) }
+            initializer {
+                CompanionViewModel(
+                    api = api,
+                    transportFactory = { provider -> CompanionTransports.create(context, provider) },
+                )
+            }
         },
     )
 
@@ -238,6 +250,16 @@ fun CompanionRoute(
             avatarStore.avatarFor(characterId)?.let { avatarStore.load(it) }
         }
 
+        // 分层形象按角色绑定（服务端绑定优先，其次内置绑定表，见 BundledAvatars）。
+        // 没有绑定的角色不显示形象，退回圆形头像；不会被兜底成别人的样子。
+        val layeredPack by produceState<LayeredAvatarPack?>(initialValue = null, characterId, avatarStore) {
+            value = withContext(Dispatchers.IO) {
+                val key = BundledAvatars.keyFor(characterId, avatarStore) ?: return@withContext null
+                if (BundledAvatars.isBundled(key)) runCatching { BundledAvatars.ensureDemo(context, avatarStore) }
+                avatarStore.loadLayered(key)
+            }
+        }
+
         // 通话页用**会动的**形象，而不是单张立绘：这里是她被盯着看最久的地方，
         // 一张不眨眼、不说话的照片比不显示还糟。嘴型由远端音频振幅驱动，
         // 眨眼/呼吸由渲染器自己跑。素材缺失时退回单张立绘，再缺就退回字标。
@@ -278,6 +300,7 @@ fun CompanionRoute(
         // 以前两者共用一个，结果就是「你说话波形不动」——那个波形画的是她的音量。
         val mouthLevel by chatViewModel.mouthLevel.collectAsStateWithLifecycle()
         val selfLevel by chatViewModel.selfLevel.collectAsStateWithLifecycle()
+        val selfBands by chatViewModel.selfBands.collectAsStateWithLifecycle()
 
         val audioPreview = remember { CallAudioPreview(context) }
         val preview by audioPreview.state.collectAsStateWithLifecycle()
@@ -312,6 +335,13 @@ fun CompanionRoute(
             CompanionConnection.IDLE, CompanionConnection.CONNECTING -> CallConnection.CONNECTING
         }
 
+        val currentPreview by rememberUpdatedState(preview)
+        val mouthFlow = chatViewModel.mouthLevel
+        val aiMouthLevel: () -> Float = {
+            val pv = currentPreview
+            if (pv.speaker != null) { if (pv.speaker == "ai") pv.level else 0f } else mouthFlow.value
+        }
+
         CompanionCallScreen(
             state = CompanionCallState(
                 agentName = agentName,
@@ -324,6 +354,10 @@ fun CompanionRoute(
                 audioLevel = if (previewActive) { if (preview.speaker == "ai") preview.level else 0f } else mouthLevel,
                 // 你的音量：驱动底部波形。静音时读 0。
                 selfLevel = if (previewActive) { if (preview.speaker == "user") preview.level else 0f } else if (uiState.isMuted) 0f else selfLevel,
+                // 你的声音的频段：决定波形的形状（低沉/尖细、元音/辅音）。试听时取试听音频的频段。
+                selfBands = if (previewActive) {
+                    if (preview.speaker == "user") preview.bands else FloatArray(0)
+                } else if (uiState.isMuted) FloatArray(0) else selfBands,
                 isAgentSpeaking = uiState.messages.lastOrNull()?.streaming == true,
                 connection = callConnection,
                 statusHint = if (uiState.connection == CompanionConnection.ERROR) {
@@ -357,6 +391,17 @@ fun CompanionRoute(
                 chatViewModel.send()
             },
             avatarContent = avatarSlot,
+            avatarStage = layeredPack?.let { pack ->
+                {
+                    LayeredAvatar(
+                        pack = pack,
+                        modifier = Modifier.fillMaxSize(),
+                        // 嘴型跟她的声音走；AI 试听时跟试听音频走，否则跟远端音频轨。
+                        mouthLevel = { aiMouthLevel() },
+                        onTapped = chatViewModel::onAvatarTapped,
+                    )
+                }
+            },
         )
     }
     }

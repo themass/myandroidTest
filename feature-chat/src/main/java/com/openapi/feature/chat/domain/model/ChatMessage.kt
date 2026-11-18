@@ -20,10 +20,22 @@ data class VoiceAttachment(
     val durationSeconds: Int,
 )
 
-/** 图片附件：已压缩并落在应用私有目录下的本地文件路径。 */
+/**
+ * 图片附件：已压缩并落在应用私有目录下的本地文件路径。
+ *
+ * 历史消息里的图片有两种来源：本机文件（发出前压缩的那份），或服务端签名 URL
+ * （本机文件已被清理、或换设备登录——历史接口只带 `upload_id`，客户端拿它换 URL）。
+ * [uploadId] 只有「这条消息确实上传过」才有。重发时的用法有边界：服务端只接受
+ * 10 分钟内签发、且没被别的消息绑定过的直传 id（ADR-011），所以本机文件还在就重新上传，
+ * 只有文件已丢、无字节可传时才拿它碰运气复用一次。
+ */
 data class ImageAttachment(
     val path: String,
+    val source: ImageSource = ImageSource.FILE,
+    val uploadId: String? = null,
 )
+
+enum class ImageSource { FILE, REMOTE }
 
 /** 用户消息的投递状态。 */
 enum class DeliveryStatus { SENT, SENDING, FAILED }
@@ -33,6 +45,19 @@ data class FileAttachment(
     val path: String,
     val name: String,
     val sizeBytes: Long,
+)
+
+/**
+ * 已经上传到对象存储、要随本条消息一起发出的附件引用。
+ *
+ * 只带 `upload_id`，不重复传正文——图片在发送前已经由 [uploadImage] 传完。
+ * 一条用户消息的文字和它的所有附件在**同一个回合**里交给模型，
+ * 模型因此只回一次话；分成两个回合会让同一句话得到两条回复。
+ */
+data class OutgoingAttachment(
+    val uploadId: String,
+    val kind: MessageKind = MessageKind.IMAGE,
+    val name: String = "",
 )
 
 /**
@@ -60,6 +85,11 @@ data class ChatMessage(
     val files: List<FileAttachment> = emptyList(),
     val pending: Boolean = false,
     val delivery: DeliveryStatus = DeliveryStatus.SENT,
+    /**
+     * 发送这条消息时客户端自带的本地 id（服务端原样存下、历史原样带回）。
+     * 历史刷新用它把服务端行和本地富内容行（语音/图片）对成同一条；只存在于运行时，不落库。
+     */
+    val clientMessageId: String? = null,
 )
 
 /**

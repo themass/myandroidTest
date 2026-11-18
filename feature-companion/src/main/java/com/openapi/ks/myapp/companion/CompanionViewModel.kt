@@ -23,7 +23,13 @@ import kotlinx.coroutines.CancellationException
  */
 class CompanionViewModel(
     private val api: CompanionApi? = null,
-    private val transport: CompanionTransport = FakeCompanionTransport(),
+    /**
+     * `provider → transport` 工厂（生产接线 [CompanionTransports.create]，测试直接给替身）。
+     *
+     * 线路在**建会话时**由服务端定（grant.provider），这里按它取实现；ViewModel
+     * 不认识任何具体 RTC 类，切线路/加线路都不碰这个文件。
+     */
+    private val transportFactory: (String) -> CompanionTransport = { FakeCompanionTransport() },
     /** 收件箱轮询间隔。主动消息不需要秒级到达，30 秒一次够用且省电。 */
     private val inboxPollMillis: Long = DEFAULT_INBOX_POLL_MILLIS,
 ) : ViewModel() {
@@ -36,6 +42,17 @@ class CompanionViewModel(
     private var startupJob: Job? = null
     private var inboxJob: Job? = null
     private var connectionJob: Job? = null
+
+    /**
+     * 当前正在用的房间实现与它对应的 provider。
+     *
+     * 构造时先按默认线路（livekit）装配一个，让没有后端的预览/测试照常可用；
+     * 真正建会话拿到 grant 后，若服务端指定的 provider 不同，就在这里换成
+     * 工厂解析出的新实现（旧的先断开）。UI 与 [mouthLevel] 等取值都跟着
+     * [transport] 走，换实现不需要重订阅。
+     */
+    private var transportProvider: String = CompanionTransports.PROVIDER_LIVEKIT
+    private var transport: CompanionTransport = transportFactory(transportProvider)
 
     /**
      * 消息 id 的自增源。界面上「删除某条消息」「某条待确认」都按 id 定位，
@@ -73,11 +90,15 @@ class CompanionViewModel(
         startupJob = viewModelScope.launch {
             try {
                 val session = api?.createSession(characterId) ?: offlineSession(characterId)
-                if (transport is LiveKitCompanionTransport) observeConnection()
+                adoptTransport(session)
                 restoreHistory(session)
-                if (transport !is LiveKitCompanionTransport) listen()
+                // 先订阅、后连接：所有实现都成立（Fake 的事件流是冷流，先连就丢；
+                // LiveKit 的 RoomEvent.Connected 在订阅之后才发；测试替身用 replay 也兼容）。
+                // 以前这里按「是不是 LiveKitCompanionTransport」分三种顺序——那是把实现
+                // 细节泄漏进 ViewModel，多一家实现就要再加一个分支。
+                observeConnection()
+                listen()
                 transport.connect(session)
-                if (transport is LiveKitCompanionTransport) listen() else observeConnection()
                 startInboxPolling()
                 restorePendingActions()
             } catch (e: CancellationException) {
@@ -312,6 +333,9 @@ class CompanionViewModel(
     /** 用户自己的音量 0..1（本地麦克风采集轨）。驱动通话页底部波形。 */
     val selfLevel: StateFlow<Float> get() = transport.selfLevel
 
+    /** 你的声音的频段能量（低频在前），与 [selfLevel] 一起驱动底部波形的形状。 */
+    val selfBands: StateFlow<FloatArray> get() = transport.selfBands
+
     /**
      * 用户点了她一下。
      *
@@ -493,6 +517,22 @@ class CompanionViewModel(
         _state.update { st ->
             st.copy(messages = st.messages.filterNot { it.confirmationId == confirmationId })
         }
+    }
+
+    /**
+     * 按服务端在 grant 里指定的 provider 换房间实现。
+     *
+     * provider 没变就什么都不做（每次通话都会走到这里，不能白白重连）。变了说明
+     * 服务端把这条会话切到了另一条线路（容灾/国内流量切换）：先断开旧的，再从工厂
+     * 取新的。此时还没 connect 新会话，所以换实现是安全的。
+     */
+    private suspend fun adoptTransport(session: SessionResponse) {
+        val provider = session.provider.trim().lowercase().takeIf { it.isNotEmpty() }
+            ?: CompanionTransports.PROVIDER_LIVEKIT
+        if (provider == transportProvider) return
+        runCatching { transport.disconnect() }
+        transportProvider = provider
+        transport = transportFactory(provider)
     }
 
     private fun appendToStreaming(delta: String) {

@@ -77,6 +77,11 @@ class HttpCompanionApi(
             expiresAt = json.optString("expires_at"),
             // 服务端可能给 null（没绑定聊天会话时），用 0 表示「没有」而不是猜一个 id
             chatSessionId = json.optLong("chat_session_id", 0L).takeIf { it > 0 },
+            // 线路选择权在服务端；这里只原样收下。老服务端不返回这个字段 → 归一成 livekit，
+            // 下游（工厂、测试）因此永远不必处理空串。
+            provider = json.optString("provider").takeIf { it.isNotBlank() }
+                ?: CompanionTransports.PROVIDER_LIVEKIT,
+            providerConfig = json.optJSONObject("provider_config"),
         )
     }
 

@@ -273,7 +273,17 @@ private fun FileLayer(file: File?) {
 
 private const val MAX_LAYER_PX = 1600
 
-private fun decodeScaled(file: File): ImageBitmap? {
+/**
+ * 只读图片头部拿尺寸，不解码像素（`inJustDecodeBounds`）。读不出来（不是图片、被截断）返回 null。
+ * 给形象包做「能不能画」的预检用，比 [decodeScaled] 便宜得多。
+ */
+internal fun decodeImageBounds(file: File): Pair<Int, Int>? = runCatching {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeFile(file.path, bounds)
+    if (bounds.outWidth <= 0 || bounds.outHeight <= 0) null else bounds.outWidth to bounds.outHeight
+}.getOrNull()
+
+internal fun decodeScaled(file: File): ImageBitmap? {
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     BitmapFactory.decodeFile(file.path, bounds)
     if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null

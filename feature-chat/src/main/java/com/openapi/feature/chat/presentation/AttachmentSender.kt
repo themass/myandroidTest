@@ -4,24 +4,32 @@ import com.openapi.feature.chat.domain.model.ChatMessage
 import com.openapi.feature.chat.domain.model.ChatRole
 import com.openapi.feature.chat.domain.model.DeliveryStatus
 import com.openapi.feature.chat.domain.model.MessageKind
+import com.openapi.feature.chat.domain.model.OutgoingAttachment
 import com.openapi.feature.chat.domain.repository.ChatRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
 /**
- * 附件消息的发送：逐个上传，各自的识别结果合并成一条助手回复；有配文时再走文字流。
- * 从 ChatViewModel 拆出来。发送中的消息 id 记在 inFlight 里，刷新历史时不把它们当成「中断的发送」。
+ * 附件消息的发送。
+ *
+ * **一条消息 = 一个回合。** 以前这里对每个附件单独发一次、再对文字单独发一次，
+ * 于是「这张图是什么」得到两条回复，界面上也被拆成两条。现在：
+ * - 图片先静默上传拿到 `upload_id`（这一步不产生回复）；
+ * - 文字和所有图片引用**一起**提交给同一个回合，模型只回一次话。
+ *
+ * 文件（非图片）仍走 legacy 的逐条 multipart 接口——`/v1/uploads` 没有文件类型，
+ * 那是能力缺口。文件和图片混发时，图片跟随文字进 `/v1` 回合，文件仍各自走旧链路。
  */
 internal class AttachmentSender(
     private val repository: ChatRepository,
     private val state: MutableStateFlow<ChatUiState>,
     private val streamer: ReplyStreamer,
-    /** 配文走文字流（用户消息已保存过，不重复保存）。 */
-    private val streamText: (String) -> Unit,
+    /** 图文消息的图片已上传完，交由流式层用一个回合发出（避免这里再起第二条回复）。 */
+    private val streamWithAttachments: (String, String?, Boolean, List<OutgoingAttachment>) -> Unit,
 ) {
 
     private companion object {
-        /** 单个附件上传+识别的超时：超时按失败处理，气泡显示重试图标，不再一直转圈。 */
+        /** 单个附件上传的超时：超时按失败处理，气泡显示重试图标，不再一直转圈。 */
         const val ATTACHMENT_TIMEOUT_MS = 120_000L
     }
 
@@ -49,58 +57,65 @@ internal class AttachmentSender(
 
     private suspend fun deliverBody(message: ChatMessage) {
         streamer.setDelivery(message.id, DeliveryStatus.SENDING)
-        val placeholder = streamer.newPlaceholder()
-        state.update { it.copy(messages = it.messages + placeholder, sending = true, error = null) }
         val sessionId = repository.currentSessionId()
-        val uploads = message.images.map { Triple(MessageKind.IMAGE, java.io.File(it.path), java.io.File(it.path).name) } +
-            message.files.map { Triple(MessageKind.FILE, java.io.File(it.path), it.name) }
 
-        val replies = mutableListOf<String>()
-        var replyId: String? = null
-        for ((kind, file, name) in uploads) {
+        // 1) 图片先备好 upload_id。上传本身不产生回复。
+        //    本机文件在 → 一律重新上传：服务端只接受 10 分钟内签发的直传 id（ADR-011），
+        //    隔一夜再点重发，旧的必然 410；有字节在手就别赌它还能用。
+        //    本机文件没了（缓存清理/换设备）但这条传过 → 复用已存的 upload_id：
+        //    没有字节可传，这是唯一能把图带上的路（远程来源在缓存里就带着这个 id）。
+        val prepared: List<Pair<com.openapi.feature.chat.domain.model.ImageAttachment, OutgoingAttachment>> =
+            message.images.map { image ->
+                val file = java.io.File(image.path)
+                val reuse = !file.exists() && image.uploadId != null
+                val uploadId = if (reuse) image.uploadId else {
+                    kotlinx.coroutines.withTimeoutOrNull(ATTACHMENT_TIMEOUT_MS) {
+                        repository.uploadImage(file, file.name)
+                    }
+                }
+                if (uploadId == null) {
+                    fail(message, sessionId)
+                    return
+                }
+                image to OutgoingAttachment(uploadId = uploadId, kind = MessageKind.IMAGE, name = file.name)
+            }
+
+        // 新拿到的 upload_id 记回这条消息并持久化：下次只剩远程来源时它就是复用凭据。
+        val updated = message.copy(images = prepared.map { (image, outgoing) ->
+            image.copy(uploadId = outgoing.uploadId)
+        })
+
+        // 2) 文字 + 图片引用一起进同一个回合：模型只回一次话，界面也只出一条回复。
+        val sent = prepared.map { it.second }
+        if (sent.isNotEmpty() || message.text.isNotBlank()) {
+            streamWithAttachments(message.text, message.id, false, sent)
+        }
+
+        // 3) 文件仍走 legacy 的逐条接口（`/v1` 没有文件类型）。
+        for (file in message.files) {
             val reply = runCatching {
                 kotlinx.coroutines.withTimeoutOrNull(ATTACHMENT_TIMEOUT_MS) {
-                    repository.sendAttachment(sessionId, kind, file, name, placeholder.id)
+                    repository.sendAttachment(
+                        sessionId, MessageKind.FILE, java.io.File(file.path), file.name, message.id,
+                    )
                 }
             }.getOrNull()
             if (reply == null) {
-                val stopped = !kotlin.coroutines.coroutineContext[kotlinx.coroutines.Job]!!.isActive
-                state.update {
-                    it.copy(
-                        messages = it.messages.filterNot { m -> m.id == placeholder.id },
-                        sending = false,
-                        error = if (stopped) "已停止，消息未发出，可点重试" else "发送失败，请稍后重试",
-                    )
-                }
-                streamer.setDelivery(message.id, DeliveryStatus.FAILED)
-                persistDelivery(message, DeliveryStatus.FAILED)
+                fail(message, sessionId)
                 return
             }
-            replyId = reply.id
-            if (reply.text.isNotBlank()) replies += reply.text
         }
         streamer.setDelivery(message.id, DeliveryStatus.SENT)
-        persistDelivery(message, DeliveryStatus.SENT)
+        persistDelivery(updated, DeliveryStatus.SENT)
+    }
 
-        val combined = replies.joinToString("\n\n")
-        if (combined.isBlank()) {
-            state.update { it.copy(messages = it.messages.filterNot { m -> m.id == placeholder.id }, sending = false) }
-        } else {
-            val assistant = ChatMessage(
-                id = replyId ?: "assistant-${System.currentTimeMillis()}",
-                role = ChatRole.ASSISTANT,
-                text = combined,
-                createdAtMillis = System.currentTimeMillis(),
-            )
-            repository.saveMessage(sessionId, assistant)
-            state.update { current ->
-                current.copy(
-                    messages = current.messages.map { m -> if (m.id == placeholder.id) assistant.copy(key = placeholder.key) else m },
-                    sending = false,
-                )
-            }
+    /** 失败收尾：撤掉占位、标红、写回本地，行为与以前一致。 */
+    private suspend fun fail(message: ChatMessage, sessionId: Long) {
+        val stopped = !kotlin.coroutines.coroutineContext[kotlinx.coroutines.Job]!!.isActive
+        state.update {
+            it.copy(sending = false, error = if (stopped) "已停止，消息未发出，可点重试" else "发送失败，请稍后重试")
         }
-        // 附件不在对话历史接口里，这里不再从服务端整页刷新，否则附件气泡会被冲掉
-        if (message.text.isNotBlank()) streamText(message.text)
+        streamer.setDelivery(message.id, DeliveryStatus.FAILED)
+        persistDelivery(message, DeliveryStatus.FAILED)
     }
 }

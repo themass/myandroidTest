@@ -55,6 +55,17 @@ class AgentChatRemote(
         .readTimeout(0, TimeUnit.MILLISECONDS)
         .build()
 
+    /**
+     * 直传 PUT 专用：URL 里已带签名，**不带登录 token**（凭证是 URL 上的 query，
+     * 再加 Authorization 头反而可能让 TOS 把签名算错）。写超时给足 2 分钟——
+     * 这是整条发送链路里最重的字节，与 AttachmentSender 的单附件超时对齐。
+     */
+    private val putClient = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(120, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build()
+
     class Failure(message: String, val status: Int?, val code: String?) : Exception(message)
 
     // ---------------------------------------------------------------- 会话
@@ -171,6 +182,52 @@ class AgentChatRemote(
             return id
         }
     }
+
+    /**
+     * 直传第一步：向服务端要一个单 key、只写、10 分钟的 PUT 凭证（ADR-011 同款）。
+     * 返回 upload_id（发消息时引用它）与预签名 URL。URL 是 bearer secret：不打印、不进日志。
+     */
+    fun signUpload(scene: String, mime: String, sizeBytes: Long): Pair<String, String> {
+        val body = JSONObject()
+            .put("scene", scene)
+            .put("content_type", mime)
+            .put("size_bytes", sizeBytes)
+        val json = call("POST", "/uploads/sign", body)
+        val uploadId = json.optString("upload_id", "")
+        val putUrl = json.optJSONObject("upload")?.optString("url").orEmpty()
+        if (uploadId.isEmpty() || putUrl.isEmpty()) throw Failure("签发响应缺少 upload_id/url", 200, null)
+        return uploadId to putUrl
+    }
+
+    /** 直传第二步：字节 PUT 进桶。签名在 URL 里，所以这个请求不带任何鉴权头。 */
+    fun putToPresigned(putUrl: String, file: File, mime: String) {
+        val request = Request.Builder()
+            .url(putUrl)
+            .put(file.readBytes().toRequestBody(mime.toMediaType()))
+            .build()
+        putClient.newCall(request).execute().use { response ->
+            // 失败原因里不放 URL（里面有签名），只给状态码
+            if (!response.isSuccessful) throw Failure("直传失败 ${response.code}", response.code, null)
+        }
+    }
+
+    /**
+     * 按 upload_id 换一个**短期签名 GET URL**（服务端给 300 秒）。
+     * 历史消息的图片只有 upload_id，渲染前现换；URL 是 bearer secret：不打印、不进日志、不落缓存。
+     */
+    fun attachmentUrl(uploadId: String): String? =
+        runCatching { call("GET", "/uploads/$uploadId", null).optString("url").takeIf { it.isNotEmpty() } }
+            .getOrNull()
+
+    /** 把一个签名 GET URL 的内容下载成文件（历史图片拉回本机缓存）。 */
+    fun downloadTo(url: String, target: File): Boolean = runCatching {
+        restClient.newCall(Request.Builder().url(url).get().build()).execute().use { response ->
+            if (!response.isSuccessful) return@use false
+            val src = response.body?.byteStream() ?: return@use false
+            src.use { input -> target.outputStream().use { input.copyTo(it) } }
+            true
+        }
+    }.getOrDefault(false)
 
     // ---------------------------------------------------------------- 事件流
 
@@ -305,10 +362,22 @@ class AgentChatRemote(
         kind = optString("kind", "chat"),
         createdAt = optString("created_at", ""),
         interrupted = optBoolean("interrupted", false),
+        clientMessageId = optString("client_message_id", "").takeIf { it.isNotEmpty() },
+        attachments = optJSONArray("attachments").orEmptyObjects().mapNotNull { a ->
+            a.optString("upload_id").takeIf { it.isNotEmpty() }?.let {
+                AgentAttachmentVo(it, a.optString("kind", "image"), a.optString("name", ""))
+            }
+        },
     )
+
+    private fun org.json.JSONArray?.orEmptyObjects(): List<JSONObject> =
+        if (this == null) emptyList() else (0 until length()).mapNotNull { optJSONObject(it) }
 }
 
 data class AgentSessionVo(val id: Long, val roleId: String?, val name: String, val updatedAt: String)
+
+/** 历史里一条消息携带的附件引用（字节在对象存储，这里只有 id；渲染要再去换签名 URL）。 */
+data class AgentAttachmentVo(val uploadId: String, val kind: String, val name: String)
 
 data class AgentMessageVo(
     val id: Long,
@@ -317,6 +386,9 @@ data class AgentMessageVo(
     val kind: String,
     val createdAt: String,
     val interrupted: Boolean,
+    /** 客户端发起时带的本地 id：历史行与本地富内容行（图片/语音）靠它对齐。 */
+    val clientMessageId: String? = null,
+    val attachments: List<AgentAttachmentVo> = emptyList(),
 )
 
 data class AgentHistoryPage(val items: List<AgentMessageVo>, val hasMore: Boolean)

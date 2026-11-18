@@ -99,6 +99,8 @@ class LiveKitCompanionTransport(
      */
     private val _selfLevel = MutableStateFlow(0f)
     override val selfLevel: StateFlow<Float> = _selfLevel.asStateFlow()
+    private val _selfBands = MutableStateFlow(FloatArray(0))
+    override val selfBands: StateFlow<FloatArray> = _selfBands.asStateFlow()
 
     /** 已挂上的远端音频 sink；断开时按这个引用摘掉，避免泄漏。 */
     private var mouthSink: AudioTrackSink? = null
@@ -301,7 +303,12 @@ class LiveKitCompanionTransport(
                     check(current.localParticipant.setMicrophoneEnabled(enabled)) {
                         "麦克风采集或发布失败，请检查录音权限和麦克风占用"
                     }
-                    if (enabled) attachSelfSink(current) else _selfLevel.value = 0f
+                    if (enabled) {
+                        attachSelfSink(current)
+                    } else {
+                        _selfLevel.value = 0f
+                        _selfBands.value = FloatArray(0)
+                    }
                     logInfo("attempt=$activeAttemptId event=mic_applied enabled=$enabled")
                 }.onFailure {
                     logError("attempt=$activeAttemptId event=mic_apply_failed type=${it.javaClass.simpleName}")
@@ -488,6 +495,9 @@ class LiveKitCompanionTransport(
         var windowStartedAt = SystemClock.elapsedRealtime()
         var rawSum = 0.0
         var levelMax = 0f
+        // 每条采集轨一个分析器：它复用缓冲区，只在这一个音频回调线程里用。
+        val spectrum = VoiceSpectrum()
+        val silentBands = FloatArray(VoiceSpectrum.BANDS)
         val sink = object : AudioTrackSink {
             override fun onData(
                 data: ByteBuffer,
@@ -498,6 +508,12 @@ class LiveKitCompanionTransport(
                 absoluteCaptureTimestampMs: Long,
             ) {
                 val rms = rmsOf(data, bitsPerSample, frames, numberOfChannels) ?: return
+                // 噪声门以下不做频谱：底噪的频谱形状没有意义，画出来就是「没说话也在动」。
+                _selfBands.value = if (rms <= SELF_NOISE_GATE) {
+                    silentBands
+                } else {
+                    spectrum.analyze(data, frames, numberOfChannels, sampleRate)
+                }
                 // 本地采集与远端是两套量纲：近端麦克风的归一化 RMS 普遍只有 0.01~0.6，
                 // 直接除以 0.6 会让波形几乎看不见。先过一道噪声门（门限是实测底噪的 ~10 倍），
                 // 再按本地参考点 0.35 做平方根映射——平方根让轻声也有可见起伏，大声又不会轻易顶死。
@@ -539,6 +555,7 @@ class LiveKitCompanionTransport(
         selfSink = null
         selfTrack = null
         _selfLevel.value = 0f
+        _selfBands.value = FloatArray(0)
     }
 
     /**
