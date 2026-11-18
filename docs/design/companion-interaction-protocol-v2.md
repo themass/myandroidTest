@@ -251,7 +251,7 @@ RELIABLE 通道理论上不丢包，但**不保证不丢**（对端进程崩溃�
     "presentation.gesture": 1,
     "presentation.gaze": 1,
     "presentation.mouth": 0,
-    "speech.timing": 1,
+    "speech.v1": 1,
     "perception.attention": 1
   },
   "limits": {
@@ -264,6 +264,8 @@ RELIABLE 通道理论上不丢包，但**不保证不丢**（对端进程崩溃�
 ```
 
 `caps` 的 value 是**该能力自身的版本号**，0 表示"知道但未启用"。用整数而不是布尔，是为了让单个能力可以独立升到 v2 而不动协议大版本。
+
+语音相关的能力只有一个 `speech.v1`（简化版，2026-11-18：原 `speech.timing` 与 `speech.extend` 合并）。
 
 ### 7.3 无 hello 的兼容路径
 
@@ -285,10 +287,8 @@ RELIABLE 通道理论上不丢包，但**不保证不丢**（对端进程崩溃�
 | `control.request` | A | S→C | 需要用户回答（含确认），见 §11.3 |
 | `control.response` | A | C→S | 对上一条的回答，幂等 |
 | `control.barge_in` | A | C→S | 端侧检测到用户开口 |
-| `speech.begin` | A | S→C | 一段语音开始，带 `speech_id` 与段计划 |
-| `speech.extend` | A | S→C | 追加后续段的段计划（§9.3 分批声明），cap `speech.extend` |
-| `speech.segment` | B | S→C | 段的时长/边界更新（TTS 对齐后） |
-| `speech.end` | A | S→C | 该 `speech_id` 说完 |
+| `speech.seg` | A | S→C | 一句语音的段声明（句级，按出句顺序，idx 连续），cap `speech.v1` |
+| `speech.end` | A | S→C | 该 `speech_id` 说完（该轮 TTS 全部排空） |
 | `presentation.state` | B | S→C | IDLE/LISTENING/THINKING/SPEAKING |
 | `presentation.emotion` | B | S→C | 情绪 |
 | `presentation.gesture` | B | S→C | 动作/手势 |
@@ -303,147 +303,126 @@ RELIABLE 通道理论上不丢包，但**不保证不丢**（对端进程崩溃�
 
 ## 9. 语音时序模型（本方案的核心）
 
+> 修订 2026-11-18（简化版）：取代此前的 `speech.begin` / `speech.extend` / `speech.segment` 三件套与四相位锚点。消息数、事件种类、锚点形态都大幅减少；代价是段起点精度降低，取舍见 §9.7 与 §9.8。
+
 ### 9.1 问题重述
 
 用户要的两件事：
 
-1. **先说一句，说完再做某个动作**（`after`）。
-2. **做某个动作，再说那句话**（`before`）。
+1. **说到某一句时，同步做某个动作**（段首同步）。
+2. **在某一句开口之前，先做某个动作**（段首前导，由 TTS 合成时延天然提供，见 §9.6）。
+
+"说完再做"的需求在简化版里不单独表达，见 §9.8。
 
 v1 草案的做法是"服务端估算 playback head"，但它算出来的只是"TTS 队列里还有多少"，不是"扬声器里播到第几毫秒"。中间隔着网络传输、端侧 jitter buffer、系统音频混音。所以 v2 把时钟责任整体移到端侧。
 
-### 9.2 `at` 的四种形态（tagged union）
+### 9.2 锚点 `at`
 
 ```jsonc
-// 1) 绝对：跨播放器/多端对齐时用（少见）
-"at": {"wall": 1731900000123}
+// 1) 段首：主力形态
+"at": {"speech": "sp_7f3a", "seg": 2}
 
 // 2) 相对接收：给"不要立刻，过一会儿"用的兜底
 "at": {"not_before_ms": 800}
 
-// 3) 锚在语音段上（主力形态）
-"at": {"speech": "sp_7f3a", "seg": 2, "phase": "after", "offset_ms": 120}
-
-// 4) 缺省：到达即生效（仅 state 这类"当前事实"）
+// 3) 缺省：到达即生效（仅 presentation.state 这类"当前事实"）
 ```
 
-`phase` 四值：
+- 只有段首一种语段锚点：没有 `phase`、没有 `offset_ms`、没有负偏移。
+- "在段 k 开口之前"不用新字段表达：服务端在发送段 k 的 TTS 之前发出该 cue，由 §9.6 的 TTS 前导保证它先到。
+- `max_late_ms` 可选，缺省取 §10.4。不允许设为无穷。
 
-| phase | 目标时刻 | 语义 |
-|---|---|---|
-| `before` | `t_start(seg) - offset_ms` | 说话之前做动作 |
-| `start` | `t_start(seg) + offset_ms` | 段首同步 |
-| `during` | `t_start(seg) + offset_ms`（允许落在段内） | 说到一半 |
-| `after` | `t_end(seg) + offset_ms` | 说完了再做 |
-
-`offset_ms` 始终为**非负**，方向由 `phase` 表达。这样端侧不需要判断正负号语义，少一类错。
-
-`max_late_ms` 与锚点同级，写在 `at` 里（B 类必填，缺省取 §10.4）：
+### 9.3 `speech.seg` 与 `speech.end`
 
 ```jsonc
-"at": {"speech": "sp_7f3a", "seg": 1, "phase": "after", "offset_ms": 120, "max_late_ms": 800}
+{"v":2,"t":"speech.seg","id":"01J9ZA..","seq":201,"ep":"a3f1",
+ "args":{"speech_id":"sp_7f3a","idx":0,"chars":12,"est_ms":780}}
+{"v":2,"t":"speech.seg","id":"01J9ZB..","seq":202,"ep":"a3f1",
+ "args":{"speech_id":"sp_7f3a","idx":1,"chars":31,"est_ms":2100}}
+{"v":2,"t":"speech.end","id":"01J9ZC..","seq":210,"ep":"a3f1",
+ "args":{"speech_id":"sp_7f3a"}}
 ```
 
-### 9.3 `speech.begin` 载荷
+规则：
 
-```jsonc
-{
-  "v": 2, "t": "speech.begin", "id": "01J9ZA..", "seq": 201, "ep": "a3f1",
-  "args": {
-    "speech_id": "sp_7f3a",
-    "turn_id": "tn_55",
-    "segments": [
-      {"idx": 0, "chars": 12, "est_ms": 780,  "dur_ms": null},
-      {"idx": 1, "chars": 31, "est_ms": 2100, "dur_ms": null}
-    ],
-    "total_est_ms": 2880,
-    "voice": "zh_female_1"
-  }
-}
-```
-
-随后 TTS 对齐完成时补一条 `speech.segment` 填 `dur_ms`：
-
-```jsonc
-{"t":"speech.segment","args":{"speech_id":"sp_7f3a","idx":0,"dur_ms":812,"start_boundary":true}}
-```
-
-`est_ms` 是必需字段（给不出就按字符数估），`dur_ms` 是可选优化。**关键：cue 计划必须在 `speech.begin` 时就基本齐全，而不是等 `dur_ms`**，否则 `before` 类指令必然迟到（见 §9.6）。
-
-#### 9.3.1 分批声明（修订 2026-11-18）
-
-LLM 是流式出字的：一轮回复有几段，在 `speech.begin` 发出时往往还不知道。原文"一次声明全部段"与流式生成冲突——等全部文本再发 begin 会把首声延迟抬到整轮生成时长，不可接受。因此允许**分批声明**：
-
-- `speech.begin` 带第一批段（至少 1 段）。
-- 之后每出一段新文本，发一条 `speech.extend`：`args = {"speech_id", "segments": [{"idx", "chars", "est_ms"}]}`。`idx` 必须接在该 `speech_id` 已声明的最后一个 idx 之后，从 0 开始连续。
-- **每条 `speech.extend` 必须先于任何引用其中段号的 cue、以及该段的 TTS 开口发出**（§9.6 的"先发 cue，再触发 TTS"对每一段都成立）。
-- 一个 `speech_id` 对应**一轮回复**，不是一句话。`speech.end` 在该轮 TTS 全部排空时发出，`control.cancel` 作废整轮。
-- 段数上限仍是 `MAX_SEGMENTS`（24）。超出的文字照常朗读，但不再声明段；锚在它们上的 cue 按 NO_ANCHOR 丢弃并计数。
-- `speech.extend` 只在协商出 `speech.extend` 能力（同时 `speech.timing`）时发送。没有该能力的端侧只收到第一批段，之后的段不声明、其锚点 cue 同样丢弃。
-
-```jsonc
-{"t":"speech.extend","args":{"speech_id":"sp_7f3a","segments":[{"idx":2,"chars":9,"est_ms":1640}]}}
-```
+- **一个 `speech_id` 对应一轮回复**。`speech.seg` 每出一句发一条（句级，不是批次）。`idx` 从 0 开始连续递增。`idx == 0` 的 `speech.seg` 隐式开启该 `speech_id` 的时间线。
+- **`speech.seg(k)` 必须先于引用段 k 的 cue、以及段 k 的 TTS 开口发出**（§13 不变量 1）。
+- `est_ms` 必需。给不出就按字符数估（中文按 5 字/秒）。`chars` 只用于日志与估计复核，端侧调度不读它。
+- `speech.end` 在该轮 TTS 全部排空时发出。`speech.end` 之后不得再有该 `speech_id` 的 `speech.seg`。
+- 段数上限 `MAX_SEGMENTS`（24）：超出的句子照常朗读，但不再发 `speech.seg`；锚在它们上的 cue 按 NO_ANCHOR 丢弃并计数。
+- **消息量**：N 句的一轮回复发 N+1 条语音消息（旧方案约 2N+2）。每条 `speech.seg` 远小于 200 B，远低于 `max_payload_bytes`。
+- 没有 `speech.v1` 能力的端侧：服务端不发任何 `speech.*`；锚到 `speech` 的 cue 在该端按 NO_ANCHOR 丢弃（与 v1 行为一致，不影响无锚的 cue）。
 
 ### 9.4 端侧时间线
 
 ```
 SpeechTimeline {
-  speechId, state ∈ {PENDING, PLAYING, DONE, CANCELLED}
-  t0            // 该 speech 的第一帧音频进入播放的单调钟时刻
-  segStart[i]   // 段起点（由 t0 + 累计时长推导，实测可修正）
-  cues: [(applyAt, AvatarCommand, maxLateMs)]
+  speechId
+  state ∈ {OPEN, DONE, CANCELLED}
+  segEst[]        // 每段 est_ms，按 idx 顺序
+  t0              // 第一帧音频开始播放的单调钟时刻；未到达前为 null
+  cues: [(anchor, AvatarCommand, maxLateMs)]
 }
 ```
 
-锚点求解：
-
-- `t_start(seg i) = t0 + Σ_{j<i} dur[j]`，`dur[j]` 优先用实测（见下），其次 `dur_ms`，最后 `est_ms`。
-- `t0` 在**第一帧音频真正开始播放**时确定。实现上用 audio sink 的 `absoluteCaptureTimestampMs` 与端侧单调钟建立一次线性映射：`t0 = now_mono - (now_capture - first_capture_ts)`。这是本方案里唯一需要跨时钟的地方，且只需一次，误差被限制在一个 sink 回调周期（通常 < 20 ms）。
-- 若 audio sink 不给时间戳（解码器/设备异常），退回 `now_mono` at first non-zero frame，误差上限约一个 jitter buffer。
-
-`dur[j]` 实测：段边界可由 `speech.segment.start_boundary` 标记 + 说话停顿检测修正；没有就退回 `est_ms`。**误差累积是这里唯一的真实风险**，缓解手段见 §9.7。
+- `t_start(k) = t0 + Σ_{j<k} segEst[j]`。只用估计时长，不做实测修正。
+- **`t0` 只定一次**：在第一帧音频真正播放时确定。实现上用 audio sink 的 `absoluteCaptureTimestampMs` 与端侧单调钟建立一次线性映射：`t0 = now_mono - (now_capture - first_capture_ts)`。
+- 若 audio sink 不给时间戳，退回 `now_mono` at first non-zero frame，误差上限约一个 jitter buffer。
+- 段 k 的 `speech.seg` 若晚于 t0 到达，且 cue 已到：cue 缓存（≤2 s，F3），段声明到达后再排程。
 
 ### 9.5 调度与裁剪
 
 ```
 for each cue in timeline:
-    target = resolve(at)
+    target = resolve(at)            // seg → t_start(seg)；not_before_ms → receivedAt + ms
     now    = mono_now()
-    if speech.state == CANCELLED:            drop(cue, "cancelled")
-    else if target > now:                    schedule(target)
-    else if now - target <= cue.maxLateMs:   apply_now(cue)          // 晚了但还在窗口内
-    else:                                    drop(cue, "expired")    // 晚了，宁可不要
+    if timeline.state == CANCELLED:           drop(cue, "cancelled")
+    else if target is unknown:                hold (≤2 s) 或 drop(cue, "no_anchor")
+    else if target > now:                     schedule(target)
+    else if now - target <= cue.maxLateMs:    apply_now(cue)          // 晚了但还在窗口内
+    else:                                     drop(cue, "expired")    // 晚了，宁可不要
 ```
 
-这段逻辑是整个端侧协议实现里最值得写单测的 20 行。它必须覆盖：早到、正点、晚到但在窗口内、晚到超窗、`speech_id` 已作废、`seg` 越界、`t0` 尚未确定。
+这段逻辑是整个端侧协议实现里最值得写单测的一段。必须覆盖：早到、正点、晚到但在窗口内、晚到超窗、`speech_id` 已作废、段号越界（`seg` 超过已声明的最大 idx）、`t0` 尚未确定、段声明尚未到达。
 
 ### 9.6 "先做动作再说话"到底怎么实现
 
-诚实地说：`before` 类指令要生效，**cue 必须在音频开始播放之前就到达端侧**。而 AudioTrack 的播放起点由服务端 TTS 合成完成时间决定，端侧无法推迟音频。
+诚实地说：段首前导的 cue 必须在该段音频开始播放之前到达端侧。而 AudioTrack 的播放起点由服务端 TTS 合成完成时间决定，端侧无法推迟音频。
 
-所以有两种手段，按优先级：
+服务端的发送顺序对每一句都是：
 
-1. **利用 TTS 合成时延做天然前导（默认）**。TTS 从文本到首帧通常 300–800 ms，这段时间足够 cue 到达端侧并排好。服务端策略：一旦该句文本确定，**先发 cue，再触发 TTS**。多数情况下不需要任何额外等待。**这是默认方案，不增加端到端延迟。**
-2. **显式 `lead_ms`（仅当实测合成时延不够）**。服务端发完 cue 后等待 `max(0, required_lead - measured_tts_latency)` 再推到播放队列。代价是首句延迟增加，必须只在 `before` 指令存在且实测不足时启用，并在指标里单独计量。
+```
+speech.seg(k)  →  引用段 k 的 cue  →  段 k 的 TTS
+```
 
-**第 0 段是特例**：一轮对话的第一句没有前置合成缓冲可用。规则：`before` 类指令对 `seg == 0` **尽力而为**，不得作为产品需求的硬保证。需要强保证的场景，让模型把首段写成短开场（"嗯——"），把动作挂到 `seg == 1`。
+TTS 从文本到首帧通常 300–800 ms，这段时间就是 cue 的天然前导。**这是默认方案，不增加端到端延迟。** 只有实测合成时延不足时才需要显式等待（`lead_ms`，本简化版不内置；需要时作为服务端内部参数加，不进协议）。
+
+**第 0 段是特例**：一轮对话的第一句没有前置合成缓冲可用。`seg == 0` 的前导**尽力而为**，不得作为产品需求的硬保证。需要强保证的场景，让模型把首段写成短开场（"嗯——"），把动作挂到 `seg == 1`。
 
 这条限制必须写进 Prompt 约束（v1 §7.3），而不是留给实现者猜。
 
-### 9.7 时长估计漂移怎么办
+### 9.7 时长估计漂移
 
-`est_ms` 按字符数估，中文语速 4.5–6 字/秒，误差可达 ±20%。段序号越大偏差越明显。
+`est_ms` 按字符数估，中文语速 4.5–6 字/秒，误差可达 ±20%。段起点的误差是**累计**的：段 k 的起点误差上界约为 20% × Σ_{j<k} est_ms[j]。段数越多、回复越长，偏差越大。
 
-缓解（按性价比排序）：
+简化版的缓解（按性价比排序）：
 
-1. **校正 t0 而不是预测 tN**：每段起点若可观测（`start_boundary` 或停顿检测），重设该段起点、丢弃累积误差 —— 误差不跨段累积，这是主要手段。
-2. **服务端给 `dur_ms`**：`TimedString` 已具备，接上就有真实时长，能把误差压到接近零。属于 P1/P3。
-3. **锚点就近**：编译期把 cue 尽量挂到**最近段**而非远方段；跨 3 段以上的 `after` 应改写为挂到目标段本身。
+1. **锚点就近**：编译期把 cue 挂到**最近段**的段首。跨 3 段以上的"动作在某句之后"应改写为挂到**目标段本身**，而不是远处的段。
+2. **只校正 t0，不校正段**：t0 在首帧音频时定一次，这是唯一的时钟校正。
+3. **承诺上限**：段起点精度只承诺到 **±500 ms** 量级（短回复更好，长回复不保证）。超出这个承诺的需求，走 §18 第 2 条的升级路径（给 `speech.seg` 加可选 `dur_ms`）。
 
-如果三条都不成立（无实测、无 `dur_ms`、跨多段），那条 cue 的时序精度不应被承诺优于 ±500 ms。**在文档和测试里都写清楚，不要假装精确。**
+**在文档和测试里都写清楚，不要假装精确。** F14 的验收按上面的上界写，不按"每段重设起点"写。
 
----
+### 9.8 有意去掉的东西（简化版取舍）
+
+| 去掉 | 原因 | 代价 | 如何回补（都是加字段，不升版） |
+|---|---|---|---|
+| `speech.begin` / `speech.extend` | 合并为句级的 `speech.seg`；流式出字时不需要"先声明全部段" | 无 | — |
+| `speech.segment`（`dur_ms` / `start_boundary`） | 每段多一条消息，换来的精度不足以抵消消息量与状态复杂度 | 段起点精度降到 ±500 ms 量级（§9.7） | 给 `speech.seg` 加可选 `dur_ms` |
+| `phase`（`before` / `during` / `after`）与 `offset_ms` | 段首锚 + TTS 前导已覆盖"同步"与"之前"；`during` 与段首同步等价 | "说完再做"无精确表达（见下） | 加新的锚点形态 |
+| "说完再做"（原 `after`） | 去掉 `phase` 的代价 | 近似为锚到**下一段段首**；最后一段之后的动作本协议不表达，需要时由客户端收到 `speech.end` 后本地触发（不在协议里约定） | 加 `{"speech","end":true}` 形态 |
+| `wall` 绝对时间锚 | 当前没有跨播放器对齐的场景 | 无 | 加形态 |
+| `speech.timing` / `speech.extend` 两个能力 | 合并为一个 `speech.v1` | 无 | — |
 
 ## 10. 打断与取消
 
@@ -462,15 +441,15 @@ for each cue in timeline:
 服: SpeechHandle.interrupt() → publish cmp.ctl {t:"control.cancel", args:{speech_id, reason:"user_barge_in"}}
 ```
 
-`control.cancel` 是 A 类：端侧收到后把该 `speech_id` 永久标死（保留在 30s 的墓碑集合里），之后该 id 的任何 cue 一律丢弃。
+`control.cancel` 是 A 类：端侧收到后把该 `speech_id` 标死（进入墓碑集合），之后该 id 的任何 `speech.seg` 与 cue 一律丢弃。
 
 ### 10.3 单调作废模型
 
 规则只有一条：**`speech_id` 一旦作废，不可复活**。
 
-- 端侧墓碑：`cancelledSpeechIds` 有界集合（每轮清理，上限 32）。
+- 端侧墓碑：`cancelledSpeechIds` 有界集合，FIFO，上限 8（简化版，原 32）。一回合只会有少数几个被打断的 speech，8 足够。
 - 服务端在同轮内不得复用 `speech_id`。`speech_id` 用 ULID，天然不复用。
-- 迟到到达的 `speech.begin`（先 cancel 后 begin 的乱序）→ 端侧看到 id 已在墓碑里，直接丢弃。这是必须测的用例（§16 F5）。
+- 迟到到达的 `speech.seg`（先 cancel 后 seg 的乱序）→ 端侧看到 id 已在墓碑里，直接丢弃。这是必须测的用例（§16 F5）。
 
 ### 10.4 默认截止期（`max_late_ms`）
 
@@ -490,10 +469,10 @@ for each cue in timeline:
 ### 11.1 presentation
 
 ```jsonc
-{"t":"presentation.emotion","at":{"speech":"sp_7f3a","seg":1,"phase":"during","offset_ms":300},
+{"t":"presentation.emotion","at":{"speech":"sp_7f3a","seg":1},
  "args":{"name":"joy","intensity":0.7}}
 
-{"t":"presentation.gesture","at":{"speech":"sp_7f3a","seg":1,"phase":"after","offset_ms":150},
+{"t":"presentation.gesture","at":{"speech":"sp_7f3a","seg":2},
  "args":{"id":"nod","repeat":1}}
 
 {"t":"presentation.state","args":{"state":"LISTENING"}}   // 无 at，到达即生效
@@ -576,18 +555,18 @@ LLM 流式 token
    ├─→ 结构化事件（prompt 约束，见 v1 §7.3）
    │      {"say":"我有点担心你","emotion":"concern","after":{"gesture":"tilt_head"}}
    │
-   ├─→ 分句/分段 → seg_idx 分配
+   ├─→ 分句 → seg_idx 分配（一句一段）
    │
-   ├─→ 时长：est_ms（字符数×语速）→ TTS 后补 dur_ms（TimedString）
+   ├─→ 时长：est_ms（字符数×语速），不做 TTS 后回填（§9.7）
    │
    ├─→ 能力裁剪：按 dst participant 的 caps 过滤不支持的 t
    │
-   └─→ CueCompiler → publish cmp.cue / speech.begin
+   └─→ CueCompiler → publish cmp.cue（speech.seg / speech.end / presentation.* / control.cancel）
 ```
 
 编译器的三条不变量（值得写成断言）：
 
-1. 一条 `speech.begin` 之前，不得有引用该 `speech_id` 的 cue；一条 `speech.begin` / `speech.extend` 声明段 `k` 之前，不得有引用段 `k` 的 cue（§9.3.1）。
+1. 一条 `speech.seg(k)` 之前，不得有引用段 `k` 的 cue；`speech.end` 之后不得再有该 `speech_id` 的 `speech.seg`（§9.3）。
 2. 同一条 cue 不得发两次（除非重试且 `id` 相同）。
 3. 任何发往 `cmp.cue` 的包，其 `args` 序列化后必须 ≤ `max_payload_bytes`；超了就是编译器 bug，不是传输层问题。
 
@@ -670,9 +649,9 @@ degrade_level            // 当前 L0..L4，及进入/退出时刻
 |---|---|---|
 | F1 | 可靠包重复投递 | 按 `id` 去重，副作用只发生一次 |
 | F2 | cue 晚到 3 s（超 `max_late_ms`） | 丢弃并计数，不出现"错句配错表情" |
-| F3 | cue 早到（`speech.begin` 还没到） | 缓存 ≤2 s，语音开始时按锚点应用 |
+| F3 | cue 早到（对应的 `speech.seg` 还没到） | 缓存 ≤2 s，段声明到达后按锚点排程 |
 | F4 | 重连后 `ep` 变化、`seq` 归零 | 不误判为乱序，去重表正确清理 |
-| F5 | 先收到 `cancel` 再收到该 `speech_id` 的 `begin` | `begin` 被丢弃，时间线不复活 |
+| F5 | 先收到 `cancel` 再收到该 `speech_id` 的 `speech.seg` | `seg` 被丢弃，时间线不复活 |
 | F6 | 未知 `t`（新版本服务端） | 忽略 + 计数，同流后续消息正常处理 |
 | F7 | 老客户端（无 hello） | 服务端走 v1 兼容，客户端功能不退化 |
 | F8 | 房间内第三方伪造 `presentation.*` | 被身份白名单丢弃 |
@@ -681,7 +660,7 @@ degrade_level            // 当前 L0..L4，及进入/退出时刻
 | F11 | 用户在第 2 段打断 | 音频截断、动画本地衰减、墓碑生效、`speech_id` 不复用 |
 | F12 | 两个客户端能力不同 | 交集广播 + 定向补发；无端收到不支持的 `t` |
 | F13 | 服务端崩溃重启，`ep` 变 | 端侧清理时间线，重连后重新握手 |
-| F14 | 段时长估计偏差 20% | 跨段误差不累积（每段重设起点） |
+| F14 | 段时长估计偏差 20% | 段起点误差 ≤ 20% 的累计估计时长；cue 挂最近段；不承诺优于 ±500 ms 的精度 |
 | F15 | 弱网 30% 丢包 | 自动降到 L1/L2，口型仍跟随音频 |
 
 **F2 + F14 是这套设计的主要风险点**，必须在真机上用真实 TTS 跑一遍，把 `cue_intent_to_apply_ms` 的 p90 记下来写回本文 §18。
@@ -693,7 +672,7 @@ degrade_level            // 当前 L0..L4，及进入/退出时刻
 | 期 | 范围 | 验收 |
 |---|---|---|
 | **P0** | 信封 + codec（校验/去重/计数）+ hello 握手 + 身份白名单；修 §2.3 两处不一致 | F1/F4/F6/F7/F8/F10 通过；v1 客户端功能不退化 |
-| **P1** | `speech.begin` + 段模型 + 端侧 Scheduler（含 `at` 四形态）+ t0 校正 | F2/F3/F5/F14 通过；`speech.end` 后的 `after` 动作准确 |
+| **P1** | `speech.seg` / `speech.end` + 端侧 Scheduler（`at` 段首锚与 `not_before_ms`）+ t0 一次校正 | F2/F3/F5/F14 通过；句级 seg 与 TTS 开口顺序可断言 |
 | **P2** | `control.cancel` / `barge_in` 全链路 + 墓碑 | F11 通过；打断后 200 ms 内不再有该 id 的表现 |
 | **P3** | 服务端 CueCompiler + prompt 结构化输出 + `dur_ms` 接入 | F12 通过；`cue_intent_to_apply_ms` p90 ≤ 250 ms（`before` 类记初始到达时延） |
 | **P4** | 降级阶梯 L1–L4 | F15 通过；每一档都能手动触发并观察 |
@@ -705,11 +684,12 @@ degrade_level            // 当前 L0..L4，及进入/退出时刻
 ## 18. 待验证与未决
 
 1. **`publishData` 在真实网络下的到达时延分布**。决定 `max_late_ms` 默认值是否合理，也是 §9.6 是否需要 `lead_ms` 的唯一依据。**必须在 P1 前压测。**
-2. **`dur_ms`（`TimedString`）与端侧真实播放时长的偏差**。若偏差 < 50 ms，§9.7 手段 2 优先级上升，`before` 类精度可到 ±100 ms。
+2. **估计时长与端侧真实播放时长的偏差**。未接实测时长时，段起点精度由估计决定（§9.7）。若实测超出 ±500 ms 的承诺，升级路径是给 `speech.seg` 加可选 `dur_ms` 字段（加字段不升版）。
 3. **段边界是否可听辨**。若端侧无法从音频检测段起点，§9.7 手段 1 失效，退化为按字符数比例切分（误差更大）。
 4. **多端场景的真实需求强度**。如果只有一对一通话，§12.2 的定向补发可以先不做，但 `dst` 字段必须保留（加字段不需要升版，减字段才需要）。
 5. **是否要把 cue 塞进音频 SEI**（P3 之后）。取决于上面第 1 条的实测结果。
 6. **`intensity` 是否要暴露给模型**。当前给，但模型很容易滥用成"强度 1.0 的狂喜"，需要 prompt 侧限幅。
+7. **"说完再做"（原 `after`）是否需要回归**。简化版只保留段首锚，"说完再做"近似为锚到下一段段首（§9.8）。真实产品若需要严格的句尾动作，再加锚点形态，不改已有消息。
 
 ---
 
