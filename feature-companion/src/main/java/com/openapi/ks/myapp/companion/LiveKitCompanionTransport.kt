@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo
 import android.os.SystemClock
 import com.openapi.ks.myapp.avatar.ProactiveKind
 import com.openapi.ks.myapp.companion.protocol.CompanionProtocolLink
+import com.openapi.ks.myapp.companion.protocol.PresentationCue
 import com.openapi.ks.myapp.companion.protocol.ProtocolCatalog
 import io.livekit.android.LiveKit
 import io.livekit.android.events.RoomEvent
@@ -64,6 +65,9 @@ class LiveKitCompanionTransport(
     private val _lastConnectionError = MutableStateFlow<String?>(null)
     val lastConnectionError: StateFlow<String?> = _lastConnectionError.asStateFlow()
     private var room: Room? = null
+
+    /** 正在跑健康上报的那个 `Room`。同一房间重复 `Connected` 时不另起一个循环。 */
+    @Volatile private var healthLoopRoom: Room? = null
 
     /**
      * 协议 v2 的连接状态（epoch / 序号 / 协商结果 / 收侧计数）。
@@ -161,6 +165,7 @@ class LiveKitCompanionTransport(
                         // §7.3 只等 3 秒——hello 再可靠也救不回迟到的发送。
                         sendHello(newRoom, protocolLink)
                         scheduleHelloRetry(newRoom, protocolLink)
+                        startHealthLoop(newRoom)
                     }
                     is RoomEvent.FailedToConnect -> {
                         _connection.value = TransportConnection.DISCONNECTED
@@ -364,6 +369,63 @@ class LiveKitCompanionTransport(
         scope.launch {
             current.localParticipant.sendText(text, StreamTextOptions(topic = TEXT_IN_TOPIC))
                 .onFailure { bus.emit(CompanionEvent.Error("发送失败：${it.message}")) }
+        }
+    }
+
+    /**
+     * 每 30 秒把 §14.3 的计数与降级档位回报一次（`telemetry.health`，C 类、DROPPABLE）。
+     *
+     * 现在报的是收侧桶与 gap 数：它们原本只活在内存里，进程一退就没了，线上排查
+     * 「是她没发还是我没收」时无从下手。降级阶梯要到 P4 才实现，在那之前固定报 L0
+     * ——这是**当前事实**，不是占位：端侧确实还没有会降档的逻辑。
+     *
+     * 发不出去不重试、不提示：C 类消息的价值窗口极短，补发一条过期的健康快照
+     * 不如等下一个 30 秒。
+     */
+    private fun startHealthLoop(current: Room) {
+        // `Connected` 在部分 SDK 路径上会重复抛出。放第二个循环会让同一份快照被发两遍、
+        // `cmp.tel` 的序号走得比 30 秒一格快一倍——对端看不出错，只是计数的增量对不上。
+        if (healthLoopRoom === current) return
+        healthLoopRoom = current
+        scope.launch {
+            while (true) {
+                delay(HEALTH_INTERVAL_MS)
+                // 房间换了（重新 `connect()` 建了一条新连接）：这个循环已经属于旧房间，
+                // 停掉。留着继续跑只会每 30 秒空转一次，而且 `link` 已经是新连接的了。
+                if (room !== current) break
+                val protocolLink = link ?: continue
+                // 还没谈成 v2：不发，但继续等——握手可能刚好晚于连上几秒。
+                if (!protocolLink.isV2) continue
+                publishHealth(current, protocolLink)
+            }
+        }
+    }
+
+    private fun publishHealth(current: Room, protocolLink: CompanionProtocolLink) {
+        val counters = protocolLink.counters()
+        val args = JSONObject()
+            .put("received", counters.received)
+            .put("applied", counters.applied)
+            .put("dropped_dup", counters.droppedDup)
+            .put("dropped_stale", counters.droppedStale)
+            .put("dropped_expired", counters.droppedExpired)
+            .put("dropped_unknown", counters.droppedUnknown)
+            .put("dropped_unauthorized", counters.droppedUnauthorized)
+            .put("dropped_bad", counters.droppedBad)
+            .put("gap_count", counters.gaps)
+            .put("degrade_level", "L0")
+        val bytes = protocolLink.outgoing(
+            topic = ProtocolCatalog.TOPIC_TEL,
+            eventType = "telemetry.health",
+            args = args,
+        ) ?: return
+        scope.launch {
+            runCatching {
+                current.localParticipant
+                    .publishData(bytes, DataPublishReliability.LOSSY, ProtocolCatalog.TOPIC_TEL)
+            }.onFailure {
+                logWarn("attempt=$activeAttemptId event=health_publish_failed type=${it.javaClass.simpleName}")
+            }
         }
     }
 
@@ -681,9 +743,12 @@ class LiveKitCompanionTransport(
     /**
      * 协议 v2 的事件分派。
      *
-     * P0 只接上握手：`hello_ack` 决定后续能不能收 `cmp.*`。表现面（`presentation.*`、
-     * `speech.*`）在后续阶段接，现在收到只会计数、不处理——那是**已知的空位**，
-     * 不是遗漏。
+     * `hello_ack` 决定后续能不能收 `cmp.*`；`presentation.*` 是表现面（§11.1）。
+     * 表现指令在入口处翻译成 v1 的事件串，界面层与形象层不用知道协议升过版——
+     * 这也是 P0.5 冒烟闭环的落点：一条 `cmp.cue` 能一路走到脸。
+     *
+     * 其余事件仍然只过收侧状态机（已计数）而没有消费者：那是**已知的空位**，
+     * 不是遗漏（`speech.*` 在 P1）。
      */
     private suspend fun handleProtocol(eventType: String, args: JSONObject) {
         when (eventType) {
@@ -697,7 +762,20 @@ class LiveKitCompanionTransport(
                     logWarn("attempt=$activeAttemptId event=hello_ack_unusable")
                 }
             }
-            // 其余事件在 P0 阶段只走收侧状态机（已计数），没有消费者。
+            "presentation.emotion" -> {
+                val emotion = PresentationCue.parseEmotion(args) ?: return
+                if (!emotion.known) {
+                    // 未知情绪映射成 neutral 并计数（§11.1）：静默抛掉会让「她表情卡住」
+                    // 变成一个查不出来的问题。
+                    logWarn("attempt=$activeAttemptId event=emotion_unknown name=${args.optString("name")}")
+                }
+                bus.emit(CompanionEvent.AvatarJson(PresentationCue.emotionEventJson(emotion.name)))
+            }
+            "presentation.state" -> {
+                val state = PresentationCue.parseState(args) ?: return
+                bus.emit(CompanionEvent.AvatarJson(PresentationCue.stateEventJson(state)))
+            }
+            // 其余事件在 P0.5 阶段只走收侧状态机（已计数），没有消费者。
             else -> Unit
         }
     }
@@ -768,6 +846,9 @@ class LiveKitCompanionTransport(
         /** 没收到 hello_ack 的补发节拍与预算（§6 A 类），见 scheduleHelloRetry。 */
         const val HELLO_RETRY_INTERVAL_MS = 3_000L
         const val HELLO_RETRY_MAX = 20
+
+        /** `telemetry.health` 的上报周期（§8 表格：30 s）。 */
+        const val HEALTH_INTERVAL_MS = 30_000L
     }
 
     private fun logInfo(message: String) {

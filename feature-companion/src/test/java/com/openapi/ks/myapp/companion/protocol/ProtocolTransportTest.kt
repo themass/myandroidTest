@@ -106,6 +106,50 @@ class ProtocolTransportTest {
     }
 
     @Test
+    fun `我自己发的事件不查能力表`() {
+        // caps 描述的是「收信方能收什么」。telemetry.health 是客户端发、服务端收，
+        // 它永远不会出现在交集里——用 canReceive 去问会永远得到 false，
+        // 表现是客户端一个健康包也发不出去，而日志里什么错都没有。
+        val link = CompanionProtocolLink(identity = me)
+        link.onAck(helloAck(caps = mapOf("presentation.emotion" to 1)))
+        assertFalse(link.negotiator.canReceive("telemetry.health"))
+
+        val bytes = link.outgoing(
+            ProtocolCatalog.TOPIC_TEL,
+            "telemetry.health",
+            JSONObject().put("received", 3),
+        )
+        assertNotNull(bytes)
+        val envelope = ProtocolCodec.decode(bytes!!).envelope!!
+        assertEquals(0L, envelope.seq)
+        assertEquals(link.epoch, envelope.ep)
+    }
+
+    @Test
+    fun `没谈成 v2 时我自己发的事件也不发`() {
+        // 门控松的是「查不查能力表」，不是「要不要握手」。
+        val link = CompanionProtocolLink(identity = me)
+        assertNull(link.outgoing(ProtocolCatalog.TOPIC_TEL, "telemetry.health", JSONObject()))
+    }
+
+    @Test
+    fun `目录里没有的事件不发`() {
+        val link = CompanionProtocolLink(identity = me)
+        link.onAck(helloAck())
+        assertNull(link.outgoing(ProtocolCatalog.TOPIC_TEL, "telemetry.unknown", JSONObject()))
+    }
+
+    @Test
+    fun `计数快照带上 expired 这个桶`() {
+        // §14.3 的桶少一个，运维就少一条判断依据；而且它只在这一层暴露，
+        // ProtocolReceiver 自己的字段不会自动冒上来。
+        val link = CompanionProtocolLink(identity = me)
+        val counters = link.counters()
+        assertEquals(0, counters.droppedExpired)
+        assertEquals(0, counters.received)
+    }
+
+    @Test
     fun `hello_ack 解析不出来就保持什么都收不到`() {
         val link = CompanionProtocolLink(identity = me)
         link.onAck(JSONObject())
