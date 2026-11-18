@@ -59,20 +59,34 @@ internal class AttachmentSender(
         streamer.setDelivery(message.id, DeliveryStatus.SENDING)
         val sessionId = repository.currentSessionId()
 
-        // 1) 图片先传完，拿到 upload_id。上传本身不产生回复。
-        val sent: List<OutgoingAttachment> = message.images.map { image ->
-            val file = java.io.File(image.path)
-            val uploadId = kotlinx.coroutines.withTimeoutOrNull(ATTACHMENT_TIMEOUT_MS) {
-                repository.uploadImage(file, file.name)
+        // 1) 图片先备好 upload_id。上传本身不产生回复。
+        //    本机文件在 → 一律重新上传：服务端只接受 10 分钟内签发的直传 id（ADR-011），
+        //    隔一夜再点重发，旧的必然 410；有字节在手就别赌它还能用。
+        //    本机文件没了（缓存清理/换设备）但这条传过 → 复用已存的 upload_id：
+        //    没有字节可传，这是唯一能把图带上的路（远程来源在缓存里就带着这个 id）。
+        val prepared: List<Pair<com.openapi.feature.chat.domain.model.ImageAttachment, OutgoingAttachment>> =
+            message.images.map { image ->
+                val file = java.io.File(image.path)
+                val reuse = !file.exists() && image.uploadId != null
+                val uploadId = if (reuse) image.uploadId else {
+                    kotlinx.coroutines.withTimeoutOrNull(ATTACHMENT_TIMEOUT_MS) {
+                        repository.uploadImage(file, file.name)
+                    }
+                }
+                if (uploadId == null) {
+                    fail(message, sessionId)
+                    return
+                }
+                image to OutgoingAttachment(uploadId = uploadId, kind = MessageKind.IMAGE, name = file.name)
             }
-            if (uploadId == null) {
-                fail(message, sessionId)
-                return
-            }
-            OutgoingAttachment(uploadId = uploadId, kind = MessageKind.IMAGE, name = file.name)
-        }
+
+        // 新拿到的 upload_id 记回这条消息并持久化：下次只剩远程来源时它就是复用凭据。
+        val updated = message.copy(images = prepared.map { (image, outgoing) ->
+            image.copy(uploadId = outgoing.uploadId)
+        })
 
         // 2) 文字 + 图片引用一起进同一个回合：模型只回一次话，界面也只出一条回复。
+        val sent = prepared.map { it.second }
         if (sent.isNotEmpty() || message.text.isNotBlank()) {
             streamWithAttachments(message.text, message.id, false, sent)
         }
@@ -92,7 +106,7 @@ internal class AttachmentSender(
             }
         }
         streamer.setDelivery(message.id, DeliveryStatus.SENT)
-        persistDelivery(message, DeliveryStatus.SENT)
+        persistDelivery(updated, DeliveryStatus.SENT)
     }
 
     /** 失败收尾：撤掉占位、标红、写回本地，行为与以前一致。 */
