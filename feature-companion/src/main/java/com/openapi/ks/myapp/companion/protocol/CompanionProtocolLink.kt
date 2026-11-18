@@ -71,6 +71,7 @@ class CompanionProtocolLink(
         val applied: Int,
         val droppedDup: Int,
         val droppedStale: Int,
+        val droppedExpired: Int,
         val droppedUnknown: Int,
         val droppedUnauthorized: Int,
         val droppedBad: Int,
@@ -82,6 +83,7 @@ class CompanionProtocolLink(
         applied = receiver.applied,
         droppedDup = receiver.droppedDup,
         droppedStale = receiver.droppedStale,
+        droppedExpired = receiver.droppedExpired,
         droppedUnknown = receiver.droppedUnknown + rejectedUnknown,
         droppedUnauthorized = receiver.droppedUnauthorized + rejectedUnauthorized,
         droppedBad = receiver.droppedBad + rejectedBad,
@@ -164,6 +166,15 @@ class CompanionProtocolLink(
     /**
      * 组一封外发的信，返回要发出去的字节；null 表示按当前协商不该发。
      *
+     * 门控分两种，因为 `caps` 描述的是「**收信方**能收什么」：
+     *
+     * * 收向事件（`presentation.*` / `speech.*`：服务端发、我们收）必须查协商表——
+     *   没协商到的能力发出去对方也处理不了。
+     * * 发向事件（`telemetry.health` / `perception.attention`：我们发、服务端收）不查
+     *   能力表。`SERVER_CAPS` 里根本没有它们，用 `supports` 去问会永远得到 false；
+     *   而且问的方向也不对——该问的是「对端收不收」，那由服务端的目录与分派决定，
+     *   客户端无从也不该替它猜。这里只要求这条连接确实谈成了 v2。
+     *
      * `force` 只给握手本身用：`control.hello` 必须在协商之前发出去，否则永远谈不成。
      */
     fun outgoing(
@@ -173,7 +184,7 @@ class CompanionProtocolLink(
         dst: List<String>? = null,
         force: Boolean = false,
     ): ByteArray? {
-        if (!force && !negotiator.canReceive(eventType)) return null
+        if (!force && !maySendNow(eventType)) return null
         val seq = seqByTopic[topic] ?: 0L
         val envelope = ProtocolCodec.newEnvelope(
             eventType = eventType,
@@ -191,6 +202,14 @@ class CompanionProtocolLink(
         }
         seqByTopic[topic] = seq + 1
         return bytes
+    }
+
+    private fun maySendNow(eventType: String): Boolean {
+        if (!negotiator.isV2) return false
+        val spec = ProtocolCatalog.specOf(eventType) ?: return false
+        // 我发的：只要对方也谈成了 v2。收向的：还要这一项真的在交集里。
+        if (ProtocolCatalog.Side.CLIENT !in spec.receivers) return true
+        return negotiator.canReceive(eventType)
     }
 
     /** `control.hello` 的字节。握手是 v2 的唯一入口，所以不走能力协商。 */
