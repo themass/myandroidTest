@@ -53,8 +53,10 @@ public class ConfigActionJump {
         configMap.put(Constants.TELEPLAY_URL, TeleplayActivity.class.getName());
         configMap.put(Constants.LOCAL_CHAT, HOME);
         configMap.put(Constants.LOCAL_CHAT2, HOME);
-
-//        configMap.put(Constants.VIDEO_CHANNEL_USER_URL, VideoChannleUserActivity.class);
+        // 用户上传频道：进视频频道页，内部再按 actionUrl/param 分流
+        configMap.put(Constants.VIDEO_CHANNEL_USER_URL, VideoChannleActivity.class.getName());
+        configMap.put(Constants.LOCAL_SOUND, "com.openapi.retromusic.activities.MainActivity");
+        configMap.put(Constants.LOCAL_SOUND2, "com.openapi.retromusic.activities.MainActivity");
     }
 
     /** 在进程级作用域里收集配置页跳转事件；应用启动时调用一次。 */
@@ -65,7 +67,18 @@ public class ConfigActionJump {
 
     private void onEvent(ConfigActionEvent event) {
         LogUtil.i("ConfigActionJump onEvent-" + event.url + "-" + Thread.currentThread().getName());
-        Uri uri = Uri.parse(event.url);
+        String rawUrl = event.url;
+        // 相对路径（/cat/1023.html）没有 scheme，以前会误报「版本太低」；尽量用事件里的 baseurl 拼绝对地址
+        if (rawUrl != null && !rawUrl.contains(":") && event.param != null) {
+            Object base = event.param.get("baseurl");
+            if (base instanceof String) {
+                String joined = com.openapi.core.model.RecommendUrl.resolve((String) base, rawUrl);
+                if (joined != null) {
+                    rawUrl = joined;
+                }
+            }
+        }
+        Uri uri = Uri.parse(rawUrl);
         Set<String> names = uri.getQueryParameterNames();
         HashMap<String, String> param = new HashMap<>();
         for (String name : names) {
@@ -77,7 +90,7 @@ public class ConfigActionJump {
             Boolean adsShow = event.param != null ? (Boolean) event.param.get(CommonConstants.ADS_SHOW_CONFIG) : null;
             Boolean adsPopShow = event.param != null ? (Boolean) event.param.get(CommonConstants.ADS_POP_SHOW_CONFIG) : null;
             Intent intent = new Intent().setClassName(event.context, activityName);
-            intent.putExtra(Constants.URL, parserUrl(scheme, event.url, param));
+            intent.putExtra(Constants.URL, parserUrl(scheme, rawUrl, param));
             intent.putExtra(CommonConstants.ADS_SHOW_CONFIG, adsShow);
             intent.putExtra(CommonConstants.ADS_POP_SHOW_CONFIG, adsPopShow);
             intent.putExtra(Constants.CONFIG_PARAM, param);
