@@ -65,6 +65,7 @@ object ProtocolCatalog {
         "control.input" to oneWay(TOPIC_IN, Delivery.MUST, CLIENT),
         // ---- 表现面（cmp.cue）----
         "speech.begin" to oneWay(TOPIC_CUE, Delivery.MUST, SERVER),
+        "speech.extend" to oneWay(TOPIC_CUE, Delivery.MUST, SERVER),
         "speech.segment" to oneWay(TOPIC_CUE, Delivery.DEADLINE, SERVER),
         "speech.end" to oneWay(TOPIC_CUE, Delivery.MUST, SERVER),
         "presentation.state" to oneWay(TOPIC_CUE, Delivery.DEADLINE, SERVER),

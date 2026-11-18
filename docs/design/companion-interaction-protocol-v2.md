@@ -286,6 +286,7 @@ RELIABLE 通道理论上不丢包，但**不保证不丢**（对端进程崩溃�
 | `control.response` | A | C→S | 对上一条的回答，幂等 |
 | `control.barge_in` | A | C→S | 端侧检测到用户开口 |
 | `speech.begin` | A | S→C | 一段语音开始，带 `speech_id` 与段计划 |
+| `speech.extend` | A | S→C | 追加后续段的段计划（§9.3 分批声明），cap `speech.extend` |
 | `speech.segment` | B | S→C | 段的时长/边界更新（TTS 对齐后） |
 | `speech.end` | A | S→C | 该 `speech_id` 说完 |
 | `presentation.state` | B | S→C | IDLE/LISTENING/THINKING/SPEAKING |
@@ -368,6 +369,21 @@ v1 草案的做法是"服务端估算 playback head"，但它算出来的只是"
 ```
 
 `est_ms` 是必需字段（给不出就按字符数估），`dur_ms` 是可选优化。**关键：cue 计划必须在 `speech.begin` 时就基本齐全，而不是等 `dur_ms`**，否则 `before` 类指令必然迟到（见 §9.6）。
+
+#### 9.3.1 分批声明（修订 2026-11-18）
+
+LLM 是流式出字的：一轮回复有几段，在 `speech.begin` 发出时往往还不知道。原文"一次声明全部段"与流式生成冲突——等全部文本再发 begin 会把首声延迟抬到整轮生成时长，不可接受。因此允许**分批声明**：
+
+- `speech.begin` 带第一批段（至少 1 段）。
+- 之后每出一段新文本，发一条 `speech.extend`：`args = {"speech_id", "segments": [{"idx", "chars", "est_ms"}]}`。`idx` 必须接在该 `speech_id` 已声明的最后一个 idx 之后，从 0 开始连续。
+- **每条 `speech.extend` 必须先于任何引用其中段号的 cue、以及该段的 TTS 开口发出**（§9.6 的"先发 cue，再触发 TTS"对每一段都成立）。
+- 一个 `speech_id` 对应**一轮回复**，不是一句话。`speech.end` 在该轮 TTS 全部排空时发出，`control.cancel` 作废整轮。
+- 段数上限仍是 `MAX_SEGMENTS`（24）。超出的文字照常朗读，但不再声明段；锚在它们上的 cue 按 NO_ANCHOR 丢弃并计数。
+- `speech.extend` 只在协商出 `speech.extend` 能力（同时 `speech.timing`）时发送。没有该能力的端侧只收到第一批段，之后的段不声明、其锚点 cue 同样丢弃。
+
+```jsonc
+{"t":"speech.extend","args":{"speech_id":"sp_7f3a","segments":[{"idx":2,"chars":9,"est_ms":1640}]}}
+```
 
 ### 9.4 端侧时间线
 
@@ -571,7 +587,7 @@ LLM 流式 token
 
 编译器的三条不变量（值得写成断言）：
 
-1. 一条 `speech.begin` 之前，不得有引用该 `speech_id` 的 cue。
+1. 一条 `speech.begin` 之前，不得有引用该 `speech_id` 的 cue；一条 `speech.begin` / `speech.extend` 声明段 `k` 之前，不得有引用段 `k` 的 cue（§9.3.1）。
 2. 同一条 cue 不得发两次（除非重试且 `id` 相同）。
 3. 任何发往 `cmp.cue` 的包，其 `args` 序列化后必须 ≤ `max_payload_bytes`；超了就是编译器 bug，不是传输层问题。
 

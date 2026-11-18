@@ -279,4 +279,81 @@ class SpeechRegistryTest {
         assertEquals(1, r.timelineCount)
         assertEquals(1, r.timeline("sp_1")!!.size)
     }
+
+    // ------------------------------------------------------------ speech.extend（§9.3.1）
+
+    private fun extendArgs(speechId: String, fromIdx: Int, vararg est: Long): JSONObject = JSONObject()
+        .put("speech_id", speechId)
+        .put(
+            "segments",
+            JSONArray().apply {
+                est.forEachIndexed { i, ms ->
+                    put(JSONObject().put("idx", fromIdx + i).put("chars", 10).put("est_ms", ms))
+                }
+            },
+        )
+
+    @Test
+    fun `extend 接着编号追加段并把总时长加上去`() {
+        val r = registry()
+        r.onBegin(begin("sp_1", 1000))
+        val tl = r.timeline("sp_1")!!
+        tl.startNow(t0)
+
+        assertTrue(r.onExtend(extendArgs("sp_1", 1, 800, 600)))
+        assertEquals(3, tl.size)
+        assertEquals(2400L, tl.totalEstMs)
+        assertEquals(t0 + 1000, tl.startOf(1))
+        assertEquals(t0 + 1800, tl.startOf(2))
+    }
+
+    @Test
+    fun `extend 段号跳号时整批拒绝且时间线不变`() {
+        val r = registry()
+        r.onBegin(begin("sp_1", 1000))
+        val tl = r.timeline("sp_1")!!
+
+        assertFalse(r.onExtend(extendArgs("sp_1", 2, 500)))
+        assertEquals(1, tl.size)
+        assertEquals(1, r.extendRejected)
+    }
+
+    @Test
+    fun `未知或已作废的 speech 上的 extend 被忽略`() {
+        val r = registry()
+        assertFalse(r.onExtend(extendArgs("sp_nope", 0, 500)))
+
+        r.onBegin(begin("sp_1", 1000))
+        r.onCancel(JSONObject().put("speech_id", "sp_1"))
+        assertFalse(r.onExtend(extendArgs("sp_1", 1, 500)))
+        assertEquals(1, r.timeline("sp_1")!!.size)
+    }
+
+    @Test
+    fun `speech 结束之后的 extend 被拒绝`() {
+        val r = registry()
+        r.onBegin(begin("sp_1", 1000))
+        r.onEnd(JSONObject().put("speech_id", "sp_1"))
+
+        assertFalse(r.onExtend(extendArgs("sp_1", 1, 500)))
+        assertEquals(1, r.timeline("sp_1")!!.size)
+    }
+
+    @Test
+    fun `锚在未声明段上的 cue 等 extend 到达后执行`() {
+        // 分批声明的核心理由：流式 LLM 还没产出第 1 句，服务端就已经能对第 0 句发 cue。
+        // 但如果某条 cue 引用了段 1，它必须等 extend 进来，而不是被当成 NO_ANCHOR 丢掉。
+        val r = registry()
+        r.onBegin(begin("sp_1", 1000))
+        r.timeline("sp_1")!!.startNow(t0)
+        r.onCue("presentation.emotion", "m1", "happy", at("""{"speech":"sp_1","seg":1,"phase":"start"}"""), now = t0 + 1000)
+
+        assertTrue(r.sweep(now = t0 + 1000).apply.isEmpty())
+        assertEquals(1, r.pendingCount)
+
+        r.onExtend(extendArgs("sp_1", 1, 1000))
+        val swept = r.sweep(now = t0 + 1000)
+        assertEquals(listOf("m1"), swept.apply.map { it.id })
+        assertEquals(0, r.pendingCount)
+    }
 }

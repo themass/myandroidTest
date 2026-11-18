@@ -41,6 +41,9 @@ class SpeechRegistry<P>(
         private set
     var beginDroppedTombstone: Int = 0
         private set
+    /** `speech.extend` 被拒（段号不连续、时间线已结束或作废）的次数。 */
+    var extendRejected: Int = 0
+        private set
 
     /** 一条 cue 在等 `begin` / `t0` 时最多挂多久。§12.1 给的数是 2 s。 */
     var bufferMs: Long = 2_000L
@@ -81,6 +84,28 @@ class SpeechRegistry<P>(
 
         (args.opt("dur_ms") as? Number)?.toLong()?.let { tl.setMeasuredDuration(idx, it) }
         if (args.optBoolean("start_boundary", false)) tl.correctStart(idx, now)
+    }
+
+    /**
+     * `speech.extend`（§9.3.1）：追加后续段。
+     *
+     * 未知 id、已作废的 id、段号不连续、坏段——一律静默忽略并计数。不能为了一条 extend
+     * 去建时间线：那段话的 begin 要么没到（乱序，之后会被墓碑或缓冲逻辑处理），要么
+     * 已经被作废。
+     *
+     * @return 是否接受了这批段。
+     */
+    @Synchronized
+    fun onExtend(args: JSONObject): Boolean {
+        val speechId = (args.opt("speech_id") as? String)?.takeIf { it.isNotBlank() } ?: return false
+        if (speechId in tombstones) return false
+        val tl = timelines[speechId] ?: return false
+        val segs = SpeechTimeline.parseSegments(args.opt("segments")) ?: return false
+        if (!tl.extend(segs)) {
+            extendRejected++
+            return false
+        }
+        return true
     }
 
     /** `speech.end`：音频排完了。**不取消**挂在这一句上的 `after`（§17 P1 验收）。 */

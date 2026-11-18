@@ -838,6 +838,14 @@ class LiveKitCompanionTransport(
                 speech.onSegment(args, now = SystemClock.elapsedRealtime())
                 speechWake.trySend(Unit)
             }
+            "speech.extend" -> {
+                // 分批声明（§9.3.1）：追加的段要在引用它们的 cue 到达之前进来。
+                val accepted = speech.onExtend(args)
+                if (!accepted) {
+                    logWarn("attempt=$activeAttemptId event=speech_extend_rejected id=${args.optString("speech_id")}")
+                }
+                speechWake.trySend(Unit)
+            }
             "speech.end" -> {
                 speech.onEnd(args)
                 logInfo("attempt=$activeAttemptId event=speech_end id=${args.optString("speech_id")}")

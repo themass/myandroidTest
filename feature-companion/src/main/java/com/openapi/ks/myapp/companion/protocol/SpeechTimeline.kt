@@ -27,12 +27,12 @@ import org.json.JSONObject
 class SpeechTimeline(
     val speechId: String,
     val turnId: String?,
-    segments: List<Segment>,
-    val totalEstMs: Long,
+    initialSegments: List<Segment>,
+    totalEstMs: Long,
     val voice: String? = null,
 ) {
 
-    /** `speech.begin` 里的一段。`estMs` 必需，`durMs` 可选（§9.3）。 */
+    /** `speech.begin` / `speech.extend` 里的一段。`estMs` 必需，`durMs` 可选（§9.3）。 */
     data class Segment(
         val idx: Int,
         val chars: Int,
@@ -42,7 +42,16 @@ class SpeechTimeline(
 
     enum class State { PENDING, PLAYING, DONE, CANCELLED }
 
-    val segments: List<Segment> = segments.sortedBy { it.idx }
+    /**
+     * 整句话的预估总时长。`speech.extend` 追加段时同步加上（§9.3.1）。
+     */
+    var totalEstMs: Long = totalEstMs
+        private set
+
+    // 分批声明（§9.3.1）：begin 只带第一批，之后 extend 追加。所以段表要能长。
+    private val segmentList: MutableList<Segment> = initialSegments.sortedBy { it.idx }.toMutableList()
+
+    val segments: List<Segment> get() = segmentList
 
     var state: State = State.PENDING
         private set
@@ -65,6 +74,32 @@ class SpeechTimeline(
     val size: Int get() = segments.size
 
     fun contains(idx: Int): Boolean = idx >= 0 && idx < size
+
+    /**
+     * `speech.extend`：追加后续段（§9.3.1）。
+     *
+     * 段号必须从当前末尾接着编（`idx == size`，连续），否则整批拒绝——跳号意味着
+     * 服务端与端侧对"第 k 段是谁"的理解已经不一致，继续接只会把错位扩散开。
+     * 已经作废或已经结束的时间线也拒绝：`speech.end` 之后不该再有新段。
+     *
+     * 追加会重算新段的起点，但不动已有段——它们可能已经在播。
+     *
+     * @return 是否接受。
+     */
+    fun extend(more: List<Segment>): Boolean {
+        if (state == State.CANCELLED || state == State.DONE) return false
+        if (more.isEmpty()) return false
+        for ((i, seg) in more.withIndex()) {
+            if (seg.idx != size + i) return false
+        }
+        val oldSize = size
+        segmentList.addAll(more)
+        starts = starts.copyOf(size)
+        totalEstMs += more.sumOf { it.durMs ?: it.estMs }
+        // 新段的起点依赖前一段；t0 未定时只是记下段，等 startFrom* 时统一算。
+        if (t0 != null) recomputeFrom(oldSize - 1)
+        return true
+    }
 
     // -------------------------------------------------------------- 起点求解
 
@@ -200,7 +235,21 @@ class SpeechTimeline(
             val speechId = (args.opt("speech_id") as? String)?.takeIf { it.isNotBlank() } ?: return null
             val turnId = (args.opt("turn_id") as? String)?.takeIf { it.isNotBlank() }
             val voice = (args.opt("voice") as? String)?.takeIf { it.isNotBlank() }
-            val arr = args.opt("segments") as? JSONArray ?: return null
+            val segments = parseSegments(args.opt("segments")) ?: return null
+
+            val total = longOrNull(args.opt("total_est_ms"))
+                ?: segments.sumOf { it.durMs ?: it.estMs }
+
+            return SpeechTimeline(speechId, turnId, segments, total, voice)
+        }
+
+        /**
+         * 解析一组段（`speech.begin.segments` 与 `speech.extend.segments` 共用）。
+         *
+         * 空数组或任一段坏掉返回 `null`：部分接受会让段号出现空洞，之后所有锚点都会错位。
+         */
+        fun parseSegments(raw: Any?): List<Segment>? {
+            val arr = raw as? JSONArray ?: return null
             if (arr.length() == 0) return null
 
             val segments = ArrayList<Segment>(arr.length())
@@ -208,17 +257,13 @@ class SpeechTimeline(
                 val obj = arr.opt(i) as? JSONObject ?: return null
                 val idx = intOrNull(obj.opt("idx")) ?: return null
                 val chars = intOrNull(obj.opt("chars")) ?: 0
-                // `est_ms` 必需（§9.3）。缺了就无法给段起点，整条 begin 作废——
+                // `est_ms` 必需（§9.3）。缺了就无法给段起点，整条作废——
                 // 与其猜一个时长，不如让这一轮退化成"没有时间锚点"，行为可预测。
                 val estMs = longOrNull(obj.opt("est_ms")) ?: return null
                 val durMs = longOrNull(obj.opt("dur_ms"))?.takeIf { it >= 0 }
                 segments.add(Segment(idx = idx, chars = chars, estMs = estMs.coerceAtLeast(0), durMs = durMs))
             }
-
-            val total = longOrNull(args.opt("total_est_ms"))
-                ?: segments.sumOf { it.durMs ?: it.estMs }
-
-            return SpeechTimeline(speechId, turnId, segments, total, voice)
+            return segments
         }
 
         private fun intOrNull(v: Any?): Int? = when (v) {
