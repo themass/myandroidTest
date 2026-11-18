@@ -83,6 +83,27 @@ final class PlayerMoreMenu {
         });
         speedBox.addView(decoderRow, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        // 投屏入口：点「更多」也能找到，避免只认右上角图标
+        TextView castRow = new TextView(appAct);
+        castRow.setText(R.string.cast_title);
+        castRow.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        castRow.setTextColor(0xFF1A1A1A);
+        castRow.setPadding(padH, padV, padH, padV);
+        if (selectable.resourceId != 0) {
+            castRow.setBackgroundResource(selectable.resourceId);
+        }
+        castRow.setOnClickListener(v -> {
+            dlg.dismiss();
+            View castBtn = appAct.findViewById(R.id.btn_dlna_cast);
+            if (castBtn != null && castBtn.hasOnClickListeners()) {
+                castBtn.performClick();
+            } else {
+                ToastUtil.showShort(R.string.cast_title);
+            }
+        });
+        speedBox.addView(castRow, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         dlg.show();
     }
 

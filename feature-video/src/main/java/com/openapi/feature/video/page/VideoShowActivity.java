@@ -5,7 +5,7 @@ import android.widget.Toast;
 import com.openapi.cast.JavaCaster;
 import com.openapi.cast.DlnaDiscoveryCallback;
 import com.openapi.cast.DlnaDevice;
-import android.widget.ImageButton;
+import android.view.View;
 import com.openapi.common.ui.dialog.AppDialogHost;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
 import android.util.Rational;
@@ -52,7 +52,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
     private GoogleCastSessionController castSessionController;
     RecommendVo vo;
     MyFavoriteView myFavoriteView;
-    private android.widget.ImageButton dlnaCastButton;
+    private View dlnaCastButton;
 
     private void bindButterViews() {
         LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));

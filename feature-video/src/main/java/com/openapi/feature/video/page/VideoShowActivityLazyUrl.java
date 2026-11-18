@@ -33,7 +33,7 @@ import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
 import com.openapi.feature.video.databinding.LayoutVideoShowBinding;
 import android.widget.Toast;
-import android.widget.ImageButton;
+import android.view.View;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.database.Cursor;
@@ -56,7 +56,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
     private GoogleCastSessionController castSessionController;
     private DlnaDiscoveryCallback dlnaDiscovery;
     private JavaCaster dlnaCaster;
-    private ImageButton dlnaCastButton;
+    private View dlnaCastButton;
     RecommendVo vo;
     MyFavoriteView myFavoriteView;
     protected BaseService indexService;
@@ -175,8 +175,11 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
 
     private void openVideoShow(RecommendVo urlVo) {
         url = VideoUtil.buildPlayUrl(urlVo);
-        boolean cache = !VideoUtil.isLocalPlayUrl(url);
-        videoPlayer.setUp(url, cache, null, VideoUtil.headersForRecommend(urlVo), vo.title);
+        boolean local = VideoUtil.isLocalPlayUrl(url);
+        // 本地 content:// 不能走 ProxyCache，也不要带 Referer/UA（Exo 对本地 URI 易被错误头干扰）
+        boolean cache = !local;
+        java.util.Map<String, String> headers = local ? null : VideoUtil.headersForRecommend(urlVo);
+        videoPlayer.setUp(url, cache, null, headers, vo.title);
         VideoShowPlaybackStateHelper.prepareSeekRestore(videoPlayer, playbackSavedState);
         videoPlayer.startPlayLogic();
         videoPlayer.enableOrientationAfterPrepared();
