@@ -239,8 +239,8 @@ class SpeechRegistryTest {
 
     @Test
     fun `end 先于首帧音频到达时，迟到的音频不会把时间线拉回播放中`() {
-        // 短回复、或者 TTS 排干得比音频起播快：end 先到，DONE 已经落了。
-        // 之后第一帧音频进来时，t0 仍然要定（after 锚要靠它算），但状态不能倒退。
+        // speech.end = 服务端 TTS 生成侧排空，不是扬声器播完：短回复常态是 end 先到。
+        // 之后第一帧音频进来时，t0 仍然要定（句尾估算 / 挂在这句上的 cue 靠它），但状态不能倒退。
         val r = registry()
         r.onSeg(seg("sp_1", idx = 0, est = 800))
         r.onEnd(cancel("sp_1"))

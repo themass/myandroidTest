@@ -123,7 +123,12 @@ class SpeechTimeline(val speechId: String) {
 
     // -------------------------------------------------------------- 状态迁移
 
-    /** `speech.end`：音频已全部排出。**不取消**尚未到点的 `after` cue。 */
+    /**
+     * `speech.end`：服务端本轮 TTS **生成侧**已排空（§9.3）。
+     *
+     * 不是扬声器播完——那条消息常会早于首帧音频到达。标 DONE 后仍可定 `t0`，
+     * **不取消**尚未到点的 cue（含挂最后一段的收尾动作）。
+     */
     fun markDone() {
         if (state != State.CANCELLED) state = State.DONE
     }
