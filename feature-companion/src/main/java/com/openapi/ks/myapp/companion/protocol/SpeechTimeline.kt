@@ -7,34 +7,39 @@ import org.json.JSONObject
  *
  * 端侧只回答一个问题：**"第 k 段的起点，在单调钟上是什么时刻"**。所有 `{speech, seg}`
  * 锚点最终都落到这个坐标上。服务端不知道扬声器里播到了哪（§9.1），所以起点只能由
- * 端侧按 `est_ms` 累加推出来：
+ * 端侧按每段有效时长累加推出来：
  *
  * ```
- * t_start(k) = t0 + Σ_{j<k} est_ms[j]
+ * t_start(k) = t0 + Σ_{j<k} effectiveMs[j]
+ * effectiveMs = dur_ms ?: est_ms
  * ```
  *
- * 没有实测校正，也没有 `dur_ms`：误差随段数累积，这是为了协议简单而接受的代价
- * （§9.7 给出了误差上界与预期量级）。
+ * `dur_ms` 可选（P3）：有则优先，没有就退回 `est_ms`。声明时通常仍只有 `est_ms`；
+ * 未知键继续忽略。误差随段数累积的上界见 §9.7。
  *
  * `t0` 只定一次（§9.4），之后不改——第一帧音频已经播出去了。
  */
 class SpeechTimeline(val speechId: String) {
 
-    /** `speech.seg` 里的一句。`est_ms` 必需（§9.3）。 */
+    /** `speech.seg` 里的一句。`est_ms` 必需；`dur_ms` 可选（§9.3 / P3）。 */
     data class Segment(
         val idx: Int,
         val chars: Int,
         val estMs: Long,
-    )
+        val durMs: Long? = null,
+    ) {
+        /** 时间线累加用的有效时长：有 `dur_ms` 用它，否则 `est_ms`。 */
+        val effectiveMs: Long get() = durMs ?: estMs
+    }
 
     enum class State { PENDING, PLAYING, DONE, CANCELLED }
 
     private val segmentList: MutableList<Segment> = ArrayList()
 
-    /** 每段相对 `t0` 的起点偏移。与 [segmentList] 等长，`rel[k] = Σ_{j<k} est[j]`。 */
+    /** 每段相对 `t0` 的起点偏移。与 [segmentList] 等长，`rel[k] = Σ_{j<k} effective[j]`。 */
     private val rel: MutableList<Long> = ArrayList()
 
-    /** 到目前为止所有段的预估总时长（= 最后一段的终点偏移）。 */
+    /** 到目前为止所有段的有效总时长（= 最后一段的终点偏移）。 */
     private var totalEstMs: Long = 0L
 
     val segments: List<Segment> get() = segmentList
@@ -66,7 +71,7 @@ class SpeechTimeline(val speechId: String) {
         if (seg.idx != size) return false
         rel.add(totalEstMs)
         segmentList.add(seg)
-        totalEstMs += seg.estMs
+        totalEstMs += seg.effectiveMs
         return true
     }
 
@@ -118,7 +123,7 @@ class SpeechTimeline(val speechId: String) {
     /** 第 `idx` 段的结束时刻（= 下一段起点）。越界或 `t0` 未定返回 `null`。 */
     fun endOf(idx: Int): Long? {
         if (!contains(idx)) return null
-        return startOf(idx)?.plus(segmentList[idx].estMs)
+        return startOf(idx)?.plus(segmentList[idx].effectiveMs)
     }
 
     // -------------------------------------------------------------- 状态迁移
@@ -140,10 +145,11 @@ class SpeechTimeline(val speechId: String) {
 
     companion object {
         /**
-         * 解析 `speech.seg` 的 args（§9.3）：`{speech_id, idx, chars, est_ms}`。
+         * 解析 `speech.seg` 的 args（§9.3）：`{speech_id, idx, chars, est_ms, dur_ms?}`。
          *
          * 返回 `(speechId, segment)`；缺字段或类型不对返回 `null`。`est_ms` 必需：
-         * 没有它就算不出起点，与其猜一个时长，不如整条丢弃。
+         * 没有它就算不出起点，与其猜一个时长，不如整条丢弃。`dur_ms` 可选；
+         * 负值或缺类型时忽略（仍用 `est_ms`），不因此丢整段。
          */
         fun parseSeg(args: JSONObject): Pair<String, Segment>? {
             val speechId = (args.opt("speech_id") as? String)?.takeIf { it.isNotBlank() } ?: return null
@@ -152,7 +158,13 @@ class SpeechTimeline(val speechId: String) {
             val chars = intOrNull(args.opt("chars")) ?: 0
             val estMs = longOrNull(args.opt("est_ms")) ?: return null
             if (estMs < 0) return null
-            return speechId to Segment(idx = idx, chars = chars.coerceAtLeast(0), estMs = estMs)
+            val durMs = longOrNull(args.opt("dur_ms"))?.takeIf { it >= 0 }
+            return speechId to Segment(
+                idx = idx,
+                chars = chars.coerceAtLeast(0),
+                estMs = estMs,
+                durMs = durMs,
+            )
         }
 
         private fun intOrNull(v: Any?): Int? = when (v) {
