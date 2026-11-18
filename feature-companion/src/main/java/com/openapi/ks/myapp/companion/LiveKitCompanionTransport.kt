@@ -4,11 +4,15 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.os.SystemClock
 import com.openapi.ks.myapp.avatar.ProactiveKind
+import com.openapi.ks.myapp.companion.protocol.CompanionProtocolLink
+import com.openapi.ks.myapp.companion.protocol.ProtocolCatalog
 import io.livekit.android.LiveKit
 import io.livekit.android.events.RoomEvent
 import io.livekit.android.room.Room
 import io.livekit.android.room.datastream.StreamTextOptions
+import io.livekit.android.room.participant.Participant
 import io.livekit.android.room.track.AudioTrack
+import io.livekit.android.room.track.DataPublishReliability
 import io.livekit.android.room.track.Track
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineScope
@@ -58,6 +62,14 @@ class LiveKitCompanionTransport(
     private val _lastConnectionError = MutableStateFlow<String?>(null)
     val lastConnectionError: StateFlow<String?> = _lastConnectionError.asStateFlow()
     private var room: Room? = null
+
+    /**
+     * 协议 v2 的连接状态（epoch / 序号 / 协商结果 / 收侧计数）。
+     *
+     * 每次 `connect()` 重新建一个：epoch 必须换，旧连接的簿记对新连接没有意义。
+     * 用 `@Volatile` 是因为房间事件在 SDK 线程、发送在建连协程，两边都会碰它。
+     */
+    @Volatile private var link: CompanionProtocolLink? = null
     @Volatile private var activeAttemptId: String = "none"
     @Volatile private var connectStartedAtMs: Long = 0L
     @Volatile private var firstRemotePcmLogged = false
@@ -117,17 +129,29 @@ class LiveKitCompanionTransport(
         _lastConnectionError.value = null
         val newRoom = LiveKit.create(appContext)
         room = newRoom
+        // 新连接就是新 epoch（§5.1）：沿用上一次的 epoch，对端会把我从 0 开始的 seq
+        // 当成回退丢掉。identity 用来判 dst 是不是指我，现在还不知道，等连上再看。
+        val protocolLink = CompanionProtocolLink(identity = null)
+        link = protocolLink
         logInfo("attempt=$activeAttemptId event=room_created elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
 
         // SDK events are not replayed: subscribe before starting the signal handshake.
         scope.launch(start = CoroutineStart.UNDISPATCHED) {
             newRoom.events.events.collect { event ->
                 when (event) {
-                    is RoomEvent.DataReceived -> handleData(event.topic, event.data)
+                    is RoomEvent.DataReceived -> handleData(
+                        topic = event.topic,
+                        data = event.data,
+                        publisher = event.participant,
+                    )
                     is RoomEvent.Connected -> {
                         _lastConnectionError.value = null
                         _connection.value = TransportConnection.CONNECTED
                         logInfo("attempt=$activeAttemptId event=room_connected elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
+                        // identity 由 SDK 在入会时分配，建 Room 的时候还拿不到。不补上的话
+                        // 带 `dst` 的定向消息全被当成「不是给我的」丢掉，而广播照常——
+                        // 表现是「她单聊时说的话我收不到，群发都正常」，很难查。
+                        protocolLink.bindIdentity(newRoom.localParticipant.identity?.value)
                     }
                     is RoomEvent.FailedToConnect -> {
                         _connection.value = TransportConnection.DISCONNECTED
@@ -151,6 +175,11 @@ class LiveKitCompanionTransport(
                         _lastConnectionError.value = null
                         logInfo("attempt=$activeAttemptId event=reconnected elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
                         attachSelfSink(newRoom)
+                        // 重连是新的一条流：清表、换 epoch、重新握手（§5.1 / F4）。
+                        // 少了这一步，对端从 0 重发的消息全被当作 stale 丢掉——表现是
+                        // 「重连之后她突然不理我了」，而两端日志都干净。
+                        protocolLink.onReconnected()
+                        sendHello(newRoom, protocolLink)
                     }
                     is RoomEvent.Disconnected -> {
                         _connection.value = TransportConnection.DISCONNECTED
@@ -226,6 +255,29 @@ class LiveKitCompanionTransport(
             }
         }
 
+        // 握手必须由客户端发起（§7.3）：老客户端从不发 hello，服务端只会等 3 秒然后
+        // 按 v1 处理。连上了还不发，这一整条连接就永远拿不到 cmp.*。
+        sendHello(newRoom, protocolLink)
+    }
+
+    /**
+     * 发 `control.hello`。
+     *
+     * 发不出去只记日志：协商失败的后果是「这条连接退回 v1」，而 v1 的旧 topic 仍然
+     * 可用，所以不该把整次建连判为失败。
+     */
+    private fun sendHello(current: Room, protocolLink: CompanionProtocolLink) {
+        val bytes = protocolLink.helloBytes() ?: return
+        scope.launch {
+            current.localParticipant
+                .publishData(bytes, DataPublishReliability.RELIABLE, ProtocolCatalog.TOPIC_CTL)
+                .onFailure {
+                    logWarn("attempt=$activeAttemptId event=hello_publish_failed type=${it.javaClass.simpleName}")
+                }
+                .onSuccess {
+                    logInfo("attempt=$activeAttemptId event=hello_sent ep=${protocolLink.epoch}")
+                }
+        }
     }
 
     /**
@@ -515,7 +567,35 @@ class LiveKitCompanionTransport(
         return sqrt(sum / n) / Short.MAX_VALUE
     }
 
-    private suspend fun handleData(topic: String?, data: ByteArray) {
+    /**
+     * 一条数据包进来了：先过协议 v2 的校验，再过旧的 v1 topic 分派。
+     *
+     * **两条路互不影响**：`cmp.*` 上的包只走协议栈；旧的 `companion.*` 包完全不知道
+     * 协议存在，照旧分派。这样 v1 客户端的能力一条不少（P0 的验收条件），而 v2 的
+     * 校验也不会误伤它们。
+     *
+     * `publisher` 是 SDK 交出来的发布者。以前这里把它丢掉了，于是「谁发来的」根本
+     * 无从判断——房间里任何参与者都能伪造一条 `control.cancel` 把我这句话掐断。
+     */
+    private suspend fun handleData(
+        topic: String?,
+        data: ByteArray,
+        publisher: Participant?,
+    ) {
+        val protocolLink = link
+        // topic 是判断走哪条路的唯一依据：v2 的四个 topic 名字不会与旧的对上。
+        if (topic != null && topic in ProtocolCatalog.TOPICS && protocolLink != null) {
+            val publisherIdentity = publisher?.identity?.value
+            val accepted = protocolLink.onIncoming(
+                topic = topic,
+                data = data,
+                publisher = publisherIdentity,
+                publisherIsAgent = publisher?.kind == Participant.Kind.AGENT,
+            ) ?: return
+            handleProtocol(accepted.envelope.t, accepted.envelope.args)
+            return
+        }
+
         val raw = data.toString(Charsets.UTF_8)
         when (topic) {
             TOPIC_AVATAR -> bus.emit(CompanionEvent.AvatarJson(raw))
@@ -537,6 +617,30 @@ class LiveKitCompanionTransport(
                     ),
                 )
             }
+        }
+    }
+
+    /**
+     * 协议 v2 的事件分派。
+     *
+     * P0 只接上握手：`hello_ack` 决定后续能不能收 `cmp.*`。表现面（`presentation.*`、
+     * `speech.*`）在后续阶段接，现在收到只会计数、不处理——那是**已知的空位**，
+     * 不是遗漏。
+     */
+    private suspend fun handleProtocol(eventType: String, args: JSONObject) {
+        when (eventType) {
+            "control.hello_ack" -> {
+                link?.onAck(args)
+                val ack = link?.negotiator?.ack
+                logInfo(
+                    "attempt=$activeAttemptId event=hello_ack sid=${ack?.sid} compat=${ack?.compat} caps=${ack?.caps?.size ?: 0}",
+                )
+                if (ack == null) {
+                    logWarn("attempt=$activeAttemptId event=hello_ack_unusable")
+                }
+            }
+            // 其余事件在 P0 阶段只走收侧状态机（已计数），没有消费者。
+            else -> Unit
         }
     }
 
