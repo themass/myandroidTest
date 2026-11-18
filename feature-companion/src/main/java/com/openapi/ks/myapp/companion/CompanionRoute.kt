@@ -51,6 +51,9 @@ import com.openapi.ks.myapp.avatar.AvatarPortrait
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.SimpleAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
+import com.openapi.ks.myapp.dh.DhLabBootstrap
+import com.openapi.ks.myapp.dh.DhLabGate
+import com.openapi.ks.myapp.dh.DigitalHumanLabHost
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -260,6 +263,11 @@ fun CompanionRoute(
             }
         }
 
+        // DH Lab：debuggable 默认开；强制 prefs 也可开。开了就用全幅 Lab Host，
+        // 关掉时行为与今天完全一致（圆头像 + 可选分层舞台）。
+        DhLabBootstrap.ensureDefaults()
+        val labEnabled = remember(context) { DhLabGate.isEnabled(context) }
+
         // 通话页用**会动的**形象，而不是单张立绘：这里是她被盯着看最久的地方，
         // 一张不眨眼、不说话的照片比不显示还糟。嘴型由远端音频振幅驱动，
         // 眨眼/呼吸由渲染器自己跑。素材缺失时退回单张立绘，再缺就退回字标。
@@ -390,16 +398,28 @@ fun CompanionRoute(
                 chatViewModel.onInputChange(text)
                 chatViewModel.send()
             },
-            avatarContent = avatarSlot,
-            avatarStage = layeredPack?.let { pack ->
-                {
-                    LayeredAvatar(
-                        pack = pack,
-                        modifier = Modifier.fillMaxSize(),
-                        // 嘴型跟她的声音走；AI 试听时跟试听音频走，否则跟远端音频轨。
-                        mouthLevel = { aiMouthLevel() },
-                        onTapped = chatViewModel::onAvatarTapped,
-                    )
+            avatarContent = if (labEnabled) null else avatarSlot,
+            // Lab 开：全幅 stage 交给 DigitalHumanLabHost（含 Switcher）；关：沿用分层立绘舞台。
+            avatarStage = when {
+                labEnabled -> {
+                    {
+                        DigitalHumanLabHost(
+                            spec = avatarFiles?.let { AvatarSpec(files = it) },
+                            mouthLevel = chatViewModel.mouthLevel,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+                else -> layeredPack?.let { pack ->
+                    {
+                        LayeredAvatar(
+                            pack = pack,
+                            modifier = Modifier.fillMaxSize(),
+                            // 嘴型跟她的声音走；AI 试听时跟试听音频走，否则跟远端音频轨。
+                            mouthLevel = { aiMouthLevel() },
+                            onTapped = chatViewModel::onAvatarTapped,
+                        )
+                    }
                 }
             },
         )
