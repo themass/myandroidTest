@@ -3,7 +3,7 @@
 Lab 引擎适配器通过反射探测 classpath。编入 native SDK：
 
 ```bash
-./gradlew :app:assembleDebug -Pdh.lab.native=true
+./gradlew :app:assembleChatDebug -Pdh.lab.native=true
 ```
 
 | 属性 / 默认路径 | 模块 |
