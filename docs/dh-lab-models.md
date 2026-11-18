@@ -19,6 +19,19 @@ Lab 引擎适配器通过反射探测 classpath。编入 native SDK：
 
 未加 `-Pdh.lab.native=true` 时 Switcher 对三家显示「未编入」（适配器已注册，classpath 无类）。
 
+### 本机编 APK（已验证路径）
+
+根工程会：
+1. 给 include 进来的 `dh-engine-*` 打开 `buildConfig`、改 CMake `3.22.1`、对齐 NDK 27。
+2. `app` packaging `pickFirst` `libonnxruntime.so` / `libc++_shared.so`（duix 与 imaging 撞名）。
+
+```bash
+./gradlew :app:assembleChatDebug -Pdh.lab.native=true
+# APK: app/build/outputs/apk/chat/debug/app-chat-debug.apk
+adb push app/build/outputs/apk/chat/debug/app-chat-debug.apk /data/local/tmp/app-chat-debug.apk
+adb shell pm install -r /data/local/tmp/app-chat-debug.apk
+```
+
 ## Duix 模型目录
 
 官方 SDK 从 `context.getExternalFilesDir("duix")` 读取：
