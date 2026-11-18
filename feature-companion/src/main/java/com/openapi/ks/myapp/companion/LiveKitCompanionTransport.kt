@@ -5,8 +5,12 @@ import android.content.pm.ApplicationInfo
 import android.os.SystemClock
 import com.openapi.ks.myapp.avatar.ProactiveKind
 import com.openapi.ks.myapp.companion.protocol.CompanionProtocolLink
+import com.openapi.ks.myapp.companion.protocol.Decision
 import com.openapi.ks.myapp.companion.protocol.PresentationCue
 import com.openapi.ks.myapp.companion.protocol.ProtocolCatalog
+import com.openapi.ks.myapp.companion.protocol.ProtocolCodec
+import com.openapi.ks.myapp.companion.protocol.ScheduledCue
+import com.openapi.ks.myapp.companion.protocol.SpeechRegistry
 import io.livekit.android.LiveKit
 import io.livekit.android.events.RoomEvent
 import io.livekit.android.room.Room
@@ -20,8 +24,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -83,6 +89,24 @@ class LiveKitCompanionTransport(
     /** 最近一次麦克风意图。房间还没建好时先存着，连上后补偿执行。 */
     @Volatile private var micIntent: Boolean? = null
     @Volatile private var playbackAudible = true
+
+    /**
+     * §9 的语音时间线与表现 cue 队列。
+     *
+     * 单独一个对象而不是散在 transport 里：调度判定是纯逻辑，能用假时钟单测
+     * （[com.openapi.ks.myapp.companion.protocol.SpeechRegistryTest]）。这里只负责把
+     * "现在几毫秒"和"音频开始播了"喂进去。
+     *
+     * payload 是**已翻译好的 v1 事件串**：锚点解析发生在收包线程，执行发生在调度协程，
+     * 中间隔着一段时间——所以进队列时就翻译完，不能在执行时再解析 args。
+     */
+    private val speech = SpeechRegistry<String>()
+
+    /** 有新 cue 入库 / 有新音频时把自己踹醒。CONFLATED：连来十条只醒一次，醒来全扫。 */
+    private val speechWake = Channel<Unit>(Channel.CONFLATED)
+
+    /** 正在跑调度循环的房间。同一房间重复 `Connected` 时不另起一个。 */
+    @Volatile private var speechLoopRoom: Room? = null
 
     /** 麦克风发布串行化：连点两下开/关，异步调用乱序会让按钮状态和实际发布不一致。 */
     private val micMutex = Mutex()
@@ -160,6 +184,7 @@ class LiveKitCompanionTransport(
                         // 表现是「她单聊时说的话我收不到，群发都正常」，很难查。
                         protocolLink.bindIdentity(newRoom.localParticipant.identity?.value)
                         startHealthLoop(newRoom)
+                        startSpeechLoop(newRoom)
                     }
                     is RoomEvent.FailedToConnect -> {
                         _connection.value = TransportConnection.DISCONNECTED
@@ -187,6 +212,9 @@ class LiveKitCompanionTransport(
                         // 少了这一步，对端从 0 重发的消息全被当作 stale 丢掉——表现是
                         // 「重连之后她突然不理我了」，而两端日志都干净。
                         protocolLink.onReconnected()
+                        // 时间线属于旧连接上的那几段音频：全部作废，墓碑保留
+                        // （`speech_id` 不复用，留着无害，还能挡住迟到的 begin）。
+                        speech.onReconnected()
                         sendHello(newRoom, protocolLink)
                     }
                     is RoomEvent.Disconnected -> {
@@ -408,6 +436,7 @@ class LiveKitCompanionTransport(
         detachMouthSink()
         detachSelfSink()
         _mouthLevel.value = 0f
+        speech.onReconnected()      // 断开了：时间线与队列都没有意义了
         room?.disconnect()
         room = null
         scope.cancel()
@@ -466,6 +495,17 @@ class LiveKitCompanionTransport(
                 val rms = sqrt(sum / n) / Short.MAX_VALUE
                 val level = (rms / FULL_SCALE_RMS).coerceIn(0.0, 1.0).toFloat() * LEVEL_CEILING
                 _mouthLevel.value = level
+
+                // §9.4：远端首帧就是"这句话的 t0"。没有这一步，所有 `before` /
+                // `after` 锚点都解不出来，表现 cue 会挂在队列里直到 2 秒后过期。
+                // 只在有待标定的时间线时才做，省掉稳态下每帧一次的无用计算。
+                if (speech.timebasePendingId() != null) {
+                    speech.onAudioFrame(
+                        now = SystemClock.elapsedRealtime(),
+                        captureTs = absoluteCaptureTimestampMs,
+                    )
+                    speechWake.trySend(Unit)
+                }
 
                 callbacks++
                 rawSum += rms
@@ -672,7 +712,7 @@ class LiveKitCompanionTransport(
                 publisher = publisherIdentity,
                 publisherIsAgent = publisher?.kind == Participant.Kind.AGENT,
             ) ?: return
-            handleProtocol(accepted.envelope.t, accepted.envelope.args)
+            handleProtocol(accepted.envelope)
             return
         }
 
@@ -707,10 +747,13 @@ class LiveKitCompanionTransport(
      * 表现指令在入口处翻译成 v1 的事件串，界面层与形象层不用知道协议升过版——
      * 这也是 P0.5 冒烟闭环的落点：一条 `cmp.cue` 能一路走到脸。
      *
-     * 其余事件仍然只过收侧状态机（已计数）而没有消费者：那是**已知的空位**，
-     * 不是遗漏（`speech.*` 在 P1）。
+     * P1 起 `presentation.*` 不再当场执行，而是**连同信封上的 `at` 一起进调度队列**：
+     * "现在做"只是四种 `at` 形态里的缺省一种，无条件立刻执行会让 `before` / `after`
+     * 永远落空。表现 cue 多走一次判定，代价是一次队列扫描。
      */
-    private suspend fun handleProtocol(eventType: String, args: JSONObject) {
+    private suspend fun handleProtocol(envelope: ProtocolCodec.Envelope) {
+        val eventType = envelope.t
+        val args = envelope.args
         when (eventType) {
             "control.hello_ack" -> {
                 link?.onAck(args)
@@ -729,14 +772,116 @@ class LiveKitCompanionTransport(
                     // 变成一个查不出来的问题。
                     logWarn("attempt=$activeAttemptId event=emotion_unknown name=${args.optString("name")}")
                 }
-                bus.emit(CompanionEvent.AvatarJson(PresentationCue.emotionEventJson(emotion.name)))
+                scheduleCue(eventType, envelope, at = envelope.at) {
+                    PresentationCue.emotionEventJson(emotion.name)
+                }
             }
             "presentation.state" -> {
                 val state = PresentationCue.parseState(args) ?: return
-                bus.emit(CompanionEvent.AvatarJson(PresentationCue.stateEventJson(state)))
+                scheduleCue(eventType, envelope, at = envelope.at) {
+                    PresentationCue.stateEventJson(state)
+                }
             }
-            // 其余事件在 P0.5 阶段只走收侧状态机（已计数），没有消费者。
+            // ---- 语音时间线（§9）----
+            "speech.begin" -> {
+                val timeline = speech.onBegin(args)
+                if (timeline == null) {
+                    logWarn("attempt=$activeAttemptId event=speech_begin_rejected id=${args.optString("speech_id")}")
+                } else {
+                    logInfo(
+                        "attempt=$activeAttemptId event=speech_begin id=${timeline.speechId} segs=${timeline.size} totalEstMs=${timeline.totalEstMs}",
+                    )
+                }
+                speechWake.trySend(Unit)
+            }
+            "speech.segment" -> {
+                speech.onSegment(args, now = SystemClock.elapsedRealtime())
+                speechWake.trySend(Unit)
+            }
+            "speech.end" -> {
+                speech.onEnd(args)
+                logInfo("attempt=$activeAttemptId event=speech_end id=${args.optString("speech_id")}")
+                speechWake.trySend(Unit)
+            }
+            "control.cancel" -> {
+                // 打断是 A 类：到达即生效，不排队、不判锚点（§10.2）。
+                speech.onCancel(args)
+                logInfo(
+                    "attempt=$activeAttemptId event=speech_cancel id=${args.optString("speech_id")} reason=${args.optString("reason")}",
+                )
+                speechWake.trySend(Unit)
+            }
+            // 其余事件仍然只过收侧状态机（已计数）而没有消费者。
             else -> Unit
+        }
+    }
+
+    /**
+     * 把一条表现 cue 送进调度队列。
+     *
+     * [build] 在**这里**就执行：它把 args 翻译成 v1 事件串。放到执行时刻做的话，
+     * 那段代码就得在两个线程之间共享 `args`，而 `JSONObject` 不是线程安全的。
+     */
+    private fun scheduleCue(
+        eventType: String,
+        envelope: ProtocolCodec.Envelope,
+        at: JSONObject?,
+        build: () -> String,
+    ) {
+        val queued = speech.onCue(
+            eventType = eventType,
+            id = envelope.id,
+            payload = build(),
+            at = at,
+            now = SystemClock.elapsedRealtime(),
+        )
+        if (!queued) {
+            logWarn("attempt=$activeAttemptId event=cue_rejected type=$eventType id=${envelope.id}")
+        }
+        // 进入队列不一定会立刻执行（可能排期），但"排了个更早的"这次唤醒必须发生，
+        // 否则调度循环还睡在之前那个更晚的时刻上。
+        speechWake.trySend(Unit)
+    }
+
+    /**
+     * 调度循环：睡到下一次该醒的时刻，醒来把队列扫一遍。
+     *
+     * 单一循环而不是每条 cue 一个 `delay`：cue 的判定依据（`t0`、段起点校正）会
+     * **在执行之前被后来的消息改写**，逐条 `delay` 的写法锁不住这一点——一条已经排好
+     * 3200 ms 的 cue，在收到 `start_boundary` 之后应该按新时刻执行，而 `delay` 里做不到。
+     */
+    private fun startSpeechLoop(current: Room) {
+        if (speechLoopRoom === current) return
+        speechLoopRoom = current
+        scope.launch {
+            while (true) {
+                val now = SystemClock.elapsedRealtime()
+                val sweep = speech.sweep(now)
+                for (cue in sweep.apply) {
+                    // 形象层要主线程：bus 是 SharedFlow，collect 在主线程，所以这里
+                    // 只需要非挂起地 emit（tryEmit），真正落地由收侧决定。
+                    bus.tryEmit(CompanionEvent.AvatarJson(cue.payload))
+                }
+                for (dropped in sweep.dropped) {
+                    logInfo(
+                        "attempt=$activeAttemptId event=cue_dropped type=${dropped.cue.eventType} id=${dropped.cue.id} reason=${dropped.reason}",
+                    )
+                }
+
+                val wakeAt = speech.nextWakeAt()
+                val waitMs = when {
+                    wakeAt == null -> Long.MAX_VALUE
+                    else -> (wakeAt - SystemClock.elapsedRealtime()).coerceAtLeast(0)
+                }
+                if (waitMs > SPEECH_LOOP_MAX_SLEEP_MS) {
+                    // 上限不是为了精度，是为了让循环有机会发现"房间换了"。
+                    withTimeoutOrNull(SPEECH_LOOP_MAX_SLEEP_MS) { speechWake.receive() }
+                } else {
+                    withTimeoutOrNull(waitMs.coerceAtLeast(1)) { speechWake.receive() }
+                }
+                // 房间换了（重新 connect 建了新连接）：这个循环属于旧房间，退出。
+                if (room !== current) break
+            }
         }
     }
 
@@ -806,6 +951,12 @@ class LiveKitCompanionTransport(
 
         /** `telemetry.health` 的上报周期（§8 表格：30 s）。 */
         const val HEALTH_INTERVAL_MS = 30_000L
+
+        /**
+         * 调度循环的最长单次睡眠。没有 cue 在等时间时也要定期醒来检查"房间是否换了"，
+         * 否则一次空闲就会让旧房间的循环一直挂到 scope 被取消。
+         */
+        const val SPEECH_LOOP_MAX_SLEEP_MS = 5_000L
     }
 
     private fun logInfo(message: String) {
