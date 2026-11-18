@@ -1,0 +1,61 @@
+name: companion protocol
+
+# 协议 v2 的两端各有一份共享向量（feature-companion/src/test/resources/protocol_v2.json），
+# 两边都把它的 sha256 硬编码在测试里。那份「改一边、另一边就一定红」的保证，只有真的
+# 跑起来才成立——在此之前，两边都只是各写各的常量。
+#
+# 这里只跑协议相关的单元测试：整仓编译要 NDK 与子模块，与本协议无关，
+# 而协议层的全部行为都在 feature-companion 的 Robolectric 单测里。
+
+on:
+  push:
+    paths:
+      - 'feature-companion/**'
+      - '.github/workflows/companion-protocol.yml'
+  pull_request:
+    paths:
+      - 'feature-companion/**'
+      - '.github/workflows/companion-protocol.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      # Robolectric 首次运行要下载 android-all，缓存它能把冷启动从几分钟压到十几秒。
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.m2/repository/org/robolectric
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle', '**/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: 协议单测
+        run: ./gradlew :feature-companion:testDebugUnitTest --no-daemon --stacktrace
+
+      - name: 失败时留下报告
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: companion-test-report
+          path: |
+            feature-companion/build/reports/tests/
+            feature-companion/build/test-results/
+          retention-days: 7

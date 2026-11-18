@@ -458,17 +458,44 @@ class LiveKitCompanionTransport(
     }
 
     /**
-     * 点她一下：走文本流的独立话题 `companion.touch`，payload 是含 region 的 JSON。
+     * 点她一下：走 v2 的 `cmp.in` `control.input`（§15 迁移表）。
      *
-     * 不新开数据通道类型：文本流本来就在用，agent 侧只需要再注册一个话题的 handler。
+     * 旧路径是 `companion.touch` 文本流，服务端从来没有注册过这个话题的 handler——
+     * 每一下触摸都发进黑洞。数据包比文本流省，也省掉建流的往返。
+     *
+     * v1 连接（未握手）发不出去：`outgoing` 会在协商未完成时返回 null。此时退回旧的
+     * 文本流，至少老服务端还能收到。
+     *
      * 失败不提示——触摸是低价值的尝试性输入，弹一条「触摸失败」只会打断沉浸感。
      */
     override fun sendTouch(region: String) {
         val current = room ?: return
-        val payload = JSONObject().put("v", 1).put("type", "touch").put("region", region).toString()
+        val protocolLink = link
+        val bytes = if (protocolLink == null) {
+            null
+        } else {
+            protocolLink.outgoing(
+                topic = ProtocolCatalog.TOPIC_IN,
+                eventType = "control.input",
+                args = JSONObject().put("kind", "touch").put("region", region),
+            )
+        }
+        if (bytes == null) {
+            // 未协商出 v2：老服务端只认文本流。
+            val payload = JSONObject().put("v", 1).put("type", "touch").put("region", region).toString()
+            scope.launch {
+                current.localParticipant.sendText(payload, StreamTextOptions(topic = TOPIC_TOUCH))
+                    .onFailure { /* 见上：触摸上报失败保持静默 */ }
+            }
+            return
+        }
         scope.launch {
-            current.localParticipant.sendText(payload, StreamTextOptions(topic = TOPIC_TOUCH))
-                .onFailure { /* 见上：触摸上报失败保持静默 */ }
+            runCatching {
+                current.localParticipant
+                    .publishData(bytes, DataPublishReliability.RELIABLE, ProtocolCatalog.TOPIC_IN)
+            }.onFailure {
+                logWarn("attempt=$activeAttemptId event=touch_publish_failed type=${it.javaClass.simpleName}")
+            }
         }
     }
 

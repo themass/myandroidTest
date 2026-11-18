@@ -70,7 +70,10 @@ object ProtocolCatalog {
         "presentation.emotion" to oneWay(TOPIC_CUE, Delivery.DEADLINE, SERVER),
         "presentation.gesture" to oneWay(TOPIC_CUE, Delivery.DEADLINE, SERVER),
         "presentation.gaze" to oneWay(TOPIC_CUE, Delivery.DEADLINE, SERVER),
-        "presentation.resync" to oneWay(TOPIC_CUE, Delivery.MUST, SERVER),
+        // 没有 presentation.resync：它曾经只是目录里的一个名字，两端都没有发送方与
+        // 消费者，超时表里却为它留了 5 秒窗口。F13（服务端重启）恢复状态走的是重连
+        // 后的重新握手 + 端侧清时间线，不需要一条额外的事件。要加回来，先把「谁发、
+        // 什么时候发、收到后覆盖哪些状态」写进 §11，再同时改两侧目录与共享向量。
         // ---- 感知与遥测（cmp.tel）----
         "perception.attention" to oneWay(TOPIC_TEL, Delivery.DROPPABLE, CLIENT),
         "telemetry.health" to oneWay(TOPIC_TEL, Delivery.DROPPABLE, CLIENT),

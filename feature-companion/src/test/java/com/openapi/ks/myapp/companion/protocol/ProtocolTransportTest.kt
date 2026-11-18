@@ -224,7 +224,10 @@ class ProtocolTransportTest {
     @Test
     fun `旧 topic 与协议 topic 不重名`() {
         // 两条路靠 topic 名区分。哪天有人把 companion.* 加进 TOPICS，v1 的分派就没了。
-        val legacy = setOf("companion.avatar", "companion.proactive", "companion.action", "companion.touch")
+        //
+        // companion.touch 不在这里：端侧已经改发 cmp.in 的 control.input（§15 迁移表），
+        // 旧的文本流只在未协商出 v2 时作为回落路径保留，不是并行的第二套入口。
+        val legacy = setOf("companion.avatar", "companion.proactive", "companion.action")
         assertTrue(ProtocolCatalog.TOPICS.intersect(legacy).isEmpty())
     }
 

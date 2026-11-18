@@ -71,7 +71,7 @@ object AnchorParser {
         "presentation.gesture" -> 800L
         "presentation.gaze" -> 400L
         "presentation.emotion" -> 1_500L
-        "speech.seg", "speech.end", "control.cancel", "presentation.resync" -> 5_000L
+        "speech.seg", "speech.end", "control.cancel" -> 5_000L
         else -> 800L
     }
 

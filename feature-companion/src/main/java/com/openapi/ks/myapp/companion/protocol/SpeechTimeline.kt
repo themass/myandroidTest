@@ -94,7 +94,11 @@ class SpeechTimeline(val speechId: String) {
         if (state == State.CANCELLED) return false
         if (t0 != null) return true
         t0 = t0Mono
-        state = State.PLAYING
+        // `DONE` 之后才到第一帧音频：`speech.end` 排干得比音频起播快（短回复就是常态）。
+        // t0 仍要记下——挂在这句上的 `after` cue 靠它算时刻，而 §9.4 的 `speech.end`
+        // 明确不取消尚未到点的 `after`。但状态不能倒退：这一句已经说完了，把 DONE 拉回
+        // PLAYING 会让「说完了」这件事看起来像没发生，也会让后续的 end/cancel 记账错位。
+        if (state != State.DONE) state = State.PLAYING
         return true
     }
 

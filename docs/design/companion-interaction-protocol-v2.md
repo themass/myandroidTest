@@ -287,13 +287,13 @@ RELIABLE 通道理论上不丢包，但**不保证不丢**（对端进程崩溃�
 | `control.request` | A | S→C | 需要用户回答（含确认），见 §11.3 |
 | `control.response` | A | C→S | 对上一条的回答，幂等 |
 | `control.barge_in` | A | C→S | 端侧检测到用户开口 |
+| `control.input` | A | C→S | 端侧即时输入（`cmp.in`），目前是触摸：`{kind:"touch", region}` |
 | `speech.seg` | A | S→C | 一句语音的段声明（句级，按出句顺序，idx 连续），cap `speech.v1` |
 | `speech.end` | A | S→C | 该 `speech_id` 说完（该轮 TTS 全部排空） |
 | `presentation.state` | B | S→C | IDLE/LISTENING/THINKING/SPEAKING |
 | `presentation.emotion` | B | S→C | 情绪 |
 | `presentation.gesture` | B | S→C | 动作/手势 |
 | `presentation.gaze` | B | S→C | 注视意图 |
-| `presentation.resync` | A | S→C | 端侧可主动请求一次全量状态（RPC 亦可） |
 | `perception.attention` | C | C→S | 端侧粗粒度在场/注视（LOSSY） |
 | `telemetry.health` | C | C→S | 端侧渲染健康度（掉帧、降级档位），30s |
 
@@ -634,7 +634,7 @@ degrade_level            // 当前 L0..L4，及进入/退出时刻
 | `companion.avatar`（带 topic，`AvatarPublisher`） | `cmp.cue` `presentation.emotion` / `.state` | 两个版本并存两个发布周期 |
 | `companion.action` | `cmp.cue` `presentation.gesture` | — |
 | `companion.proactive` | `cmp.ctl` `control.request` (`kind:"notice"`) 或 `cmp.cue` | 视是否需要用户响应 |
-| `companion.touch`（text stream） | `cmp.in` `control.input` (`region`) | 数据包比文本流更省；文本流建流的开销不值得 |
+| `companion.touch`（text stream） | `cmp.in` `control.input` (`region`) | 已迁移：端侧 `sendTouch` 发数据包；未协商出 v2 时仍回落文本流 |
 | `companion.confirm`（孤儿，已删） | 不复用。确认回执留在 HTTP `POST /v1/actions/{id}/confirm` | 带鉴权与幂等，数据通道不重复实现 |
 | `lk.chat` | 保留 | 用户文本输入，与 Agents SDK 互操作 |
 | `lk.transcription` | 保留 | 字幕，端侧复用现成渲染 |

@@ -238,6 +238,23 @@ class SpeechRegistryTest {
     // ------------------------------------------------------------ speech.end
 
     @Test
+    fun `end 先于首帧音频到达时，迟到的音频不会把时间线拉回播放中`() {
+        // 短回复、或者 TTS 排干得比音频起播快：end 先到，DONE 已经落了。
+        // 之后第一帧音频进来时，t0 仍然要定（after 锚要靠它算），但状态不能倒退。
+        val r = registry()
+        r.onSeg(seg("sp_1", idx = 0, est = 800))
+        r.onEnd(cancel("sp_1"))
+        assertEquals(SpeechTimeline.State.DONE, r.timeline("sp_1")!!.state)
+
+        assertTrue(r.timeline("sp_1")!!.startNow(t0))
+
+        assertEquals(SpeechTimeline.State.DONE, r.timeline("sp_1")!!.state)
+        assertEquals(t0, r.timeline("sp_1")!!.t0)
+        // DONE 之后也不再接受新段：这一句已经说完了。
+        assertFalse(r.onSeg(seg("sp_1", idx = 1)))
+    }
+
+    @Test
     fun `end 之后挂最后一段的 after 仍然按时执行`() {
         // §17 P1 验收：speech.end 之后的 after 动作要准。
         val r = registry()
