@@ -68,7 +68,8 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));
         videoPlayer = b.jzVideo;
         dlnaCastButton = b.btnDlnaCast;
-        myFavoriteView = b.myFavoriteview;
+        // 布局里的 MyFavoriteView 保持 GONE；工具条挂在播放器上以便全屏克隆
+        myFavoriteView = videoPlayer.getMyFavoriteView();
     }
 
     @Override
@@ -77,6 +78,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         playbackSavedState = savedInstanceState;
         setContentView(R.layout.layout_video_show);
         bindButterViews();
+        videoPlayer.ensureOrientationUtils(this);
         indexService = new BaseService();
         indexService.setup(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -117,7 +119,13 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         videoPlayer.loadPoster(this, vo.img);
         myFavoriteView.setListener(this);
         myFavoriteView.initFavoriteBackGroud(vo.actionUrl);
-        myFavoriteView.showVideoLocal();
+        // 右侧栏：译/倍速/收藏；本地隐藏外线 WWW；content:// 再隐藏「复制链接」分享图标
+        boolean local = VideoUtil.isLocalPlayUrl(vo != null ? vo.actionUrl : null);
+        if (local) {
+            myFavoriteView.showLocalFilePlayback(false);
+        } else {
+            myFavoriteView.showOnlineVideoPlayback();
+        }
         myFavoriteView.setTranslationSession(new TranslationOverlaySession() {
             @Override
             public ViewGroup getOverlayParent() {
@@ -171,6 +179,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         videoPlayer.setUp(url, cache, null, VideoUtil.headersForRecommend(urlVo), vo.title);
         VideoShowPlaybackStateHelper.prepareSeekRestore(videoPlayer, playbackSavedState);
         videoPlayer.startPlayLogic();
+        videoPlayer.enableOrientationAfterPrepared();
         VideoShowPlaybackStateHelper.schedulePauseIfWasPaused(videoPlayer, playbackSavedState);
         playbackSavedState = null;
         VideoPlaybackUiHelper.maybeShowFirstPlaybackGestureHint(this, videoPlayer);
@@ -198,6 +207,9 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         if (castSessionController != null) {
             castSessionController.onPause();
         }
+        if (videoPlayer != null) {
+            videoPlayer.setOrientationPaused(true);
+        }
         super.onPause();
         try {
             GSYVideoManager.onPause();
@@ -214,6 +226,9 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         } catch (Throwable e) {
             LogUtil.e(e);
         }
+        if (videoPlayer != null) {
+            videoPlayer.setOrientationPaused(false);
+        }
         if (castSessionController != null) {
             castSessionController.onResume();
         }
@@ -221,6 +236,9 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
 
     @Override
     public void onBackPressed() {
+        if (videoPlayer != null) {
+            videoPlayer.backToPortraitIfNeeded();
+        }
         if (GSYVideoManager.backFromWindowFull(this)) {
             return;
         }
@@ -336,6 +354,9 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
             dlnaDiscovery.close();
         }
         indexService.cancelRequest(VIDEO_TAG);
+        if (videoPlayer != null) {
+            videoPlayer.releaseOrientationUtils();
+        }
         GSYVideoManager.releaseAllVideos();
         super.onDestroy();
     }

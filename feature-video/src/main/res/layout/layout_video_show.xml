@@ -21,7 +21,7 @@
         android:src="@drawable/ic_dlna_cast"
         android:tint="#FFFFFF" />
 
-    <!-- 收藏 / 翻译 / 实时字幕入口栏，与其它详情页保持一致 -->
+    <!-- 占位保留 id，实际工具条挂在 DetailGSYVideoPlayer 内（全屏克隆需要） -->
     <com.openapi.core.favorite.MyFavoriteView
         android:id="@+id/my_favoriteview"
         android:layout_width="wrap_content"

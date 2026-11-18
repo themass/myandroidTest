@@ -58,7 +58,8 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));
         videoPlayer = b.jzVideo;
         dlnaCastButton = b.btnDlnaCast;
-        myFavoriteView = b.myFavoriteview;
+        // 布局里的 MyFavoriteView 保持 GONE；工具条挂在播放器上以便全屏克隆
+        myFavoriteView = videoPlayer.getMyFavoriteView();
     }
 
     @Override
@@ -66,6 +67,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_video_show);
         bindButterViews();
+        videoPlayer.ensureOrientationUtils(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             vo = getIntent().getSerializableExtra(Constants.CONFIG_PARAM, RecommendVo.class);
@@ -77,6 +79,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         VideoShowPlaybackStateHelper.prepareSeekRestore(videoPlayer, savedInstanceState);
         videoPlayer.loadPoster(this, vo.img);
         videoPlayer.startPlayLogic();
+        videoPlayer.enableOrientationAfterPrepared();
         VideoShowPlaybackStateHelper.schedulePauseIfWasPaused(videoPlayer, savedInstanceState);
 
         videoPlayer.installGoogleCastRouteButton(this);
@@ -95,7 +98,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         dlnaCastButton.setOnClickListener(v -> showDlnaDevices());
         myFavoriteView.setListener(this);
         myFavoriteView.initFavoriteBackGroud(vo.actionUrl);
-        myFavoriteView.showVideoLocal();
+        myFavoriteView.showOnlineVideoPlayback();
         VideoPlaybackUiHelper.maybeShowFirstPlaybackGestureHint(this, videoPlayer);
 
         myFavoriteView.setTranslationSession(new TranslationOverlaySession() {
@@ -146,6 +149,9 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
     protected void onPause() {
         if (castSessionController != null) {
             castSessionController.onPause();
+        }
+        if (videoPlayer != null) {
+            videoPlayer.setOrientationPaused(true);
         }
         super.onPause();
         if (enteringPip) {
@@ -218,6 +224,9 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         } catch (Throwable e) {
             LogUtil.e(e);
         }
+        if (videoPlayer != null) {
+            videoPlayer.setOrientationPaused(false);
+        }
         if (castSessionController != null) {
             castSessionController.onResume();
         }
@@ -225,6 +234,9 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
 
     @Override
     public void onBackPressed() {
+        if (videoPlayer != null) {
+            videoPlayer.backToPortraitIfNeeded();
+        }
         if (GSYVideoManager.backFromWindowFull(this)) {
             return;
         }
@@ -245,6 +257,9 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         }
         if (dlnaDiscovery != null) {
             dlnaDiscovery.close();
+        }
+        if (videoPlayer != null) {
+            videoPlayer.releaseOrientationUtils();
         }
         GSYVideoManager.releaseAllVideos();
         super.onDestroy();

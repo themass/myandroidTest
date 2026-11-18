@@ -120,6 +120,26 @@ public class MyFavoriteView extends LinearLayout {
         speed.setText(speedX[currentSpeedIndex] + "X");
     }
 
+    /**
+     * 本地文件播放：保留倍速 / 译 / 收藏；隐藏外线 m3u8，并可选隐藏「复制链接+浏览器」
+     * （content:// 复制出去通常无意义）。分享图标不是投屏入口。
+     */
+    public void showLocalFilePlayback(boolean showOpenInBrowser) {
+        setVisibility(View.VISIBLE);
+        ivM3u8Lines.setVisibility(View.GONE);
+        speed.setVisibility(View.VISIBLE);
+        tvTranslate.setVisibility(View.VISIBLE);
+        ivBrowser.setVisibility(showOpenInBrowser ? View.VISIBLE : View.GONE);
+        speed.setText(speedX[currentSpeedIndex] + "X");
+    }
+
+    /** 在线视频详情：显示完整工具条。 */
+    public void showOnlineVideoPlayback() {
+        setVisibility(View.VISIBLE);
+        showVideoLocal();
+        ivBrowser.setVisibility(View.VISIBLE);
+    }
+
     public void favoriteClick(View view) {
         if (onFavoriteItemClick == null) {
             return;
