@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.os.SystemClock
 import com.openapi.ks.myapp.avatar.ProactiveKind
+import com.openapi.ks.myapp.companion.protocol.BargeInGate
 import com.openapi.ks.myapp.companion.protocol.CompanionProtocolLink
 import com.openapi.ks.myapp.companion.protocol.Decision
 import com.openapi.ks.myapp.companion.protocol.PresentationCue
@@ -102,6 +103,9 @@ class LiveKitCompanionTransport(
      * 中间隔着一段时间——所以进队列时就翻译完，不能在执行时再解析 args。
      */
     private val speech = SpeechRegistry<String>()
+
+    /** §10.1：本地开口打断闸。只在本房间生命周期内有意义。 */
+    private val bargeGate = BargeInGate()
 
     /** 有新 cue 入库 / 有新音频时把自己踹醒。CONFLATED：连来十条只醒一次，醒来全扫。 */
     private val speechWake = Channel<Unit>(Channel.CONFLATED)
@@ -218,6 +222,7 @@ class LiveKitCompanionTransport(
                         // 少了这一步，对端从 0 重发的消息全被当作 stale 丢掉——表现是
                         // 「重连之后她突然不理我了」，而两端日志都干净。
                         protocolLink.onReconnected()
+                        bargeGate.reset()
                         // 时间线属于旧连接上的那几段音频：全部作废，墓碑保留
                         // （`speech_id` 不复用，留着无害，还能挡住迟到的 begin）。
                         speech.onReconnected()
@@ -499,10 +504,46 @@ class LiveKitCompanionTransport(
         }
     }
 
+    /**
+     * §10.1：用户开口打断。先本地作废时间线，再发 ``control.barge_in``。
+     *
+     * 不等服务端确认——音频截断由服务端 ``interrupt`` 负责，端侧只需同步视觉。
+     * 未协商出 v2 时只做本地 cancel（老服务端没有这条协议路径）。
+     * 失败静默：打断是低延迟路径，弹错误只会更吵。
+     */
+    private fun sendBargeIn(speechId: String, playedMs: Long) {
+        // 本地立刻作废（§10.1）：哪怕发包失败，视觉也要停。
+        speech.onCancel(JSONObject().put("speech_id", speechId))
+        speechWake.trySend(Unit)
+
+        val current = room ?: return
+        val protocolLink = link ?: return
+        val args = JSONObject()
+            .put("speech_id", speechId)
+            .put("played_ms", playedMs)
+            .put("reason", "vad")
+        val bytes = protocolLink.outgoing(
+            topic = ProtocolCatalog.TOPIC_CTL,
+            eventType = "control.barge_in",
+            args = args,
+        ) ?: return
+        scope.launch {
+            runCatching {
+                current.localParticipant
+                    .publishData(bytes, DataPublishReliability.RELIABLE, ProtocolCatalog.TOPIC_CTL)
+            }.onFailure {
+                logWarn("attempt=$activeAttemptId event=barge_publish_failed type=${it.javaClass.simpleName}")
+            }.onSuccess {
+                logInfo("attempt=$activeAttemptId event=barge_in id=$speechId playedMs=$playedMs")
+            }
+        }
+    }
+
     override suspend fun disconnect() {
         detachMouthSink()
         detachSelfSink()
         _mouthLevel.value = 0f
+        bargeGate.reset()
         speech.onReconnected()      // 断开了：时间线与队列都没有意义了
         room?.disconnect()
         room = null
@@ -690,6 +731,20 @@ class LiveKitCompanionTransport(
                 val gated = (rms - SELF_NOISE_GATE).coerceAtLeast(0.0)
                 val level = sqrt(gated / SELF_FULL_SCALE_RMS).coerceIn(0.0, 1.0).toFloat()
                 _selfLevel.value = level
+
+                // §10.1：她在说、你开始出声 → 本地 cancel + control.barge_in。
+                // 用原始 rms 过噪声门（与波形用的 gated level 分开）：门限是实测底噪的
+                // ~10 倍，比映射后的 level 更稳，也避免轻声误触。
+                val nowMono = SystemClock.elapsedRealtime()
+                val bargeId = bargeGate.onSelfLevel(
+                    selfLevel = rms.toFloat(),
+                    noiseGate = SELF_NOISE_GATE.toFloat(),
+                    activeSpeechId = speech.activeSpeechId(),
+                    now = nowMono,
+                )
+                if (bargeId != null) {
+                    sendBargeIn(bargeId, speech.playedMs(bargeId, nowMono))
+                }
 
                 callbacks++
                 rawSum += rms

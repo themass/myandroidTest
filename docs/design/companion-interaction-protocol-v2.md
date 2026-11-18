@@ -429,7 +429,7 @@ TTS 从文本到首帧通常 300–800 ms，这段时间就是 cue 的天然前�
 ### 10.1 端侧发起（用户开口）
 
 ```
-端: 检测到 VAD/输入 → cmp.in {t:"control.barge_in", args:{speech_id, played_ms, reason:"vad"}}
+端: 检测到 VAD/输入 → cmp.ctl {t:"control.barge_in", args:{speech_id, played_ms, reason:"vad"}}
 端: 立刻本地把该 SpeechTimeline 置 CANCELLED，并开始本地衰减动画
 ```
 

@@ -35,6 +35,48 @@ class SpeechRegistryTest {
 
     private fun registry(): SpeechRegistry<String> = SpeechRegistry()
 
+    // ------------------------------------------------------------ 本地打断（§10.1 / F11）
+
+    @Test
+    fun `activeSpeechId 取最新一条未结束的时间线`() {
+        val r = registry()
+        assertNull(r.activeSpeechId())
+        r.onSeg(seg("sp_1", idx = 0))
+        assertEquals("sp_1", r.activeSpeechId())
+        r.onSeg(seg("sp_2", idx = 0))
+        assertEquals("sp_2", r.activeSpeechId())
+        r.onEnd(cancel("sp_2"))
+        assertEquals("sp_1", r.activeSpeechId())
+        r.onCancel(cancel("sp_1"))
+        assertNull(r.activeSpeechId())
+    }
+
+    @Test
+    fun `本地 barge 与服务端 cancel 一样作废时间线并清掉挂着的 cue`() {
+        // F11：打断后该 id 的表现不再执行。端侧自己发起时走同一条 onCancel。
+        val r = registry()
+        r.onSeg(seg("sp_1", idx = 0))
+        r.timeline("sp_1")!!.startNow(t0)
+        r.onCue("presentation.emotion", "m1", "happy", at("""{"speech":"sp_1","seg":0,"phase":"start"}"""), now = t0)
+
+        r.onCancel(cancel("sp_1"))
+
+        assertNull(r.activeSpeechId())
+        assertTrue(r.isCancelled("sp_1"))
+        val sweep = r.sweep(now = t0 + 10)
+        assertTrue(sweep.apply.isEmpty())
+        assertEquals(Decision.Reason.CANCELLED, sweep.dropped.single().reason)
+    }
+
+    @Test
+    fun `playedMs 在 t0 标定前为 0，标定后按单调钟差值`() {
+        val r = registry()
+        r.onSeg(seg("sp_1", idx = 0))
+        assertEquals(0L, r.playedMs("sp_1", now = t0 + 500))
+        r.timeline("sp_1")!!.startNow(t0)
+        assertEquals(500L, r.playedMs("sp_1", now = t0 + 500))
+    }
+
     // ------------------------------------------------------------ 墓碑（F5）
 
     @Test
