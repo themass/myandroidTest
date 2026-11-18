@@ -69,11 +69,11 @@ public class Constants {
     public static final String CHAT_SESSION = "CHAT_SESSION";
     public static final String AREA_SWITCH = "AREA_SWITCH";
     /**
-     * 「夜色」频道（成人内容）的默认值：**关**。
-     * 之前默认开，新用户一进频道页就能看到。Google Play 对露骨性内容零容忍，
-     * 默认关只是降低风险，不能当作合规——评审人员仍可在设置里打开，见 docs/design/play-compliance.md。
+     * 「夜色」频道（成人内容）的默认值：**开**。
+     * Play 合规曾短暂改成 false，导致频道页只剩「电影」+「自定义」、用户当成回归。
+     * 设置里仍可关掉；真正的合规边界见 docs/design/play-compliance.md，不能只靠默认关。
      */
-    public static final boolean AREA_SWITCH_DEFAULT = false;
+    public static final boolean AREA_SWITCH_DEFAULT = true;
     public static final String PLAYVIDEO_SWITCH = "PLAYVIDEO_SWITCH";
     public static final String LISTVIDEO_TINY_SWITCH = "LISTVIDEO_TINY_SWITCH";
     /** 兼容旧版：true 表示曾选择 IJK；新逻辑请用 {@link #PLAYBACK_ENGINE} */

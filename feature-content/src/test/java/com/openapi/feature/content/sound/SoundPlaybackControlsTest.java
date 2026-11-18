@@ -126,6 +126,28 @@ public class SoundPlaybackControlsTest {
         assertEquals(1, playback.lastPlayPosi);
     }
 
+    @Test
+    public void play_doesNothing_whenServiceNull() {
+        controls = new SoundPlaybackControls(host, () -> null, playIcon, modeSink);
+        host.count = 3;
+        controls.play(1);
+        assertEquals(0, playIcon.calls);
+    }
+
+    @Test
+    public void pause_returnsMinusOne_whenServiceNull() {
+        controls = new SoundPlaybackControls(host, () -> null, playIcon, modeSink);
+        assertEquals(-1, controls.pause());
+        assertEquals(0, playIcon.calls);
+    }
+
+    @Test
+    public void seekTo_doesNothing_whenServiceNull() {
+        controls = new SoundPlaybackControls(host, () -> null, playIcon, modeSink);
+        controls.seekTo(1234);
+        assertEquals(0, playIcon.calls);
+    }
+
     // ---- next / previous ----
 
     @Test

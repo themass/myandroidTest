@@ -17,6 +17,7 @@ import com.openapi.feature.content.home.domain.ChannelEntries
 import com.openapi.feature.content.home.domain.ChannelPage
 import com.openapi.app.R
 import com.openapi.core.model.RecommendVo
+import com.openapi.core.model.RecommendUrl
 import com.openapi.core.config.Constants
 import com.openapi.core.account.UserLoginUtil
 import com.openapi.feature.user.login.LoginActivity
@@ -49,6 +50,9 @@ class LegacyChannelEntries(app: Context) : ChannelEntries {
             .map { vo ->
                 // 旧数据里的 rate 是 长/宽，卡片要的是 宽/高；限制范围避免极端比例把列表撑坏
                 val ratio = if (vo.rate > 0f) 1f / vo.rate else 1f
+                // 服务端常把 img/actionUrl 写成相对路径，真正站点在 baseurl；这里先拼好，缩略图和点击都能用
+                vo.img = RecommendUrl.resolve(vo.baseurl, vo.img)
+                vo.actionUrl = RecommendUrl.resolve(vo.baseurl, vo.actionUrl)
                 Channel(
                     title = vo.title.orEmpty(),
                     description = vo.desc.orEmpty().trim(),
@@ -76,6 +80,10 @@ class LegacyChannelEntries(app: Context) : ChannelEntries {
         val param = HashMap<String, Any>()
         param[CommonConstants.ADS_SHOW_CONFIG] = vo.adsShow
         param[CommonConstants.ADS_POP_SHOW_CONFIG] = vo.adsPopShow
+        // ConfigActionJump 兜底拼相对路径时用；loadChannels 已 resolve，这里再传一遍防漏
+        if (!vo.baseurl.isNullOrBlank()) {
+            param["baseurl"] = vo.baseurl
+        }
         CoreEvents.postConfigAction(ConfigActionEvent(context, vo.actionUrl, vo.title, param))
         MobAgent.onEventRecommondChannel(context, vo.title)
     }
