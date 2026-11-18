@@ -38,7 +38,7 @@ class SimpleDigitalHumanEngine(
         DhEngineAvailability(DhEngineId.SIMPLE, available = true)
 }
 
-/** 注册 P0 默认引擎。幂等。 */
+/** 注册 Lab 引擎。幂等。三方适配器始终注册；可用性由各引擎 [DigitalHumanEngine.availability] 判定。 */
 object DhLabBootstrap {
     @Volatile
     private var done = false
@@ -48,6 +48,9 @@ object DhLabBootstrap {
         synchronized(this) {
             if (done) return
             DhEngineRegistry.register(DhEngineId.SIMPLE) { SimpleDigitalHumanEngine() }
+            DhEngineRegistry.register(DhEngineId.DUIX) { DuixDigitalHumanEngine() }
+            DhEngineRegistry.register(DhEngineId.LIVE2D) { Live2dDigitalHumanEngine() }
+            DhEngineRegistry.register(DhEngineId.TAO_AVATAR) { TaoDigitalHumanEngine() }
             done = true
         }
     }

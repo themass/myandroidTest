@@ -104,11 +104,16 @@ fun DigitalHumanLabHost(
                     mouthLevel = mouthLevel,
                 )
             }
-            // non-Simple engines: View surface (P1+)
+            // Duix / Live2D / Tao：Android View 视口
             else -> {
                 val view = remember(e) { e.createView(context) }
                 if (view != null) {
-                    AndroidView(factory = { view }, modifier = Modifier.fillMaxSize())
+                    AndroidView(
+                        factory = { view },
+                        modifier = Modifier.fillMaxSize(),
+                        update = { /* engine owns the View */ },
+                        onRelease = { /* release 由 bridge.replaceWith / DisposableEffect 负责 */ },
+                    )
                 } else {
                     Box(
                         Modifier
@@ -116,7 +121,15 @@ fun DigitalHumanLabHost(
                             .background(Color(0xFF0B0D14)),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("引擎无画面", color = Color.White.copy(alpha = 0.6f))
+                        Text(
+                            when (e.id) {
+                                DhEngineId.DUIX -> "Duix 无画面（缺模型或未编入）"
+                                DhEngineId.LIVE2D -> "Live2D 无画面（未编入）"
+                                DhEngineId.TAO_AVATAR -> "Tao 无画面（机型/未编入）"
+                                else -> "引擎无画面"
+                            },
+                            color = Color.White.copy(alpha = 0.6f),
+                        )
                     }
                 }
             }

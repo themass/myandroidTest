@@ -39,4 +39,12 @@ dependencies {
     implementation libs.kotlinx.coroutines.android
     // LiveKit 语音/实时传输（LiveKitCompanionTransport）
     implementation 'io.livekit:livekit-android:2.29.0'
+
+    // DH Lab 可选引擎：settings.gradle 探测到外部源码目录才 compileOnly/implementation
+    if (rootProject.gradle.ext.has('dhDuixIncluded') && rootProject.gradle.ext.dhDuixIncluded) {
+        implementation project(':dh-engine-duix')
+    }
+    if (rootProject.gradle.ext.has('dhLive2dIncluded') && rootProject.gradle.ext.dhLive2dIncluded) {
+        implementation project(':dh-engine-live2d')
+    }
 }

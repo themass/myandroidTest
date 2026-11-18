@@ -42,17 +42,25 @@ class DhEngineRegistryTest {
     }
 
     @Test
-    fun unregistered_engines_report_not_built_in_reason() {
+    fun adapters_without_sdk_report_unavailable_reason() {
         val avail = DhEngineRegistry.available(context)
         for (id in listOf(DhEngineId.LIVE2D, DhEngineId.DUIX, DhEngineId.TAO_AVATAR)) {
             val row = avail.first { it.id == id }
             assertFalse(row.available)
-            assertTrue("reason for $id", row.reason?.contains("未编入") == true)
+            assertTrue(
+                "reason for $id: ${row.reason}",
+                row.reason?.contains("未编入") == true ||
+                    row.reason?.contains("缺模型") == true ||
+                    row.reason?.contains("机型不足") == true,
+            )
         }
     }
 
     @Test
-    fun create_unregistered_throws() {
+    fun create_truly_unregistered_throws() {
+        DhEngineRegistry.resetForTests()
+        // 只注册 SIMPLE，刻意不注册 DUIX
+        DhEngineRegistry.register(DhEngineId.SIMPLE) { SimpleDigitalHumanEngine() }
         try {
             DhEngineRegistry.create(context, DhEngineId.DUIX)
             fail("expected IllegalStateException")
