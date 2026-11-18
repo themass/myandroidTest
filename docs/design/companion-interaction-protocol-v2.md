@@ -74,12 +74,14 @@ TOPIC_ACTION   = "companion.action"
 
 > **结论**：语速对齐数据（TTS 给出的每词起止）服务端是拿得到的，但**播放起点**只有端侧知道。D5 由此而来。
 
-### 2.3 现存的两处不一致（实现前必须先修）
+### 2.3 现存的两处不一致（已修复）
 
-| 现象 | 影响 | 处理 |
+> 下面两条已在 `2026-11-18` 处理完毕。结论和最初的判断不同：**两个都是孤儿代码，不是断掉的功能**。真正的确认流一直是通的，走 HTTP。
+
+| 现象 | 核实结果 | 处理 |
 |---|---|---|
-| `entrypoint.py:31` 有 `TOPIC_CONFIRM = "companion.confirm"`，客户端**没有对应 handler** | 确认流是断的：服务端以为发了，端侧收不到，用户永远等不到确认弹窗 | 本文 §11.3 定义 `control.request/response`；旧 topic 要么实现要么删除，不能留着 |
-| `agent.py` 的 `build_event_sink` 调 `publish_data(...)` **未传 topic** | `handleData` 按 topic 分发，无 topic 的事件落到默认分支被丢弃 | 迁到 `cmp.cue`，见 §15 |
+| `entrypoint.py:31` 有 `TOPIC_CONFIRM = "companion.confirm"`，客户端**没有对应 handler** | 这个常量**两端都没实现过**：服务端无处 publish，客户端无 handler，`handleData` 里也没有。而确认流本身是通的——`publish_action` 发 `companion.action`，客户端解成 `NeedsConfirmation`，用户点按钮走 HTTP `POST /v1/actions/{id}/confirm`（`api/http/routers/actions.py`）。客户端 `CompanionTransport.confirm()` 是从未被 override、也从未被调用的空实现 | 删除服务端常量与客户端空方法。将来的控制面按 §11.3 的 `cmp.ctl` 定义，不复用这个名字 |
+| `agent.py` 的 `build_event_sink` 调 `publish_data(...)` **未传 topic** | 这个函数**没有任何调用点**（`src/` 与 `tests/` 均无）。生产接线用的是 `AvatarPublisher`，它的 `_publish` 正确传了 `topic=TOPIC_AVATAR` | 删除 `build_event_sink`。上一版判断"形象事件被丢弃"是错的 |
 
 ---
 
@@ -634,12 +636,11 @@ degrade_level            // 当前 L0..L4，及进入/退出时刻
 
 | 旧（v1） | 新（v2） | 备注 |
 |---|---|---|
-| `companion.avatar`（无 topic 发布） | `cmp.cue` `presentation.emotion` / `.state` | **先修无 topic 的 bug**（§2.3） |
-| `companion.avatar`（带 topic） | 同上 | 两个版本并存两个发布周期 |
+| `companion.avatar`（带 topic，`AvatarPublisher`） | `cmp.cue` `presentation.emotion` / `.state` | 两个版本并存两个发布周期 |
 | `companion.action` | `cmp.cue` `presentation.gesture` | — |
 | `companion.proactive` | `cmp.ctl` `control.request` (`kind:"notice"`) 或 `cmp.cue` | 视是否需要用户响应 |
 | `companion.touch`（text stream） | `cmp.in` `control.input` (`region`) | 数据包比文本流更省；文本流建流的开销不值得 |
-| `companion.confirm`（服务端有，客户端无） | `cmp.ctl` `control.request`/`control.response` | 二选一：实现或删除，不能留孤儿 |
+| `companion.confirm`（孤儿，已删） | 不复用。确认回执留在 HTTP `POST /v1/actions/{id}/confirm` | 带鉴权与幂等，数据通道不重复实现 |
 | `lk.chat` | 保留 | 用户文本输入，与 Agents SDK 互操作 |
 | `lk.transcription` | 保留 | 字幕，端侧复用现成渲染 |
 

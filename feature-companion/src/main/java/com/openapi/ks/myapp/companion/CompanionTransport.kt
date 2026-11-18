@@ -117,10 +117,15 @@ interface CompanionTransport {
     fun setMicEnabled(enabled: Boolean) = Unit
 
     /**
-     * 回应一个待确认动作。走同一条通道而不是另开 HTTP：确认是对话的一部分，
-     * 它要和触发它的那条消息落在同一个上下文里。
+     * 待确认动作的回执**不在这里**：它是用户的决定，走 HTTP
+     * `POST /v1/actions/{id}/confirm`（[CompanionApi.confirmAction]），
+     * 带鉴权、幂等与错误码，失败要让用户看见。
+     *
+     * 这里曾经有一个 `confirm(id, accepted)` 的空实现，但没有任何实现覆盖它、
+     * 也没有任何调用方——确认按钮走的是 ViewModel 的 `resolveAction` → HTTP。
+     * 留着它只会让人以为数据通道上还有一条回执路径。协议 v2 计划把控制面
+     * 统一到 `cmp.ctl`，届时再按那个契约新增方法，而不是复活这个名字。
      */
-    fun confirm(confirmationId: String, accepted: Boolean) = Unit
 
     val events: Flow<CompanionEvent>
 
@@ -140,16 +145,16 @@ private val noBands: StateFlow<FloatArray> = MutableStateFlow(FloatArray(0)).asS
 /**
  * 测试与离线开发用的替身：逐词吐出一段固定回复，并在开头发一个情绪事件。
  *
- * 接入真实 LiveKit 的位置在这里：
+ * 真实实现 [LiveKitCompanionTransport] 就按下面这些通道接入，这里列出来是为了
+ * 让替身和真实现的边界一眼可见：
  *   1. connect() 里用 `session.token` 和 `session.livekitUrl` 建立 Room；
- *   2. 订阅 agent 的文本流（数据通道 topic 暂定 `companion.text`），
- *      每段 base64 或 JSON 解成 TextDelta；
- *   3. `companion.event` topic 上收到的事件透传为 AvatarJson；
- *   4. sendText() 向 `companion.input` 发送用户消息；
- *   5. `companion.proactive` topic 上是主动消息，`companion.action` 上是待确认
- *      动作，分别解成 Proactive / NeedsConfirmation；
- *   6. confirm() 向 `companion.confirm` 发 {confirmation_id, accepted}；
- *   7. 语音模式另外发布麦克风音轨，并订阅 agent 音轨做振幅驱动嘴型。
+ *   2. 收：`companion.avatar` → AvatarJson、`companion.proactive` → Proactive、
+ *      `companion.action` → NeedsConfirmation（见 `handleData`）；
+ *   3. 发：sendText() 走 `lk.chat` 文本流，sendTouch() 走 `companion.touch`；
+ *   4. 语音模式另外发布麦克风音轨，并订阅 agent 音轨做振幅驱动嘴型。
+ *
+ * **待确认动作的回执不在这条通道上**：它走 HTTP
+ * `POST /v1/actions/{id}/confirm`（[CompanionApi.confirmAction]）。
  */
 class FakeCompanionTransport(
     private val reply: String = "我在。慢慢说，先讲发生了什么。",
