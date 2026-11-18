@@ -48,8 +48,8 @@ class ProtocolHandshakeTest {
 
     @Test
     fun `hello 里值为 0 的能力也要报上去`() {
-        val args = ProtocolHandshake.helloArgs(caps = mapOf("speech.timing" to 0))
-        assertEquals(0, args.getJSONObject("caps").getInt("speech.timing"))
+        val args = ProtocolHandshake.helloArgs(caps = mapOf("speech.v1" to 0))
+        assertEquals(0, args.getJSONObject("caps").getInt("speech.v1"))
     }
 
     // ------------------------------------------------------------ ack 解析
@@ -69,14 +69,14 @@ class ProtocolHandshakeTest {
     fun `解析正常的 ack`() {
         val ack = ProtocolHandshake.parseAck(
             ackJson(
-                caps = JSONObject().put("presentation.emotion", 1).put("speech.timing", 0),
+                caps = JSONObject().put("presentation.emotion", 1).put("speech.v1", 0),
                 limits = JSONObject().put("max_payload_bytes", 1024),
             )
         )!!
         assertEquals("s-1", ack.sid)
         assertEquals("v2", ack.compat)
         assertEquals(1, ack.caps["presentation.emotion"])
-        assertEquals(0, ack.caps["speech.timing"])
+        assertEquals(0, ack.caps["speech.v1"])
         assertEquals(1024, ack.limits["max_payload_bytes"])
     }
 
@@ -118,9 +118,9 @@ class ProtocolHandshakeTest {
     @Test
     fun `值为 0 的能力视为未启用`() {
         val ack = ProtocolHandshake.parseAck(
-            ackJson(caps = JSONObject().put("speech.timing", 0))
+            ackJson(caps = JSONObject().put("speech.v1", 0))
         )!!
-        assertFalse(ProtocolHandshake.supports(ack, "speech.timing"))
+        assertFalse(ProtocolHandshake.supports(ack, "speech.v1"))
     }
 
     @Test

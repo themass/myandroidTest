@@ -823,26 +823,11 @@ class LiveKitCompanionTransport(
                 }
             }
             // ---- 语音时间线（§9）----
-            "speech.begin" -> {
-                val timeline = speech.onBegin(args)
-                if (timeline == null) {
-                    logWarn("attempt=$activeAttemptId event=speech_begin_rejected id=${args.optString("speech_id")}")
-                } else {
-                    logInfo(
-                        "attempt=$activeAttemptId event=speech_begin id=${timeline.speechId} segs=${timeline.size} totalEstMs=${timeline.totalEstMs}",
-                    )
-                }
-                speechWake.trySend(Unit)
-            }
-            "speech.segment" -> {
-                speech.onSegment(args, now = SystemClock.elapsedRealtime())
-                speechWake.trySend(Unit)
-            }
-            "speech.extend" -> {
-                // 分批声明（§9.3.1）：追加的段要在引用它们的 cue 到达之前进来。
-                val accepted = speech.onExtend(args)
+            "speech.seg" -> {
+                // 句级声明（§9.3）：先于引用它的 cue 与 TTS 到达。
+                val accepted = speech.onSeg(args)
                 if (!accepted) {
-                    logWarn("attempt=$activeAttemptId event=speech_extend_rejected id=${args.optString("speech_id")}")
+                    logWarn("attempt=$activeAttemptId event=speech_seg_rejected id=${args.optString("speech_id")} idx=${args.optString("idx")}")
                 }
                 speechWake.trySend(Unit)
             }

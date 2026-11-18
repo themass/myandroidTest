@@ -101,7 +101,7 @@ class ProtocolTransportTest {
     @Test
     fun `没协商到的能力不发`() {
         val link = CompanionProtocolLink(identity = me)
-        link.onAck(helloAck(caps = mapOf("speech.timing" to 1)))
+        link.onAck(helloAck(caps = mapOf("speech.v1" to 1)))
         assertNull(link.outgoing(ProtocolCatalog.TOPIC_CUE, "presentation.emotion", JSONObject()))
     }
 

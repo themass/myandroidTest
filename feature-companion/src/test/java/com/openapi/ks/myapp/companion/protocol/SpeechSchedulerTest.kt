@@ -1,8 +1,8 @@
 package com.openapi.ks.myapp.companion.protocol
 
-import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -23,22 +23,21 @@ class SpeechSchedulerTest {
 
     // ------------------------------------------------------------ 构造 helpers
 
-    private fun beginArgs(vararg est: Long): JSONObject = JSONObject()
-        .put("speech_id", "sp_7f3a")
-        .put("turn_id", "tn_55")
-        .put(
-            "segments",
-            JSONArray().apply {
-                est.forEachIndexed { i, ms ->
-                    put(JSONObject().put("idx", i).put("chars", 12).put("est_ms", ms).put("dur_ms", JSONObject.NULL))
-                }
-            },
-        )
-        .put("total_est_ms", est.sum())
-        .put("voice", "zh_female_1")
+    private fun segArgs(idx: Int, est: Long, speechId: String = "sp_7f3a"): JSONObject = JSONObject()
+        .put("speech_id", speechId)
+        .put("idx", idx)
+        .put("chars", 12)
+        .put("est_ms", est)
 
-    private fun timeline(vararg est: Long): SpeechTimeline =
-        SpeechTimeline.fromBegin(beginArgs(*est))!!
+    /** 按顺序追加 seg，返回时间线（未标定 t0）。 */
+    private fun timeline(vararg est: Long): SpeechTimeline {
+        val tl = SpeechTimeline("sp_7f3a")
+        est.forEachIndexed { i, ms ->
+            val (_, seg) = SpeechTimeline.parseSeg(segArgs(i, ms))!!
+            check(tl.append(seg))
+        }
+        return tl
+    }
 
     private fun at(json: String): Anchor {
         val parsed = AnchorParser.parse(JSONObject(json), "presentation.emotion")
@@ -163,7 +162,7 @@ class SpeechSchedulerTest {
         assertEquals(t0 + 780, tl.startOf(1))
         assertEquals(t0 + 2880, tl.startOf(2))
         assertEquals(t0 + 3280, tl.startOf(3)!!)   // == size：整句话的终点
-        assertNull(tl.startOf(4).takeIf { tl.contains(4) })
+        assertNull(tl.startOf(4))
     }
 
     @Test
@@ -177,7 +176,7 @@ class SpeechSchedulerTest {
             nowMono = t0,
             receivedAtMono = t0,
         )
-        // 不是 drop：音频只是还没开始，等 begin 的音频到了再算。
+        // 不是 drop：音频只是还没开始，等 t0 标定了再算。
         assertEquals(Decision.Reason.NO_TIMEBASE, (decision as Decision.Drop).reason)
     }
 
@@ -202,73 +201,24 @@ class SpeechSchedulerTest {
     }
 
     @Test
-    fun `dur_ms 优先于 est_ms`() {
-        val args = beginArgs(780, 2100).apply {
-            getJSONArray("segments").getJSONObject(0).put("dur_ms", 500)
-        }
-        val tl = SpeechTimeline.fromBegin(args)!!
-        tl.startNow(t0)
-        assertEquals(t0 + 500, tl.startOf(1))
+    fun `段号连续追加，跳号或重复被拒`() {
+        val tl = timeline(1000)
+        val (_, skip) = SpeechTimeline.parseSeg(segArgs(2, 500))!!
+        assertFalse(tl.append(skip))
+        val (_, dup) = SpeechTimeline.parseSeg(segArgs(0, 500))!!
+        assertFalse(tl.append(dup))
+        assertEquals(1, tl.size)
     }
 
-    @Test
-    fun `实测时长优先于 dur_ms`() {
-        val args = beginArgs(780, 2100).apply {
-            getJSONArray("segments").getJSONObject(0).put("dur_ms", 500)
-        }
-        val tl = SpeechTimeline.fromBegin(args)!!
-        tl.startNow(t0)
-        tl.setMeasuredDuration(0, 610)
-        assertEquals(t0 + 610, tl.startOf(1))
-    }
-
-    // ------------------------------------------------------------ F14：误差不跨段
+    // ------------------------------------------------------------ 误差不被校正
 
     @Test
-    fun `校正后段的起点会把累积误差丢掉`() {
-        // 60 段、每段估 1000 ms，实际每段 1200 ms。不校正的话第 40 段会偏 8 秒。
-        val tl = SpeechTimeline.fromBegin(
-            JSONObject()
-                .put("speech_id", "sp_long")
-                .put("segments", JSONArray().apply {
-                    repeat(60) { put(JSONObject().put("idx", it).put("chars", 10).put("est_ms", 1000)) }
-                })
-                .put("total_est_ms", 60_000),
-        )!!
-
+    fun `误差按 est_ms 累加且不被任何观测修正`() {
+        // 60 段、每段估 1000 ms。端侧不做实测校正：第 40 段起点就是 t0 + 40_000。
+        val tl = timeline(*LongArray(60) { 1000L })
         tl.startNow(t0)
         assertEquals(t0 + 40_000, tl.startOf(40))
-
-        // 第 39 段的真实起点被观测到了：前面 39 段一共花了 39_000 ms 估，
-        // 实际到这里已经是 46_800 ms。
-        tl.correctStart(39, t0 + 46_800)
-
-        // 第 39 段本身的起点被修正，且误差**不往回传播**。
-        assertEquals(t0 + 46_800, tl.startOf(39))
-        assertEquals(t0 + 0, tl.startOf(0))
-        // 第 40 段从修正点重新累计：46_800 + 1000。
-        assertEquals(t0 + 47_800, tl.startOf(40))
-        // 第 45 段 46_800 + 6 * 1000 —— 前 39 段的 7.8 秒误差没有继续压给后面。
-        assertEquals(t0 + 52_800, tl.startOf(45))
-    }
-
-    @Test
-    fun `校正不改变已经过去的段的起点`() {
-        val tl = timeline(1000, 1000, 1000)
-        tl.startNow(t0)
-        tl.correctStart(2, t0 + 2_400)
-
-        assertEquals(t0, tl.startOf(0))
-        assertEquals(t0 + 1000, tl.startOf(1))
-        assertEquals(t0 + 2_400, tl.startOf(2))
-    }
-
-    @Test
-    fun `越界的段号校正被忽略`() {
-        val tl = timeline(1000)
-        tl.startNow(t0)
-        tl.correctStart(9, t0 + 5_000)
-        assertEquals(t0, tl.startOf(0))
+        assertEquals(t0 + 60_000, tl.startOf(60))
     }
 
     // ------------------------------------------------------------ §9.5 的七条判定
@@ -353,7 +303,7 @@ class SpeechSchedulerTest {
     }
 
     @Test
-    fun `begin 还没到的不锚 cue 记为没有锚点`() {
+    fun `seg 还没到的不锚 cue 记为没有锚点`() {
         val d = Scheduler.decide(
             cue(at("""{"speech":"sp_unknown","seg":0,"phase":"during"}""")), null, t0, t0,
         )
@@ -385,70 +335,31 @@ class SpeechSchedulerTest {
     }
 
     @Test
-    fun `end 之后仍可校正段起点`() {
+    fun `作废之后不接受 t0`() {
+        // 墓碑语义：这个 id 不会复活。迟到的音频帧不能把 CANCELLED 改回 PLAYING。
         val tl = timeline(1000, 1000)
-        tl.startNow(t0)
-        tl.markDone()
-        tl.correctStart(1, t0 + 2_000)
-        assertEquals(t0 + 3_000, tl.startOf(2)!!)
-    }
-
-    @Test
-    fun `作废之后不接受起点校正`() {
-        // 墓碑语义：这个 id 不会复活。校正一条已作废的时间线等于让它复活。
-        val tl = timeline(1000, 1000)
-        tl.startNow(t0)
         tl.markCancelled()
-        tl.correctStart(1, t0 + 5_000)
-        assertEquals(t0 + 1_000, tl.startOf(1))
+        assertFalse(tl.startNow(t0))
+        assertNull(tl.startOf(0))
+        assertEquals(SpeechTimeline.State.CANCELLED, tl.state)
     }
 
-    // ------------------------------------------------------------ begin 的解析
+    // ------------------------------------------------------------ seg 的解析
 
     @Test
-    fun `缺 est_ms 的 begin 整条作废`() {
-        val args = JSONObject()
-            .put("speech_id", "sp_1")
-            .put("segments", JSONArray().put(JSONObject().put("idx", 0).put("chars", 10)))
-        assertNull(SpeechTimeline.fromBegin(args))
-    }
-
-    @Test
-    fun `segments 为空或缺失的 begin 作废`() {
-        assertNull(SpeechTimeline.fromBegin(JSONObject().put("speech_id", "sp_1")))
-        assertNull(
-            SpeechTimeline.fromBegin(
-                JSONObject().put("speech_id", "sp_1").put("segments", JSONArray()),
-            )
-        )
+    fun `缺 est_ms 的 seg 整条作废`() {
+        val args = segArgs(0, 0).apply { remove("est_ms") }
+        assertNull(SpeechTimeline.parseSeg(args))
     }
 
     @Test
-    fun `段序乱序到达时按 idx 排好`() {
-        val tl = SpeechTimeline.fromBegin(
-            JSONObject()
-                .put("speech_id", "sp_1")
-                .put("segments", JSONArray().apply {
-                    put(JSONObject().put("idx", 2).put("est_ms", 300))
-                    put(JSONObject().put("idx", 0).put("est_ms", 100))
-                    put(JSONObject().put("idx", 1).put("est_ms", 200))
-                })
-                .put("total_est_ms", 600),
-        )!!
-        tl.startNow(t0)
-        assertEquals(t0 + 300, tl.startOf(2))
+    fun `负的 idx 与负的 est_ms 作废`() {
+        assertNull(SpeechTimeline.parseSeg(segArgs(-1, 100)))
+        assertNull(SpeechTimeline.parseSeg(segArgs(0, -5)))
     }
 
     @Test
-    fun `total_est_ms 缺失时按段累加`() {
-        val tl = SpeechTimeline.fromBegin(
-            JSONObject()
-                .put("speech_id", "sp_1")
-                .put("segments", JSONArray().apply {
-                    put(JSONObject().put("idx", 0).put("est_ms", 100))
-                    put(JSONObject().put("idx", 1).put("est_ms", 250))
-                }),
-        )!!
-        assertEquals(350L, tl.totalEstMs)
+    fun `缺 speech_id 的 seg 作废`() {
+        assertNull(SpeechTimeline.parseSeg(JSONObject().put("idx", 0).put("est_ms", 100)))
     }
 }

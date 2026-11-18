@@ -43,7 +43,7 @@ sealed interface Decision<out P> {
         /** `t0` 还没确定，段起点算不出来。**不是丢弃**，见 [Scheduler.enqueue] 的说明。 */
         NO_TIMEBASE,
 
-        /** 段序号越界，或者 `speech.begin` 还没到。 */
+        /** 段序号越界，或者 `speech.seg` 还没到。 */
         NO_ANCHOR,
     }
 }

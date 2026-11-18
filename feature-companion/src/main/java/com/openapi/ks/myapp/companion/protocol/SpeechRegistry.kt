@@ -10,16 +10,15 @@ import org.json.JSONObject
  *
  * ## 两条不可逆的规则
  *
- * 1. **`speech_id` 一旦作废，不可复活**（§10.3）。墓碑集合有界（32 条），先进先出。
- *    先 `cancel` 后 `begin` 的乱序（F5）靠它挡住：`begin` 到了发现 id 在墓碑里，
+ * 1. **`speech_id` 一旦作废，不可复活**（§10.3）。墓碑集合有界（8 条），先进先出。
+ *    先 `cancel` 后 `seg` 的乱序（F5）靠它挡住：`seg` 到了发现 id 在墓碑里，
  *    整条丢，时间线不建。
  * 2. **`t0` 定了就不改**（§9.4）。第一帧音频已经播出去了，回头改只会让已经过去的
- *    段重新计算一遍。校正走 [SpeechTimeline.correctStart]，那是"已观测到的段起点"，
- *    语义不同。
+ *    段重新计算一遍。端侧没有实测校正：起点只按 `est_ms` 累加。
  */
 class SpeechRegistry<P>(
     private val maxTimelines: Int = 8,
-    private val maxTombstones: Int = 32,
+    private val maxTombstones: Int = 8,
 ) {
 
     /** 一条已解析、还没被执行的 cue。`receivedAt` 冻结 `not_before_ms` 的基准。 */
@@ -39,70 +38,54 @@ class SpeechRegistry<P>(
         private set
     var cuesDropped: Int = 0
         private set
-    var beginDroppedTombstone: Int = 0
+    /** `speech.seg` 被拒（坏参数、段号不连续、时间线已结束或作废）的次数。 */
+    var segRejected: Int = 0
         private set
-    /** `speech.extend` 被拒（段号不连续、时间线已结束或作废）的次数。 */
-    var extendRejected: Int = 0
+    /** `speech.seg` 的 id 在墓碑里（F5：先 cancel 后 seg）的次数。 */
+    var segDroppedTombstone: Int = 0
+        private set
+    /** 未知 `speech_id` 且 `idx != 0` 的 seg 被丢弃的次数。 */
+    var segDroppedUnknown: Int = 0
         private set
 
-    /** 一条 cue 在等 `begin` / `t0` 时最多挂多久。§12.1 给的数是 2 s。 */
+    /** 一条 cue 在等 `seg` / `t0` 时最多挂多久。§12.1 给的数是 2 s。 */
     var bufferMs: Long = 2_000L
 
     // -------------------------------------------------------------- 收事件
 
     /**
-     * `speech.begin`（§9.3）。
+     * `speech.seg`（§9.3）：一句话的声明。
      *
-     * @return 建出来的时间线；id 已在墓碑里、或者 args 坏掉时返回 `null`。
+     * - `idx == 0` 且 id 未知：建时间线，接收第一段。
+     * - `idx != 0` 且 id 未知：丢弃并计数（`segDroppedUnknown`）。不能为了一条 seg 去建时间线。
+     * - id 在墓碑里：丢弃并计数（`segDroppedTombstone`），墓碑不删（F5）。
+     * - 段号不连续、时间线已结束或已作废：拒绝并计数（`segRejected`）。
+     *
+     * @return 是否接受这一段。
      */
     @Synchronized
-    fun onBegin(args: JSONObject): SpeechTimeline? {
-        val speechId = (args.opt("speech_id") as? String)?.takeIf { it.isNotBlank() } ?: return null
-        if (speechId in tombstones) {
-            // F5：先 cancel 后 begin。不建时间线，也不从墓碑里删——复活一次就会有第二次。
-            beginDroppedTombstone++
-            return null
+    fun onSeg(args: JSONObject): Boolean {
+        val (speechId, seg) = SpeechTimeline.parseSeg(args) ?: run {
+            segRejected++
+            return false
         }
-        val timeline = SpeechTimeline.fromBegin(args) ?: return null
-        putTimeline(timeline)
-        return timeline
-    }
-
-    /**
-     * `speech.segment`（§9.3）：补 `dur_ms`，或者报告段边界。
-     *
-     * `start_boundary = true` 时用 `now` 作该段起点的观测值，把前面累积的估计误差
-     * 丢掉（§9.7 手段 1 / F14）。这个观测测的是**消息到达**而不是扬声器出声，系统性
-     * 偏早一个传输时延；它消除的是几百毫秒级的累积误差，所以这个替换是划算的。
-     */
-    @Synchronized
-    fun onSegment(args: JSONObject, now: Long) {
-        val speechId = (args.opt("speech_id") as? String)?.takeIf { it.isNotBlank() } ?: return
-        val tl = timelines[speechId] ?: return
-        val idx = (args.opt("idx") as? Number)?.toInt() ?: return
-        if (!tl.contains(idx)) return
-
-        (args.opt("dur_ms") as? Number)?.toLong()?.let { tl.setMeasuredDuration(idx, it) }
-        if (args.optBoolean("start_boundary", false)) tl.correctStart(idx, now)
-    }
-
-    /**
-     * `speech.extend`（§9.3.1）：追加后续段。
-     *
-     * 未知 id、已作废的 id、段号不连续、坏段——一律静默忽略并计数。不能为了一条 extend
-     * 去建时间线：那段话的 begin 要么没到（乱序，之后会被墓碑或缓冲逻辑处理），要么
-     * 已经被作废。
-     *
-     * @return 是否接受了这批段。
-     */
-    @Synchronized
-    fun onExtend(args: JSONObject): Boolean {
-        val speechId = (args.opt("speech_id") as? String)?.takeIf { it.isNotBlank() } ?: return false
-        if (speechId in tombstones) return false
-        val tl = timelines[speechId] ?: return false
-        val segs = SpeechTimeline.parseSegments(args.opt("segments")) ?: return false
-        if (!tl.extend(segs)) {
-            extendRejected++
+        if (speechId in tombstones) {
+            segDroppedTombstone++
+            return false
+        }
+        val existing = timelines[speechId]
+        if (existing == null) {
+            if (seg.idx != 0) {
+                segDroppedUnknown++
+                return false
+            }
+            val timeline = SpeechTimeline(speechId)
+            timeline.append(seg)
+            putTimeline(timeline)
+            return true
+        }
+        if (!existing.append(seg)) {
+            segRejected++
             return false
         }
         return true
@@ -157,11 +140,11 @@ class SpeechRegistry<P>(
     // -------------------------------------------------------------- 音频开始
 
     /**
-     * 该给哪条时间线标定 `t0`：最新一条已 begin、还没开始播的。
+     * 该给哪条时间线标定 `t0`：最新一条已收到 seg、还没开始播的。
      *
      * 端侧只有一条远端音频轨道，所以"音频开始播了"这件事没有 `speech_id`。用最新的
-     * PENDING 时间线是唯一合理的归属：`speech.begin` 一定早于音频首帧（服务端先发
-     * begin 再推流），所以它就在最上面。
+     * PENDING 时间线是唯一合理的归属：`speech.seg` 一定早于音频首帧（服务端先发
+     * seg 再推流），所以它就在最上面。
      */
     @Synchronized
     fun timebasePendingId(): String? =
@@ -245,7 +228,7 @@ class SpeechRegistry<P>(
                     val waiting = decision.reason == Decision.Reason.NO_TIMEBASE ||
                         decision.reason == Decision.Reason.NO_ANCHOR
                     if (waiting && now - entry.receivedAt <= bufferMs) {
-                        // F3：begin / t0 还没到。先挂着，到点再判。
+                        // F3：seg / t0 还没到。先挂着，到点再判。
                         Unit
                     } else {
                         drop.add(decision)
@@ -263,7 +246,7 @@ class SpeechRegistry<P>(
     /**
      * 下一次需要醒来的时刻；`null` 表示没有东西在等时间。
      *
-     * 解不出目标的（等 `begin`、等 `t0`）返回它的**缓冲截止时刻**，不是跳过：调用方
+     * 解不出目标的（等 `seg`、等 `t0`）返回它的**缓冲截止时刻**，不是跳过：调用方
      * 靠这个数准时醒来把过期的那条清掉。跳过它会让 F3 的 2 秒退化成"下次有别的
      * 闹钟再说"，而那种 cue 恰恰是没人会再推动的。
      */

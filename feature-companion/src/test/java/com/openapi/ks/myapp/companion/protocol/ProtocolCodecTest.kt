@@ -33,7 +33,7 @@ class ProtocolCodecTest {
      * 谁改了契约却只改一边，另一边的测试立刻红。
      */
     private val testVectorSha256 =
-        "b5b8e7d3d2d300391e3262b7f695ea8b04ddc7b0297a272058c6177fb32e2662"
+        "70464b8a66b5687e5b57c27e156e10998fb8627345abe1bdf99d91f654a487f5"
 
     private val vectors: JSONObject by lazy {
         val stream = javaClass.classLoader!!.getResourceAsStream("protocol_v2.json")
@@ -301,7 +301,7 @@ class ProtocolCodecTest {
 
     @Test
     fun `speech 事件都在保序的 cue 流上`() {
-        for (name in listOf("speech.begin", "speech.segment", "speech.end")) {
+        for (name in listOf("speech.seg", "speech.end")) {
             assertEquals(ProtocolCatalog.TOPIC_CUE, ProtocolCatalog.specOf(name)!!.topic)
         }
     }
@@ -312,7 +312,7 @@ class ProtocolCodecTest {
             ProtocolCatalog.Delivery.DEADLINE,
             ProtocolCatalog.specOf("presentation.emotion")!!.delivery,
         )
-        assertEquals(ProtocolCatalog.Delivery.MUST, ProtocolCatalog.specOf("speech.begin")!!.delivery)
+        assertEquals(ProtocolCatalog.Delivery.MUST, ProtocolCatalog.specOf("speech.seg")!!.delivery)
         assertEquals(
             ProtocolCatalog.Delivery.DROPPABLE,
             ProtocolCatalog.specOf("telemetry.health")!!.delivery,
@@ -333,7 +333,7 @@ class ProtocolCodecTest {
         )
         assertFalse(
             ProtocolCatalog.maySend(
-                ProtocolCatalog.TOPIC_CUE, "speech.begin", ProtocolCatalog.Side.CLIENT,
+                ProtocolCatalog.TOPIC_CUE, "speech.seg", ProtocolCatalog.Side.CLIENT,
             )
         )
     }

@@ -64,9 +64,7 @@ object ProtocolCatalog {
         // 触摸语义走数据包而不是文本流：建流的开销不值得（§15 迁移表）。
         "control.input" to oneWay(TOPIC_IN, Delivery.MUST, CLIENT),
         // ---- 表现面（cmp.cue）----
-        "speech.begin" to oneWay(TOPIC_CUE, Delivery.MUST, SERVER),
-        "speech.extend" to oneWay(TOPIC_CUE, Delivery.MUST, SERVER),
-        "speech.segment" to oneWay(TOPIC_CUE, Delivery.DEADLINE, SERVER),
+        "speech.seg" to oneWay(TOPIC_CUE, Delivery.MUST, SERVER),
         "speech.end" to oneWay(TOPIC_CUE, Delivery.MUST, SERVER),
         "presentation.state" to oneWay(TOPIC_CUE, Delivery.DEADLINE, SERVER),
         "presentation.emotion" to oneWay(TOPIC_CUE, Delivery.DEADLINE, SERVER),

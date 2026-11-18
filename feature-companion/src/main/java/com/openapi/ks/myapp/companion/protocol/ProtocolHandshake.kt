@@ -30,8 +30,7 @@ object ProtocolHandshake {
         "presentation.emotion" to 1,
         "presentation.gesture" to 1,
         "presentation.gaze" to 1,
-        "speech.timing" to 1,
-        "speech.extend" to 1,
+        "speech.v1" to 1,
         "perception.attention" to 1,
     )
 
