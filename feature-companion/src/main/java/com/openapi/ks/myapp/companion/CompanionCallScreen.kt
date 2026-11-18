@@ -13,6 +13,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -1003,6 +1004,9 @@ private fun AvatarCircle(
  * 跟随策略：默认贴住底部（新的在心里，用户看的是最新一句）；用户自己往上翻时暂停跟随，
  * 翻回底部再恢复。只用 [LazyListState.isScrollInProgress] 判断，不需要额外的拖拽手势。
  */
+/** 一次滚动取很大的值：列表到底会自己截断，等价于贴内容底（同 ChatMessageList）。 */
+private const val CAPTION_BOTTOM_SCROLL = 100_000f
+
 @Composable
 private fun CaptionStack(
     captions: List<String>,
@@ -1051,12 +1055,14 @@ private fun CaptionStack(
         if (!followTail) return@LaunchedEffect
         autoScrolling = true
         try {
-            // 第一次直接跳到底，避免先闪一下顶部再动画下来。
+            // scrollToItem 只保证最后一条的顶部可见；长回复超出视口时仍会停在该条开头。
+            // 再 scrollBy 一个大值，列表会在真实底部截断——与 ChatMessageList 同套路。
             if (!userDragged) {
                 listState.scrollToItem(visible.lastIndex)
             } else {
                 listState.animateScrollToItem(visible.lastIndex)
             }
+            listState.scrollBy(CAPTION_BOTTOM_SCROLL)
         } finally {
             autoScrolling = false
         }
