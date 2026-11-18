@@ -16,4 +16,10 @@ interface DigitalHumanEngine : AvatarRenderer {
     fun createView(context: Context): View? = null
 
     fun availability(context: Context): DhEngineAvailability
+
+    /**
+     * Duix 等需要 16kHz mono PCM16LE 驱动口型时覆写；默认空实现。
+     * 出声仍由 LiveKit，SDK 侧应静音（只驱动）。
+     */
+    fun pushRemotePcm(pcm16leMono16k: ByteArray) {}
 }

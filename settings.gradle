@@ -20,3 +20,29 @@ include ':feature-companion'
 include ':retromusic'
 // 对话 UI 组件库（消息列表、消息气泡、输入栏），与业务无关，可在多个页面复用
 include ':chatkit'
+
+// Digital Human Lab 可选 native：需 -Pdh.lab.native=true，且本机有源码目录。
+// 默认不 include，避免 AGP/ext 不匹配拖垮主工程；适配器仍注册，反射不到类 →「未编入」。
+def dhNative = settings.hasProperty('dh.lab.native') && settings['dh.lab.native'].toString() == 'true'
+def dhHome = System.getenv('DH_ANDROID_HOME') ?: "${System.getProperty('user.home')}/work/android"
+def dhDuixRoot = settings.hasProperty('dh.duix.root')
+        ? settings['dh.duix.root']
+        : "${dhHome}/Duix-Mobile/duix-android/dh_aigc_android/duix-sdk"
+def dhLive2dRoot = settings.hasProperty('dh.live2d.root')
+        ? settings['dh.live2d.root']
+        : "${dhHome}/ChatWaifu_Mobile/Live2D"
+gradle.ext.dhDuixIncluded = false
+gradle.ext.dhLive2dIncluded = false
+if (dhNative && file(dhDuixRoot).exists()) {
+    include ':dh-engine-duix'
+    project(':dh-engine-duix').projectDir = file(dhDuixRoot)
+    gradle.ext.dhDuixIncluded = true
+}
+if (dhNative && file(dhLive2dRoot).exists()) {
+    include ':dh-engine-live2d'
+    project(':dh-engine-live2d').projectDir = file(dhLive2dRoot)
+    gradle.ext.dhLive2dIncluded = true
+}
+if (dhNative) {
+    println "[dh-lab] native include duix=${gradle.ext.dhDuixIncluded} live2d=${gradle.ext.dhLive2dIncluded}"
+}

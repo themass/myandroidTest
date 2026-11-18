@@ -36,7 +36,8 @@ class DigitalHumanBridge(
         engine.dispatch(AvatarCommand.Mouth(level))
     }
 
-    /** Duix 等需要 PCM 时使用；P0 空实现。 */
-    @Suppress("UNUSED_PARAMETER")
-    fun onRemotePcm(pcm16leMono16k: ByteArray) {}
+    /** Duix 等需要 PCM 时转发到当前引擎；其它引擎默认空实现。 */
+    fun onRemotePcm(pcm16leMono16k: ByteArray) {
+        engine.pushRemotePcm(pcm16leMono16k)
+    }
 }
