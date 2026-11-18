@@ -312,7 +312,9 @@ worker（独立进程，livekit-agents 的 cli.run_app）:
    形象事件 → 数据通道 topic: companion.avatar
 ```
 
-数据通道 4 个 topic：`companion.avatar`（情绪/状态）、`companion.proactive`（主动消息）、`companion.action`（待确认动作）、`companion.confirm`（确认回执）。
+数据通道 3 个 topic，**都是服务端 → 客户端单向**：`companion.avatar`（情绪/状态）、`companion.proactive`（主动消息）、`companion.action`（待确认动作）。
+
+确认回执**不走数据通道**：用户在确认卡片上点按钮后，客户端走 HTTP `POST /v1/actions/{id}/confirm`（带鉴权、幂等与错误码，失败要让用户看见）。曾经规划过第 4 个 topic `companion.confirm`，但两端都没实现，已删除。
 
 ### 9.2 做得对的地方
 
