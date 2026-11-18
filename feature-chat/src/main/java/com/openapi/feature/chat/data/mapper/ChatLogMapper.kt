@@ -5,6 +5,7 @@ import com.openapi.feature.chat.domain.model.DeliveryStatus
 import com.openapi.feature.chat.domain.model.ChatRole
 import com.openapi.feature.chat.domain.model.FileAttachment
 import com.openapi.feature.chat.domain.model.ImageAttachment
+import com.openapi.feature.chat.domain.model.ImageSource
 import com.openapi.feature.chat.domain.model.MessageKind
 import com.openapi.feature.chat.domain.model.VoiceAttachment
 import org.json.JSONArray
@@ -51,6 +52,12 @@ object ChatLogMapper {
 
     /** 发送状态：只有非「已发送」才写入（旧数据没有这个字段，读取时视为已发送）。 */
     private const val FIELD_DELIVERY = "delivery"
+
+    /**
+     * 图片 content 的取值标记：这条图只存在服务端对象存储（无本机文件），
+     * 渲染时要拿 uploadId 现换签名 URL（URL 只活 5 分钟，不进缓存）。
+     */
+    private const val REMOTE_MARK = "remote"
 
     /** 把一条老 ChatLog 的字段映射成领域模型。 */
     fun toDomain(
@@ -122,7 +129,24 @@ object ChatLogMapper {
     private fun readImages(json: JSONObject?): List<ImageAttachment> {
         val array = json?.optJSONArray(FIELD_IMAGES)
         if (array != null && array.length() > 0) {
-            return (0 until array.length()).map { ImageAttachment(path = array.optString(it)) }
+            return (0 until array.length()).mapNotNull { index ->
+                // 新格式是对象 {content, uploadId}；旧数据是纯路径字符串。
+                // content=="remote" 表示这条图没有本机文件，只有服务端对象（uploadId），
+                // 路径要现问服务器换签名 URL——URL 只活 5 分钟，不进缓存。
+                val item = array.optJSONObject(index)
+                if (item != null) {
+                    val uploadId = item.optString("uploadId").takeIf { it.isNotEmpty() }
+                    val path = item.optString(FIELD_CONTENT)
+                    when {
+                        path == REMOTE_MARK -> ImageAttachment(path = "", source = ImageSource.REMOTE, uploadId = uploadId)
+                        path.isNotEmpty() -> ImageAttachment(path = path, uploadId = uploadId)
+                        else -> null
+                    }
+                } else {
+                    val path = array.optString(index)
+                    if (path.isEmpty()) null else ImageAttachment(path = path)
+                }
+            }
         }
         val single = json?.optString(FIELD_CONTENT).orEmpty()
         return if (single.isEmpty()) emptyList() else listOf(ImageAttachment(path = single))
@@ -174,7 +198,14 @@ object ChatLogMapper {
                     json.put(FIELD_FILE_SIZE, firstFile.sizeBytes.toString())
                 }
                 if (message.images.isNotEmpty()) {
-                    json.put(FIELD_IMAGES, JSONArray(message.images.map { it.path }))
+                    json.put(FIELD_IMAGES, JSONArray(message.images.map { image ->
+                        // 旧数据这里是字符串数组；升级后写成对象，多出来的字段旧版本读不到但不崩。
+                        // 远程来源没有本机路径，content 写 REMOTE_MARK，渲染时拿 uploadId 换 URL。
+                        JSONObject()
+                            .put(FIELD_CONTENT,
+                                if (image.source == ImageSource.REMOTE) REMOTE_MARK else image.path)
+                            .apply { image.uploadId?.let { put("uploadId", it) } }
+                    }))
                 }
                 if (message.files.isNotEmpty()) {
                     json.put(FIELD_FILES, JSONArray(message.files.map { file ->

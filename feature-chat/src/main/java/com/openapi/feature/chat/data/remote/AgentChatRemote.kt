@@ -211,6 +211,24 @@ class AgentChatRemote(
         }
     }
 
+    /**
+     * 按 upload_id 换一个**短期签名 GET URL**（服务端给 300 秒）。
+     * 历史消息的图片只有 upload_id，渲染前现换；URL 是 bearer secret：不打印、不进日志、不落缓存。
+     */
+    fun attachmentUrl(uploadId: String): String? =
+        runCatching { call("GET", "/uploads/$uploadId", null).optString("url").takeIf { it.isNotEmpty() } }
+            .getOrNull()
+
+    /** 把一个签名 GET URL 的内容下载成文件（历史图片拉回本机缓存）。 */
+    fun downloadTo(url: String, target: File): Boolean = runCatching {
+        restClient.newCall(Request.Builder().url(url).get().build()).execute().use { response ->
+            if (!response.isSuccessful) return@use false
+            val src = response.body?.byteStream() ?: return@use false
+            src.use { input -> target.outputStream().use { input.copyTo(it) } }
+            true
+        }
+    }.getOrDefault(false)
+
     // ---------------------------------------------------------------- 事件流
 
     /**
@@ -344,10 +362,22 @@ class AgentChatRemote(
         kind = optString("kind", "chat"),
         createdAt = optString("created_at", ""),
         interrupted = optBoolean("interrupted", false),
+        clientMessageId = optString("client_message_id", "").takeIf { it.isNotEmpty() },
+        attachments = optJSONArray("attachments").orEmptyObjects().mapNotNull { a ->
+            a.optString("upload_id").takeIf { it.isNotEmpty() }?.let {
+                AgentAttachmentVo(it, a.optString("kind", "image"), a.optString("name", ""))
+            }
+        },
     )
+
+    private fun org.json.JSONArray?.orEmptyObjects(): List<JSONObject> =
+        if (this == null) emptyList() else (0 until length()).mapNotNull { optJSONObject(it) }
 }
 
 data class AgentSessionVo(val id: Long, val roleId: String?, val name: String, val updatedAt: String)
+
+/** 历史里一条消息携带的附件引用（字节在对象存储，这里只有 id；渲染要再去换签名 URL）。 */
+data class AgentAttachmentVo(val uploadId: String, val kind: String, val name: String)
 
 data class AgentMessageVo(
     val id: Long,
@@ -356,6 +386,9 @@ data class AgentMessageVo(
     val kind: String,
     val createdAt: String,
     val interrupted: Boolean,
+    /** 客户端发起时带的本地 id：历史行与本地富内容行（图片/语音）靠它对齐。 */
+    val clientMessageId: String? = null,
+    val attachments: List<AgentAttachmentVo> = emptyList(),
 )
 
 data class AgentHistoryPage(val items: List<AgentMessageVo>, val hasMore: Boolean)
