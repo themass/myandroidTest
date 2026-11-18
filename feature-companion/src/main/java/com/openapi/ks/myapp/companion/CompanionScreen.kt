@@ -193,8 +193,7 @@ fun CompanionScreen(
                             // 点她一下：先给本地反馈（渲染器里的缩放弹动由 SimpleAvatar 播），
                             // 再把「碰到了哪里」告诉 agent——她该不该回一句由她决定，
                             // 客户端不替她说话（不然就成了一个假的互动）。
-                            // 同时给一条短提示：服务端还没接 touch，不给提示的话
-                            // 用户点完只有一个 3% 的缩放，会以为没反应。
+                            // Toast 只是点按确认；真正的回复走服务端 on_input → 回合管线。
                             onTapped = { region ->
                                 viewModel.onAvatarTapped(region)
                                 android.widget.Toast.makeText(
