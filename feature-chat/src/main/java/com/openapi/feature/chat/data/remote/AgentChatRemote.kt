@@ -55,6 +55,17 @@ class AgentChatRemote(
         .readTimeout(0, TimeUnit.MILLISECONDS)
         .build()
 
+    /**
+     * 直传 PUT 专用：URL 里已带签名，**不带登录 token**（凭证是 URL 上的 query，
+     * 再加 Authorization 头反而可能让 TOS 把签名算错）。写超时给足 2 分钟——
+     * 这是整条发送链路里最重的字节，与 AttachmentSender 的单附件超时对齐。
+     */
+    private val putClient = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(120, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build()
+
     class Failure(message: String, val status: Int?, val code: String?) : Exception(message)
 
     // ---------------------------------------------------------------- 会话
@@ -169,6 +180,34 @@ class AgentChatRemote(
             val id = json.optString("upload_id", "")
             if (id.isEmpty()) throw Failure("上传没有返回 upload_id", response.code, null)
             return id
+        }
+    }
+
+    /**
+     * 直传第一步：向服务端要一个单 key、只写、10 分钟的 PUT 凭证（ADR-011 同款）。
+     * 返回 upload_id（发消息时引用它）与预签名 URL。URL 是 bearer secret：不打印、不进日志。
+     */
+    fun signUpload(scene: String, mime: String, sizeBytes: Long): Pair<String, String> {
+        val body = JSONObject()
+            .put("scene", scene)
+            .put("content_type", mime)
+            .put("size_bytes", sizeBytes)
+        val json = call("POST", "/uploads/sign", body)
+        val uploadId = json.optString("upload_id", "")
+        val putUrl = json.optJSONObject("upload")?.optString("url").orEmpty()
+        if (uploadId.isEmpty() || putUrl.isEmpty()) throw Failure("签发响应缺少 upload_id/url", 200, null)
+        return uploadId to putUrl
+    }
+
+    /** 直传第二步：字节 PUT 进桶。签名在 URL 里，所以这个请求不带任何鉴权头。 */
+    fun putToPresigned(putUrl: String, file: File, mime: String) {
+        val request = Request.Builder()
+            .url(putUrl)
+            .put(file.readBytes().toRequestBody(mime.toMediaType()))
+            .build()
+        putClient.newCall(request).execute().use { response ->
+            // 失败原因里不放 URL（里面有签名），只给状态码
+            if (!response.isSuccessful) throw Failure("直传失败 ${response.code}", response.code, null)
         }
     }
 

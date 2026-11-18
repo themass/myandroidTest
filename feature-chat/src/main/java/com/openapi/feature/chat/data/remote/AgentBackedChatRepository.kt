@@ -416,9 +416,31 @@ class AgentBackedChatRepository(
      * `turn_runner._load_images` 与 `ImageAttachmentMiddleware`），所以这里必须带 `upload_id`
      * 而不是本地路径——本地路径只有这台手机认识。
      */
-    /** 上传图片拿 upload_id，不产生回复。图片附件走这条，文字与它合成一个回合（见 ChatRepository.uploadImage）。 */
+    /**
+     * 上传图片拿 upload_id，不产生回复。图片附件走这条，文字与它合成一个回合（见 ChatRepository.uploadImage）。
+     *
+     * 优先**直传**（ADR-011 同款）：sign 要一个单 key 只写的短期凭证，字节直接 PUT 进桶，
+     * 不再穿过应用服务器；发消息时服务端按 upload_id 绑定校验（归属/时效/HEAD 复核）。
+     * 签发或 PUT 任何一步失败（配额、CORS、网络）都**降级回中转** `/v1/uploads`——
+     * 旧通道同时是降级通道，直传挂了不能把整条发送带走。heic 不在直传白名单里，直接走中转。
+     */
     override suspend fun uploadImage(localFile: File, fileName: String): String? =
-        runCatching { withContext(Dispatchers.IO) { remote.upload(localFile, mimeOf(localFile)) } }.getOrNull()
+        runCatching {
+            withContext(Dispatchers.IO) {
+                val mime = mimeOf(localFile)
+                if (mime != "image/heic") {
+                    runCatching {
+                        val (uploadId, putUrl) = remote.signUpload("chat-image", mime, localFile.length())
+                        remote.putToPresigned(putUrl, localFile, mime)
+                        uploadId
+                    }.onFailure {
+                        // 只记异常类型与消息：预签名 URL 是 bearer secret，绝不进日志
+                        LogUtil.w("直传失败，已降级中转上传: ${it.message}")
+                    }.getOrNull()?.let { return@withContext it }
+                }
+                remote.upload(localFile, mime)
+            }
+        }.getOrNull()
 
     override suspend fun sendAttachment(
         sessionId: Long,
