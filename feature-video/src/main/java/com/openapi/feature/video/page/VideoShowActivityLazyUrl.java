@@ -32,6 +32,18 @@ import com.openapi.speech.subtitle.realtime.VideoRealtimeSubtitleSession;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
 import com.openapi.feature.video.databinding.LayoutVideoShowBinding;
+import android.widget.Toast;
+import android.widget.ImageButton;
+import android.net.Uri;
+import android.provider.MediaStore;
+import android.database.Cursor;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import com.openapi.cast.JavaCaster;
+import com.openapi.cast.DlnaDiscoveryCallback;
+import com.openapi.cast.DlnaDevice;
+import com.openapi.common.ui.dialog.AppDialogHost;
 
 
 /**
@@ -42,6 +54,9 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
     private static final String VIDEO_TAG = "video_url_tag";
     public DetailGSYVideoPlayer videoPlayer;
     private GoogleCastSessionController castSessionController;
+    private DlnaDiscoveryCallback dlnaDiscovery;
+    private JavaCaster dlnaCaster;
+    private ImageButton dlnaCastButton;
     RecommendVo vo;
     MyFavoriteView myFavoriteView;
     protected BaseService indexService;
@@ -52,6 +67,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
     private void bindButterViews() {
         LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));
         videoPlayer = b.jzVideo;
+        dlnaCastButton = b.btnDlnaCast;
         myFavoriteView = b.myFavoriteview;
     }
 
@@ -132,6 +148,10 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         RealtimeSubtitleBindings.attachVideo(myFavoriteView, realtimeSession, videoPlayer);
 
         videoPlayer.installGoogleCastRouteButton(this);
+        if (dlnaCastButton != null) {
+            dlnaCastButton.setVisibility(android.view.View.VISIBLE);
+            dlnaCastButton.setOnClickListener(v -> showDlnaDevices());
+        }
         castSessionController = new GoogleCastSessionController(this, videoPlayer, new CastPlaySource() {
             @Override
             public String getPlayUrl() {
@@ -147,7 +167,8 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
 
     private void openVideoShow(RecommendVo urlVo) {
         url = VideoUtil.buildPlayUrl(urlVo);
-        videoPlayer.setUp(url, true, null, VideoUtil.headersForRecommend(urlVo), vo.title);
+        boolean cache = !VideoUtil.isLocalPlayUrl(url);
+        videoPlayer.setUp(url, cache, null, VideoUtil.headersForRecommend(urlVo), vo.title);
         VideoShowPlaybackStateHelper.prepareSeekRestore(videoPlayer, playbackSavedState);
         videoPlayer.startPlayLogic();
         VideoShowPlaybackStateHelper.schedulePauseIfWasPaused(videoPlayer, playbackSavedState);
@@ -210,10 +231,109 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         }
     }
 
+
+    private void showDlnaDevices() {
+        if (dlnaDiscovery == null) {
+            dlnaDiscovery = new DlnaDiscoveryCallback();
+        }
+        Toast.makeText(this, "正在搜索电视…", Toast.LENGTH_SHORT).show();
+        dlnaDiscovery.discover(devices -> runOnUiThread(() -> {
+            if (devices.isEmpty()) {
+                Toast.makeText(this, "未发现可投屏的设备", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String[] names = new String[devices.size()];
+            for (int i = 0; i < names.length; i++) {
+                names[i] = devices.get(i).getFriendlyName();
+            }
+            AppDialogHost.showItems(this, "投屏到", names, true,
+                    which -> castToDlna(devices.get(which)));
+        }));
+    }
+
+    private void castToDlna(DlnaDevice device) {
+        if (dlnaCaster == null) {
+            dlnaCaster = new JavaCaster(this);
+        }
+        String playUrl = url;
+        if (!com.openapi.common.util.lang.StringUtils.hasText(playUrl)) {
+            Toast.makeText(this, R.string.cast_url_not_ready, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String title = vo != null ? vo.title : null;
+        if (VideoUtil.isLocalPlayUrl(playUrl)) {
+            String path = resolveLocalPathForCast(playUrl);
+            if (path == null) {
+                Toast.makeText(this, "本地视频无法投屏：找不到可读文件", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            dlnaCaster.castLocal(device, path, title, error -> runOnUiThread(() -> {
+                if (error != null) {
+                    Toast.makeText(this, "投屏失败：" + error, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "已投屏到 " + device.getFriendlyName(), Toast.LENGTH_SHORT).show();
+                }
+            }));
+            return;
+        }
+        dlnaCaster.castRemote(device, playUrl, title, error -> runOnUiThread(() -> {
+            if (error != null) {
+                Toast.makeText(this, "投屏失败：" + error, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "已投屏到 " + device.getFriendlyName(), Toast.LENGTH_SHORT).show();
+            }
+        }));
+    }
+
+    /** content:// 尽量解析成真实路径；不行就复制到 cache，供 LocalMediaServer 托管。 */
+    private String resolveLocalPathForCast(String playUrl) {
+        try {
+            if (playUrl.startsWith("/")) {
+                File f = new File(playUrl);
+                return f.canRead() ? f.getAbsolutePath() : null;
+            }
+            if (playUrl.startsWith("file://")) {
+                File f = new File(Uri.parse(playUrl).getPath());
+                return f.canRead() ? f.getAbsolutePath() : null;
+            }
+            Uri uri = Uri.parse(playUrl);
+            // MediaStore 常见 _data 列（API 31 上仍可读本应用有权访问的媒体）
+            try (Cursor c = getContentResolver().query(uri, new String[]{MediaStore.Video.Media.DATA}, null, null, null)) {
+                if (c != null && c.moveToFirst()) {
+                    String data = c.getString(0);
+                    if (data != null && new File(data).canRead()) {
+                        return data;
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+            File out = new File(getCacheDir(), "cast_local_" + Math.abs(playUrl.hashCode()) + ".mp4");
+            try (InputStream in = getContentResolver().openInputStream(uri);
+                 FileOutputStream fos = new FileOutputStream(out)) {
+                if (in == null) return null;
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = in.read(buf)) >= 0) {
+                    fos.write(buf, 0, n);
+                }
+            }
+            return out.getAbsolutePath();
+        } catch (Exception e) {
+            LogUtil.e(e);
+            return null;
+        }
+    }
+
     @Override
     public void onDestroy() {
         if (myFavoriteView != null) {
             myFavoriteView.releaseTranslationOverlay();
+        }
+        if (dlnaCaster != null) {
+            dlnaCaster.close();
+        }
+        if (dlnaDiscovery != null) {
+            dlnaDiscovery.close();
         }
         indexService.cancelRequest(VIDEO_TAG);
         GSYVideoManager.releaseAllVideos();

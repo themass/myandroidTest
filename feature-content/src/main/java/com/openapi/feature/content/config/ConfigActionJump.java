@@ -48,6 +48,8 @@ public class ConfigActionJump {
         configMap.put(Constants.IMG_URL, ImgChannleActivity.class.getName());
         configMap.put(Constants.VIDEO_URL, VideoChannleActivity.class.getName());
         configMap.put(Constants.VIDEOLIST_URL, VIDEO_LIST_SHOW);
+        // 服务端电影卡仍下发 videoList1://…；以前只注册了 videoList，未知 scheme 被误报成「版本太低」
+        configMap.put(Constants.VIDEOLIST_URL1, VIDEO_LIST_SHOW);
         configMap.put(Constants.TELEPLAY_URL, TeleplayActivity.class.getName());
         configMap.put(Constants.LOCAL_CHAT, HOME);
         configMap.put(Constants.LOCAL_CHAT2, HOME);
@@ -69,12 +71,13 @@ public class ConfigActionJump {
         for (String name : names) {
             param.put(name, uri.getQueryParameter(name));
         }
-        String activityName = configMap.get(uri.getScheme());
+        String scheme = uri.getScheme();
+        String activityName = configMap.get(scheme);
         if (activityName != null) {
             Boolean adsShow = event.param != null ? (Boolean) event.param.get(CommonConstants.ADS_SHOW_CONFIG) : null;
             Boolean adsPopShow = event.param != null ? (Boolean) event.param.get(CommonConstants.ADS_POP_SHOW_CONFIG) : null;
             Intent intent = new Intent().setClassName(event.context, activityName);
-            intent.putExtra(Constants.URL, parserUrl(uri.getScheme(), event.url, param));
+            intent.putExtra(Constants.URL, parserUrl(scheme, event.url, param));
             intent.putExtra(CommonConstants.ADS_SHOW_CONFIG, adsShow);
             intent.putExtra(CommonConstants.ADS_POP_SHOW_CONFIG, adsPopShow);
             intent.putExtra(Constants.CONFIG_PARAM, param);
@@ -82,6 +85,8 @@ public class ConfigActionJump {
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             event.context.startActivity(intent);
         } else {
+            // 真正的版本门槛在卡片 minVersion 检查；这里只是客户端不认识的跳转协议
+            LogUtil.e("ConfigActionJump unknown scheme=" + scheme + " url=" + event.url);
             ToastUtil.showShort(R.string.version_low);
         }
     }

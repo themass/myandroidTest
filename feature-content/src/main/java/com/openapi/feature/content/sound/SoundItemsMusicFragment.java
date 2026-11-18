@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import com.openapi.common.ui.dialog.AppDialogHost;
 
 import android.view.LayoutInflater;
@@ -231,15 +232,15 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         filter.addAction(MUSIC_PREPAREING);
         filter.addAction(MUSIC_PREPARED);
         filter.addAction(ACTION_PLAY_MODE_CHANGED);
-        // 注册BroadcastReceiver
-        getActivity().registerReceiver(homeReceiver, filter);
+        // API 33+ 必须声明 exported 标志；本应用内部广播用不导出
+        ContextCompat.registerReceiver(getActivity(), homeReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
 
         IntentFilter filter1 = new IntentFilter();
         filter1.addAction("android.net.conn.CONNECTIVITY_CHANGE");
         filter1.addAction("android.net.wifi.WIFI_STATE_CHANGED");
         filter1.addAction("android.net.wifi.STATE_CHANGE");
         netReceiver = SoundPlaybackReceivers.network(this);
-        getActivity().registerReceiver(netReceiver, filter1);
+        ContextCompat.registerReceiver(getActivity(), netReceiver, filter1, ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
     public void onClick(View view) {
