@@ -167,6 +167,12 @@ internal class KernelHost(private val context: Context) {
         active?.player?.seekTo(target)
     }
 
+    /**
+     * 直接问内核现在播到哪，不走 [tick] 的 125ms 状态。
+     * 弹幕要逐帧算位置，用状态会一顿一顿地跳。
+     */
+    fun positionNow(): Long = active?.player?.position?.takeIf { active?.player?.ready == true } ?: position
+
     fun setSpeed(value: Float) {
         speed = value
         active?.player?.setSpeed(value)

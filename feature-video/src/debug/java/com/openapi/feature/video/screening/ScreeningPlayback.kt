@@ -243,12 +243,12 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                     },
                 )
             })
-            if (danmaku && position in 2000..7000) {
-                Text(
-                    "这一幕太美了",
-                    Modifier.align(Alignment.TopEnd).padding(top = 65.dp, end = 30.dp)
-                        .background(Ink.copy(alpha = .8f), Tile).padding(6.dp),
-                    color = White,
+            // 弹幕占上半区：底部永远留给字幕和控件，二者不互相压
+            if (danmaku && !locked) {
+                DanmakuOverlay(
+                    source = { host.positionNow() },
+                    comments = sampleTimeline,
+                    modifier = Modifier.fillMaxWidth().fillMaxHeight(.56f).align(Alignment.TopCenter),
                 )
             }
             if (cue.isNotEmpty()) {
@@ -368,8 +368,13 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                         }
                     }
                     "弹幕" -> {
-                        Setting("关闭弹幕", "", !danmaku) { danmaku = false }
-                        Setting("演示弹幕", "播放到第 2 秒时显示", danmaku) { danmaku = true }
+                        Setting("关闭弹幕", "立即清屏，不影响字幕和播放", !danmaku) { danmaku = false }
+                        Setting("本地样例弹幕", "${sampleTimeline.size} 条，按播放时间轴滚动", danmaku) { danmaku = true }
+                        Text(
+                            "弹幕跟着媒体时钟走：暂停就停住，倍速会一起变快变慢，拖进度条立刻换成那个位置的弹幕。" +
+                                "固定在上半区，底部留给字幕。",
+                            color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp),
+                        )
                     }
                     "更多" -> {
                         Setting("适应画面", "保留原始比例", !fill) { fill = false }
