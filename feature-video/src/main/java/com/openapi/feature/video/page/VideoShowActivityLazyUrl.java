@@ -33,7 +33,6 @@ import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
 import com.openapi.feature.video.databinding.LayoutVideoShowBinding;
 import android.widget.Toast;
-import android.view.View;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.database.Cursor;
@@ -56,7 +55,6 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
     private GoogleCastSessionController castSessionController;
     private DlnaDiscoveryCallback dlnaDiscovery;
     private JavaCaster dlnaCaster;
-    private View dlnaCastButton;
     RecommendVo vo;
     MyFavoriteView myFavoriteView;
     protected BaseService indexService;
@@ -67,7 +65,6 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
     private void bindButterViews() {
         LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));
         videoPlayer = b.jzVideo;
-        dlnaCastButton = b.btnDlnaCast;
         // 布局里的 MyFavoriteView 保持 GONE；工具条挂在播放器上以便全屏克隆
         myFavoriteView = videoPlayer.getMyFavoriteView();
     }
@@ -156,10 +153,8 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         RealtimeSubtitleBindings.attachVideo(myFavoriteView, realtimeSession, videoPlayer);
 
         videoPlayer.installGoogleCastRouteButton(this);
-        if (dlnaCastButton != null) {
-            dlnaCastButton.setVisibility(android.view.View.VISIBLE);
-            dlnaCastButton.setOnClickListener(v -> showDlnaDevices());
-        }
+        // 投屏入口封装在右下角 favor 工具条；发现/投屏仍由本页实现
+        myFavoriteView.setCastClickListener(v -> showDlnaDevices());
         castSessionController = new GoogleCastSessionController(this, videoPlayer, new CastPlaySource() {
             @Override
             public String getPlayUrl() {

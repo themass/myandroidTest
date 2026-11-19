@@ -26,11 +26,28 @@
         android:scaleType="fitCenter"
         android:src="@drawable/ic_menu_share" />
 
+    <!-- 投屏入口：由页面 setCastClickListener 后显示；:core 不依赖 :cast -->
+    <TextView
+        android:id="@+id/tv_cast"
+        android:layout_width="@dimen/margin_favrite"
+        android:layout_height="@dimen/margin_favrite"
+        android:layout_above="@id/iv_open_browser"
+        android:layout_marginBottom="@dimen/margin_2"
+        android:background="@drawable/btn_default_light"
+        android:clickable="true"
+        android:contentDescription="@string/favorite_cast"
+        android:gravity="center"
+        android:text="@string/favorite_cast"
+        android:textColor="@color/base_white"
+        android:textSize="@dimen/textsize_12"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
     <ImageView
         android:id="@+id/iv_m3u8_lines"
         android:layout_width="@dimen/margin_favrite"
         android:layout_height="@dimen/margin_favrite"
-        android:layout_above="@id/iv_open_browser"
+        android:layout_above="@id/tv_cast"
         android:layout_marginBottom="@dimen/margin_2"
         android:background="@drawable/btn_default_light"
         android:clickable="true"

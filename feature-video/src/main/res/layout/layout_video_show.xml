@@ -8,25 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 电视投屏（DLNA）：带「投屏」文字，避免被当成分享图标 -->
-    <TextView
-        android:id="@+id/btn_dlna_cast"
-        android:layout_width="wrap_content"
-        android:layout_height="36dp"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="12dp"
-        android:background="#66000000"
-        android:contentDescription="@string/cast_title"
-        android:drawablePadding="4dp"
-        android:gravity="center_vertical"
-        android:paddingStart="10dp"
-        android:paddingEnd="12dp"
-        android:text="@string/cast_title"
-        android:textColor="#FFFFFFFF"
-        android:textSize="13sp" />
-
-    <!-- 占位保留 id，实际工具条挂在 DetailGSYVideoPlayer 内（全屏克隆需要） -->
+    <!-- 占位保留 id，实际工具条挂在 DetailGSYVideoPlayer 内（全屏克隆需要）；投屏入口在 MyFavoriteView -->
     <com.openapi.core.favorite.MyFavoriteView
         android:id="@+id/my_favoriteview"
         android:layout_width="wrap_content"

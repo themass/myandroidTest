@@ -95,10 +95,8 @@ final class PlayerMoreMenu {
         }
         castRow.setOnClickListener(v -> {
             dlg.dismiss();
-            View castBtn = appAct.findViewById(R.id.btn_dlna_cast);
-            if (castBtn != null && castBtn.hasOnClickListeners()) {
-                castBtn.performClick();
-            } else {
+            // 与右下角 favor 投屏入口共用同一回调
+            if (!player.getMyFavoriteView().performCastClick()) {
                 ToastUtil.showShort(R.string.cast_title);
             }
         });

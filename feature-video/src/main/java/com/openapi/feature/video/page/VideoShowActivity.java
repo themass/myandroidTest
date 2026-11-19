@@ -5,7 +5,6 @@ import android.widget.Toast;
 import com.openapi.cast.JavaCaster;
 import com.openapi.cast.DlnaDiscoveryCallback;
 import com.openapi.cast.DlnaDevice;
-import android.view.View;
 import com.openapi.common.ui.dialog.AppDialogHost;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
 import android.util.Rational;
@@ -52,12 +51,10 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
     private GoogleCastSessionController castSessionController;
     RecommendVo vo;
     MyFavoriteView myFavoriteView;
-    private View dlnaCastButton;
 
     private void bindButterViews() {
         LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));
         videoPlayer = b.jzVideo;
-        dlnaCastButton = b.btnDlnaCast;
         // 布局里的 MyFavoriteView 保持 GONE；工具条挂在播放器上以便全屏克隆
         myFavoriteView = videoPlayer.getMyFavoriteView();
     }
@@ -95,10 +92,11 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
             }
         });
 
-        dlnaCastButton.setOnClickListener(v -> showDlnaDevices());
         myFavoriteView.setListener(this);
         myFavoriteView.initFavoriteBackGroud(vo.actionUrl);
         myFavoriteView.showOnlineVideoPlayback();
+        // 投屏入口封装在右下角 favor 工具条；发现/投屏仍由本页实现
+        myFavoriteView.setCastClickListener(v -> showDlnaDevices());
         VideoPlaybackUiHelper.maybeShowFirstPlaybackGestureHint(this, videoPlayer);
 
         myFavoriteView.setTranslationSession(new TranslationOverlaySession() {
