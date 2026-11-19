@@ -94,6 +94,41 @@ class AssetStoreTest {
     }
 
     @Test
+    fun ensure_flattens_single_top_level_dir_matching_target_name() {
+        // gj_dh_res.zip / Oliver.zip wrap their payload in one top-level dir whose name equals
+        // the target's last segment. Verbatim extraction would double-nest (model/gj_dh_res/
+        // gj_dh_res/wenet.o) and the Duix native init could never find wenet.o — so a matching
+        // wrapper dir is flattened into the target.
+        val nested = zipOf("gj_dh_res/wenet.o" to "data", "gj_dh_res/sub/x" to "y")
+        val spec = zipSpec.copy(relativePath = "model/gj_dh_res")
+        val store = store(fakeClient(body = nested), specs = listOf(spec))
+
+        val result = runBlocking { store.ensure(EngineAssets.DUIX) }
+
+        assertTrue(result.exceptionOrNull()?.toString(), result.isSuccess)
+        val root = store.cacheRoot(EngineAssets.DUIX)
+        assertEquals("data", File(root, "model/gj_dh_res/wenet.o").readText())
+        assertEquals("y", File(root, "model/gj_dh_res/sub/x").readText())
+        assertFalse(
+            "no double-nested gj_dh_res dir",
+            File(root, "model/gj_dh_res/gj_dh_res").exists(),
+        )
+    }
+
+    @Test
+    fun ensure_keeps_wrapper_dir_when_names_differ() {
+        // The Tao native zip's payload lives under app/ — a different name, so the tree is
+        // preserved verbatim (native-libs/app/src/...).
+        val nested = zipOf("app/src/main/lib/so" to "mnn")
+        val spec = zipSpec.copy(relativePath = "model/fixture")
+        val store = store(fakeClient(body = nested), specs = listOf(spec))
+
+        assertTrue(runBlocking { store.ensure(EngineAssets.DUIX) }.isSuccess)
+        val root = store.cacheRoot(EngineAssets.DUIX)
+        assertEquals("mnn", File(root, "model/fixture/app/src/main/lib/so").readText())
+    }
+
+    @Test
     fun ensure_skips_when_marker_present() {
         val store = store(fakeClient(body = zipOf("a.txt" to "hello")))
         assertTrue(runBlocking { store.ensure(EngineAssets.DUIX) }.isSuccess)

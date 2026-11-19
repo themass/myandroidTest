@@ -98,7 +98,7 @@ class AssetStore internal constructor(
             when (spec.kind) {
                 AssetSpec.Kind.ZIP -> {
                     staging.mkdirs()
-                    extractZip(download, staging)
+                    extractZip(download, staging, target.name)
                     replace(staging, target)
                 }
                 AssetSpec.Kind.FILE -> {
@@ -164,12 +164,23 @@ class AssetStore internal constructor(
         }
     }
 
-    /** Extracts [zip] into [destDir], rejecting entries that would land outside it. */
-    private fun extractZip(zip: File, destDir: File) {
+    /**
+     * Extracts [zip] into [destDir], rejecting entries that would land outside it. When every
+     * entry lives under one top-level directory named [flattenName] (the target's own name —
+     * e.g. gj_dh_res.zip wraps `gj_dh_res/wenet.o`), that wrapper is stripped so the payload
+     * lands directly in [destDir] instead of double-nested beyond the target path.
+     */
+    private fun extractZip(zip: File, destDir: File, flattenName: String) {
         val destRoot = destDir.canonicalFile
         ZipFile(zip).use { zipFile ->
-            for (entry in zipFile.entries()) {
-                val name = entry.name
+            val entries = zipFile.entries().toList()
+            val prefix = singleTopLevelDir(entries.map { it.name }, flattenName)
+            for (entry in entries) {
+                var name = entry.name
+                if (prefix != null && name.startsWith(prefix)) {
+                    name = name.drop(prefix.length)
+                    if (name.isEmpty()) continue // the wrapper dir entry itself
+                }
                 if (name.startsWith("/") || name.startsWith("\\") || DRIVE_PREFIX.containsMatchIn(name)) {
                     throw IOException("Unsafe absolute zip entry: $name")
                 }
@@ -187,6 +198,14 @@ class AssetStore internal constructor(
                 }
             }
         }
+    }
+
+    /** The `"<name>/"` prefix to strip when every entry sits under exactly one top-level dir
+     *  named [flattenName]; null keeps the tree verbatim. */
+    private fun singleTopLevelDir(names: List<String>, flattenName: String): String? {
+        if (names.isEmpty()) return null
+        val tops = names.map { it.substringBefore('/', missingDelimiterValue = "") }.toSet()
+        return if (tops == setOf(flattenName)) "$flattenName/" else null
     }
 
     /** Moves [from] to [to], replacing any previous (possibly stale) content at [to]. */
