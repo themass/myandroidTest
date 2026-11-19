@@ -2,6 +2,8 @@ package com.openapi.ks.myapp.companion
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.openapi.ks.myapp.avatar.AvatarCommand
+import com.openapi.ks.myapp.avatar.AvatarEventMapper
 import com.openapi.ks.myapp.avatar.ProactiveKind
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -310,15 +312,13 @@ class CompanionViewModel(
     }
 
     fun onAvatarEvent(raw: String) {
-        val state = Regex("\"type\"\\s*:\\s*\"state\".*?\"state\"\\s*:\\s*\"([^\"]+)\"")
-            .find(raw)?.groupValues?.get(1)
-        val emotion = Regex("\"type\"\\s*:\\s*\"emotion\".*?\"emotion\"\\s*:\\s*\"([^\"]+)\"")
-            .find(raw)?.groupValues?.get(1)
-        _state.update {
-            it.copy(
-                avatarState = state ?: it.avatarState,
-                emotion = emotion ?: it.emotion,
-            )
+        // 协议解析只有一处（AvatarEventMapper）。这里曾自带一份正则，与 mapper
+        // 各解各的，改协议时必漏一边——现在只翻译指令 → UI state 字段。
+        when (val command = AvatarEventMapper.mapJson(raw)) {
+            is AvatarCommand.SetState -> _state.update { it.copy(avatarState = command.state.name.lowercase()) }
+            is AvatarCommand.Emotion -> _state.update { it.copy(emotion = command.name) }
+            // 非表现类指令（嘴型等）与未识别事件都不进 UI state。
+            else -> Unit
         }
     }
 

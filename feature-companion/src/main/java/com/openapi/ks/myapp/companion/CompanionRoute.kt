@@ -48,6 +48,7 @@ import com.openapi.ks.myapp.avatar.BundledAvatars
 import com.openapi.ks.myapp.avatar.LayeredAvatar
 import com.openapi.ks.myapp.avatar.LayeredAvatarPack
 import com.openapi.ks.myapp.avatar.AvatarPortrait
+import com.openapi.ks.myapp.avatar.AvatarEventMapper
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.SimpleAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
@@ -266,6 +267,15 @@ fun CompanionRoute(
         val callAvatarRenderer = remember { SimpleAvatarRenderer() }
         LaunchedEffect(avatarFiles) {
             avatarFiles?.let { callAvatarRenderer.bind(AvatarSpec(files = it)) }
+        }
+        // 状态与表情要喂给通话页的渲染器。没有这两跳，渲染器永远停在 IDLE，
+        // 而 Mouth 指令在非 SPEAKING 时被整条丢弃——头像的嘴根本不会动；
+        // 她的表情同理到不了脸上。chat 页同样的接线在 CompanionScreen。
+        LaunchedEffect(uiState.avatarState) {
+            AvatarEventMapper.mapState(uiState.avatarState)?.let(callAvatarRenderer::dispatch)
+        }
+        LaunchedEffect(uiState.emotion) {
+            AvatarEventMapper.mapEmotion(uiState.emotion)?.let(callAvatarRenderer::dispatch)
         }
         DisposableEffect(callAvatarRenderer) {
             onDispose { callAvatarRenderer.release() }

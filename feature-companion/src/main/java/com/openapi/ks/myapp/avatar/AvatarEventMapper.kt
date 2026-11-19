@@ -21,16 +21,21 @@ object AvatarEventMapper {
      * @param payload 事件内容；按类型取同名或 "emotion" 字段
      */
     fun map(type: String, payload: Map<String, Any?>): AvatarCommand? = when (type) {
-        "state" -> STATES[payload.string("state")?.lowercase()]
-            ?.let { state -> AvatarCommand.SetState(state) }
-
-        "emotion" -> payload.string("emotion")
-            ?.lowercase()
-            ?.let { name -> AvatarCommand.Emotion(name) }
+        "state" -> mapState(payload.string("state"))
+        "emotion" -> mapEmotion(payload.string("emotion"))
 
         // v1 不实现的能力（视线、手势）与客户端 → agent 的 touch 事件都落在这里。
         else -> null
     }
+
+    /** UI state 里的状态字符串直连渲染器指令；未知/空值返回 null，不兜底成 IDLE。 */
+    fun mapState(name: String?): AvatarCommand? =
+        name?.lowercase()?.takeIf { it.isNotBlank() }?.let { STATES[it] }
+            ?.let { state -> AvatarCommand.SetState(state) }
+
+    /** UI state 里的情绪名直连渲染器指令；空串按「没有情绪」处理。 */
+    fun mapEmotion(name: String?): AvatarCommand? =
+        name?.lowercase()?.takeIf { it.isNotBlank() }?.let { AvatarCommand.Emotion(it) }
 
     /**
      * 从数据通道收到的 JSON 字符串里解出事件，解析失败返回 null。

@@ -81,7 +81,6 @@ import com.openapi.chatkit.model.MessagePart
 import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.theme.ChatKitTheme
 import com.openapi.feature.companion.R
-import com.openapi.ks.myapp.avatar.AvatarCommand
 import com.openapi.ks.myapp.avatar.AvatarEventMapper
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.ProactiveKind
@@ -142,11 +141,10 @@ fun CompanionScreen(
     }
 
     LaunchedEffect(state.avatarState) {
-        AvatarEventMapper.mapJson("""{"type":"state","state":"${state.avatarState}"}""")
-            ?.let(renderer::dispatch)
+        AvatarEventMapper.mapState(state.avatarState)?.let(renderer::dispatch)
     }
     LaunchedEffect(state.emotion) {
-        state.emotion?.let { renderer.dispatch(AvatarCommand.Emotion(it)) }
+        AvatarEventMapper.mapEmotion(state.emotion)?.let(renderer::dispatch)
     }
 
     // 新消息到达时滚到底。用消息条数与最后一条文本做 key：流式追加时也要跟。
