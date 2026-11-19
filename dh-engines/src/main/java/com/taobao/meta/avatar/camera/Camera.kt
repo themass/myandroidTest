@@ -1,4 +1,4 @@
-package com.openapi.ks.dh.tao.camera
+package com.taobao.meta.avatar.camera
 
 import kotlin.math.cos
 import kotlin.math.sin

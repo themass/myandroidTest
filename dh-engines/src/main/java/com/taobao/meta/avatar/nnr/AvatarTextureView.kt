@@ -6,7 +6,7 @@
 // frame-dump path (upstream FileUtils.saveBitmapToFile + HandlerThread copy machinery) — the
 // dump was gated by MHConfig.DebugConfig.DebugWriteBlendShape, which is gone from this module.
 
-package com.openapi.ks.dh.tao.nnr
+package com.taobao.meta.avatar.nnr
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -20,7 +20,7 @@ import android.view.MotionEvent
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
-import com.openapi.ks.dh.tao.camera.CameraControlData
+import com.taobao.meta.avatar.camera.CameraControlData
 import kotlin.math.sqrt
 
 class AvatarTextureView(context: Context?, attrs: AttributeSet?) :

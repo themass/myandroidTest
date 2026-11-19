@@ -102,8 +102,32 @@ if echo " $ENGINES " | grep -q " live2d "; then
 fi
 
 if echo " $ENGINES " | grep -q " tao "; then
-  fetch native-libs-arm64-v8a.zip "https://meta.alicdn.com/data/mnn/avatar/native-libs-arm64-v8a.zip"
-  push_unpack tao native-libs-arm64-v8a.zip "native-libs"
+  # Tao native 六件套 → cacheRoot(TAO)/native-libs/arm64-v8a/，TaoNativeLoader 按绝对路径
+  # 依序 dlopen：libc++_shared(NDK sysroot，系统没有) + libMNN/libnnrruntime(上游 zip) +
+  # libmnn_a2bs/libmnn_tts_SDK/libtaoavatar(本地按 MnnTaoAvatar cpp 用 NDK 27 自编，产物放
+  # .superpowers/dh-packs/tao-build-arm64-v8a/，上游没有预编译 libtaoavatar.so)。
+  if [ -f "$PACKS/tao-build-arm64-v8a/libtaoavatar.so" ]; then
+    fetch native-libs-arm64-v8a.zip "https://meta.alicdn.com/data/mnn/avatar/native-libs-arm64-v8a.zip"
+    T="$PACKS/.unzip-tao-native"; rm -rf "$T"; mkdir -p "$T"; S="$PACKS/tao-build-arm64-v8a"
+    unzip -q -o "$PACKS/native-libs-arm64-v8a.zip" 'app/src/main/libs/*' -d "$T"
+    # 本机暂存目录（六件套同目录），再整体 push —— $DEVICE_TMP 路径只在 adb 命令里用。
+    L="$PACKS/.tao-native-push"; rm -rf "$L"; mkdir -p "$L"
+    cp "$S/libc++_shared.so" "$S/libmnn_a2bs.so" "$S/libmnn_tts_SDK.so" "$S/libtaoavatar.so" \
+       "$T/app/src/main/libs/MNN/lib/arm64-v8a/libMNN.so" \
+       "$T/app/src/main/libs/NNR/lib/arm64-v8a/libnnrruntime.so" \
+       "$L/"
+    stage="$DEVICE_TMP/tao-native"
+    "${ADB[@]}" shell "rm -rf '$stage' && mkdir -p '$stage'"
+    "${ADB[@]}" push "$L/." "$stage/" >/dev/null
+    ra "mkdir -p $DATA/files/dh-engines/tao/native-libs/arm64-v8a && cp $stage/*.so $DATA/files/dh-engines/tao/native-libs/arm64-v8a/"
+    # marker：AssetStore.isReady 认它，不再设备上重复下载（布局见 AssetManifest tao 项）。
+    ra "mkdir -p $DATA/files/dh-engines/tao/tmp && touch $DATA/files/dh-engines/tao/tmp/native-libs"
+    echo "== tao/native-libs/arm64-v8a 六件套已推送"
+  else
+    echo "!! 跳过 Tao native：先在 ~/work/android/MNN/apps/Android/MnnTaoAvatar 用 NDK 27 + cmake 构建"
+    echo "   (产物 libtaoavatar.so + cpp/{a2bs,tts}/*.so)，连同 NDK sysroot 的 libc++_shared.so"
+    echo "   放到 $PACKS/tao-build-arm64-v8a/ 再运行"
+  fi
   for model in TaoAvatar-NNR-MNN UniTalker-MNN; do
     if [ -d "$PACKS/$model" ]; then
       stage="$DEVICE_TMP/tao-$model"

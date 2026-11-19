@@ -3,13 +3,13 @@
 // doFrameDebug / getFirstAudioBlendShape) — the debug const is gone from this module and the
 // A2BS player is an idle no-op stub.
 
-package com.openapi.ks.dh.tao.nnr
+package com.taobao.meta.avatar.nnr
 
 import android.util.Log
 import android.view.Surface
 import com.openapi.ks.dh.tao.MHConfig
 import com.openapi.ks.dh.tao.a2bs.AudioBlendShapePlayer
-import com.openapi.ks.dh.tao.camera.CameraControlData
+import com.taobao.meta.avatar.camera.CameraControlData
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
