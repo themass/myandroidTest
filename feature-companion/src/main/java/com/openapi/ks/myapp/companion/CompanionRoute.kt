@@ -51,7 +51,10 @@ import com.openapi.ks.myapp.avatar.AvatarPortrait
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.SimpleAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
+import com.openapi.ks.myapp.dh.DhEngineDownloadGate
 import com.openapi.ks.myapp.dh.DhEngineRegistry
+import com.openapi.ks.myapp.dh.EngineClickAction
+import com.openapi.ks.myapp.dh.dhEngineLabel
 import com.openapi.ks.myapp.dh.DhLabBootstrap
 import com.openapi.ks.myapp.dh.DhLabGate
 import com.openapi.ks.myapp.dh.DhLabPreferences
@@ -59,8 +62,10 @@ import com.openapi.ks.myapp.dh.DigitalHumanLabHost
 import com.openapi.ks.myapp.dh.dhEngineMenuRows
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 
 /** 陪伴界面里能去的页面。聊天是主页面，其余三个从顶部进入。 */
@@ -272,6 +277,15 @@ fun CompanionRoute(
         val labEnabled = remember(context) { DhLabGate.isEnabled(context) }
         val dhPrefs = remember(context) { DhLabPreferences(context) }
         var callStage by remember { mutableStateOf(dhPrefs.callStage) }
+        val uiScope = rememberCoroutineScope()
+        // 重型引擎的素材没下好时，点菜单先下载，成功后才换舞台；Simple / 原形象不受影响。
+        val engineGate = remember(context) {
+            val store = DhLabBootstrap.assetStore(context)
+            DhEngineDownloadGate(
+                isReady = store::isReady,
+                ensure = { assets, onProgress -> store.ensure(assets, onProgress) },
+            )
+        }
         val engineMenu = remember(context, labEnabled) {
             if (labEnabled) dhEngineMenuRows(DhEngineRegistry.available(context)) else null
         }
@@ -410,11 +424,37 @@ fun CompanionRoute(
             engineMenu = engineMenu,
             selectedEngine = callStage,
             onEngineMenuClick = { row ->
-                if (!row.switches) {
-                    toast(context, row.detail ?: "这个形象现在不能用")
-                } else {
-                    callStage = row.id
-                    dhPrefs.callStage = row.id
+                when (engineGate.actionFor(row)) {
+                    EngineClickAction.UNAVAILABLE_REASON ->
+                        toast(context, row.detail ?: "这个形象现在不能用")
+                    EngineClickAction.SELECT -> {
+                        callStage = row.id
+                        dhPrefs.callStage = row.id
+                    }
+                    EngineClickAction.NOT_READY_START_DOWNLOAD -> {
+                        val id = row.id
+                        if (id != null) {
+                            val name = dhEngineLabel(id)
+                            uiScope.launch {
+                                if (engineGate.isDownloading(id)) {
+                                    toast(context, "$name 正在下载…")
+                                    return@launch
+                                }
+                                toast(context, "正在下载 $name 素材…")
+                                // onProgress 在 IO 线程回调，v1 不展示进度，传空实现；只在下载结束后（主线程）切换。
+                                when (val outcome = engineGate.download(id) {}) {
+                                    DhEngineDownloadGate.Outcome.Success -> {
+                                        callStage = id
+                                        dhPrefs.callStage = id
+                                    }
+                                    DhEngineDownloadGate.Outcome.Busy ->
+                                        toast(context, "$name 正在下载…")
+                                    is DhEngineDownloadGate.Outcome.Failed ->
+                                        toast(context, "$name 下载失败：${outcome.reason}")
+                                }
+                            }
+                        }
+                    }
                 }
             },
             // 只有下拉里点了某个引擎才换舞台；默认仍是原来的分层立绘。

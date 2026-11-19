@@ -4,7 +4,7 @@ package com.openapi.ks.myapp.dh
 data class DhEngineMenuRow(
     val id: DhEngineId?,
     val label: String,
-    /** false：点了不换舞台，菜单上写出 [detail]。 */
+    /** false：点了不换舞台，菜单上写出 [detail]。素材未下载但下完能用的引擎仍为 true（点了先下载）。 */
     val switches: Boolean,
     val detail: String? = null,
 )
@@ -21,7 +21,7 @@ fun dhEngineMenuRows(availability: List<DhEngineAvailability>): List<DhEngineMen
         DhEngineMenuRow(
             id = row.id,
             label = dhEngineLabel(row.id),
-            switches = row.available,
+            switches = row.available || row.needsDownload,
             detail = if (row.available) null else row.reason,
         )
     }

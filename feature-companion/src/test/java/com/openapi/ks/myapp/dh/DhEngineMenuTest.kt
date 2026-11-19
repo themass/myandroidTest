@@ -59,4 +59,20 @@ class DhEngineMenuTest {
         assertEquals("　 Duix（缺模型）", duix.menuLabel(selected = false))
         assertEquals(5, rows.size)
     }
+
+    @Test
+    fun menu_keeps_download_pending_engine_switchable_but_device_blocked_one_not() {
+        val rows = dhEngineMenuRows(
+            listOf(
+                DhEngineAvailability(DhEngineId.DUIX, available = false, reason = "未下载", needsDownload = true),
+                DhEngineAvailability(DhEngineId.TAO_AVATAR, available = false, reason = "机型不足"),
+            ),
+        )
+        val duix = rows.first { it.id == DhEngineId.DUIX }
+        assertTrue(duix.switches)
+        assertEquals("未下载", duix.detail)
+        val tao = rows.first { it.id == DhEngineId.TAO_AVATAR }
+        assertFalse(tao.switches)
+        assertEquals("机型不足", tao.detail)
+    }
 }

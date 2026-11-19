@@ -1,41 +1,33 @@
 package com.openapi.ks.myapp.dh
 
 import android.content.Context
+import com.openapi.ks.dh.DuixRuntime
+import com.openapi.ks.dh.EngineAssets
 import java.io.File
 
 /**
- * Duix 模型落盘约定（与官方 SDK [ai.guiji.duix.sdk.client.DUIX] 一致）：
- * `context.getExternalFilesDir("duix")/model/{gj_dh_res,<modelName>}`
- * 以及同名 tag 目录 `model/tmp/...`。
+ * Duix 模型落盘约定：`AssetStore.cacheRoot(DUIX)/model/{gj_dh_res,<modelName>}`，
+ * 完成标记在同级 `model/tmp/<name>`（见 `AssetManifest` 的 DUIX 布局，与 SDK 的 DUIX.init 校验一致）。
  */
 object DuixModelPaths {
-    const val DEFAULT_MODEL = "duix_lab"
+    /** 官方 Oliver 角色包，解压后目录名即 SDK 的 modelName。 */
+    const val DEFAULT_MODEL = DuixRuntime.DEFAULT_MODEL
+    const val BASE_DIR = DuixRuntime.BASE_MODEL
 
     data class Status(val ready: Boolean, val reason: String, val modelName: String)
 
     fun duixRoot(context: Context): File =
-        context.getExternalFilesDir("duix") ?: File(context.filesDir, "duix")
+        DhLabBootstrap.assetStore(context).cacheRoot(EngineAssets.DUIX)
 
     fun status(context: Context, modelName: String = DEFAULT_MODEL): Status {
         val root = duixRoot(context)
-        val base = File(root, "model/gj_dh_res")
-        val baseTag = File(root, "model/tmp/gj_dh_res")
-        if (!base.exists() || !baseTag.exists()) {
-            return Status(
-                ready = false,
-                reason = "缺模型 gj_dh_res（见 docs/dh-lab-models.md）",
-                modelName = modelName,
-            )
+        val missing = listOf(BASE_DIR, modelName).filterNot { name ->
+            File(root, "model/$name").exists() && File(root, "model/tmp/$name").exists()
         }
-        val modelDir = File(root, "model/$modelName")
-        val modelTag = File(root, "model/tmp/$modelName")
-        if (!modelDir.exists() || !modelTag.exists()) {
-            return Status(
-                ready = false,
-                reason = "缺模型 $modelName",
-                modelName = modelName,
-            )
+        return if (missing.isEmpty()) {
+            Status(ready = true, reason = "", modelName = modelName)
+        } else {
+            Status(ready = false, reason = DuixRuntime.REASON_NOT_DOWNLOADED, modelName = modelName)
         }
-        return Status(ready = true, reason = "", modelName = modelName)
     }
 }

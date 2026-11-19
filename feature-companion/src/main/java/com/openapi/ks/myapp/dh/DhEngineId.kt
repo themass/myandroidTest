@@ -12,4 +12,6 @@ data class DhEngineAvailability(
     val id: DhEngineId,
     val available: Boolean,
     val reason: String? = null,
+    /** true：现在不能用，但素材下好后就能用（菜单仍可点，点了走下载闸门）。 */
+    val needsDownload: Boolean = false,
 )

@@ -51,6 +51,7 @@ class DhEngineRegistryTest {
                 "reason for $id: ${row.reason}",
                 row.reason?.contains("未编入") == true ||
                     row.reason?.contains("缺模型") == true ||
+                    row.reason?.contains("未下载") == true ||
                     row.reason?.contains("机型不足") == true,
             )
         }
