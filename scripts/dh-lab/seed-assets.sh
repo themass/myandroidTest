@@ -119,7 +119,7 @@ if echo " $ENGINES " | grep -q " tao "; then
     stage="$DEVICE_TMP/tao-native"
     "${ADB[@]}" shell "rm -rf '$stage' && mkdir -p '$stage'"
     "${ADB[@]}" push "$L/." "$stage/" >/dev/null
-    ra "mkdir -p $DATA/files/dh-engines/tao/native-libs/arm64-v8a && cp $DEVICE_TMP/tao-native-libs/*.so $DATA/files/dh-engines/tao/native-libs/arm64-v8a/"
+    ra "mkdir -p $DATA/files/dh-engines/tao/native-libs/arm64-v8a && cp $stage/*.so $DATA/files/dh-engines/tao/native-libs/arm64-v8a/"
     # marker：AssetStore.isReady 认它，不再设备上重复下载（布局见 AssetManifest tao 项）。
     ra "mkdir -p $DATA/files/dh-engines/tao/tmp && touch $DATA/files/dh-engines/tao/tmp/native-libs"
     echo "== tao/native-libs/arm64-v8a 六件套已推送"
