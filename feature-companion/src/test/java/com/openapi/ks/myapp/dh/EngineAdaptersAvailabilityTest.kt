@@ -30,15 +30,36 @@ class EngineAdaptersAvailabilityTest {
         val avail = DhEngineRegistry.available(context)
         assertEquals(DhEngineId.entries.size, avail.size)
         assertTrue(avail.first { it.id == DhEngineId.SIMPLE }.available)
-        // Tao 仍是 SDK 缺席的占位；Duix / Live2D 已内置运行时，素材没下好时回「未下载」。
+        // Tao 内置了 NNR 运行时，但 Robolectric 机型（RAM/ABI）或 cache 素材不足时仍不可用；
+        // Duix / Live2D 已内置运行时，素材没下好时回「未下载」。
         val tao = avail.first { it.id == DhEngineId.TAO_AVATAR }
-        assertFalse("without SDK, TAO should be unavailable", tao.available)
+        assertFalse("without assets/device gate pass, TAO should be unavailable", tao.available)
         assertTrue(
             "reason for TAO: ${tao.reason}",
-            tao.reason?.contains("未编入") == true ||
-                tao.reason?.contains("缺模型") == true ||
-                tao.reason?.contains("机型不足") == true,
+            tao.reason?.contains("机型不足") == true ||
+                tao.reason == "未下载" ||
+                tao.reason == "native 库缺失",
         )
+    }
+
+    @Test
+    fun tao_menu_row_follows_gate_before_download() {
+        val row = DhEngineRegistry.available(context).first { it.id == DhEngineId.TAO_AVATAR }
+        val menuRow = dhEngineMenuRows(listOf(row)).first { it.id == DhEngineId.TAO_AVATAR }
+        if (row.reason?.contains("机型不足") == true) {
+            // Robolectric device is below the 8GB gate: unswitchable, download never offered.
+            assertFalse("device-blocked TAO must not be switchable", menuRow.switches)
+            assertFalse(row.needsDownload)
+            val gate = DhEngineDownloadGate(isReady = { false }, ensure = { _, _ -> Result.success(Unit) })
+            assertEquals(EngineClickAction.UNAVAILABLE_REASON, gate.actionFor(menuRow))
+        } else {
+            // Device passed: cold cache is a download, same as Duix / Live2D.
+            assertEquals("未下载", row.reason)
+            assertTrue(row.needsDownload)
+            assertTrue(menuRow.switches)
+            val gate = DhEngineDownloadGate(isReady = { false }, ensure = { _, _ -> Result.success(Unit) })
+            assertEquals(EngineClickAction.NOT_READY_START_DOWNLOAD, gate.actionFor(menuRow))
+        }
     }
 
     @Test

@@ -1,8 +1,8 @@
 package com.openapi.ks.myapp.dh
 
 import android.content.Context
-import android.util.Log
 import android.view.View
+import com.openapi.ks.dh.TaoRuntime
 import com.openapi.ks.myapp.avatar.AvatarCapability
 import com.openapi.ks.myapp.avatar.AvatarCommand
 import com.openapi.ks.myapp.avatar.AvatarSpec
@@ -10,8 +10,10 @@ import com.openapi.ks.myapp.avatar.AvatarTouch
 import com.openapi.ks.myapp.avatar.TouchResult
 
 /**
- * TaoAvatar（MNN）适配器占位：旗舰门闸 + SDK 探测。
- * 完整 A2BS/NNR 接线依赖精简模块编入；未编入或机型不足时灰显。
+ * TaoAvatar（MNN）适配器：直接调 `:dh-engines` 的 [TaoRuntime]（已内置 NNR 运行时，无反射）。
+ * 顺序：旗舰门闸 [TaoDeviceGate] 优先（机型不足下完素材也不能用），然后素材未就绪回「未下载」并标
+ * [DhEngineAvailability.needsDownload]，最后 JNI 库缺失回「native 库缺失」。
+ * v1 只保证 NNR 网格出画面；口型/A2BS 尚未接线，[dispatch] 静默忽略。
  */
 class TaoDigitalHumanEngine : DigitalHumanEngine {
 
@@ -22,6 +24,8 @@ class TaoDigitalHumanEngine : DigitalHumanEngine {
         AvatarCapability.STATE,
     )
 
+    private var runtime: TaoRuntime? = null
+    private var viewCreated = false
     private var released = false
 
     override fun bind(spec: AvatarSpec) {}
@@ -33,17 +37,20 @@ class TaoDigitalHumanEngine : DigitalHumanEngine {
     override fun onTouch(event: AvatarTouch): TouchResult = TouchResult.Ignored
 
     override fun release() {
+        if (released) return
         released = true
+        runtime?.release()
+        runtime = null
+        viewCreated = false
     }
 
     override fun createView(context: Context): View? {
-        if (!TaoSdkReflect.isPresent()) return null
-        return try {
-            TaoSdkReflect.newAvatarTextureView(context)
-        } catch (t: Throwable) {
-            Log.e(TAG, "createView failed", t)
-            null
-        }
+        if (released) return null
+        // Pass the Activity-bearing host context through — the TextureView and its Choreographer
+        // rendering loop attach to it.
+        val view = runtime(context).createView(context) ?: return null
+        viewCreated = true
+        return view
     }
 
     override fun availability(context: Context): DhEngineAvailability {
@@ -51,29 +58,15 @@ class TaoDigitalHumanEngine : DigitalHumanEngine {
         if (!gate.supported) {
             return DhEngineAvailability(id, available = false, reason = gate.reason)
         }
-        if (!TaoSdkReflect.isPresent()) {
-            return DhEngineAvailability(id, available = false, reason = "未编入")
-        }
-        return DhEngineAvailability(id, available = true)
+        val status = runtime(context).availability()
+        return DhEngineAvailability(
+            id = id,
+            available = status.available,
+            reason = status.reason,
+            needsDownload = !status.available && status.reason == TaoRuntime.REASON_NOT_DOWNLOADED,
+        )
     }
 
-    companion object {
-        private const val TAG = "TaoDhEngine"
-    }
-}
-
-internal object TaoSdkReflect {
-    /** MnnTaoAvatar 主视图类名；精简模块编入后需保持或改此常量。 */
-    private const val AVATAR_TEXTURE =
-        "com.taobao.meta.avatar.nnr.AvatarTextureView"
-
-    fun isPresent(): Boolean = runCatching { Class.forName(AVATAR_TEXTURE) }.isSuccess
-
-    fun newAvatarTextureView(context: Context): View {
-        val cls = Class.forName(AVATAR_TEXTURE)
-        val ctor = cls.constructors.firstOrNull { it.parameterTypes.size == 1 &&
-            Context::class.java.isAssignableFrom(it.parameterTypes[0]) }
-            ?: cls.getConstructor(Context::class.java)
-        return ctor.newInstance(context) as View
-    }
+    private fun runtime(context: Context): TaoRuntime =
+        runtime ?: TaoRuntime(context, DhLabBootstrap.assetStore(context)).also { runtime = it }
 }
