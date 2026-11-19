@@ -132,6 +132,12 @@ class CharacterVoiceLabelTest {
     }
 
     @Test
+    fun `explicit null voice_ref means no chip`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"x","name":"X","voice_available":true,"voice_ref":null}"""))
+        assertEquals(null, s.voiceLabel)
+    }
+
+    @Test
     fun `header chip text joins name and voice only when a voice is known`() {
         assertEquals("沉稳男声", callVoiceChipText("沉稳男声"))
         assertEquals(null, callVoiceChipText(null))
