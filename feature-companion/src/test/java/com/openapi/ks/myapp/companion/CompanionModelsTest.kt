@@ -102,6 +102,36 @@ class CharacterVoiceLabelTest {
     }
 
     @Test
+    fun `voice_ref in extensions vvv maps known speaker ids to a Chinese voice name`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"sudai","name":"苏黛","extensions":{"vvv":{"voice_ref":{"provider":"volcengine","voice_id":"saturn_zh_female_tiexinnvyou_tob"}}}}"""))
+        assertEquals("贴心女友", s.voiceLabel)
+    }
+
+    @Test
+    fun `top level voice_ref wins over extensions vvv`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"x","name":"X","voice_ref":{"voice_id":"saturn_zh_female_bingjiaojiejie_tob"},"extensions":{"vvv":{"voice_ref":{"voice_id":"saturn_zh_female_tiexinnvyou_tob"}}}}"""))
+        assertEquals("病娇姐姐", s.voiceLabel)
+    }
+
+    @Test
+    fun `voice_ref also found under data for imported V2 cards`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"x","name":"X","data":{"voice_ref":{"voice_id":"saturn_zh_female_bingjiaojiejie_tob"}}}"""))
+        assertEquals("病娇姐姐", s.voiceLabel)
+    }
+
+    @Test
+    fun `unknown voice_id is shown verbatim and never labeled by gender`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"x","name":"X","voice_ref":{"voice_id":"some_new_speaker"}}"""))
+        assertEquals("some_new_speaker", s.voiceLabel)
+    }
+
+    @Test
+    fun `explicit voice_label still beats voice_ref`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"x","name":"X","voice_label":"自定义","voice_ref":{"voice_id":"saturn_zh_female_tiexinnvyou_tob"}}"""))
+        assertEquals("自定义", s.voiceLabel)
+    }
+
+    @Test
     fun `header chip text joins name and voice only when a voice is known`() {
         assertEquals("沉稳男声", callVoiceChipText("沉稳男声"))
         assertEquals(null, callVoiceChipText(null))
