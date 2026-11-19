@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +25,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.SimpleAvatar
@@ -185,6 +188,24 @@ fun DigitalHumanLabHost(
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
+        }
+
+        // 请求了 native 引擎却落在基础形象：说明原因，别只剩一个「形象准备中」。
+        val notice = DhDegradeNotice.text(
+            requested = lastRequestedEngineId,
+            actual = engine.id,
+            quarantined = watchdog.isQuarantined(lastRequestedEngineId),
+        )
+        if (notice != null && !swapping) {
+            Text(
+                text = notice,
+                color = Color.White.copy(alpha = 0.6f),
+                fontSize = 12.sp,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(start = 32.dp, end = 32.dp, bottom = 190.dp),
+            )
         }
     }
 }

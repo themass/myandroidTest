@@ -95,4 +95,29 @@ class DhEngineWatchdogTest {
         assertTrue("host must arm the fuse when an engine goes live", src.contains("markActive("))
         assertTrue("host must disarm on dispose", src.contains("markClean()"))
     }
+
+    // ---- 外部杀进程不算 native 崩溃（force-stop / 用户划掉 / 低内存回收）----
+
+    @Test
+    fun user_force_stop_while_active_does_not_quarantine() {
+        DhEngineWatchdog(context).markActive(DhEngineId.DUIX)
+        val reboot = DhEngineWatchdog(context)
+        assertNull(reboot.onColdStart(lastExitReason = { DhEngineWatchdog.EXIT_USER_REQUESTED }))
+        assertEquals(false, reboot.isQuarantined(DhEngineId.DUIX))
+    }
+
+    @Test
+    fun native_crash_exit_reason_quarantines() {
+        DhEngineWatchdog(context).markActive(DhEngineId.TAO_AVATAR)
+        assertEquals(
+            DhEngineId.TAO_AVATAR,
+            DhEngineWatchdog(context).onColdStart(lastExitReason = { DhEngineWatchdog.EXIT_CRASH_NATIVE }),
+        )
+    }
+
+    @Test
+    fun unknown_exit_reason_still_quarantines_to_stay_safe() {
+        DhEngineWatchdog(context).markActive(DhEngineId.LIVE2D)
+        assertEquals(DhEngineId.LIVE2D, DhEngineWatchdog(context).onColdStart(lastExitReason = { null }))
+    }
 }
