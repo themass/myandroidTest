@@ -117,31 +117,3 @@ allprojects {
         }
     }
 }
-
-// DH Lab：外部 include 的 duix-sdk / Live2D 适配本工程 AGP（不改上游仓库）。
-// 必须在插件 apply 时就开 BuildConfig——afterEvaluate 太晚，AGP 已因 buildConfigField 失败。
-gradle.beforeProject { proj ->
-    if (proj.name != 'dh-engine-duix' && proj.name != 'dh-engine-live2d') return
-    proj.pluginManager.withPlugin('com.android.library') {
-        def androidExt = proj.extensions.getByName('android')
-        androidExt.buildFeatures.buildConfig = true
-        androidExt.ndkVersion = '27.0.12077973'
-        // 上游写死 cmake 3.18.1；本机 SDK 只有 3.22.1（与 :app 一致）
-        androidExt.externalNativeBuild.cmake.version = '3.22.1'
-    }
-    proj.afterEvaluate {
-        def androidExt = proj.extensions.findByName('android')
-        if (androidExt == null) return
-        androidExt.compileSdkVersion rootProject.ext.compileSdkVersion
-        try {
-            androidExt.defaultConfig.minSdk = rootProject.ext.minSdkVersion
-            androidExt.defaultConfig.targetSdk = rootProject.ext.targetSdkVersion
-        } catch (Throwable ignored) {
-            // 部分 AGP DSL 只读；忽略
-        }
-        try {
-            androidExt.externalNativeBuild.cmake.version = '3.22.1'
-        } catch (Throwable ignored) {
-        }
-    }
-}

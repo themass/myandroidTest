@@ -57,8 +57,10 @@ class Live2dDigitalHumanEngine(
 
     override fun createView(context: Context): View? {
         if (released) return null
-        val rt = runtime(context)
-        val view = rt.createView() ?: return null
+        // Pass the Activity-bearing host context through — not applicationContext — so
+        // Live2dRuntime can SetActivityInstance / build GLSurfaceView the same way the
+        // pre-facade adapter did.
+        val view = runtime(context).createView(context) ?: return null
         viewCreated = true
         return view
     }

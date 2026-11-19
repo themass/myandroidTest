@@ -38,9 +38,14 @@ object AssetManifest {
     //  and do NOT vendor the ATRI model pack into this repo.
     private val live2d = emptyList<AssetSpec>()
 
-    // TODO(Tao, Task 6): add the NNR model spec once its URL is chosen (record it in
-    //  THIRD_PARTY.md). Only the native libs are pinned so far.
+    // Tao models (NNR mesh + UniTalker A2BS) ship upstream only through the ModelScope
+    // downloader SDK (repos "MNN/TaoAvatar-NNR-MNN", "MNN/UniTalker-MNN" — see THIRD_PARTY.md),
+    // which has no stable single-zip URL. Dev path stays adb-push into
+    // cacheRoot(TAO)/{TaoAvatar-NNR-MNN,UniTalker-MNN}/; TaoRuntime.modelsReady() checks those
+    // directories directly. A mirror URL can pin them later without touching the runtime.
     private val tao = listOf(
+        // zip contains app/src/main/libs/{MNN,NNR}/lib/arm64-v8a/*.so + jniLibs; libMNN.so and
+        // libnnrruntime.so are what a rebuilt libtaoavatar.so links against.
         AssetSpec(
             id = "tao-native-libs-arm64-v8a",
             url = "https://meta.alicdn.com/data/mnn/avatar/native-libs-arm64-v8a.zip",

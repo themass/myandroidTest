@@ -23,11 +23,16 @@ import java.io.File
  * `Java_com_openapi_ks_dh_live2d_JniBridgeJava_*` (upstream prebuilts export
  * `Java_com_chatwaifu_live2d_JniBridgeJava_*`), and its `FindClass` must target
  * `com/openapi/ks/dh/live2d/JniBridgeJava`.
+ *
+ * [createView] takes the host Context (typically the Activity / composition context from
+ * `DigitalHumanEngine.createView`) — never the application context — so Activity resolution
+ * and GLSurfaceView construction match the pre-facade adapter behaviour.
  */
 class Live2dRuntime internal constructor(
     private val env: Env,
     private val modelDirName: String,
     private val modelJsonName: String,
+    private val viewBuilder: ViewBuilder? = null,
 ) {
 
     /** Everything [Live2dRuntime] needs from the outside world; tests inject a fake. */
@@ -35,6 +40,15 @@ class Live2dRuntime internal constructor(
         fun modelsReady(): Boolean
         fun nativeLoadable(): Boolean
         fun cacheRoot(): File?
+    }
+
+    /**
+     * Builds the GL view from the host passed to [createView]. Production leaves this null and uses
+     * the real GLSurfaceView path; JVM tests inject a recorder so they can assert which host
+     * Context and resolved Activity the GL path receives, without touching GL or JNI.
+     */
+    internal fun interface ViewBuilder {
+        fun build(host: Context, activity: Activity?): View?
     }
 
     constructor(context: Context) : this(context, AssetStore(context.applicationContext))
@@ -60,34 +74,44 @@ class Live2dRuntime internal constructor(
         else -> EngineStatus(true, null)
     }
 
-    /** A GLSurfaceView driving the avatar, or null when [availability] is not available. */
-    fun createView(): View? {
-        val context = appContext ?: return null
+    /**
+     * A GLSurfaceView driving the avatar, or null when [availability] is not available.
+     *
+     * [host] must be the Activity-bearing context from the call site (the argument of
+     * `DigitalHumanEngine.createView`). The application context cannot resolve an Activity, so
+     * `JniBridgeJava.SetActivityInstance` would never run.
+     */
+    fun createView(host: Context): View? {
         if (!availability().available) return null
         val root = env.cacheRoot() ?: return null
         return try {
-            val activity = context.findActivity()
-            if (activity != null) {
-                JniBridgeJava.SetActivityInstance(activity)
-            }
-            JniBridgeJava.SetContext(context.applicationContext)
-            val view = GLSurfaceView(context).apply {
-                setEGLContextClientVersion(2)
-                setRenderer(GLRenderer())
-                renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
-            }
-            JniBridgeJava.nativeOnStart()
-            // Absolute path so LoadFile uses FileInputStream, not assets.
-            val modelPath = File(root, modelDirName).absolutePath + File.separator
-            JniBridgeJava.nativeProjectChangeTo(modelPath, modelJsonName)
-            JniBridgeJava.nativeAutoBlinkEyes(true)
-            started = true
-            surface = view
-            view
+            val activity = host.findActivity()
+            val builder = viewBuilder
+            if (builder != null) builder.build(host, activity) else buildGlView(host, activity, root)
         } catch (t: Throwable) {
             Log.e(TAG, "createView failed", t)
             null
         }
+    }
+
+    private fun buildGlView(host: Context, activity: Activity?, root: File): View {
+        if (activity != null) {
+            JniBridgeJava.SetActivityInstance(activity)
+        }
+        JniBridgeJava.SetContext(appContext ?: host.applicationContext)
+        val view = GLSurfaceView(host).apply {
+            setEGLContextClientVersion(2)
+            setRenderer(GLRenderer())
+            renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
+        }
+        JniBridgeJava.nativeOnStart()
+        // Absolute path so LoadFile uses FileInputStream, not assets.
+        val modelPath = File(root, modelDirName).absolutePath + File.separator
+        JniBridgeJava.nativeProjectChangeTo(modelPath, modelJsonName)
+        JniBridgeJava.nativeAutoBlinkEyes(true)
+        started = true
+        surface = view
+        return view
     }
 
     /** Mouth openness 0..1 → Cubism ParamMouthOpenY. */
@@ -152,20 +176,26 @@ class Live2dRuntime internal constructor(
         private const val NATIVE_LIB = "chatwaifu-live2d"
         private const val TAG = "Live2dRuntime"
 
-        /** JVM-test seam: no Context, no native library, availability from plain flags. */
+        /**
+         * JVM-test seam: no native library and no real GL. [viewBuilder] records the host Context
+         * and resolved Activity that [createView] hands to the GL path.
+         */
         internal fun forTest(
             modelsReady: Boolean,
             nativeLoadable: Boolean = true,
             modelDirName: String = DEFAULT_MODEL_DIR,
             modelJsonName: String = "$DEFAULT_MODEL_DIR.model3.json",
+            cacheRoot: File? = null,
+            viewBuilder: ViewBuilder? = null,
         ): Live2dRuntime = Live2dRuntime(
             env = object : Env {
                 override fun modelsReady() = modelsReady
                 override fun nativeLoadable() = nativeLoadable
-                override fun cacheRoot(): File? = null
+                override fun cacheRoot(): File? = cacheRoot
             },
             modelDirName = modelDirName,
             modelJsonName = modelJsonName,
+            viewBuilder = viewBuilder,
         )
     }
 }
