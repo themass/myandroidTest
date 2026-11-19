@@ -55,6 +55,7 @@ import com.openapi.ks.myapp.avatar.SimpleAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
 import com.openapi.ks.myapp.dh.DhEngineDownloadGate
 import com.openapi.ks.myapp.dh.DhEngineRegistry
+import com.openapi.ks.myapp.dh.DhEngineWatchdog
 import com.openapi.ks.myapp.dh.EngineClickAction
 import com.openapi.ks.myapp.dh.dhEngineLabel
 import com.openapi.ks.myapp.dh.DhLabBootstrap
@@ -248,12 +249,14 @@ fun CompanionRoute(
         // 标题与字标要用她的真名，不能拿 characterId（如 linche）当人看。通话期间拉一次，
         // 失败就退回「陪伴」——名字拿不到不该挡住通话。
         var agentName by rememberSaveable(characterId) { mutableStateOf("陪伴") }
+        var voiceLabel by rememberSaveable(characterId) { mutableStateOf<String?>(null) }
         LaunchedEffect(characterId) {
-            val name = runCatching { api.character(characterId).summary.name }.getOrNull()
+            val summary = runCatching { api.character(characterId).summary }.getOrNull()
                 ?: runCatching {
-                    api.characters().items.firstOrNull { it.id == characterId }?.name
+                    api.characters().items.firstOrNull { it.id == characterId }
                 }.getOrNull()
-            if (!name.isNullOrBlank()) agentName = name
+            if (summary != null && summary.name.isNotBlank()) agentName = summary.name
+            voiceLabel = summary?.voiceLabel
         }
 
         // 形象包里装了立绘就出图，没有才用首字占位：素材没装时不能假装有图，
@@ -391,6 +394,7 @@ fun CompanionRoute(
         CompanionCallScreen(
             state = CompanionCallState(
                 agentName = agentName,
+                voiceLabel = voiceLabel,
                 captions = transcript,
                 speakerCaptions = labeledCaptions,
                 elapsedSeconds = elapsedSeconds,
@@ -447,6 +451,8 @@ fun CompanionRoute(
                     EngineClickAction.UNAVAILABLE_REASON ->
                         toast(context, row.detail ?: "这个形象现在不能用")
                     EngineClickAction.SELECT -> {
+                        // 用户主动再选 = 解除上次崩溃留下的熔断（再崩会重新熔断）。
+                        row.id?.let { DhEngineWatchdog(context).clear(it) }
                         callStage = row.id
                         dhPrefs.callStage = row.id
                     }
@@ -469,6 +475,7 @@ fun CompanionRoute(
                                         val now = DhEngineRegistry.available(context)
                                             .firstOrNull { it.id == id }
                                         if (now?.available == true) {
+                                            DhEngineWatchdog(context).clear(id)
                                             callStage = id
                                             dhPrefs.callStage = id
                                         } else {

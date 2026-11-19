@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.View
 import com.openapi.ks.dh.tao.MHConfig
 import com.openapi.ks.dh.tao.a2bs.AudioBlendShapePlayer
+import com.taobao.meta.avatar.a2bs.A2BSService
 import com.taobao.meta.avatar.nnr.AvatarTextureView
 import com.taobao.meta.avatar.nnr.NnrAvatarRender
 import java.io.File
@@ -68,6 +69,14 @@ class TaoRuntime internal constructor(
 
     private var view: AvatarTextureView? = null
     private var render: NnrAvatarRender? = null
+
+    /**
+     * Process-wide A2BS owner. Its constructor runs `nativeCreateA2BS`, which installs the
+     * C++ `A2BSService::instance_` that UpdateNNRScene derefs every frame — deliberately never
+     * destroyed (upstream MainActivity keeps theirs alive the same way; nativeDestroy would
+     * re-null the singleton a live render loop still uses).
+     */
+    private var a2bs: A2BSService? = null
     private var released = false
     private val bootScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -102,6 +111,9 @@ class TaoRuntime internal constructor(
     }
 
     private fun defaultKit(): ViewKit = ViewKit { host, modelDir ->
+        // Before any render boot: the C++ UpdateNNRScene derefs A2BSService::GetActiveInstance()
+        // every frame, and that pointer is only set by the Kotlin constructor (nativeCreateA2BS).
+        if (a2bs == null) a2bs = com.taobao.meta.avatar.a2bs.A2BSService()
         val textureView = AvatarTextureView(host, null)
         val nnrRender = NnrAvatarRender(textureView, modelDir)
         nnrRender.setAudioBlendShapePlayer(AudioBlendShapePlayer())

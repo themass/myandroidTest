@@ -47,6 +47,22 @@ class CompanionCallStageLayoutTest {
     }
 
     @Test
+    fun only_the_engine_stage_runs_behind_the_header_and_controls() {
+        // 数字人区域太小的根因：形象被夹在顶栏和操作条之间。主角模式让舞台铺满整屏，
+        // 顶栏/操作条改为浮层；原来的形象与圆形头像的分栏布局不动。
+        assertTrue(voiceStageIsFullBleed(VoiceStageMode.CharacterHero))
+        assertTrue(!voiceStageIsFullBleed(VoiceStageMode.Stacked))
+        assertTrue(!voiceStageIsFullBleed(VoiceStageMode.Classic))
+    }
+
+    @Test
+    fun hero_overlays_clear_the_floating_control_bar() {
+        // 字幕和波形必须坐在浮动操作条上方，否则被操作条盖住：操作条 = 56dp 按钮 + 标签 + 边距。
+        assertTrue(HERO_CONTROL_BAR_DP >= 100f)
+        assertTrue(HERO_TOP_SCRIM_DP >= 96f)
+    }
+
+    @Test
     fun route_passes_hero_only_for_engine_stages() {
         // 接线护栏（同 DhLabExternalIncludesRemovedTest 的源码断言风格）：
         // CompanionRoute 必须只在选了引擎舞台（callStage != null）时开主角模式，

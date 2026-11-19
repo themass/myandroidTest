@@ -132,6 +132,44 @@ class TaoNativeBridgeTest {
         assertEquals(File("/x/tao/native-libs/arm64-v8a"), dir)
     }
 
+    /**
+     * libtaoavatar.so exports these 4 A2BS JNI symbols (llvm-readelf), and
+     * nnr_avatar_render.cpp UpdateNNRScene derefs A2BSService::GetActiveInstance() every
+     * frame — the C++ instance_ is set only by the A2BSService constructor. Upstream keeps it
+     * alive via MainActivity.getA2bsService(); a mirror that never instantiates it crashes
+     * (device SIGSEGV 2026-11-20 00:31:49, fault addr 0x20 in GetActiveFrame).
+     */
+    private val a2bsNativeSurface: List<Pair<String, Array<Class<*>>>> = listOf(
+        "nativeCreateA2BS" to emptyArray(),
+        "nativeDestroy" to arrayOf<Class<*>>(J),
+        "nativeLoadA2bsResources" to arrayOf<Class<*>>(J, S, S),
+        "nativeProcessBuffer" to arrayOf<Class<*>>(J, Int::class.javaPrimitiveType!!, shortArrayOf()::class.java, Int::class.javaPrimitiveType!!),
+    )
+
+    @Test
+    fun a2bs_service_mirror_keeps_the_upstream_fqn_and_native_surface() {
+        val cls = upstream("a2bs.A2BSService")
+        assertEquals("com.taobao.meta.avatar.a2bs.A2BSService", cls.name)
+        for ((name, params) in a2bsNativeSurface) {
+            val m = cls.getDeclaredMethod(name, *params)
+            assertTrue("$name must be native", java.lang.reflect.Modifier.isNative(m.modifiers))
+        }
+    }
+
+    @Test
+    fun tao_runtime_instantiates_the_a2bs_mirror_so_the_cpp_singleton_exists() {
+        // Source guard: GetActiveInstance() is null unless a com.taobao...a2bs.A2BSService was
+        // constructed; TaoRuntime must own one before the render loop starts.
+        var dir = File(System.getProperty("user.dir"))
+        while (dir != null && !File(dir, "settings.gradle").isFile) dir = dir.parentFile
+        val src = File(checkNotNull(dir), "dh-engines/src/main/java/com/openapi/ks/dh/TaoRuntime.kt").readText()
+        assertTrue(
+            "TaoRuntime must construct the upstream-FQN A2BSService (registers the C++ singleton)",
+            src.contains("com.taobao.meta.avatar.a2bs.A2BSService"),
+        )
+        assertTrue("TaoRuntime defaultKit must instantiate it", Regex("A2BSService\\(\\)").containsMatchIn(src))
+    }
+
     @Test
     fun tao_runtime_loads_from_cache_instead_of_apk_path() {
         // Source guard (same style as CompanionCallStageLayoutTest): the cache-dir pack is

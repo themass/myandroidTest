@@ -79,6 +79,36 @@ class CompanionModelsTest {
     }
 }
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34], application = android.app.Application::class)
+class CharacterVoiceLabelTest {
+
+    @Test
+    fun `server voice label is read when present`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"linche","name":"林澈","voice_label":"沉稳男声"}"""))
+        assertEquals("沉稳男声", s.voiceLabel)
+    }
+
+    @Test
+    fun `voice_name is accepted as a fallback key`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"sudai","name":"苏黛","voice_name":"温柔女声"}"""))
+        assertEquals("温柔女声", s.voiceLabel)
+    }
+
+    @Test
+    fun `missing or blank voice label stays null so the UI shows no chip`() {
+        assertEquals(null, CharacterSummary.from(JSONObject("""{"id":"a","name":"A"}""")).voiceLabel)
+        assertEquals(null, CharacterSummary.from(JSONObject("""{"id":"a","name":"A","voice_label":"  "}""")).voiceLabel)
+    }
+
+    @Test
+    fun `header chip text joins name and voice only when a voice is known`() {
+        assertEquals("沉稳男声", callVoiceChipText("沉稳男声"))
+        assertEquals(null, callVoiceChipText(null))
+        assertEquals(null, callVoiceChipText(""))
+    }
+}
+
 class CompanionTimeTest {
 
     @Test

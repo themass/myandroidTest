@@ -56,6 +56,11 @@ data class CharacterSummary(
     val tagline: String,
     val tags: List<String>,
     val voiceAvailable: Boolean,
+    /**
+     * 这个角色的声音的人话名字（如「沉稳男声」），通话页顶栏用来告诉用户「声音跟形象走」。
+     * 服务端按 voice_ref 下发；没下发或为空就是 null，界面不显示声音标签（不编造）。
+     */
+    val voiceLabel: String? = null,
 ) {
     companion object {
         fun from(json: JSONObject) = CharacterSummary(
@@ -66,9 +71,14 @@ data class CharacterSummary(
                 (0 until arr.length()).map { arr.optString(it) }
             }.orEmpty(),
             voiceAvailable = json.optBoolean("voice_available", true),
+            voiceLabel = (json.optString("voice_label").ifBlank { json.optString("voice_name") })
+                .trim().ifBlank { null },
         )
     }
 }
+
+/** 顶栏声音标签文案；声音未知时返回 null，调用方不画标签。 */
+fun callVoiceChipText(voiceLabel: String?): String? = voiceLabel?.trim()?.takeIf { it.isNotEmpty() }
 
 data class CharacterPage(val items: List<CharacterSummary>, val total: Int)
 
