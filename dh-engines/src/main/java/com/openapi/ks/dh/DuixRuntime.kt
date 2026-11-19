@@ -133,15 +133,14 @@ class DuixRuntime internal constructor(
         private val store: AssetStore,
         private val modelName: String,
     ) : Env {
+        // Natives come from the AssetStore pack (cacheRoot/native-libs/<abi>), loaded by
+        // absolute path — loadLibrary would only see APK-bundled libs (final review I3).
         private val nativeOk: Boolean by lazy {
-            try {
-                System.loadLibrary(NATIVE_LIB)
-                true
-            } catch (_: UnsatisfiedLinkError) {
-                false
-            } catch (_: SecurityException) {
-                false
-            }
+            val root = cacheRoot()
+            val abi = android.os.Build.SUPPORTED_ABIS.firstOrNull {
+                DuixNcnnLoader.nativeDirFor(root, it).isDirectory
+            } ?: android.os.Build.SUPPORTED_ABIS.firstOrNull() ?: "arm64-v8a"
+            DuixNcnnLoader.tryLoad(DuixNcnnLoader.nativeDirFor(root, abi))
         }
 
         override fun cacheRoot(): File = store.cacheRoot(EngineAssets.DUIX)
@@ -162,7 +161,6 @@ class DuixRuntime internal constructor(
         const val REASON_NOT_DOWNLOADED = "未下载"
         const val REASON_NATIVE_MISSING = "native 库缺失"
         private const val REASON_RELEASED = "已释放"
-        private const val NATIVE_LIB = "gjduix"
         private const val TAG = "DuixRuntime"
 
         /** JVM-test seam: no Context, no native library, availability from plain flags. */
