@@ -409,7 +409,10 @@ fun CompanionRoute(
             // 摄像头目前不支持；由按钮显示不可用状态，不注入点击回调。
             cameraAvailable = false,
             previewState = preview,
-            onPreviewAudio = audioPreview::toggle,
+            // 试听按钮只是调试工具：正式包不显示（onPreviewAudio == null 时整行不渲染）。
+            onPreviewAudio = if (
+                context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
+            ) audioPreview::toggle else null,
             waveOptions = waveOptions,
             onWaveOptionsChange = { next ->
                 waveOptions = next
