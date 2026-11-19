@@ -96,7 +96,7 @@ if echo " $ENGINES " | grep -q " tao "; then
       ra "mkdir -p $DATA/files/dh-engines/tao/$model && cp -R $stage/. $DATA/files/dh-engines/tao/$model/"
       echo "== tao/$model 已推送（目录存在即 modelsReady）"
     else
-      echo "!! 跳过 tao/$model：上游只有 ModelScope SDK 分发，模型目录请放 $PACKS/$model/"
+      echo "!! 跳过 tao/${model}：上游只有 ModelScope SDK 分发，模型目录请放 $PACKS/$model/"
     fi
   done
 fi
