@@ -2,6 +2,7 @@ package com.openapi.ks.myapp.dh
 
 import android.content.Context
 import android.view.View
+import com.openapi.ks.dh.AssetStore
 import com.openapi.ks.myapp.avatar.AvatarCapability
 import com.openapi.ks.myapp.avatar.AvatarCommand
 import com.openapi.ks.myapp.avatar.AvatarSpec
@@ -55,8 +56,18 @@ object DhLabBootstrap {
         }
     }
 
+    @Volatile
+    private var assetStore: AssetStore? = null
+
+    /** 进程内共享的素材仓库（AssetStore 自己不是单例，其锁只在同一实例内生效）。 */
+    fun assetStore(context: Context): AssetStore =
+        assetStore ?: synchronized(this) {
+            assetStore ?: AssetStore(context.applicationContext).also { assetStore = it }
+        }
+
     /** 单测在 [DhEngineRegistry.resetForTests] 之后要能重新注册。 */
     fun resetForTests() {
         done = false
+        assetStore = null
     }
 }
