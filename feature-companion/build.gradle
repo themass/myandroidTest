@@ -40,7 +40,11 @@ dependencies {
     // LiveKit 语音/实时传输（LiveKitCompanionTransport）
     implementation 'io.livekit:livekit-android:2.29.0'
 
+    // In-repo DH engines module (skeleton in Task 1; engines land in later tasks).
+    implementation project(':dh-engines')
+
     // DH Lab 可选引擎：settings.gradle 探测到外部源码目录才 compileOnly/implementation
+    // (kept until Task 7 removes the external includes).
     if (rootProject.gradle.ext.has('dhDuixIncluded') && rootProject.gradle.ext.dhDuixIncluded) {
         implementation project(':dh-engine-duix')
     }

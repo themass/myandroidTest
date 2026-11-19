@@ -1,0 +1,17 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+// In-repo Digital Human engines (Duix / Live2D / Tao). Vendored runtime for DH Lab.
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.ks.dh'
+}
+
+dependencies {
+    // Plain JUnit is enough for Task 1's namespace constant smoke test.
+    // Robolectric / androidx.test land later when engine tests need them.
+    testImplementation 'junit:junit:4.13.2'
+}
