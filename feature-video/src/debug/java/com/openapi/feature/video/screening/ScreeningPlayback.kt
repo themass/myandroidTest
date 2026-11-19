@@ -35,12 +35,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.AspectRatioFrameLayout
-import androidx.media3.ui.PlayerView
+import com.openapi.feature.video.screening.kernel.Kernel
+import com.openapi.feature.video.screening.kernel.KernelHost
 import com.openapi.cast.DlnaDevice
 import com.openapi.cast.DlnaDiscoveryCallback
 import com.openapi.cast.JavaCaster
@@ -68,16 +64,30 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     val scope = rememberCoroutineScope()
     val store = remember { context.getSharedPreferences("screening-preview", 0) }
     val id = source.asset ?: source.uri.toString()
-    val player = remember {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(source.uri ?: Uri.parse("asset:///${source.asset}.mp4")))
-            if (initial in 1 until SAMPLE_MS) seekTo(initial)
-            prepare()
+    // 两套内核各占一格画面槽，换内核在播放中途完成，见 KernelHost
+    val host = remember { KernelHost(context) }
+    LaunchedEffect(source) {
+        // IJK / 系统内核吃不了 asset://，随包的样片先落到 cache 再交给内核
+        val file = withContext(Dispatchers.IO) {
+            source.asset?.let { id ->
+                runCatching {
+                    File(context.cacheDir, "screening-$id.mp4").takeIf { it.length() > 0 } ?: run {
+                        File(context.cacheDir, "screening-$id.mp4").also { out ->
+                            context.assets.open("$id.mp4").use { input -> out.outputStream().use(input::copyTo) }
+                        }
+                    }
+                }.getOrNull()
+            }
         }
+        host.open(
+            uri = source.uri ?: Uri.parse("asset:///${source.asset}.mp4"),
+            file = file,
+            startMs = if (initial in 1 until SAMPLE_MS) initial else 0L,
+        )
     }
-    var playing by remember { mutableStateOf(false) }
     var position by remember { mutableLongStateOf(initial) }
     var width by remember { mutableLongStateOf(if (source.asset != null) SAMPLE_MS else 0L) }
+    val playing = host.playing
     var dragging by remember { mutableStateOf<Float?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var full by remember { mutableStateOf(false) }
@@ -100,34 +110,28 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     var devices by remember { mutableStateOf<List<DlnaDevice>>(emptyList()) }
     var scanning by remember { mutableStateOf(false) }
     fun refresh() {
-        position = player.currentPosition.coerceAtLeast(0L)
-        if (player.duration > 0) width = player.duration
-        playing = player.isPlaying
+        host.tick()
+        position = host.position
+        if (host.duration > 0) width = host.duration
     }
     fun jump(delta: Long) {
-        player.seekTo((player.currentPosition + delta).coerceIn(0, width)); refresh(); interaction++
+        host.seekTo((host.position + delta).coerceIn(0, width)); refresh(); interaction++
     }
     fun setFull(value: Boolean) { full = value; locked = false; chrome = true; activity.immersive(value) }
     BackHandler {
         when { panel != null -> panel = null; locked -> { locked = false; interaction++ }; full -> setFull(false); else -> onExit() }
     }
-    DisposableEffect(player) {
-        val changes = object : Player.Listener {
-            override fun onEvents(player: Player, events: Player.Events) = refresh()
-            override fun onPlayerError(exception: PlaybackException) { error = "无法播放这个视频。请换一个文件或重试。" }
-        }
-        val lifecycle = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_STOP) player.pause() }
-        player.addListener(changes)
+    DisposableEffect(host) {
+        val lifecycle = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_STOP) host.pause() }
         activity.lifecycle.addObserver(lifecycle)
         onDispose {
-            onSave(if (player.playbackState == Player.STATE_ENDED) width else player.currentPosition.coerceAtLeast(0))
+            onSave(host.position)
             activity.lifecycle.removeObserver(lifecycle)
-            player.removeListener(changes)
-            player.release(); discovery.close(); caster.close()
+            host.release(); discovery.close(); caster.close()
             if (full) activity.immersive(false)
         }
     }
-    LaunchedEffect(player) { while (true) { refresh(); delay(125) } }
+    LaunchedEffect(host) { while (true) { refresh(); delay(125) } }
     LaunchedEffect(full, playing, locked, panel, interaction) {
         if (full && playing && !locked && panel == null && chrome) { delay(3500); chrome = false }
     }
@@ -159,6 +163,8 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
             }.getOrNull()
         }
     }
+    LaunchedEffect(host.failure) { host.failure?.let { error = it } }
+    LaunchedEffect(fill) { host.setFill(fill) }
     val cue = when (captionSource) {
         1 -> demo?.at(position, offset).orEmpty()
         2 -> captions?.at(position, offset).orEmpty()
@@ -170,7 +176,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 value = dragging ?: if (width > 0) (position.toFloat() / width).coerceIn(0f, 1f) else 0f,
                 onValueChange = { dragging = it; interaction++ },
                 onValueChangeFinished = {
-                    dragging?.let { player.seekTo((width * it).toLong()); refresh() }
+                    dragging?.let { host.seekTo((width * it).toLong()); refresh() }
                     dragging = null
                 },
                 enabled = width > 0,
@@ -190,17 +196,18 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
             listOf(
                 "字幕" to Icons.Default.Subtitles,
                 (if (speed == 1f) "倍速" else "${speed}×") to Icons.Default.Speed,
+                (if (host.switching) "换内核…" else "内核 · ${host.kernel.title}") to Icons.Default.Memory,
                 "弹幕" to Icons.Default.ChatBubbleOutline,
                 "更多" to Icons.Default.MoreHoriz,
             ).forEachIndexed { index, (name, picture) ->
                 Column(
                     Modifier.weight(1f).heightIn(min = 51.dp).clip(Tile).clickable {
-                        info = ""; panel = if (index == 1) "倍速" else name
+                        info = ""; panel = if (index == 1) "倍速" else name.substringBefore(" ·")
                     },
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Icon(picture, null, Modifier.size(17.dp), tint = if (index == 0 && captionSource != 0 || index == 2 && danmaku) Mint else White)
+                    Icon(picture, null, Modifier.size(17.dp), tint = if (index == 0 && captionSource != 0 || index == 3 && danmaku || index == 2) Mint else White)
                     Text(name, fontSize = 11.sp, maxLines = 1)
                 }
             }
@@ -225,8 +232,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     )) {
         Box(Modifier.fillMaxWidth().then(if (full) Modifier.weight(1f) else Modifier.aspectRatio(16f / 10)).background(Color.Black)) {
             AndroidView(
-                factory = { ctx -> PlayerView(ctx).apply { useController = false; this.player = player } },
-                update = { it.resizeMode = if (fill) AspectRatioFrameLayout.RESIZE_MODE_ZOOM else AspectRatioFrameLayout.RESIZE_MODE_FIT },
+                factory = { host.view },
                 modifier = Modifier.matchParentSize(),
             )
             Box(Modifier.matchParentSize().pointerInput(locked, full) {
@@ -283,7 +289,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                     ScreenIcon(
                         if (playing) Icons.Default.Pause else Icons.Default.PlayArrow,
                         if (playing) "暂停" else "播放",
-                        { if (player.isPlaying) player.pause() else { if (player.playbackState == Player.STATE_ENDED) player.seekTo(0); player.play() }; refresh(); interaction++ },
+                        { host.toggle(); refresh(); interaction++ },
                         primary = true,
                     )
                     ScreenIcon(Icons.Default.Forward10, "快进 10 秒", { jump(10_000) })
@@ -358,7 +364,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                     }
                     "倍速" -> listOf(.5f, .75f, 1f, 1.25f, 1.5f, 2f).forEach { value ->
                         Setting("${value}×", if (value == 1f) "正常速度" else "", speed == value) {
-                            speed = value; player.setPlaybackSpeed(value); panel = null
+                            speed = value; host.setSpeed(value); panel = null
                         }
                     }
                     "弹幕" -> {
@@ -368,6 +374,23 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                     "更多" -> {
                         Setting("适应画面", "保留原始比例", !fill) { fill = false }
                         Setting("填满画面", "可能裁掉画面边缘", fill) { fill = true }
+                    }
+                    "内核" -> {
+                        Text("换内核不重启播放：新内核静音准备好，第一帧上屏时才切过去。位置、倍速、字幕都不受影响；新内核播不了会自动退回原来的，并保留你的偏好设置。", color = Muted, fontSize = 12.sp)
+                        Spacer(Modifier.height(8.dp))
+                        Kernel.entries.forEach { kind ->
+                            Setting(
+                                "${kind.title} 内核",
+                                if (host.switching && host.kernel != kind) kind.note else kind.note,
+                                host.kernel == kind && !host.switching,
+                            ) {
+                                if (host.kernel == kind) return@Setting
+                                info = "正在切换到 ${kind.title}…"
+                                host.select(kind)
+                                panel = null
+                            }
+                        }
+                        Text("选择会写回设置里的播放内核，别的页面打开视频也用同一个。", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
                     }
                     "电视投屏" -> {
                         Text("手机和电视须连接同一局域网。字幕和弹幕仅在手机显示。", color = Muted)
@@ -394,7 +417,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                                     } else {
                                         caster.castLocal(device, file.path, source.title) { failure ->
                                             info = failure?.let { "投屏失败：$it" } ?: "已发送到 ${device.friendlyName}"
-                                            if (failure == null) player.pause()
+                                            if (failure == null) host.pause()
                                         }
                                     }
                                 }

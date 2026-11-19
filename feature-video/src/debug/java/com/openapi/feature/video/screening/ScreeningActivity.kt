@@ -74,6 +74,7 @@ class ScreeningActivity : ComponentActivity() {
 private fun ScreeningHome(activity: ScreeningActivity) {
     var channel by remember { mutableStateOf<Channel?>(null) }
     var selection by remember { mutableStateOf<ScreeningSource?>(null) }
+    var gallery by remember { mutableStateOf(false) }
     val holder = rememberSaveableStateHolder()
     val preferences = remember { activity.getSharedPreferences("screening-preview", 0) }
     val progress = remember { mutableStateMapOf<String, Long>().apply {
@@ -95,8 +96,10 @@ private fun ScreeningHome(activity: ScreeningActivity) {
             current != null -> holder.SaveableStateProvider(current.title) {
                 Library(current, progress, { channel = null }, onReel, { selection = it })
             }
+            gallery -> ScreeningGallery(activity) { gallery = false }
             else -> holder.SaveableStateProvider("channels") {
-                Channels(onChannel = { channel = it }, onPreview = { onReel(reels.getValue("ridge")) })
+                Channels(onChannel = { channel = it }, onPreview = { onReel(reels.getValue("ridge")) },
+                    onGallery = { gallery = true })
             }
         }
     }
@@ -111,7 +114,7 @@ internal fun Cover(id: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun Channels(onChannel: (Channel) -> Unit, onPreview: () -> Unit) {
+private fun Channels(onChannel: (Channel) -> Unit, onPreview: () -> Unit, onGallery: () -> Unit) {
     var filter by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("全部") }
     val shown = channels.filter { filter == "全部" || it.category == filter }
     LazyColumn(Modifier.fillMaxSize().safeDrawingPadding(), state = rememberLazyListState(),
@@ -131,6 +134,7 @@ private fun Channels(onChannel: (Channel) -> Unit, onPreview: () -> Unit) {
                 }
                 Spacer(Modifier.width(12.dp))
                 TextButton(onClick = { onChannel(samples) }) { Text("本地视频", color = Muted, fontSize = 18.sp) }
+                TextButton(onClick = onGallery) { Text("图集", color = Muted, fontSize = 18.sp) }
             }
             Spacer(Modifier.height(13.dp))
             Box(Modifier.fillMaxWidth().height(352.dp).clip(RoundedCornerShape(13.dp, 38.dp, 13.dp, 13.dp))) {
