@@ -1,6 +1,8 @@
 package com.openapi.ks.myapp.dh
 
+import android.app.ActivityManager
 import android.content.Context
+import android.os.Build
 import android.util.Log
 
 /**
@@ -19,6 +21,7 @@ import android.util.Log
  */
 class DhEngineWatchdog(context: Context) {
 
+    private val appContext = context.applicationContext
     private val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     /** 形象页激活（native 引擎即将开始渲染）。 */
@@ -36,14 +39,28 @@ class DhEngineWatchdog(context: Context) {
      * 冷启动调用一次：上次死在形象页 → 隔离该引擎并返回它（同时留一份可展示的原因），
      * 否则返回 null。
      */
-    fun onColdStart(): DhEngineId? {
+    fun onColdStart(lastExitReason: () -> Int? = ::systemLastExitReason): DhEngineId? {
         val raw = prefs.getString(KEY_ACTIVE, null) ?: return null
         val engine = runCatching { DhEngineId.valueOf(raw) }.getOrNull()
         markClean()
         if (engine == null || engine == DhEngineId.SIMPLE) return null
+        // 用户 force-stop / 划掉进程 / adb 调试装包不是 native 崩溃，不该因此隔离引擎。
+        // 原因未知（API<30 或查不到）时宁可隔离：误隔离只是多点一次菜单，漏掉就是反复崩。
+        val reason = lastExitReason()
+        if (reason == EXIT_USER_REQUESTED || reason == EXIT_USER_STOPPED) {
+            Log.i(TAG, "上次进程是被用户/系统主动结束（reason=$reason），不隔离 ${engine.name}")
+            return null
+        }
         Log.w(TAG, "上次进程在 ${engine.name} 形象页异常退出 —— 本次会话隔离该引擎，降级无形象页面")
         prefs.edit().putString(KEY_QUARANTINED, engine.name).apply()
         return engine
+    }
+
+    /** 上一次进程的 ApplicationExitInfo.reason（API 30+）；查不到返回 null。 */
+    private fun systemLastExitReason(): Int? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
+        val am = appContext.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager ?: return null
+        return runCatching { am.getHistoricalProcessExitReasons(null, 0, 1).firstOrNull()?.reason }.getOrNull()
     }
 
     fun isQuarantined(engine: DhEngineId): Boolean =
@@ -56,6 +73,11 @@ class DhEngineWatchdog(context: Context) {
 
     companion object {
         const val PREFS = "companion_dh_watchdog"
+
+        /** ApplicationExitInfo.REASON_*（直接写值，避免 API<30 的类加载问题）。 */
+        const val EXIT_CRASH_NATIVE = 5
+        const val EXIT_USER_REQUESTED = 10
+        const val EXIT_USER_STOPPED = 11
         private const val KEY_ACTIVE = "companion.dh.active_engine"
         private const val KEY_QUARANTINED = "companion.dh.quarantined_engine"
         private const val TAG = "DhEngineWatchdog"
