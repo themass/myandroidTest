@@ -60,7 +60,12 @@ class DhEngineWatchdog(context: Context) {
     private fun systemLastExitReason(): Int? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
         val am = appContext.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager ?: return null
-        return runCatching { am.getHistoricalProcessExitReasons(null, 0, 1).firstOrNull()?.reason }.getOrNull()
+        return runCatching {
+            // 包名下有 isolated 子进程（广告/WebView）的退出记录，要多取几条再按进程名筛。
+            val records = am.getHistoricalProcessExitReasons(null, 0, 10)
+                .map { ExitRecord(it.processName, it.reason) }
+            mainProcessExitReason(records, appContext.packageName)
+        }.getOrNull()
     }
 
     fun isQuarantined(engine: DhEngineId): Boolean =
@@ -71,7 +76,14 @@ class DhEngineWatchdog(context: Context) {
         if (isQuarantined(engine)) prefs.edit().remove(KEY_QUARANTINED).apply()
     }
 
+    /** 一条进程退出记录（从 ApplicationExitInfo 抽出，便于单测）。 */
+    data class ExitRecord(val processName: String, val reason: Int)
+
     companion object {
+        /** 列表按时间从新到旧；只认主进程（进程名 == 包名）那一条。 */
+        fun mainProcessExitReason(records: List<ExitRecord>, mainProcess: String): Int? =
+            records.firstOrNull { it.processName == mainProcess }?.reason
+
         const val PREFS = "companion_dh_watchdog"
 
         /** ApplicationExitInfo.REASON_*（直接写值，避免 API<30 的类加载问题）。 */

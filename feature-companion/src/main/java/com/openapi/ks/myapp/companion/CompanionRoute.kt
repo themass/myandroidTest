@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -282,6 +283,9 @@ fun CompanionRoute(
         val labEnabled = remember(context) { DhLabGate.isEnabled(context) }
         val dhPrefs = remember(context) { DhLabPreferences(context) }
         var callStage by remember { mutableStateOf(dhPrefs.callStage) }
+        // 用户在菜单里再点已勾选的引擎 = 「解除熔断再试一次」。引擎 id 没变，Compose 不会重组，
+        // 所以用计数器重建 LabHost（key），让它重新读隔离状态。
+        var engineRetry by remember { mutableIntStateOf(0) }
         val uiScope = rememberCoroutineScope()
         // 重型引擎的素材没下好时，点菜单先下载；下载成功后**重查引擎可用性**再换舞台——
         // 素材下齐但 native 缺失时不换（否则舞台上静默退回 Simple）。Simple / 原形象不受影响。
@@ -457,6 +461,7 @@ fun CompanionRoute(
                     EngineClickAction.SELECT -> {
                         // 用户主动再选 = 解除上次崩溃留下的熔断（再崩会重新熔断）。
                         row.id?.let { DhEngineWatchdog(context).clear(it) }
+                        engineRetry++
                         callStage = row.id
                         dhPrefs.callStage = row.id
                     }
@@ -512,12 +517,14 @@ fun CompanionRoute(
                 }
                 else -> {
                     {
+                        key(engineRetry) {
                         DigitalHumanLabHost(
                             spec = avatarFiles?.let { AvatarSpec(files = it) },
                             mouthLevel = chatViewModel.mouthLevel,
                             modifier = Modifier.fillMaxSize(),
                             engineId = chosen,
                         )
+                        }
                     }
                 }
             },

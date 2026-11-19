@@ -120,4 +120,21 @@ class DhEngineWatchdogTest {
         DhEngineWatchdog(context).markActive(DhEngineId.LIVE2D)
         assertEquals(DhEngineId.LIVE2D, DhEngineWatchdog(context).onColdStart(lastExitReason = { null }))
     }
+
+    // 同一个包名下还会有 isolated 子进程（广告 / WebView）的退出记录，
+    // 最新一条常常是它们的 reason=13，不能拿来判断主进程是不是被用户结束的。
+    @Test
+    fun exit_reason_is_taken_from_the_main_process_only() {
+        val infos = listOf(
+            DhEngineWatchdog.ExitRecord("com.openapi.ks.chat:isolated", 13),
+            DhEngineWatchdog.ExitRecord("com.openapi.ks.chat", 10),
+        )
+        assertEquals(10, DhEngineWatchdog.mainProcessExitReason(infos, "com.openapi.ks.chat"))
+    }
+
+    @Test
+    fun no_main_process_record_means_unknown() {
+        val infos = listOf(DhEngineWatchdog.ExitRecord("com.openapi.ks.chat:isolated", 13))
+        assertNull(DhEngineWatchdog.mainProcessExitReason(infos, "com.openapi.ks.chat"))
+    }
 }

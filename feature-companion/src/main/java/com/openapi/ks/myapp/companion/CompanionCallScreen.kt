@@ -409,7 +409,26 @@ fun CompanionCallScreen(
     val fullBleed = !state.cameraActive && avatarStage != null &&
         voiceStageIsFullBleed(voiceStageMode(hasAvatarStage = true, characterHero = characterHero))
 
-    val header: @Composable () -> Unit = {
+    val header: @Composable () -> Unit = if (fullBleed) {
+        {
+            HeroCallHeader(
+                agentName = state.agentName,
+                voiceLabel = callVoiceChipText(state.voiceLabel),
+                connection = state.connection,
+                elapsedSeconds = state.elapsedSeconds,
+                isMuted = state.isMuted,
+                statusHint = state.statusHint,
+                waveOptions = waveOptions,
+                onWaveOptionsChange = onWaveOptionsChange,
+                engineMenu = engineMenu,
+                selectedEngine = selectedEngine,
+                onEngineMenuClick = onEngineMenuClick,
+                previewState = previewState,
+                onPreviewAudio = onPreviewAudio,
+            )
+        }
+    } else {
+        {
         CallHeader(
             agentName = state.agentName,
             voiceLabel = callVoiceChipText(state.voiceLabel),
@@ -438,6 +457,7 @@ fun CompanionCallScreen(
                     color = CallColors.TextSecondary, fontSize = 11.sp,
                 )
             }
+        }
         }
     }
     val controls: @Composable () -> Unit = {
@@ -479,12 +499,15 @@ fun CompanionCallScreen(
                         .align(Alignment.TopCenter)
                         .fillMaxWidth()
                         .drawBehind {
+                            // 遮罩高度固定，不跟顶栏高度走：顶栏压紧后比渐变短，
+                            // 不固定的话渐变会在半透明处被截断，露出一条横边。
                             drawRect(
                                 Brush.verticalGradient(
                                     0f to CallColors.CaptionScrim,
                                     1f to Color.Transparent,
                                     endY = HERO_TOP_SCRIM_DP.dp.toPx(),
                                 ),
+                                size = androidx.compose.ui.geometry.Size(size.width, HERO_TOP_SCRIM_DP.dp.toPx()),
                             )
                         }
                         .padding(horizontal = 20.dp),
@@ -726,6 +749,100 @@ private fun CallHeader(
     }
 }
 
+/** 主角模式顶栏的副信息：「声音 · X」与「已静音」。都没有时返回 null。 */
+internal fun heroHeaderMeta(voiceLabel: String?, isMuted: Boolean): String? {
+    val parts = buildList {
+        if (voiceLabel != null) add("声音 · $voiceLabel")
+        if (isMuted) add("已静音")
+    }
+    return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
+}
+
+/**
+ * 主角模式（形象铺满）的顶栏：左对齐的「名字 / 状态点 + 时长 + 副信息」两行，右侧一个菜单钮。
+ *
+ * 旧顶栏名字居中、状态一行、声音标签一行、调试按钮一行，叠起来占掉头部上方 ~170dp，
+ * 把形象的头顶空间吃光。这里压成两行（约 56dp），调试试听收进菜单。
+ * 原来的形象 / 圆形头像仍用 [CallHeader]，布局不变。
+ */
+@Composable
+private fun HeroCallHeader(
+    agentName: String,
+    voiceLabel: String?,
+    connection: CallConnection,
+    elapsedSeconds: Long,
+    isMuted: Boolean,
+    statusHint: String?,
+    waveOptions: WaveOptions,
+    onWaveOptionsChange: ((WaveOptions) -> Unit)?,
+    engineMenu: List<DhEngineMenuRow>?,
+    selectedEngine: com.openapi.ks.myapp.dh.DhEngineId?,
+    onEngineMenuClick: ((DhEngineMenuRow) -> Unit)?,
+    previewState: CallAudioPreviewState,
+    onPreviewAudio: ((String) -> Unit)?,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, bottom = 12.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = agentName.ifBlank { "她" },
+                color = CallColors.TextPrimary,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.height(2.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val dotColor = when {
+                    connection == CallConnection.CONNECTED && !isMuted -> CallColors.Violet
+                    connection == CallConnection.RECONNECTING -> CallColors.Amber
+                    isMuted -> CallColors.Slate
+                    else -> CallColors.TextSecondary
+                }
+                Box(Modifier.size(6.dp).clip(CircleShape).background(dotColor))
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = statusHint ?: statusText(connection, elapsedSeconds),
+                    color = when (connection) {
+                        CallConnection.RECONNECTING -> CallColors.Amber
+                        CallConnection.ENDED -> Color(0xFFFF9297)
+                        CallConnection.CONNECTED -> CallColors.TextPrimary.copy(alpha = 0.85f)
+                        CallConnection.CONNECTING -> CallColors.TextPrimary
+                    },
+                    fontSize = 13.sp,
+                    maxLines = 1,
+                )
+                val meta = heroHeaderMeta(voiceLabel, isMuted)
+                if (meta != null) {
+                    Text(
+                        text = "  ·  $meta",
+                        color = CallColors.TextSecondary,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+        if (onWaveOptionsChange != null || engineMenu != null || onPreviewAudio != null) {
+            WaveStyleMenu(
+                options = waveOptions,
+                onChange = onWaveOptionsChange,
+                engineMenu = engineMenu,
+                selectedEngine = selectedEngine,
+                onEngineMenuClick = onEngineMenuClick,
+                previewState = previewState,
+                onPreviewAudio = onPreviewAudio,
+            )
+        }
+    }
+}
+
 /**
  * 样式切换菜单，分两段：
  * - 底部「你的声音」：叠浪（默认，WaveInApp 移植）/ 竖条 / 柔和曲线，加粒子开关；
@@ -739,6 +856,8 @@ private fun WaveStyleMenu(
     engineMenu: List<DhEngineMenuRow>? = null,
     selectedEngine: com.openapi.ks.myapp.dh.DhEngineId? = null,
     onEngineMenuClick: ((DhEngineMenuRow) -> Unit)? = null,
+    previewState: CallAudioPreviewState = CallAudioPreviewState(),
+    onPreviewAudio: ((String) -> Unit)? = null,
 ) {
     var open by remember { mutableStateOf(false) }
     Box {
@@ -769,6 +888,17 @@ private fun WaveStyleMenu(
                         },
                     )
                 }
+            }
+            if (onPreviewAudio != null) {
+                MenuSectionLabel("调试 · 本地试听")
+                DropdownMenuItem(
+                    text = { Text(if (previewState.speaker == "user") "■ 停止用户试听" else "▶ 用户试听") },
+                    onClick = { open = false; onPreviewAudio("user") },
+                )
+                DropdownMenuItem(
+                    text = { Text(if (previewState.speaker == "ai") "■ 停止 AI 试听" else "▶ AI 试听") },
+                    onClick = { open = false; onPreviewAudio("ai") },
+                )
             }
             if (onChange == null) return@DropdownMenu
             MenuSectionLabel("底部 · 你的声音")
