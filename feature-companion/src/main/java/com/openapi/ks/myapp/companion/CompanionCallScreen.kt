@@ -56,6 +56,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.openapi.ks.myapp.dh.DhEngineMenuRow
+import com.openapi.ks.myapp.dh.menuLabel
 import androidx.compose.runtime.State
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -304,6 +306,13 @@ fun CompanionCallScreen(
     onWaveOptionsChange: ((WaveOptions) -> Unit)? = null,
     previewState: CallAudioPreviewState = CallAudioPreviewState(),
     onPreviewAudio: ((String) -> Unit)? = null,
+    /**
+     * 右上角下拉里的形象引擎。null 时菜单和原来一样，只有波形样式。
+     * 点不可切换的一项不改舞台，只回调原因。
+     */
+    engineMenu: List<DhEngineMenuRow>? = null,
+    selectedEngine: com.openapi.ks.myapp.dh.DhEngineId? = null,
+    onEngineMenuClick: ((DhEngineMenuRow) -> Unit)? = null,
 ) {
     val reducedMotion = rememberReducedMotion()
 
@@ -363,6 +372,9 @@ fun CompanionCallScreen(
                 statusHint = state.statusHint,
                 waveOptions = waveOptions,
                 onWaveOptionsChange = onWaveOptionsChange,
+                engineMenu = engineMenu,
+                selectedEngine = selectedEngine,
+                onEngineMenuClick = onEngineMenuClick,
             )
 
             if (onPreviewAudio != null) {
@@ -519,6 +531,9 @@ private fun CallHeader(
     statusHint: String?,
     waveOptions: WaveOptions = WaveOptions(),
     onWaveOptionsChange: ((WaveOptions) -> Unit)? = null,
+    engineMenu: List<DhEngineMenuRow>? = null,
+    selectedEngine: com.openapi.ks.myapp.dh.DhEngineId? = null,
+    onEngineMenuClick: ((DhEngineMenuRow) -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -543,8 +558,14 @@ private fun CallHeader(
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
             )
-            if (onWaveOptionsChange != null) {
-                WaveStyleMenu(options = waveOptions, onChange = onWaveOptionsChange)
+            if (onWaveOptionsChange != null || engineMenu != null) {
+                WaveStyleMenu(
+                    options = waveOptions,
+                    onChange = onWaveOptionsChange,
+                    engineMenu = engineMenu,
+                    selectedEngine = selectedEngine,
+                    onEngineMenuClick = onEngineMenuClick,
+                )
             } else {
                 Spacer(Modifier.size(40.dp))
             }
@@ -602,7 +623,13 @@ private fun CallHeader(
  * 粒子是最耗电的一项，低端机可以单独关掉。
  */
 @Composable
-private fun WaveStyleMenu(options: WaveOptions, onChange: (WaveOptions) -> Unit) {
+private fun WaveStyleMenu(
+    options: WaveOptions,
+    onChange: ((WaveOptions) -> Unit)?,
+    engineMenu: List<DhEngineMenuRow>? = null,
+    selectedEngine: com.openapi.ks.myapp.dh.DhEngineId? = null,
+    onEngineMenuClick: ((DhEngineMenuRow) -> Unit)? = null,
+) {
     var open by remember { mutableStateOf(false) }
     Box {
         // 玻璃底板 + 描边 + 亮色图标：深色背景上只有一个灰色小图标时，用户根本发现不了入口。
@@ -621,6 +648,19 @@ private fun WaveStyleMenu(options: WaveOptions, onChange: (WaveOptions) -> Unit)
             )
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            if (engineMenu != null && onEngineMenuClick != null) {
+                MenuSectionLabel("形象")
+                engineMenu.forEach { row ->
+                    DropdownMenuItem(
+                        text = { Text(row.menuLabel(selected = row.id == selectedEngine)) },
+                        onClick = {
+                            open = false
+                            onEngineMenuClick(row)
+                        },
+                    )
+                }
+            }
+            if (onChange == null) return@DropdownMenu
             MenuSectionLabel("底部 · 你的声音")
             BottomWaveStyle.entries.forEach { style ->
                 val label = when (style) {

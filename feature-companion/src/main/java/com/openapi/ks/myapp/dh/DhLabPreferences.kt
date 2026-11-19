@@ -14,6 +14,22 @@ class DhLabPreferences(context: Context) {
             prefs.edit().putString(KEY_ENGINE, value.name).apply()
         }
 
+    /**
+     * 通话页右上角下拉选中的引擎。
+     *
+     * null = 原来的形象（分层立绘 / 圆头像）。与 [engine] 分开：后者默认 SIMPLE，
+     * 不能拿来决定要不要盖掉原来的舞台，否则 Lab 一开形象就没了。
+     */
+    var callStage: DhEngineId?
+        get() {
+            val raw = prefs.getString(KEY_CALL_STAGE, null) ?: return null
+            if (raw.isBlank() || raw == ORIGINAL) return null
+            return runCatching { DhEngineId.valueOf(raw) }.getOrNull()
+        }
+        set(value) {
+            prefs.edit().putString(KEY_CALL_STAGE, value?.name ?: ORIGINAL).apply()
+        }
+
     var labForced: Boolean
         get() = prefs.getBoolean(KEY_LAB_FORCED, false)
         set(value) {
@@ -23,6 +39,8 @@ class DhLabPreferences(context: Context) {
     companion object {
         const val PREFS = "companion_dh_lab"
         private const val KEY_ENGINE = "companion.dh_engine"
+        private const val KEY_CALL_STAGE = "companion.dh_call_stage"
         private const val KEY_LAB_FORCED = "companion.dh_lab"
+        private const val ORIGINAL = "ORIGINAL"
     }
 }
