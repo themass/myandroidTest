@@ -30,9 +30,8 @@ class EngineAdaptersAvailabilityTest {
         val avail = DhEngineRegistry.available(context)
         assertEquals(DhEngineId.entries.size, avail.size)
         assertTrue(avail.first { it.id == DhEngineId.SIMPLE }.available)
-        // 无 SDK classpath 时三家均不可用，但必须已注册（原因不是「未编入」工厂缺失，
-        // 而是引擎自身 availability；反射不到类时仍回「未编入」）。
-        for (id in listOf(DhEngineId.LIVE2D, DhEngineId.DUIX, DhEngineId.TAO_AVATAR)) {
+        // Live2D / Tao 仍是 SDK 缺席的占位；Duix 已内置运行时，素材没下好时回「未下载」。
+        for (id in listOf(DhEngineId.LIVE2D, DhEngineId.TAO_AVATAR)) {
             val row = avail.first { it.id == id }
             assertFalse("without SDK, $id should be unavailable", row.available)
             assertTrue(
@@ -45,11 +44,24 @@ class EngineAdaptersAvailabilityTest {
     }
 
     @Test
-    fun create_duix_without_sdk_still_constructs_and_reports_unavailable() {
+    fun duix_without_cache_is_unavailable_with_download_reason_and_menu_still_switches() {
+        val row = DhEngineRegistry.available(context).first { it.id == DhEngineId.DUIX }
+        assertFalse(row.available)
+        assertEquals("未下载", row.reason)
+        assertTrue("未下载 must route through the download gate", row.needsDownload)
+
+        val menuRow = dhEngineMenuRows(listOf(row)).first { it.id == DhEngineId.DUIX }
+        assertTrue(menuRow.switches)
+        val gate = DhEngineDownloadGate(isReady = { false }, ensure = { _, _ -> Result.success(Unit) })
+        assertEquals(EngineClickAction.NOT_READY_START_DOWNLOAD, gate.actionFor(menuRow))
+    }
+
+    @Test
+    fun create_duix_without_cache_still_constructs_and_has_no_view() {
         val engine = DhEngineRegistry.create(context, DhEngineId.DUIX)
         assertEquals(DhEngineId.DUIX, engine.id)
-        val a = engine.availability(context)
-        assertFalse(a.available)
+        assertFalse(engine.availability(context).available)
+        assertEquals(null, engine.createView(context))
         engine.release()
     }
 }

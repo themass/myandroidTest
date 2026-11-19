@@ -15,6 +15,10 @@ dependencies {
     implementation libs.okhttp
     implementation libs.kotlinx.coroutines.android
 
+    // Upstream Duix-owned resource_loader.jar (13.8KB, ai.guiji.duix.sdk.client.loader.*), imported by
+    // the vendored DUIX / RenderThread for ModelInfo / ModelInfoLoader. See THIRD_PARTY.md.
+    api fileTree(dir: 'libs', include: ['*.jar'])
+
     // Plain JUnit is enough for Task 1's namespace constant smoke test.
     // Robolectric / androidx.test land later when engine tests need them.
     testImplementation 'junit:junit:4.13.2'

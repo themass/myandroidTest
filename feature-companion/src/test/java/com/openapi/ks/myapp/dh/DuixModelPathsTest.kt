@@ -1,8 +1,10 @@
 package com.openapi.ks.myapp.dh
 
 import androidx.test.core.app.ApplicationProvider
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -13,12 +15,28 @@ import java.io.File
 @Config(sdk = [28])
 class DuixModelPathsTest {
 
+    // AssetStore 在 DhLabBootstrap 里是进程内单例；Robolectric 每个测试的 filesDir 不同，必须清掉。
+    @Before
+    fun resetSharedAssetStore() {
+        DhLabBootstrap.resetForTests()
+    }
+
     @Test
     fun missing_base_config_reports_missing_model() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val status = DuixModelPaths.status(context, modelName = "demo_model")
         assertFalse(status.ready)
-        assertTrue(status.reason.contains("缺模型") || status.reason.contains("gj_dh_res"))
+        assertEquals("未下载", status.reason)
+    }
+
+    @Test
+    fun default_model_is_oliver_under_asset_store_cache() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        assertEquals("Oliver", DuixModelPaths.DEFAULT_MODEL)
+        assertEquals(
+            DhLabBootstrap.assetStore(context).cacheRoot(com.openapi.ks.dh.EngineAssets.DUIX),
+            DuixModelPaths.duixRoot(context),
+        )
     }
 
     @Test
