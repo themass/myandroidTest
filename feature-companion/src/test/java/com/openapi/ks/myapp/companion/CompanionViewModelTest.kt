@@ -208,6 +208,46 @@ class CompanionViewModelTest {
         vm.stopListening()
     }
 
+    /**
+     * B3 的一环：`AvatarJson`（emotion cue）必须落进 `state.emotion`——这条
+     * cue→UI state 的链路以前在 VM 层一个用例都没有。界面那一跳由 mapper 的用例钉住。
+     */
+    @Test
+    fun `an emotion cue from the transport lands in ui state`() = runTest(dispatcher) {
+        val transport = ScriptedTransport(
+            listOf(CompanionEvent.AvatarJson("""{"v":1,"type":"emotion","emotion":"Joy"}""")),
+        )
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+
+        assertEquals("joy", vm.state.value.emotion)
+        vm.stopListening()
+    }
+
+    /**
+     * B3：降级进 L2 后 cue 全被端侧丢掉，卡在脸上的表情等不到下一条 emotion。
+     * 传输层在升档那条边发 [CompanionEvent.ClearAvatarEmotion]，ViewModel 必须把
+     * state.emotion 收回 null——若这条指令不生效，上一条 cue 留下的 "joy" 会留在这里。
+     */
+    @Test
+    fun `a degrade clear wipes the stuck emotion out of ui state`() = runTest(dispatcher) {
+        val transport = ScriptedTransport(
+            listOf(
+                CompanionEvent.AvatarJson("""{"v":1,"type":"emotion","emotion":"Joy"}"""),
+                CompanionEvent.ClearAvatarEmotion,
+            ),
+        )
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+
+        assertNull("降级清除后 state 里不能还留着 joy", vm.state.value.emotion)
+        vm.stopListening()
+    }
+
     /** 主动消息事件必须带上来源类型，界面据此显示「她记得 / 她来找你」。 */
     @Test
     fun `a proactive event from the transport keeps its kind for the label`() = runTest(dispatcher) {

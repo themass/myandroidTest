@@ -145,7 +145,9 @@ fun CompanionScreen(
         AvatarEventMapper.mapState(state.avatarState)?.let(renderer::dispatch)
     }
     LaunchedEffect(state.emotion) {
-        AvatarEventMapper.mapEmotion(state.emotion)?.let(renderer::dispatch)
+        // emotionCommand 对 null 回 ClearEmotion：降级清场后这张表情图要真的下脸，
+        // 而不是 mapEmotion 的「null 就什么都不做」。
+        renderer.dispatch(AvatarEventMapper.emotionCommand(state.emotion))
     }
     LaunchedEffect(state.gestureSeq) {
         if (state.gestureSeq == 0L) return@LaunchedEffect

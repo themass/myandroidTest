@@ -314,7 +314,8 @@ fun CompanionRoute(
             AvatarEventMapper.mapState(uiState.avatarState)?.let(callAvatarRenderer::dispatch)
         }
         LaunchedEffect(uiState.emotion) {
-            AvatarEventMapper.mapEmotion(uiState.emotion)?.let(callAvatarRenderer::dispatch)
+            // 与 chat 页同一跳：null → ClearEmotion，降级清场时表情真的下脸。
+            callAvatarRenderer.dispatch(AvatarEventMapper.emotionCommand(uiState.emotion))
         }
         DisposableEffect(callAvatarRenderer) {
             onDispose { callAvatarRenderer.release() }

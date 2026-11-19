@@ -112,6 +112,9 @@ class LiveKitCompanionTransport(
     /** L1 表情抽样序号：每条到闸的 emotion +1，`seq % 2 == 0` 才放行。 */
     private var emotionEmitSeq = 0
 
+    /** 上一次 speechLoop 看到的降级档位，只为找「升入 L2」那条边（B3）。 */
+    private var lastDegradeLevel = 0
+
     /** lifetime gaps → 本连接 streak 增量；重连必须 baseline，不能清零。 */
     private val cueGaps = CueGapBaseline()
 
@@ -1023,15 +1026,29 @@ class LiveKitCompanionTransport(
         scope.launch {
             while (true) {
                 val now = SystemClock.elapsedRealtime()
+                // 每拍先记一次档位：循环最坏每 5s 醒一回（SPEECH_LOOP_MAX_SLEEP_MS），
+                // L2 判定本身要 cue 静默 5s，这个延迟上界够用且不加消息。
+                // 进 L2 的上升沿清一次表情：此后 presentation 全被闸掉，
+                // 不主动收，卡在脸上的表情会一直挂到恢复。
+                val level = degrade.level(now)
+                if (DegradeController.shouldClearEmotion(lastDegradeLevel, level)) {
+                    logInfo(
+                        "attempt=$activeAttemptId event=emotion_cleared from=L$lastDegradeLevel to=L$level",
+                    )
+                    bus.tryEmit(CompanionEvent.ClearAvatarEmotion)
+                }
+                lastDegradeLevel = level
                 val sweep = speech.sweep(now)
                 for (applied in sweep.apply) {
                     degrade.onCueApplied(applied.lateMs)
                     val type = applied.cue.eventType
                     val seq = if (type == "presentation.emotion") emotionEmitSeq++ else 0
-                    val level = degrade.level(now)
-                    if (!DegradeController.shouldEmit(type, level, seq)) {
+                    // 每条单独问一次档：同一次 sweep 里 onCueApplied 会改写 late_ratio，
+                    // 后面的 cue 要按新窗口判定（B4 之前的既有语义，不动）。
+                    val cueLevel = degrade.level(now)
+                    if (!DegradeController.shouldEmit(type, cueLevel, seq)) {
                         logInfo(
-                            "attempt=$activeAttemptId event=cue_gated type=$type id=${applied.cue.id} level=L$level",
+                            "attempt=$activeAttemptId event=cue_gated type=$type id=${applied.cue.id} level=L$cueLevel",
                         )
                         continue
                     }

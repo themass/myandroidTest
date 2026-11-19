@@ -35,6 +35,14 @@ sealed interface CompanionEvent {
 
     /** 主动来电。 */
     data object IncomingCall : CompanionEvent
+
+    /**
+     * 把当前表情收回立绘（B3）。降级进 L2 后端侧丢全部 presentation cue，卡在
+     * 脸上的表情等不到下一条 emotion，只能由传输层在升档那条边主动发一次。
+     * 与 [AvatarJson] 分开而不是复用空 emotion：协议里 `"emotion":""` 是「没有
+     * 情绪」的哨兵（mapper 丢弃），承担不了「画面回立绘」这层意思。
+     */
+    data object ClearAvatarEmotion : CompanionEvent
 }
 
 /**

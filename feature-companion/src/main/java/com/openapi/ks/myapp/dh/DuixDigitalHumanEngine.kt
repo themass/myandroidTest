@@ -51,6 +51,8 @@ class DuixDigitalHumanEngine(
             }
             is AvatarCommand.SetState,
             is AvatarCommand.Emotion,
+            // Duix 没有表情图通道，「收回立绘」对它是天然满足的空操作。
+            is AvatarCommand.ClearEmotion,
             is AvatarCommand.Gaze -> Unit
         }
     }
