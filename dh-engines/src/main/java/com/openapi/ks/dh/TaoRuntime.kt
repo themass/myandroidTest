@@ -5,8 +5,8 @@ import android.util.Log
 import android.view.View
 import com.openapi.ks.dh.tao.MHConfig
 import com.openapi.ks.dh.tao.a2bs.AudioBlendShapePlayer
-import com.openapi.ks.dh.tao.nnr.AvatarTextureView
-import com.openapi.ks.dh.tao.nnr.NnrAvatarRender
+import com.taobao.meta.avatar.nnr.AvatarTextureView
+import com.taobao.meta.avatar.nnr.NnrAvatarRender
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,11 +23,15 @@ import kotlinx.coroutines.launch
  * `TaoAvatar-NNR-MNN/` + `UniTalker-MNN/` (upstream names; adb-push those for now — upstream
  * ships them only via the ModelScope downloader SDK, no direct URL; see THIRD_PARTY.md).
  *
- * The JNI owner `libtaoavatar.so` is built from MnnTaoAvatar's cpp against the downloaded
- * libMNN/libnnrruntime and is **not** packaged or rebuilt by this module. It must export
- * `Java_com_openapi_ks_dh_tao_nnr_NnrAvatarRender_*` symbols (upstream prebuilts export
- * `Java_com_taobao_meta_avatar_nnr_NnrAvatarRender_*`), so a missing/rebuilt-native situation
- * surfaces as [availability] = unavailable ([REASON_NATIVE_MISSING]) instead of a crash.
+ * The JNI owner `libtaoavatar.so` is rebuilt from MnnTaoAvatar's cpp against the downloaded
+ * libMNN/libnnrruntime (scripts/dh-lab/build-tao-native.sh) and pushed into the cache dir by
+ * scripts/dh-lab/seed-assets.sh — it is **not** packaged by this module. Its symbols are the
+ * upstream FQNs
+ * `Java_com_taobao_meta_avatar_nnr_NnrAvatarRender_*`, and jni_utils.cpp hardcodes the field
+ * descriptor `Lcom/taobao/meta/avatar/camera/Camera;`, so the vendored render + camera classes
+ * keep the upstream package `com.taobao.meta.avatar.*` (see TaoNativeBridgeTest). A missing
+ * native pack surfaces as [availability] = unavailable ([REASON_NATIVE_MISSING]) via
+ * [TaoNativeLoader], never a crash.
  *
  * [createView] takes the host Context (the composition/activity context from
  * `DigitalHumanEngine.createView`); the TextureView attaches to it and drives rendering through
@@ -126,14 +130,12 @@ class TaoRuntime internal constructor(
 
     private class AndroidEnv(private val store: AssetStore) : Env {
         private val nativeOk: Boolean by lazy {
-            try {
-                System.loadLibrary(NATIVE_LIB)
-                true
-            } catch (_: UnsatisfiedLinkError) {
-                false
-            } catch (_: SecurityException) {
-                false
-            }
+            // Same lesson as Duix (final review I3): the APK-path loader never sees the
+            // cache-dir pack — it must go through TaoNativeLoader by absolute path.
+            val root = store.cacheRoot(EngineAssets.TAO)
+            val abi = android.os.Build.SUPPORTED_ABIS.firstOrNull { it.startsWith("arm64") }
+                ?: android.os.Build.SUPPORTED_ABIS.firstOrNull() ?: "arm64-v8a"
+            TaoNativeLoader.tryLoad(TaoNativeLoader.nativeDirFor(root, abi))
         }
 
         override fun cacheRoot(): File = store.cacheRoot(EngineAssets.TAO)
@@ -154,8 +156,6 @@ class TaoRuntime internal constructor(
         const val REASON_NOT_DOWNLOADED = "未下载"
         const val REASON_NATIVE_MISSING = "native 库缺失"
         private const val REASON_RELEASED = "已释放"
-        /** JNI owner built from MnnTaoAvatar cpp; not packaged by this module. */
-        private const val NATIVE_LIB = "taoavatar"
         private const val NNR_MODEL_DIR_NAME = "TaoAvatar-NNR-MNN"
         private const val A2BS_MODEL_DIR_NAME = "UniTalker-MNN"
         private const val TAG = "TaoRuntime"

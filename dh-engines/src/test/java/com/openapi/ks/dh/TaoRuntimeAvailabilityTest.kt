@@ -78,12 +78,12 @@ class TaoRuntimeAvailabilityTest {
     }
 
     @Test
-    fun package_is_ours() {
-        // CameraControlData has no System.loadLibrary, so it loads on plain JVM.
-        val fqn = com.openapi.ks.dh.tao.camera.CameraControlData::class.java.name
-        assertTrue(
-            "vendored FQN must live under com.openapi.ks.dh.tao, got $fqn",
-            fqn.startsWith("com.openapi.ks.dh.tao"),
-        )
+    fun render_and_camera_classes_keep_the_upstream_fqn() {
+        // Inverted since the local libtaoavatar.so build: the render/camera classes are the
+        // JNI surface (symbols + hardcoded field descriptor), so they live at
+        // com.taobao.meta.avatar.* — TaoNativeBridgeTest pins the full contract. Only the
+        // orchestration (MHConfig, A2BS stub, runtime facade) stays in our package.
+        val fqn = com.taobao.meta.avatar.camera.CameraControlData::class.java.name
+        assertEquals("com.taobao.meta.avatar.camera.CameraControlData", fqn)
     }
 }
