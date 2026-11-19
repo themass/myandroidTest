@@ -44,6 +44,19 @@ scripts/dh-lab/seed-assets.sh duix tao   # 只推指定引擎
 `getExternalFilesDir("duix")`）。调试期用 `scripts/dh-lab/seed-assets.sh duix`
 代替设备端下载（见上）。
 
+native 绑定：vendored Java 保持我们自己的包名，而官方 `libgjduix.so` 只导出
+`Java_ai_guiji_duix_DuixNcnn_*` 符号，所以走窄桥接类 `ai.guiji.duix.DuixNcnn`
+（上游 ABI 逐字镜像，`DuixNativeBridgeTest` 钉住 18 个签名）。三个 `.so`
+（libncnn / libonnxruntime / libgjduix）由 `DuixNcnnLoader` 从
+`…/dh-engines/duix/native-libs/arm64-v8a/` 按绝对路径加载（依赖顺序），缺失时
+显示「native 库缺失」。`.so` 来自本机 Duix-Mobile 源码构建产物：
+
+```
+~/work/android/Duix-Mobile/duix-android/dh_aigc_android/duix-sdk/build/intermediates/library_and_local_jars_jni/debug/copyDebugJniLibsProjectAndLocalJars/jni/arm64-v8a/
+```
+
+用 adb 推到上面的 native-libs 目录即可（已真机验证：选 Duix 后 Oliver 实时渲染出画面）。
+
 音频策略：适配器 `setVolume(0)`，只驱动口型；LiveKit 扬声器出声。
 
 ## Live2D
