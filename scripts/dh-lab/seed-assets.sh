@@ -64,6 +64,15 @@ push_unpack() { # push_unpack <engine> <zip> <relativePath>
 
 ENGINES="${*:-duix live2d tao}"
 
+if echo " $ENGINES " | grep -q " audio "; then
+  AUDIO_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/test-audio"
+  ls "$AUDIO_SRC"/*.wav >/dev/null 2>&1 || { echo "!! 先生成: scripts/dh-lab/make-test-audio.sh"; exit 1; }
+  "${ADB[@]}" shell "rm -rf '$DEVICE_TMP/audio' && mkdir -p '$DEVICE_TMP/audio'"
+  "${ADB[@]}" push "$AUDIO_SRC/." "$DEVICE_TMP/audio/" >/dev/null
+  ra "rm -rf $DATA/files/dh-lab-audio && mkdir -p $DATA/files/dh-lab-audio && cp $DEVICE_TMP/audio/*.wav $DATA/files/dh-lab-audio/"
+  echo "== 测试语音已推送到 files/dh-lab-audio/"
+fi
+
 if echo " $ENGINES " | grep -q " duix "; then
   fetch gj_dh_res.zip "https://github.com/GuijiAI/duix.ai/releases/download/v1.0.0/gj_dh_res.zip"
   fetch Oliver.zip "https://github.com/duixcom/Duix.mobile/releases/download/v2.0.1/Oliver.zip"

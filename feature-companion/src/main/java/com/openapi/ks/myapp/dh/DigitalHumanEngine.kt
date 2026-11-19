@@ -22,4 +22,11 @@ interface DigitalHumanEngine : AvatarRenderer {
      * 出声仍由 LiveKit，SDK 侧应静音（只驱动）。
      */
     fun pushRemotePcm(pcm16leMono16k: ByteArray) {}
+
+    /**
+     * true = 这个引擎吃**真 PCM**（[pushRemotePcm]），[com.openapi.ks.myapp.dh.DhTestAudio]
+     * 只推 PCM、不再合成 Mouth 指令（Duix 收到 Mouth 会合成假 PCM，和真 PCM 抢嘴型）。
+     * false = 引擎听 Mouth 指令，rig 把 PCM 折算成幅度发过去（Simple / Live2D）。
+     */
+    val pcmDriven: Boolean get() = false
 }
