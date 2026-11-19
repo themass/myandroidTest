@@ -130,6 +130,11 @@ class Live2dRuntime internal constructor(
     fun release() {
         if (released) return
         released = true
+        // 切引擎（选 Tao 那一刻，2026-11-20 00:10:31 设备 SIGSEGV）：主线程直接 nativeOnDestroy
+        // 拆 native 场景，而 GLThread 还在 guardedRun 里跑 egl createSurface/onSurfaceChanged，
+        // libchatwaifu-live2d.so 里 null 解引用。GLSurfaceView.onPause() 会阻塞到 GL 线程退出
+        // 渲染循环并释放 EGL surface —— 任何 native 拆除之前必须先执行它。
+        runCatching { surface?.onPause() }
         runCatching {
             if (started) {
                 JniBridgeJava.nativeOnStop()

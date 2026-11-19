@@ -106,4 +106,20 @@ class Live2dRuntimeAvailabilityTest {
             fqn.startsWith("com.openapi.ks.dh.live2d"),
         )
     }
+
+    @Test
+    fun release_pauses_the_gl_thread_before_native_teardown() {
+        // 设备 SIGSEGV（2026-11-20 00:10:31，选 Tao 切引擎瞬间）：主线程 release() 直接
+        // nativeOnDestroy 释放 native 场景，而 GLThread 还在 guardedRun 里处理 egl
+        // createSurface/onSurfaceChanged → libchatwaifu-live2d.so 里 null 解引用。
+        // GLSurfaceView.onPause() 会同步等 GLThread 退出渲染循环，必须先于任何 native 拆除。
+        var dir = File(System.getProperty("user.dir"))
+        while (dir != null && !File(dir, "settings.gradle").isFile) dir = dir.parentFile
+        val src = File(checkNotNull(dir), "dh-engines/src/main/java/com/openapi/ks/dh/Live2dRuntime.kt").readText()
+        val rel = src.substringAfter("fun release()")
+        val pause = rel.indexOf("onPause()")
+        assertTrue("release() must call GLSurfaceView.onPause() (joins the GLThread)", pause >= 0)
+        assertTrue("nativeOnStop must run after onPause (GLThread already stopped)", rel.indexOf("nativeOnStop()") > pause)
+        assertTrue("nativeOnDestroy must run after onPause", rel.indexOf("nativeOnDestroy()") > pause)
+    }
 }
