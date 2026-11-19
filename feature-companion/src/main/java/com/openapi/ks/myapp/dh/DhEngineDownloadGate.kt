@@ -15,13 +15,15 @@ enum class EngineClickAction {
 }
 
 /**
- * 纯决策。[switches] 来自菜单行（引擎自己的可用性），[ready] 表示素材已就绪。
- * 不可用优先：不可用的引擎下了素材也用不了。
+ * 纯决策。[available] 是引擎当下的自判可用（实时查注册表，不用菜单行的旧快照），
+ * [switches] 来自菜单行（available || needsDownload）。
+ * 实时可用优先直接换舞台（菜单快照再旧也不重复下载）；否则行可点就走下载，
+ * 不可点只显示原因。
  */
-fun decideEngineClick(ready: Boolean, switches: Boolean): EngineClickAction = when {
-    !switches -> EngineClickAction.UNAVAILABLE_REASON
-    !ready -> EngineClickAction.NOT_READY_START_DOWNLOAD
-    else -> EngineClickAction.SELECT
+fun decideEngineClick(available: Boolean, switches: Boolean): EngineClickAction = when {
+    available -> EngineClickAction.SELECT
+    switches -> EngineClickAction.NOT_READY_START_DOWNLOAD
+    else -> EngineClickAction.UNAVAILABLE_REASON
 }
 
 /** 引擎对应的 AssetStore 素材包；没有素材的引擎（Simple）返回 null，不走下载闸门。 */
@@ -33,14 +35,18 @@ fun DhEngineId.assets(): EngineAssets? = when (this) {
 }
 
 /**
- * 通话页引擎切换前的下载闸门。不依赖 Android：就绪判断与下载都由构造参数注入
- * （生产里是共享的 AssetStore.isReady / AssetStore.ensure）。
+ * 通话页引擎切换前的下载闸门。不依赖 Android：可用性判断与下载都由构造参数注入
+ * （生产里 availability 查 DhEngineRegistry，ensure 是共享 AssetStore.ensure）。
+ *
+ * 就绪以引擎自判为准，不是 AssetStore.isReady：素材可能由 adb 推送/脚本播种
+ * （Live2D 清单故意留空，isReady 永远 false），而下完素材 native 仍可能缺失——
+ * 调用方必须在 download 成功后重查可用性再决定换不换舞台（CompanionRoute）。
  *
  * [download] 的 `onProgress` 由 [ensure] 的调用线程决定（AssetStore 在 IO 线程回调），
  * UI 侧要自己切回主线程。
  */
 class DhEngineDownloadGate(
-    private val isReady: (EngineAssets) -> Boolean,
+    private val availability: (DhEngineId) -> Boolean,
     private val ensure: suspend (EngineAssets, (Float) -> Unit) -> Result<Unit>,
 ) {
     sealed interface Outcome {
@@ -54,8 +60,8 @@ class DhEngineDownloadGate(
     fun actionFor(row: DhEngineMenuRow): EngineClickAction {
         val id = row.id ?: return EngineClickAction.SELECT
         val assets = id.assets()
-        val ready = assets == null || isReady(assets)
-        return decideEngineClick(ready = ready, switches = row.switches)
+        val available = assets == null || availability(id)
+        return decideEngineClick(available = available, switches = row.switches)
     }
 
     fun isDownloading(id: DhEngineId): Boolean = synchronized(inFlight) { id in inFlight }

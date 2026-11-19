@@ -26,6 +26,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -278,15 +279,20 @@ fun CompanionRoute(
         val dhPrefs = remember(context) { DhLabPreferences(context) }
         var callStage by remember { mutableStateOf(dhPrefs.callStage) }
         val uiScope = rememberCoroutineScope()
-        // 重型引擎的素材没下好时，点菜单先下载，成功后才换舞台；Simple / 原形象不受影响。
+        // 重型引擎的素材没下好时，点菜单先下载；下载成功后**重查引擎可用性**再换舞台——
+        // 素材下齐但 native 缺失时不换（否则舞台上静默退回 Simple）。Simple / 原形象不受影响。
         val engineGate = remember(context) {
             val store = DhLabBootstrap.assetStore(context)
             DhEngineDownloadGate(
-                isReady = store::isReady,
+                availability = { id ->
+                    DhEngineRegistry.available(context).firstOrNull { it.id == id }?.available == true
+                },
                 ensure = { assets, onProgress -> store.ensure(assets, onProgress) },
             )
         }
-        val engineMenu = remember(context, labEnabled) {
+        // 下载/失败后 +1：菜单行（未下载 / native 库缺失 / 机型不足）跟着引擎状态刷新。
+        var engineMenuTick by remember { mutableIntStateOf(0) }
+        val engineMenu = remember(context, labEnabled, engineMenuTick) {
             if (labEnabled) dhEngineMenuRows(DhEngineRegistry.available(context)) else null
         }
 
@@ -444,13 +450,24 @@ fun CompanionRoute(
                                 // onProgress 在 IO 线程回调，v1 不展示进度，传空实现；只在下载结束后（主线程）切换。
                                 when (val outcome = engineGate.download(id) {}) {
                                     DhEngineDownloadGate.Outcome.Success -> {
-                                        callStage = id
-                                        dhPrefs.callStage = id
+                                        // 素材下好 ≠ 能用：native 缺失 / 模型不全时引擎自判仍不可用，
+                                        // 换舞台只会静默退回 Simple。重查，不可用就报原因、不换。
+                                        engineMenuTick++
+                                        val now = DhEngineRegistry.available(context)
+                                            .firstOrNull { it.id == id }
+                                        if (now?.available == true) {
+                                            callStage = id
+                                            dhPrefs.callStage = id
+                                        } else {
+                                            toast(context, "$name 素材已下好，但${now?.reason ?: "现在还不能用"}")
+                                        }
                                     }
                                     DhEngineDownloadGate.Outcome.Busy ->
                                         toast(context, "$name 正在下载…")
-                                    is DhEngineDownloadGate.Outcome.Failed ->
+                                    is DhEngineDownloadGate.Outcome.Failed -> {
+                                        engineMenuTick++
                                         toast(context, "$name 下载失败：${outcome.reason}")
+                                    }
                                 }
                             }
                         }

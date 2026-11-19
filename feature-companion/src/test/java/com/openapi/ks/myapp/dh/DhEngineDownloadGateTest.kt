@@ -17,19 +17,24 @@ import org.junit.Test
 class DhEngineDownloadGateTest {
 
     @Test
-    fun decide_unavailable_wins_over_everything() {
-        assertEquals(EngineClickAction.UNAVAILABLE_REASON, decideEngineClick(ready = false, switches = false))
-        assertEquals(EngineClickAction.UNAVAILABLE_REASON, decideEngineClick(ready = true, switches = false))
+    fun decide_unavailable_and_no_download_route_shows_reason() {
+        assertEquals(
+            EngineClickAction.UNAVAILABLE_REASON,
+            decideEngineClick(available = false, switches = false),
+        )
     }
 
     @Test
-    fun decide_not_ready_but_available_starts_download() {
-        assertEquals(EngineClickAction.NOT_READY_START_DOWNLOAD, decideEngineClick(ready = false, switches = true))
+    fun decide_cold_engine_but_downloadable_starts_download() {
+        assertEquals(
+            EngineClickAction.NOT_READY_START_DOWNLOAD,
+            decideEngineClick(available = false, switches = true),
+        )
     }
 
     @Test
-    fun decide_ready_and_available_selects() {
-        assertEquals(EngineClickAction.SELECT, decideEngineClick(ready = true, switches = true))
+    fun decide_available_selects() {
+        assertEquals(EngineClickAction.SELECT, decideEngineClick(available = true, switches = true))
     }
 
     @Test
@@ -40,10 +45,13 @@ class DhEngineDownloadGateTest {
         assertEquals(EngineAssets.TAO, DhEngineId.TAO_AVATAR.assets())
     }
 
+    // 就绪判断现在是「引擎自判可用」（availability），不再是 AssetStore.isReady：
+    // - Live2D 清单故意留空，store.isReady 永远 false，引擎自判可用就必须能选（Final review I1）。
+    // - 素材下完但 native 缺失时引擎自判不可用，换不换舞台由调用方下载后重新确认（Final review C1）。
     private fun gate(
-        ready: Set<EngineAssets> = emptySet(),
+        available: Set<DhEngineId> = emptySet(),
         ensure: suspend (EngineAssets, (Float) -> Unit) -> Result<Unit> = { _, _ -> Result.success(Unit) },
-    ) = DhEngineDownloadGate(isReady = { it in ready }, ensure = ensure)
+    ) = DhEngineDownloadGate(availability = { it in available }, ensure = ensure)
 
     private fun row(id: DhEngineId?, switches: Boolean = true, detail: String? = null) =
         DhEngineMenuRow(id = id, label = id?.name ?: "orig", switches = switches, detail = detail)
@@ -59,22 +67,33 @@ class DhEngineDownloadGateTest {
     }
 
     @Test
-    fun heavy_engine_not_ready_starts_download() {
-        assertEquals(EngineClickAction.NOT_READY_START_DOWNLOAD, gate().actionFor(row(DhEngineId.DUIX)))
+    fun heavy_engine_not_available_starts_download() {
+        assertEquals(
+            EngineClickAction.NOT_READY_START_DOWNLOAD,
+            gate().actionFor(row(DhEngineId.DUIX)),
+        )
     }
 
     @Test
-    fun heavy_engine_ready_selects() {
-        val g = gate(ready = setOf(EngineAssets.DUIX))
-        assertEquals(EngineClickAction.SELECT, g.actionFor(row(DhEngineId.DUIX)))
+    fun engine_available_by_its_own_check_selects_even_with_empty_asset_manifest() {
+        // ATRI 是 adb 推的、清单为空：AssetStore 永远说没就绪，但引擎自判可用 → 必须能直接选。
+        val g = gate(available = setOf(DhEngineId.LIVE2D))
+        assertEquals(EngineClickAction.SELECT, g.actionFor(row(DhEngineId.LIVE2D)))
     }
 
     @Test
-    fun unavailable_row_shows_reason_even_if_not_ready() {
-        val g = gate()
+    fun available_wins_over_stale_downloadable_row() {
+        // 菜单行还是旧的（下载后没刷新），但引擎自判已可用 → 直接换舞台，不再重复下载。
+        val g = gate(available = setOf(DhEngineId.DUIX))
+        assertEquals(EngineClickAction.SELECT, g.actionFor(row(DhEngineId.DUIX, switches = true)))
+    }
+
+    @Test
+    fun not_available_and_not_downloadable_shows_reason_even_with_downloadable_row_stale() {
+        val g = gate(available = emptySet())
         assertEquals(
             EngineClickAction.UNAVAILABLE_REASON,
-            g.actionFor(row(DhEngineId.TAO_AVATAR, switches = false, detail = "设备不支持")),
+            g.actionFor(row(DhEngineId.TAO_AVATAR, switches = false, detail = "机型不足")),
         )
     }
 

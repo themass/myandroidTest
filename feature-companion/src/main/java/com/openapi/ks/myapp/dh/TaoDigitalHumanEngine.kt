@@ -19,8 +19,9 @@ class TaoDigitalHumanEngine : DigitalHumanEngine {
 
     override val id: DhEngineId = DhEngineId.TAO_AVATAR
 
+    // MOUTH 故意不声明：dispatch() 现在静默忽略 Mouth（A2BS 未接线），声明了就是让调用方
+    // 相信一个没有效果的 capability（Final review I10）。接上 A2BS 后再加回来。
     override val capabilities: Set<AvatarCapability> = setOf(
-        AvatarCapability.MOUTH,
         AvatarCapability.STATE,
     )
 

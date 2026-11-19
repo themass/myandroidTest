@@ -50,14 +50,14 @@ class EngineAdaptersAvailabilityTest {
             // Robolectric device is below the 8GB gate: unswitchable, download never offered.
             assertFalse("device-blocked TAO must not be switchable", menuRow.switches)
             assertFalse(row.needsDownload)
-            val gate = DhEngineDownloadGate(isReady = { false }, ensure = { _, _ -> Result.success(Unit) })
+            val gate = DhEngineDownloadGate(availability = { false }, ensure = { _, _ -> Result.success(Unit) })
             assertEquals(EngineClickAction.UNAVAILABLE_REASON, gate.actionFor(menuRow))
         } else {
             // Device passed: cold cache is a download, same as Duix / Live2D.
             assertEquals("未下载", row.reason)
             assertTrue(row.needsDownload)
             assertTrue(menuRow.switches)
-            val gate = DhEngineDownloadGate(isReady = { false }, ensure = { _, _ -> Result.success(Unit) })
+            val gate = DhEngineDownloadGate(availability = { false }, ensure = { _, _ -> Result.success(Unit) })
             assertEquals(EngineClickAction.NOT_READY_START_DOWNLOAD, gate.actionFor(menuRow))
         }
     }
@@ -71,7 +71,7 @@ class EngineAdaptersAvailabilityTest {
 
         val menuRow = dhEngineMenuRows(listOf(row)).first { it.id == DhEngineId.DUIX }
         assertTrue(menuRow.switches)
-        val gate = DhEngineDownloadGate(isReady = { false }, ensure = { _, _ -> Result.success(Unit) })
+        val gate = DhEngineDownloadGate(availability = { false }, ensure = { _, _ -> Result.success(Unit) })
         assertEquals(EngineClickAction.NOT_READY_START_DOWNLOAD, gate.actionFor(menuRow))
     }
 
@@ -84,7 +84,7 @@ class EngineAdaptersAvailabilityTest {
 
         val menuRow = dhEngineMenuRows(listOf(row)).first { it.id == DhEngineId.LIVE2D }
         assertTrue(menuRow.switches)
-        val gate = DhEngineDownloadGate(isReady = { false }, ensure = { _, _ -> Result.success(Unit) })
+        val gate = DhEngineDownloadGate(availability = { false }, ensure = { _, _ -> Result.success(Unit) })
         assertEquals(EngineClickAction.NOT_READY_START_DOWNLOAD, gate.actionFor(menuRow))
     }
 
@@ -94,6 +94,19 @@ class EngineAdaptersAvailabilityTest {
         assertEquals(DhEngineId.DUIX, engine.id)
         assertFalse(engine.availability(context).available)
         assertEquals(null, engine.createView(context))
+        engine.release()
+    }
+
+    @Test
+    fun tao_does_not_advertise_mouth_while_dispatch_is_a_noop() {
+        // Final review I10: the bridge sends Mouth commands to every engine; an engine that
+        // silently drops them must not advertise MOUTH, or callers trust a capability that
+        // does nothing. A2BS wiring is a native follow-up — until then, STATE only.
+        val engine = DhEngineRegistry.create(context, DhEngineId.TAO_AVATAR)
+        assertFalse(
+            "Tao dispatch() ignores Mouth, so MOUTH must not be advertised",
+            engine.capabilities.contains(com.openapi.ks.myapp.avatar.AvatarCapability.MOUTH),
+        )
         engine.release()
     }
 }
