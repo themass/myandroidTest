@@ -54,6 +54,7 @@ import com.openapi.ks.myapp.avatar.SimpleAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
 import com.openapi.ks.myapp.dh.DhEngineDownloadGate
 import com.openapi.ks.myapp.dh.DhEngineRegistry
+import com.openapi.ks.myapp.dh.DhEngineWatchdog
 import com.openapi.ks.myapp.dh.EngineClickAction
 import com.openapi.ks.myapp.dh.dhEngineLabel
 import com.openapi.ks.myapp.dh.DhLabBootstrap
@@ -437,6 +438,8 @@ fun CompanionRoute(
                     EngineClickAction.UNAVAILABLE_REASON ->
                         toast(context, row.detail ?: "这个形象现在不能用")
                     EngineClickAction.SELECT -> {
+                        // 用户主动再选 = 解除上次崩溃留下的熔断（再崩会重新熔断）。
+                        row.id?.let { DhEngineWatchdog(context).clear(it) }
                         callStage = row.id
                         dhPrefs.callStage = row.id
                     }
@@ -459,6 +462,7 @@ fun CompanionRoute(
                                         val now = DhEngineRegistry.available(context)
                                             .firstOrNull { it.id == id }
                                         if (now?.available == true) {
+                                            DhEngineWatchdog(context).clear(id)
                                             callStage = id
                                             dhPrefs.callStage = id
                                         } else {

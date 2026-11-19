@@ -45,19 +45,34 @@ fun DigitalHumanLabHost(
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
 
+    // 进程级形象熔断：native 引擎崩在 SIGSEGV 里 Java 层拦不住，冷启动发现上次死在
+    // 形象页就隔离该引擎，本次直接降级 SIMPLE（最基础的无形象页面），不再尝试加载。
+    val watchdog = remember { DhEngineWatchdog(context).also { it.onColdStart() } }
+    val effectiveEngineId = if (watchdog.isQuarantined(engineId)) DhEngineId.SIMPLE else engineId
+
     var swapping by remember { mutableStateOf(false) }
 
-    val initial = remember(engineId) {
-        val row = DhEngineRegistry.available(context).firstOrNull { it.id == engineId }
-        if (row?.available == true) DhEngineRegistry.create(context, engineId)
+    val initial = remember(effectiveEngineId) {
+        val row = DhEngineRegistry.available(context).firstOrNull { it.id == effectiveEngineId }
+        if (row?.available == true) DhEngineRegistry.create(context, effectiveEngineId)
         else DhEngineRegistry.create(context, DhEngineId.SIMPLE)
     }
     val bridge = remember { DigitalHumanBridge(initial) }
     var engine by remember { mutableStateOf(bridge.current()) }
     val rigScope = rememberCoroutineScope()
 
+    // 激活即上膛：正常销毁走 markClean；native crash 让标记残留 → 下次冷启动熔断。
+    // release 仍只归 DisposableEffect(Unit)/replaceWith 管——切换时 bridge.current()
+    // 已经是新引擎，这里绝不能碰它。
     DisposableEffect(Unit) {
         onDispose { bridge.current().release() }
+    }
+    DisposableEffect(engine) {
+        val live = bridge.current().id
+        watchdog.markActive(live)
+        onDispose {
+            if (bridge.current().id == live) watchdog.markClean()
+        }
     }
 
     // 测试语音 rig（debug/lab 包）：
@@ -91,12 +106,18 @@ fun DigitalHumanLabHost(
     }
 
     // 下拉换了引擎：先 release 再 create，禁止两个 native 引擎叠在一起。
+    // 首帧不在这里切（初始引擎已由 effectiveEngineId 决定）——尤其被熔断的持久偏好
+    // 绝不能自动重试，否则每次冷启动都崩一次。只有用户随后**主动**选中被熔断的引擎
+    // 才解除隔离、再试一次（再崩再熔）。
+    val initialEngineId = remember { engineId }
     LaunchedEffect(engineId) {
-        if (bridge.current().id == engineId) return@LaunchedEffect
-        val row = DhEngineRegistry.available(context).firstOrNull { it.id == engineId }
+        if (engineId == initialEngineId) return@LaunchedEffect
+        watchdog.clear(engineId)
+        val target = if (watchdog.isQuarantined(engineId)) DhEngineId.SIMPLE else engineId
+        val row = DhEngineRegistry.available(context).firstOrNull { it.id == target }
         if (row?.available != true) return@LaunchedEffect
         swapping = true
-        val next = bridge.replaceWith { DhEngineRegistry.create(context, engineId) }
+        val next = bridge.replaceWith { DhEngineRegistry.create(context, target) }
         spec?.let { next.bind(it) }
         engine = next
         swapping = false
