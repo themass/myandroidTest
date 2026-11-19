@@ -70,7 +70,7 @@ class PresentationCueTest {
     }
 
     @Test
-    fun `翻译出来的串是 v1 的 key 且能被 ViewModel 的正则认出来`() {
+    fun `翻译出来的串是 v1 的 key 且能被 AvatarEventMapper 认出来`() {
         val emotionEvent = PresentationCue.emotionEventJson("joy")
         assertTrue(emotionEvent.contains("\"type\":\"emotion\""))
         assertTrue(emotionEvent.contains("\"emotion\":\"joy\""))

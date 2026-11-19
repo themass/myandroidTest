@@ -2,6 +2,8 @@ package com.openapi.ks.myapp.companion
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.openapi.ks.myapp.avatar.AvatarCommand
+import com.openapi.ks.myapp.avatar.AvatarEventMapper
 import com.openapi.ks.myapp.avatar.ProactiveKind
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -314,24 +316,30 @@ class CompanionViewModel(
     }
 
     fun onAvatarEvent(raw: String) {
-        val state = Regex("\"type\"\\s*:\\s*\"state\".*?\"state\"\\s*:\\s*\"([^\"]+)\"")
-            .find(raw)?.groupValues?.get(1)
-        val emotion = Regex("\"type\"\\s*:\\s*\"emotion\".*?\"emotion\"\\s*:\\s*\"([^\"]+)\"")
-            .find(raw)?.groupValues?.get(1)
+        // 协议解析只有一处（AvatarEventMapper）。这里曾自带一份 state/emotion 的
+        // 正则，与 mapper 各解各的，改协议时必漏一边——现在只翻译指令 → UI state 字段。
+        when (val command = AvatarEventMapper.mapJson(raw)) {
+            is AvatarCommand.SetState -> _state.update { it.copy(avatarState = command.state.name.lowercase()) }
+            is AvatarCommand.Emotion -> _state.update { it.copy(emotion = command.name) }
+            // 非表现类指令（嘴型等）与未识别事件都不进 UI state。
+            else -> Unit
+        }
+        // gesture/gaze 还没有对应的 AvatarCommand（mapper 把它们归入 else），
+        // 正则暂时留在这里；接入 mapper 时连同 UI state 字段一起搬。
         val gesture = Regex("\"type\"\\s*:\\s*\"gesture\".*?\"id\"\\s*:\\s*\"([^\"]+)\"")
             .find(raw)?.groupValues?.get(1)
         val gazeX = numberField(raw, "x").takeIf { "\"type\"\\s*:\\s*\"gaze\"".toRegex().containsMatchIn(raw) }
         val gazeY = numberField(raw, "y").takeIf { gazeX != null }
-        _state.update {
-            it.copy(
-                avatarState = state ?: it.avatarState,
-                emotion = emotion ?: it.emotion,
-                gesture = gesture ?: it.gesture,
-                gestureSeq = if (gesture != null) it.gestureSeq + 1 else it.gestureSeq,
-                gazeX = gazeX ?: it.gazeX,
-                gazeY = gazeY ?: it.gazeY,
-                gazeSeq = if (gazeX != null && gazeY != null) it.gazeSeq + 1 else it.gazeSeq,
-            )
+        if (gesture != null || (gazeX != null && gazeY != null)) {
+            _state.update {
+                it.copy(
+                    gesture = gesture ?: it.gesture,
+                    gestureSeq = if (gesture != null) it.gestureSeq + 1 else it.gestureSeq,
+                    gazeX = gazeX ?: it.gazeX,
+                    gazeY = gazeY ?: it.gazeY,
+                    gazeSeq = if (gazeX != null && gazeY != null) it.gazeSeq + 1 else it.gazeSeq,
+                )
+            }
         }
     }
 

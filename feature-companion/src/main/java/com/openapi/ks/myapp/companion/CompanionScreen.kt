@@ -142,11 +142,10 @@ fun CompanionScreen(
     }
 
     LaunchedEffect(state.avatarState) {
-        AvatarEventMapper.mapJson("""{"type":"state","state":"${state.avatarState}"}""")
-            ?.let(renderer::dispatch)
+        AvatarEventMapper.mapState(state.avatarState)?.let(renderer::dispatch)
     }
     LaunchedEffect(state.emotion) {
-        state.emotion?.let { renderer.dispatch(AvatarCommand.Emotion(it)) }
+        AvatarEventMapper.mapEmotion(state.emotion)?.let(renderer::dispatch)
     }
     LaunchedEffect(state.gestureSeq) {
         if (state.gestureSeq == 0L) return@LaunchedEffect
