@@ -30,17 +30,15 @@ class EngineAdaptersAvailabilityTest {
         val avail = DhEngineRegistry.available(context)
         assertEquals(DhEngineId.entries.size, avail.size)
         assertTrue(avail.first { it.id == DhEngineId.SIMPLE }.available)
-        // Live2D / Tao 仍是 SDK 缺席的占位；Duix 已内置运行时，素材没下好时回「未下载」。
-        for (id in listOf(DhEngineId.LIVE2D, DhEngineId.TAO_AVATAR)) {
-            val row = avail.first { it.id == id }
-            assertFalse("without SDK, $id should be unavailable", row.available)
-            assertTrue(
-                "reason for $id: ${row.reason}",
-                row.reason?.contains("未编入") == true ||
-                    row.reason?.contains("缺模型") == true ||
-                    row.reason?.contains("机型不足") == true,
-            )
-        }
+        // Tao 仍是 SDK 缺席的占位；Duix / Live2D 已内置运行时，素材没下好时回「未下载」。
+        val tao = avail.first { it.id == DhEngineId.TAO_AVATAR }
+        assertFalse("without SDK, TAO should be unavailable", tao.available)
+        assertTrue(
+            "reason for TAO: ${tao.reason}",
+            tao.reason?.contains("未编入") == true ||
+                tao.reason?.contains("缺模型") == true ||
+                tao.reason?.contains("机型不足") == true,
+        )
     }
 
     @Test
@@ -51,6 +49,19 @@ class EngineAdaptersAvailabilityTest {
         assertTrue("未下载 must route through the download gate", row.needsDownload)
 
         val menuRow = dhEngineMenuRows(listOf(row)).first { it.id == DhEngineId.DUIX }
+        assertTrue(menuRow.switches)
+        val gate = DhEngineDownloadGate(isReady = { false }, ensure = { _, _ -> Result.success(Unit) })
+        assertEquals(EngineClickAction.NOT_READY_START_DOWNLOAD, gate.actionFor(menuRow))
+    }
+
+    @Test
+    fun live2d_without_cache_is_unavailable_with_download_reason_and_menu_still_switches() {
+        val row = DhEngineRegistry.available(context).first { it.id == DhEngineId.LIVE2D }
+        assertFalse(row.available)
+        assertEquals("未下载", row.reason)
+        assertTrue("未下载 must route through the download gate", row.needsDownload)
+
+        val menuRow = dhEngineMenuRows(listOf(row)).first { it.id == DhEngineId.LIVE2D }
         assertTrue(menuRow.switches)
         val gate = DhEngineDownloadGate(isReady = { false }, ensure = { _, _ -> Result.success(Unit) })
         assertEquals(EngineClickAction.NOT_READY_START_DOWNLOAD, gate.actionFor(menuRow))

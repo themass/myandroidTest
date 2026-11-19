@@ -20,10 +20,19 @@ Upstream roots and download URLs used by this module. Versions/commits are fille
 
 ## Exceptions
 
-- **Cubism Core arm64 `libLive2DCubismCore.so`**: the sole third-party `.so` allowed into this module's `jniLibs` (approved exception). Models (e.g. ATRI) still download at runtime and are not committed.
-- Other engines' large prebuilt `.so` packs stay on the download / local `build/` cache path — do not expand the in-git `.so` exception.
+- **Cubism Core arm64 `libLive2DCubismCore.so`**: the sole third-party `.so` allowed into this module's `jniLibs` (approved exception; ~385KB from ChatWaifu `SDKRoot/Core/dll/android/arm64-v8a/`). Models (e.g. ATRI) are **not** committed — final download URL slot TBD; lab/dev path is adb-push into `AssetStore.cacheRoot(LIVE2D)`.
+- Other engines' large prebuilt `.so` packs stay on the download / local `build/` cache path — do not expand the in-git `.so` exception. In particular `libchatwaifu-live2d.so` (ChatWaifu's own JNI wrapper) is **not** packaged here.
 
 ## Vendored sources
+
+### Live2D runtime (`com.openapi.ks.dh.live2d`)
+
+- **Origin:** ChatWaifu_Mobile `Live2D/src/main/java/com/chatwaifu/live2d` (2 `.java` files: `JniBridgeJava`, `GLRenderer`). Framework/C++ lives under `src/SDKRoot` + `src/main/cpp` and is **not** vendored (no NDK/CMake in this task, same ruling as Duix).
+- **Change:** package rename `com.chatwaifu.live2d` → `com.openapi.ks.dh.live2d` only.
+- **jniLibs:** `src/main/jniLibs/arm64-v8a/libLive2DCubismCore.so` only (see Exceptions). No Windows/iOS/rpi/x86 Cubism binaries, no model packs.
+- **Not vendored:** `src/main/cpp` (builds `libchatwaifu-live2d.so`), Cubism Framework sources, ATRI/Amadeus/Yuuka model assets.
+- **JNI note:** upstream builds export `Java_com_chatwaifu_live2d_JniBridgeJava_*` and `FindClass("com/chatwaifu/live2d/JniBridgeJava")`. The vendored class is `com.openapi.ks.dh.live2d.JniBridgeJava`, so a native rebuild for this module must export `Java_com_openapi_ks_dh_live2d_JniBridgeJava_*` and update the FindClass path. Until that `.so` exists, `Live2dRuntime.availability()` reports `native 库缺失` after models are present.
+- **LIVE2D AssetManifest:** empty list; ATRI public URL TBD. `ensure(LIVE2D)` fails cleanly; adb-push into the cache root is the current lab path.
 
 ### Duix runtime (`com.openapi.ks.dh.duix`)
 

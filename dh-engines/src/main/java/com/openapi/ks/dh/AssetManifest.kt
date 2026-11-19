@@ -32,8 +32,10 @@ object AssetManifest {
         ),
     )
 
-    // TODO(Live2D): the ATRI model has no public download URL yet. Add its AssetSpec here once a
-    //  URL is chosen, and record it in THIRD_PARTY.md. Until then the engine is never "ready".
+    // TODO(Live2D): ATRI has no public download URL. Leave empty so ensure() fails with a clear
+    //  reason (Task-3 gate). Final URL slot TBD — record it in THIRD_PARTY.md when chosen.
+    //  Dev path: adb-push the model into AssetStore.cacheRoot(LIVE2D)/ATRI/; do NOT invent a URL
+    //  and do NOT vendor the ATRI model pack into this repo.
     private val live2d = emptyList<AssetSpec>()
 
     // TODO(Tao, Task 6): add the NNR model spec once its URL is chosen (record it in
