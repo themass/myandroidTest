@@ -6,6 +6,7 @@ import android.os.SystemClock
 import com.openapi.ks.myapp.avatar.ProactiveKind
 import com.openapi.ks.myapp.companion.protocol.BargeInGate
 import com.openapi.ks.myapp.companion.protocol.CompanionProtocolLink
+import com.openapi.ks.myapp.companion.protocol.CueGapBaseline
 import com.openapi.ks.myapp.companion.protocol.Decision
 import com.openapi.ks.myapp.companion.protocol.DegradeController
 import com.openapi.ks.myapp.companion.protocol.PresentationCue
@@ -111,8 +112,8 @@ class LiveKitCompanionTransport(
     /** L1 表情抽样序号：每条到闸的 emotion +1，`seq % 2 == 0` 才放行。 */
     private var emotionEmitSeq = 0
 
-    /** 上次读到的全局 gap 计数，用来推 `cmp.cue` 连续 gap streak。 */
-    private var lastObservedGaps = 0
+    /** lifetime gaps → 本连接 streak 增量；重连必须 baseline，不能清零。 */
+    private val cueGaps = CueGapBaseline()
 
     /** §10.1：本地开口打断闸。只在本房间生命周期内有意义。 */
     private val bargeGate = BargeInGate()
@@ -240,7 +241,8 @@ class LiveKitCompanionTransport(
                         // 时间线属于旧连接上的那几段音频：全部作废，墓碑保留
                         // （`speech_id` 不复用，留着无害，还能挡住迟到的 begin）。
                         speech.onReconnected()
-                        lastObservedGaps = 0
+                        // gaps 是 lifetime：baseline 到当前值，避免把历史缺口重放进 streak。
+                        cueGaps.baseline(protocolLink.counters().gaps)
                         emotionEmitSeq = 0
                         sendHello(newRoom, protocolLink)
                         scheduleHelloRetry(newRoom, protocolLink)
@@ -862,15 +864,16 @@ class LiveKitCompanionTransport(
             degrade.onDataAccepted(now)
             // cmp.cue 的 gap streak：跳号记连续缺口；只有无 gap 的干净到达才清零。
             // （gap 是在 ACCEPT 时发现的——同包既记 gap 又清零会让 streak 永远到不了 3。）
-            val gapsNow = protocolLink.counters().gaps
             if (topic == ProtocolCatalog.TOPIC_CUE) {
-                val grew = gapsNow > lastObservedGaps
-                if (grew) {
-                    repeat(gapsNow - lastObservedGaps) { degrade.onCueGap() }
+                val newGaps = cueGaps.observe(protocolLink.counters().gaps)
+                if (newGaps > 0) {
+                    repeat(newGaps) { degrade.onCueGap() }
                 }
-                degrade.onCueAccepted(now, clearGapStreak = !grew)
+                degrade.onCueAccepted(now, clearGapStreak = newGaps == 0)
+            } else {
+                // 非 cue 的 v2 包也推进 baseline，避免下次 cue 把中间的非 cue gap 一次灌进 streak。
+                cueGaps.observe(protocolLink.counters().gaps)
             }
-            lastObservedGaps = gapsNow
             handleProtocol(accepted.envelope)
             return
         }
