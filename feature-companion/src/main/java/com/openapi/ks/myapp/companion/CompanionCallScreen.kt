@@ -258,6 +258,35 @@ private const val RIPPLE_CYCLE_MS = 7000
 /** 字幕淡入淡出时长。 */
 private const val CAPTION_FADE_MS = 260
 
+/**
+ * 语音舞台的三种布局。纯数据 + [voiceStageMode] / [voiceStageHeightForMode] 两个纯函数，
+ * 单独放在 JVM 测试里钉住（CompanionCallStageLayoutTest），布局改动必须先过它们。
+ */
+enum class VoiceStageMode {
+    /** 无形象插槽：圆形头像 + 呼吸环，形象区高度 min(宽, 高×0.44)。原有布局。 */
+    Classic,
+
+    /** 有形象插槽但非主角模式（原来的形象分层立绘）：形象区占高 60%，下方字幕列。原有布局。 */
+    Stacked,
+
+    /** 数字人引擎舞台（Simple/Live2D/Duix/Tao）：形象铺满整块舞台，字幕叠在底部。 */
+    CharacterHero,
+}
+
+fun voiceStageMode(hasAvatarStage: Boolean, characterHero: Boolean): VoiceStageMode = when {
+    // 没有形象插槽就没有"主角"可铺——圆形头像布局不受 characterHero 影响。
+    !hasAvatarStage -> VoiceStageMode.Classic
+    characterHero -> VoiceStageMode.CharacterHero
+    else -> VoiceStageMode.Stacked
+}
+
+fun voiceStageHeightForMode(mode: VoiceStageMode, maxWidth: Float, maxHeight: Float): Float = when (mode) {
+    // 主角模式不裁高度：人物整块拿到舞台，唇形、手势、全身才看得见。
+    VoiceStageMode.CharacterHero -> maxHeight
+    VoiceStageMode.Stacked -> maxHeight * 0.60f
+    VoiceStageMode.Classic -> minOf(maxWidth, maxHeight * 0.44f)
+}
+
 
 /** 波形条数。奇数是为了让中间一根正好落在中心线上。 */
 private const val WAVE_BAR_COUNT = 23
@@ -307,6 +336,12 @@ fun CompanionCallScreen(
     onWaveOptionsChange: ((WaveOptions) -> Unit)? = null,
     previewState: CallAudioPreviewState = CallAudioPreviewState(),
     onPreviewAudio: ((String) -> Unit)? = null,
+    /**
+     * 形象舞台是否走**主角模式**：true 时 [avatarStage] 铺满整块舞台（数字人引擎
+     * Simple/Live2D/Duix/Tao——人物是页面主体，唇形手势要看得清），字幕改为底部叠层。
+     * false（默认，含「原来的形象」分层立绘与圆形头像）时保持原有分栏布局不变。
+     */
+    characterHero: Boolean = false,
     /**
      * 右上角下拉里的形象引擎。null 时菜单和原来一样，只有波形样式。
      * 点不可切换的一项不改舞台，只回调原因。
@@ -418,6 +453,7 @@ fun CompanionCallScreen(
                         centerEffect = waveOptions.center,
                         avatarContent = avatarContent,
                         avatarStage = avatarStage,
+                        characterHero = characterHero,
                         reducedMotion = reducedMotion,
                         modifier = Modifier.fillMaxSize(),
                     )
@@ -748,77 +784,134 @@ private fun VoiceStage(
     centerEffect: CenterEffect,
     avatarContent: (@Composable () -> Unit)?,
     avatarStage: (@Composable () -> Unit)?,
+    characterHero: Boolean,
     reducedMotion: Boolean,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier = modifier) {
-        // 头像区与字幕区各有确定边界；长回复只滚动，不再反向压扁头像。
-        // 有全身形象时舞台更高：她是这一页的主体，要能看清、能点到；字幕让出空间但仍可滚动。
-        val stageHeight = if (avatarStage != null) maxHeight * 0.60f else minOf(maxWidth, maxHeight * 0.44f)
-        WaveformBars(
-            level = waveLevel,
-            bands = selfBands,
-            phase = phase,
-            isMuted = state.isMuted,
-            isSpeaking = false,
-            reducedMotion = reducedMotion,
-            style = waveOptions.bottom,
-            particles = waveOptions.particles,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(150.dp)
-                .graphicsLayer { alpha = 0.90f }
-                .blur(1.2.dp),
-        )
-        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                modifier = Modifier.fillMaxWidth().height(stageHeight),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (centerEffect == CenterEffect.Ring) {
-                    BreathingRing(
-                        level = ringLevel,
-                        isMuted = state.isMuted,
-                        isSpeaking = state.isAgentSpeaking,
-                        reducedMotion = reducedMotion,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                } else {
-                    CenterEffectCanvas(
-                        effect = centerEffect,
-                        level = ringLevel,
-                        phase = phase,
-                        isMuted = state.isMuted,
-                        isSpeaking = state.isAgentSpeaking,
-                        reducedMotion = reducedMotion,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-                if (avatarStage != null) {
-                    // 形象舞台：不裁圆、不缩放，让她完整地站在声场前面；触摸由形象自己处理。
-                    Box(Modifier.fillMaxSize().padding(top = 4.dp), contentAlignment = Alignment.Center) {
-                        avatarStage()
-                    }
-                } else {
-                    AvatarCircle(
-                        name = state.agentName,
-                        emoji = state.avatarEmoji,
-                        level = ringLevel,
-                        isMuted = state.isMuted,
-                        slot = avatarContent,
-                    )
-                }
-            }
-            CaptionStack(
-                captions = state.captions,
-                speakerCaptions = state.speakerCaptions,
-                streaming = state.isAgentSpeaking,
-                modifier = Modifier
+        // 布局模式（纯函数 + JVM 测试钉住，见 CompanionCallStageLayoutTest）：
+        // - Classic/Stacked 是原有分栏：形象区有确定高度，字幕列在它下面。
+        // - CharacterHero 是数字人引擎舞台：形象拿到整块舞台高度（唇形、手势、全身
+        //   是这一页存在的理由），字幕与声效改为底部叠层。
+        val mode = voiceStageMode(hasAvatarStage = avatarStage != null, characterHero = characterHero)
+        // 纯函数只吃 px 以外的纯数值方便 JVM 测试钉住，这里用 Dp.value（密度无关的 dp 数值）再转回 Dp。
+        val stageHeight = voiceStageHeightForMode(mode, maxWidth.value, maxHeight.value).dp
+        val hero = mode == VoiceStageMode.CharacterHero
+
+        // 波形和声场两条分支共用，抽成局部 composable。align 这类作用域修饰符由调用方
+        // 传入（BoxScope 作用域修饰符跨嵌套 Box 复用会在运行时抛 scope 不匹配）。
+        val waveform: @Composable (Modifier) -> Unit = { mod ->
+            WaveformBars(
+                level = waveLevel,
+                bands = selfBands,
+                phase = phase,
+                isMuted = state.isMuted,
+                isSpeaking = false,
+                reducedMotion = reducedMotion,
+                style = waveOptions.bottom,
+                particles = waveOptions.particles,
+                modifier = mod
                     .fillMaxWidth()
-                    .weight(1f)
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                    .height(150.dp)
+                    .graphicsLayer { alpha = 0.90f }
+                    .blur(1.2.dp),
             )
+        }
+
+        val soundField = @Composable {
+            if (centerEffect == CenterEffect.Ring) {
+                BreathingRing(
+                    level = ringLevel,
+                    isMuted = state.isMuted,
+                    isSpeaking = state.isAgentSpeaking,
+                    reducedMotion = reducedMotion,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                CenterEffectCanvas(
+                    effect = centerEffect,
+                    level = ringLevel,
+                    phase = phase,
+                    isMuted = state.isMuted,
+                    isSpeaking = state.isAgentSpeaking,
+                    reducedMotion = reducedMotion,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
+
+        if (hero) {
+            Box(Modifier.fillMaxSize()) {
+                // 声场画在形象身后：Simple（透明背景）能透出呼吸环，GL 引擎自然盖住它。
+                soundField()
+                // 主角：不裁圆、不缩放、不给字幕让位，让她完整地占满舞台；触摸由形象自己处理。
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    checkNotNull(avatarStage).invoke()
+                }
+                // 底部渐变遮罩：立绘下摆和波形条可能很亮，字幕压在人物身上也要读得出。
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(240.dp)
+                        .drawBehind {
+                            drawRect(
+                                Brush.verticalGradient(
+                                    0f to Color.Transparent,
+                                    0.55f to CallColors.CaptionScrim,
+                                    1f to CallColors.CaptionScrim,
+                                ),
+                            )
+                        },
+                ) {
+                    waveform(Modifier.align(Alignment.BottomCenter))
+                }
+                // 字幕叠层：坐在波形上方，上限两行滚动；不再从人物身上切走一栏。
+                CaptionStack(
+                    captions = state.captions,
+                    speakerCaptions = state.speakerCaptions,
+                    streaming = state.isAgentSpeaking,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .heightIn(max = 150.dp)
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 150.dp),
+                )
+            }
+        } else {
+            waveform(Modifier.align(Alignment.BottomCenter))
+            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(stageHeight),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    soundField()
+                    if (avatarStage != null) {
+                        // 形象舞台（原来的形象分层立绘）：不裁圆、不缩放，原有布局不变。
+                        Box(Modifier.fillMaxSize().padding(top = 4.dp), contentAlignment = Alignment.Center) {
+                            avatarStage()
+                        }
+                    } else {
+                        AvatarCircle(
+                            name = state.agentName,
+                            emoji = state.avatarEmoji,
+                            level = ringLevel,
+                            isMuted = state.isMuted,
+                            slot = avatarContent,
+                        )
+                    }
+                }
+                CaptionStack(
+                    captions = state.captions,
+                    speakerCaptions = state.speakerCaptions,
+                    streaming = state.isAgentSpeaking,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = 8.dp, vertical = 12.dp),
+                )
+            }
         }
     }
 }

@@ -64,6 +64,15 @@ push_unpack() { # push_unpack <engine> <zip> <relativePath>
 
 ENGINES="${*:-duix live2d tao}"
 
+if echo " $ENGINES " | grep -q " audio "; then
+  AUDIO_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/test-audio"
+  ls "$AUDIO_SRC"/*.wav >/dev/null 2>&1 || { echo "!! 先生成: scripts/dh-lab/make-test-audio.sh"; exit 1; }
+  "${ADB[@]}" shell "rm -rf '$DEVICE_TMP/audio' && mkdir -p '$DEVICE_TMP/audio'"
+  "${ADB[@]}" push "$AUDIO_SRC/." "$DEVICE_TMP/audio/" >/dev/null
+  ra "rm -rf $DATA/files/dh-lab-audio && mkdir -p $DATA/files/dh-lab-audio && cp $DEVICE_TMP/audio/*.wav $DATA/files/dh-lab-audio/"
+  echo "== 测试语音已推送到 files/dh-lab-audio/"
+fi
+
 if echo " $ENGINES " | grep -q " duix "; then
   fetch gj_dh_res.zip "https://github.com/GuijiAI/duix.ai/releases/download/v1.0.0/gj_dh_res.zip"
   fetch Oliver.zip "https://github.com/duixcom/Duix.mobile/releases/download/v2.0.1/Oliver.zip"
@@ -72,6 +81,14 @@ if echo " $ENGINES " | grep -q " duix "; then
 fi
 
 if echo " $ENGINES " | grep -q " live2d "; then
+  if [ -f "$PACKS/live2d-native-arm64-v8a/libchatwaifu-live2d.so" ]; then
+    # 与 Duix 的 native 包同布局：Live2dNativeLoader 按绝对路径 dlopen 这里。
+    "${ADB[@]}" push "$PACKS/live2d-native-arm64-v8a/libchatwaifu-live2d.so" "$DEVICE_TMP/" >/dev/null
+    ra "mkdir -p $DATA/files/dh-engines/live2d/native-libs/arm64-v8a && cp $DEVICE_TMP/libchatwaifu-live2d.so $DATA/files/dh-engines/live2d/native-libs/arm64-v8a/"
+    echo "== live2d native-libs/arm64-v8a/libchatwaifu-live2d.so 已推送"
+  else
+    echo "!! 跳过 Live2D native：把 libchatwaifu-live2d.so 放到 $PACKS/live2d-native-arm64-v8a/"
+  fi
   if [ -d "$PACKS/ATRI" ]; then
     local_stage="$DEVICE_TMP/live2d-ATRI"
     "${ADB[@]}" shell "rm -rf '$local_stage' && mkdir -p '$local_stage'"

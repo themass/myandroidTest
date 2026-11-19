@@ -1,5 +1,11 @@
 package com.openapi.ks.myapp.dh
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +26,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.SimpleAvatar
+import kotlinx.coroutines.launch
+import java.io.File
 
 /**
  * 引擎视口：只画当前引擎的画面。
@@ -45,9 +54,40 @@ fun DigitalHumanLabHost(
     }
     val bridge = remember { DigitalHumanBridge(initial) }
     var engine by remember { mutableStateOf(bridge.current()) }
+    val rigScope = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
         onDispose { bridge.current().release() }
+    }
+
+    // 测试语音 rig（debug/lab 包）：
+    //   adb shell am broadcast -a com.openapi.ks.chat.action.DH_TEST_AUDIO --es clip long --ei motion 0
+    // 喂 PCM/幅度给**当前**引擎；未推素材或 clip 不存在时回 0，画面不受影响。
+    DisposableEffect(context) {
+        val debuggable = context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
+        if (!debuggable) return@DisposableEffect onDispose { }
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(c: Context, intent: Intent) {
+                val clip = intent.getStringExtra(DhTestAudio.EXTRA_CLIP) ?: "sentence"
+                val motion = intent.getIntExtra(DhTestAudio.EXTRA_MOTION, -1).takeIf { it >= 0 }
+                val file = File(DhTestAudio.clipsDir(context.filesDir), "$clip.wav")
+                if (!file.isFile) {
+                    Log.i("DhTestAudio", "missing clip ${file.name}（先跑 seed-assets.sh audio）")
+                    return
+                }
+                rigScope.launch {
+                    val n = DhTestAudio.play(file, bridge, motion)
+                    Log.i("DhTestAudio", "played ${clip}: ${n} bytes -> ${bridge.current().id}")
+                }
+            }
+        }
+        val filter = IntentFilter(DhTestAudio.ACTION_PLAY)
+        if (Build.VERSION.SDK_INT >= 33) {
+            context.registerReceiver(receiver, filter, android.content.Context.RECEIVER_EXPORTED)
+        } else {
+            context.registerReceiver(receiver, filter)
+        }
+        onDispose { runCatching { context.unregisterReceiver(receiver) } }
     }
 
     // 下拉换了引擎：先 release 再 create，禁止两个 native 引擎叠在一起。

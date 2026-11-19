@@ -26,6 +26,9 @@ class DuixDigitalHumanEngine(
         AvatarCapability.STATE,
     )
 
+    /** Duix 口型只认 pushPcm；测试语音 rig 据此直推 PCM，不发 Mouth（会合成假 PCM）。 */
+    override val pcmDriven: Boolean = true
+
     private var runtime: DuixRuntime? = null
     private var viewCreated = false
     private var released = false

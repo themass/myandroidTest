@@ -427,6 +427,9 @@ fun CompanionRoute(
                 chatViewModel.send()
             },
             avatarContent = avatarSlot,
+            // 数字人引擎舞台 = 主角模式（人物铺满整块舞台）；「原来的形象」分层立绘
+            // 与圆形头像保持原有分栏布局不变。
+            characterHero = callStage != null,
             engineMenu = engineMenu,
             selectedEngine = callStage,
             onEngineMenuClick = { row ->
