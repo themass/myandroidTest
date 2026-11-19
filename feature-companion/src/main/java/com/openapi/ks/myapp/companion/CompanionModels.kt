@@ -72,7 +72,30 @@ data class CharacterSummary(
             }.orEmpty(),
             voiceAvailable = json.optBoolean("voice_available", true),
             voiceLabel = (json.optString("voice_label").ifBlank { json.optString("voice_name") })
-                .trim().ifBlank { null },
+                .trim().ifBlank { null }
+                ?: voiceRefLabel(json),
+        )
+
+        /**
+         * 服务端 voice_ref：`{"provider":"volcengine","voice_id":"..."}`。位置优先级：
+         * 顶层（外部导入的 V2 卡）> data 顶层 > extensions.vvv > data.extensions.vvv。
+         * resource_id=seed-tts-2.0 下没有授权男声，所以文案绝不写「男声/女声」，
+         * 只写音色中文名；不认识的 id 原样展示。
+         */
+        private fun voiceRefLabel(json: JSONObject): String? {
+            val data = json.optJSONObject("data")
+            val ref = json.optJSONObject("voice_ref")
+                ?: data?.optJSONObject("voice_ref")
+                ?: json.optJSONObject("extensions")?.optJSONObject("vvv")?.optJSONObject("voice_ref")
+                ?: data?.optJSONObject("extensions")?.optJSONObject("vvv")?.optJSONObject("voice_ref")
+                ?: return null
+            val id = ref.optString("voice_id").trim().ifBlank { return null }
+            return VOLC_VOICE_NAMES[id] ?: id
+        }
+
+        private val VOLC_VOICE_NAMES = mapOf(
+            "saturn_zh_female_tiexinnvyou_tob" to "贴心女友",
+            "saturn_zh_female_bingjiaojiejie_tob" to "病娇姐姐",
         )
     }
 }
