@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>放映场 — 视频体验原型</title>
+<link rel="stylesheet" href="style.css">
+<script defer src="app.js"></script>
+</head>
+<body>
+<main id="app" class="app">
+  <section id="channels" class="page" aria-labelledby="home-title">
+    <header class="mast"><a class="wordmark" href="#channels" aria-label="放映场首页"><i></i>放映场</a><span class="edition">交互原型</span></header>
+    <nav class="main-tabs" aria-label="媒体来源"><button id="channels-tab" aria-current="page">频道</button><button id="local-tab">本地视频</button></nav>
+    <h1 id="home-title" class="sr">频道</h1>
+    <article class="hero">
+      <img src="media/ridge.jpg" alt="">
+      <section class="hero-copy"><span class="tag">本周放映</span><h2>云层<br>之上<span>。</span></h2><p>去海拔更高的地方，听一会儿风。</p><button id="hero-play" class="cta">看预告</button></section>
+      <span class="hero-index" aria-hidden="true">01 / 01</span>
+    </article>
+    <header class="section-head"><h2>逛频道</h2><span id="channel-count"></span></header>
+    <nav id="channel-filters" class="filters" aria-label="频道分类"></nav>
+    <section id="channel-grid" class="masonry" aria-label="频道列表"></section>
+  </section>
+
+  <section id="library" class="page" hidden aria-labelledby="library-title">
+    <header class="mast"><button data-back="channels" class="icon" aria-label="返回频道"></button><span class="edition">放映场</span></header>
+    <article id="library-cover" class="library-cover"><img alt=""><section><span class="tag" id="library-label"></span><h1 id="library-title" tabindex="-1"></h1><p id="library-summary"></p></section></article>
+    <section id="resume-area" aria-label="继续观看"></section>
+    <header class="section-head"><h2>全部视频</h2><button id="layout" class="icon" aria-label="切换海报视图" aria-pressed="false"></button></header>
+    <nav id="video-filters" class="filters" aria-label="筛选视频"></nav>
+    <section id="video-grid" class="videos" aria-label="视频列表"></section>
+  </section>
+
+  <section id="player" class="page player" hidden aria-labelledby="player-title">
+    <section id="screen" class="screen" aria-label="视频播放器">
+      <video id="video" playsinline preload="metadata"></video>
+      <header class="screen-head"><button data-back="library" class="icon glass" aria-label="返回列表"></button><span id="expanded-title" aria-hidden="true"></span><button id="lock" class="icon glass" aria-label="锁定控件" hidden></button></header>
+      <section class="transport" aria-label="播放控制"><button id="rewind" class="icon glass" aria-label="快退 10 秒"></button><button id="play" class="icon play" aria-label="播放"></button><button id="forward" class="icon glass" aria-label="快进 10 秒"></button></section>
+      <output id="captions" class="captions" aria-live="off"></output><span id="danmaku" class="danmaku" hidden>这一幕太美了</span>
+      <button id="unlock" class="unlock" hidden>解锁</button>
+      <section class="screen-time"><input id="progress" type="range" min="0" max="12" step="0.05" value="0" aria-label="播放进度"><section class="time-row"><span id="clock">0:00 / 0:12</span><button id="fullscreen" class="icon" aria-label="全屏"></button></section></section>
+      <section id="dock-slot"></section>
+    </section>
+    <section class="player-meta"><p class="context" id="player-channel"></p><h1 id="player-title" tabindex="-1"></h1><p id="player-desc"></p></section>
+    <section id="tool-slot"><section id="dock" class="dock" aria-label="播放工具">
+      <nav id="tools" class="tools" aria-label="播放设置"></nav>
+      <nav class="favor" aria-label="Favor"><button id="favorite" aria-pressed="false"></button><button id="cast"></button></nav>
+    </section></section>
+    <section class="queue"><header class="section-head"><h2>接着看</h2></header><section id="queue" class="queue-grid"></section></section>
+  </section>
+</main>
+<dialog id="sheet" aria-labelledby="sheet-title"><section class="sheet-body"><header><h2 id="sheet-title"></h2><button id="close-sheet" class="icon" aria-label="关闭面板"></button></header><section id="sheet-content"></section></section></dialog>
+<output id="toast" class="toast" role="status" hidden></output>
+<input id="subtitle-file" type="file" accept=".srt,.vtt,text/plain,text/vtt,application/x-subrip" hidden>
+</body>
+</html>
