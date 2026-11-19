@@ -87,6 +87,22 @@ class DegradeControllerTest {
         assertFalse(DegradeController.shouldEmit("presentation.emotion", level = 4, emotionSeq = 0))
     }
 
+    // ------------------------------------------------------------ shouldClearEmotion（B3）
+
+    @Test
+    fun `进入 L2 的那条边清一次表情，停留期间不重复清`() {
+        // 表情在 L0/L1 还能被新 cue 改掉；进 L2 后 cue 全丢，卡住的表情必须收回立绘。
+        assertTrue(DegradeController.shouldClearEmotion(prevLevel = 1, level = 2))
+        assertTrue(DegradeController.shouldClearEmotion(prevLevel = 0, level = 2))
+        assertTrue(DegradeController.shouldClearEmotion(prevLevel = 0, level = 4))
+        // 已经在 L2+：早清过了，再清只会打断恢复期的画面。
+        assertFalse(DegradeController.shouldClearEmotion(prevLevel = 2, level = 3))
+        assertFalse(DegradeController.shouldClearEmotion(prevLevel = 3, level = 2))
+        // 回落不是清除时机。
+        assertFalse(DegradeController.shouldClearEmotion(prevLevel = 2, level = 0))
+        assertFalse(DegradeController.shouldClearEmotion(prevLevel = 1, level = 1))
+    }
+
     // ------------------------------------------------------------ L2 cue silence
 
     @Test

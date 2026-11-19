@@ -144,7 +144,9 @@ fun CompanionScreen(
         AvatarEventMapper.mapState(state.avatarState)?.let(renderer::dispatch)
     }
     LaunchedEffect(state.emotion) {
-        AvatarEventMapper.mapEmotion(state.emotion)?.let(renderer::dispatch)
+        // emotionCommand 对 null 回 ClearEmotion：降级清场后这张表情图要真的下脸，
+        // 而不是 mapEmotion 的「null 就什么都不做」。
+        renderer.dispatch(AvatarEventMapper.emotionCommand(state.emotion))
     }
 
     // 新消息到达时滚到底。用消息条数与最后一条文本做 key：流式追加时也要跟。

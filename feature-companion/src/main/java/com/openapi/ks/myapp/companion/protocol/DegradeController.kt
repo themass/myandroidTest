@@ -164,5 +164,16 @@ class DegradeController(
                 else -> false
             }
         }
+
+        /**
+         * B3：进入 L2 的**那条上升沿**要清一次当前表情。
+         *
+         * L0/L1 期间表情还会被后续 cue 改掉；L2+ 全部 presentation cue 被丢，
+         * 中途换上的表情再也等不到覆盖它的下一条 emotion——只能在进档瞬间主动
+         * 收回立绘。只在跨越 2 的边沿清一次：L2→L3 或 L2 期间重复清，只会在
+         * 恢复期把刚挂上的新表情误抹掉。
+         */
+        fun shouldClearEmotion(prevLevel: Int, level: Int): Boolean =
+            prevLevel < 2 && level >= 2
     }
 }

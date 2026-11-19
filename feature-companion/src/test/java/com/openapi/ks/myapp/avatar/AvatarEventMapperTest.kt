@@ -67,4 +67,20 @@ class AvatarEventMapperTest {
         assertNull(AvatarEventMapper.mapEmotion(null))
         assertNull(AvatarEventMapper.mapEmotion(""))
     }
+
+    // ---- emotionCommand：UI state → 渲染器指令，null 也是指令（B3）----
+
+    @Test
+    fun `emotionCommand turns a named emotion into Emotion like mapEmotion`() {
+        assertEquals(AvatarCommand.Emotion("shy"), AvatarEventMapper.emotionCommand("Shy"))
+    }
+
+    @Test
+    fun `emotionCommand answers null with an explicit clear, not with nothing`() {
+        // mapEmotion(null) 返回 null 是对的：「emotion 缺失」不该变成一条指令。
+        // 但 UI state 走到 null（比如降级进 L2 后主动清场）时，界面上那张还挂着的
+        // 表情图必须被收回——「没有 emotion」和「不用改画面」是两回事。
+        assertEquals(AvatarCommand.ClearEmotion, AvatarEventMapper.emotionCommand(null))
+        assertEquals(AvatarCommand.ClearEmotion, AvatarEventMapper.emotionCommand(""))
+    }
 }

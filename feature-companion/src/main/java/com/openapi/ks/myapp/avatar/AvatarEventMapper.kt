@@ -38,6 +38,15 @@ object AvatarEventMapper {
         name?.lowercase()?.takeIf { it.isNotBlank() }?.let { AvatarCommand.Emotion(it) }
 
     /**
+     * UI state 的 `emotion` 字段 → 渲染器指令，与 [mapEmotion] 的分工：
+     * mapper 回答「有没有一条 cue」，这里回答「画面该变成什么」。
+     * state 为 null/空串意味着「此刻没有表情」，画面必须回到立绘，
+     * 而不是「什么都不做」——否则降级清场后脸上的旧表情永远下不去。
+     */
+    fun emotionCommand(name: String?): AvatarCommand =
+        mapEmotion(name) ?: AvatarCommand.ClearEmotion
+
+    /**
      * 从数据通道收到的 JSON 字符串里解出事件，解析失败返回 null。
      *
      * 只取两个顶层字符串字段，所以不上 Gson：事件体是固定的短结构，手解析不必

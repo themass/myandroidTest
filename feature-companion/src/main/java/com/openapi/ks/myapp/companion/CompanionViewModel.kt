@@ -496,6 +496,12 @@ class CompanionViewModel(
                         it.copy(incomingCall = ProactiveKind.CALL)
                     }
 
+                    is CompanionEvent.ClearAvatarEmotion -> _state.update {
+                        // 降级进 L2（B3）：表情到 UI state 这一层收回 null，
+                        // 界面那一跳的 LaunchedEffect 会把它翻成 ClearEmotion 指令。
+                        it.copy(emotion = null)
+                    }
+
                     CompanionEvent.TurnDone -> _state.update { st ->
                         st.copy(messages = st.messages.map {
                             if (it.streaming) it.copy(streaming = false) else it
