@@ -167,6 +167,8 @@ data class CallCaption(val text: String, val speaker: String, val streaming: Boo
 @Immutable
 data class CompanionCallState(
     val agentName: String = "",
+    /** 她的声音的人话名字，顶栏名字下面的小标签；null 时不显示。 */
+    val voiceLabel: String? = null,
     val captions: List<String> = emptyList(),
     val speakerCaptions: List<CallCaption> = emptyList(),
     val elapsedSeconds: Long = 0L,
@@ -409,6 +411,7 @@ fun CompanionCallScreen(
     val header: @Composable () -> Unit = {
         CallHeader(
             agentName = state.agentName,
+            voiceLabel = callVoiceChipText(state.voiceLabel),
             connection = state.connection,
             elapsedSeconds = state.elapsedSeconds,
             isMuted = state.isMuted,
@@ -615,6 +618,7 @@ private fun CallBackdrop(
 @Composable
 private fun CallHeader(
     agentName: String,
+    voiceLabel: String? = null,
     connection: CallConnection,
     elapsedSeconds: Long,
     isMuted: Boolean,
@@ -659,6 +663,21 @@ private fun CallHeader(
             } else {
                 Spacer(Modifier.size(40.dp))
             }
+        }
+        if (voiceLabel != null) {
+            // 声音跟形象走：名字下面一枚小标签，告诉用户现在听到的是谁的声音。
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "声音 · $voiceLabel",
+                color = CallColors.TextSecondary,
+                fontSize = 11.sp,
+                maxLines = 1,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(CallColors.Glass)
+                    .border(1.dp, CallColors.GlassBorder, RoundedCornerShape(50))
+                    .padding(horizontal = 10.dp, vertical = 3.dp),
+            )
         }
         Spacer(Modifier.height(6.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
