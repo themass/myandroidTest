@@ -8,6 +8,11 @@ import com.openapi.ks.dh.tao.a2bs.AudioBlendShapePlayer
 import com.openapi.ks.dh.tao.nnr.AvatarTextureView
 import com.openapi.ks.dh.tao.nnr.NnrAvatarRender
 import java.io.File
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 /**
  * Call-page facade over the vendored Tao NNR runtime ([com.openapi.ks.dh.tao]).
@@ -30,7 +35,7 @@ import java.io.File
  */
 class TaoRuntime internal constructor(
     private val env: Env,
-    private val viewBuilder: ViewBuilder? = null,
+    private val viewKit: ViewKit? = null,
 ) {
 
     /** Everything [TaoRuntime] needs from the outside world; tests inject a fake. */
@@ -40,22 +45,27 @@ class TaoRuntime internal constructor(
         fun cacheRoot(): File?
     }
 
-    /** Builds the Tao view from the host passed to [createView]; JVM tests inject a recorder. */
-    internal fun interface ViewBuilder {
-        fun build(host: Context): View?
+    /**
+     * Builds the Tao view from the host + model dir passed to [createView]; JVM tests inject a
+     * recorder. [Built.boot] is the render-boot kick (see [createView]) — null means "nothing to
+     * start", which is what the JVM fakes use.
+     */
+    internal fun interface ViewKit {
+        fun build(host: Context, modelDir: String): Built
     }
 
-    constructor(context: Context) : this(context, AssetStore(context.applicationContext))
+    /** [view] goes into the composition; [boot] starts the async NNR init when invoked. */
+    internal class Built(val view: View?, val boot: (() -> Unit)? = null)
 
-    constructor(context: Context, assetStore: AssetStore) :
-        this(AndroidEnv(assetStore), viewBuilder = null) {
-        appContext = context.applicationContext
-    }
+    constructor(context: Context) :
+        this(AndroidEnv(AssetStore(context.applicationContext)))
 
-    private var appContext: Context? = null
+    constructor(assetStore: AssetStore) : this(AndroidEnv(assetStore))
+
     private var view: AvatarTextureView? = null
     private var render: NnrAvatarRender? = null
     private var released = false
+    private val bootScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     fun availability(): EngineStatus = when {
         released -> EngineStatus(false, REASON_RELEASED)
@@ -68,40 +78,50 @@ class TaoRuntime internal constructor(
      * The Tao avatar view, or null when [availability] is not available.
      *
      * Mirrors upstream MainActivity wiring: point [MHConfig.BASE_DIR] at the model root, build
-     * [AvatarTextureView], attach [NnrAvatarRender] on `NNR_MODEL_DIR`, and kick the async
-     * resource load. Destruction is driven by the view's own surface lifecycle.
+     * [AvatarTextureView], attach [NnrAvatarRender] on `NNR_MODEL_DIR`, and — the part the
+     * stripped MainActivity used to own — kick the async render boot (`waitForInitComplete`,
+     * which creates the native NNR instance once the surface exists). Without that kick the
+     * mesh can never render. A boot failure is logged, not thrown.
      */
     fun createView(host: Context): View? {
         if (!availability().available) return null
         val root = env.cacheRoot() ?: return null
         return try {
             MHConfig.BASE_DIR = root.absolutePath
-            val builder = viewBuilder
-            if (builder != null) {
-                builder.build(host)
-            } else {
-                val textureView = AvatarTextureView(host, null)
-                val nnrRender = NnrAvatarRender(textureView, MHConfig.NNR_MODEL_DIR)
-                nnrRender.setAudioBlendShapePlayer(AudioBlendShapePlayer())
-                view = textureView
-                render = nnrRender
-                textureView
-            }
+            val built = (viewKit ?: defaultKit()).build(host, MHConfig.NNR_MODEL_DIR)
+            built.boot?.invoke()
+            built.view
         } catch (t: Throwable) {
             Log.e(TAG, "createView failed", t)
             null
         }
     }
 
+    private fun defaultKit(): ViewKit = ViewKit { host, modelDir ->
+        val textureView = AvatarTextureView(host, null)
+        val nnrRender = NnrAvatarRender(textureView, modelDir)
+        nnrRender.setAudioBlendShapePlayer(AudioBlendShapePlayer())
+        view = textureView
+        render = nnrRender
+        Built(textureView) {
+            bootScope.launch {
+                runCatching { nnrRender.waitForInitComplete() }
+                    .onFailure { Log.e(TAG, "NNR boot failed", it) }
+            }
+        }
+    }
+
     /**
-     * Drops our references. The NNR native instance itself is destroyed by the view's surface
-     * lifecycle (upstream behaviour) once it leaves the composition; safe to call twice.
+     * Drops our references and cancels a pending boot. The NNR native instance itself is
+     * destroyed by the view's surface lifecycle (upstream behaviour) once it leaves the
+     * composition; safe to call twice.
      */
     fun release() {
         if (released) return
         released = true
         view = null
         render = null
+        bootScope.cancel()
     }
 
     private class AndroidEnv(private val store: AssetStore) : Env {
@@ -145,14 +165,14 @@ class TaoRuntime internal constructor(
             modelsReady: Boolean,
             nativeLoadable: Boolean = true,
             cacheRoot: File? = null,
-            viewBuilder: ViewBuilder? = null,
+            viewKit: ViewKit? = null,
         ): TaoRuntime = TaoRuntime(
             env = object : Env {
                 override fun modelsReady() = modelsReady
                 override fun nativeLoadable() = nativeLoadable
                 override fun cacheRoot(): File? = cacheRoot
             },
-            viewBuilder = viewBuilder,
+            viewKit = viewKit,
         )
     }
 }

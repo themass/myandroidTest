@@ -18,8 +18,6 @@ class TaoRuntimeAvailabilityTest {
 
     private class FakeActivity : Activity()
 
-    private class Seen(val host: Activity)
-
     @Test
     fun createView_null_when_models_missing() {
         val runtime = TaoRuntime.forTest(modelsReady = false)
@@ -40,20 +38,43 @@ class TaoRuntimeAvailabilityTest {
 
     @Test
     fun createView_builds_tao_view_from_the_supplied_host() {
-        val seen = mutableListOf<Seen>()
+        var seenHost: android.content.Context? = null
+        var seenDir: String? = null
         val activity = FakeActivity()
         val runtime = TaoRuntime.forTest(
             modelsReady = true,
             nativeLoadable = true,
             cacheRoot = File("."),
-            viewBuilder = TaoRuntime.ViewBuilder { host ->
-                seen += Seen(host as Activity)
-                null
+            viewKit = TaoRuntime.ViewKit { host, modelDir ->
+                seenHost = host
+                seenDir = modelDir
+                TaoRuntime.Built(null)
             },
         )
-        runtime.createView(activity)
-        assertEquals(1, seen.size)
-        assertSame("Tao view must be built from the createView host", activity, seen.single().host)
+        assertNull(runtime.createView(activity))
+        assertSame("Tao view must be built from the createView host", activity, seenHost)
+        assertTrue(
+            "kit must receive the NNR model dir derived from the cache root, got $seenDir",
+            seenDir?.endsWith("TaoAvatar-NNR-MNN/") == true,
+        )
+    }
+
+    @Test
+    fun createView_starts_the_render_boot() {
+        // Upstream booted NNR from MainActivity.loadNNRModel() -> waitForInitComplete(); the
+        // facade must kick it, or the TextureView shows the placeholder forever (the native NNR
+        // instance is never created — Task-6 review finding 1).
+        var booted = 0
+        val runtime = TaoRuntime.forTest(
+            modelsReady = true,
+            nativeLoadable = true,
+            cacheRoot = File("."),
+            viewKit = TaoRuntime.ViewKit { _, _ ->
+                TaoRuntime.Built(null) { booted++ }
+            },
+        )
+        runtime.createView(FakeActivity())
+        assertEquals("render boot must start so the NNR instance gets created", 1, booted)
     }
 
     @Test

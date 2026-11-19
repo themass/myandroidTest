@@ -25,7 +25,6 @@ class TaoDigitalHumanEngine : DigitalHumanEngine {
     )
 
     private var runtime: TaoRuntime? = null
-    private var viewCreated = false
     private var released = false
 
     override fun bind(spec: AvatarSpec) {}
@@ -41,16 +40,13 @@ class TaoDigitalHumanEngine : DigitalHumanEngine {
         released = true
         runtime?.release()
         runtime = null
-        viewCreated = false
     }
 
     override fun createView(context: Context): View? {
         if (released) return null
         // Pass the Activity-bearing host context through — the TextureView and its Choreographer
         // rendering loop attach to it.
-        val view = runtime(context).createView(context) ?: return null
-        viewCreated = true
-        return view
+        return runtime(context).createView(context)
     }
 
     override fun availability(context: Context): DhEngineAvailability {
@@ -68,5 +64,5 @@ class TaoDigitalHumanEngine : DigitalHumanEngine {
     }
 
     private fun runtime(context: Context): TaoRuntime =
-        runtime ?: TaoRuntime(context, DhLabBootstrap.assetStore(context)).also { runtime = it }
+        runtime ?: TaoRuntime(DhLabBootstrap.assetStore(context)).also { runtime = it }
 }
