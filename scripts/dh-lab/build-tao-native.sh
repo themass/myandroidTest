@@ -17,7 +17,7 @@ BUILD="${TAO_BUILD_DIR:-/tmp/tao-build}"
 OUT="$REPO_ROOT/.superpowers/dh-packs/tao-build-arm64-v8a"
 
 [ -d "$SRC/cpp" ] || { echo "!! 找不到 $SRC/cpp（MNN_ROOT 对吗？）"; exit 1; }
-[ -x "$NDK_DIR/build/cmake/android.toolchain.cmake" ] || { echo "!! NDK 不存在: $NDK_DIR"; exit 1; }
+[ -f "$NDK_DIR/build/cmake/android.toolchain.cmake" ] || { echo "!! NDK 不存在: $NDK_DIR"; exit 1; }
 for zip in native-libs-arm64-v8a.zip; do
   [ -s "$REPO_ROOT/.superpowers/dh-packs/$zip" ] || { echo "!! 先跑 scripts/dh-lab/seed-assets.sh 里 fetch 的同名下载，或手动放 $zip"; exit 1; }
 done
@@ -28,6 +28,17 @@ unzip -q -o "$REPO_ROOT/.superpowers/dh-packs/native-libs-arm64-v8a.zip" 'app/sr
 mkdir -p "$SRC/libs/MNN" "$SRC/libs/NNR"
 rsync -a "$SRC/libs-staging/app/src/main/libs/" "$SRC/libs/"
 rm -rf "$SRC/libs-staging"
+
+# TAO_RENDER_TYPE=OPENGL：上游 nnr_avatar_render.cpp 写死 NNRRenderType_VULKAN，
+# 在 Mali（vivo 设备）上 Vulkan 着色器编译器 SIGSEGV（fault addr 0x44，
+# libbishenggpucompiler_v200.so）。构建期把两处改成 OPENGL，退出时还原上游源码。
+RENDER_CPP="$SRC/jni/nnr_avatar_render.cpp"
+if [ "${TAO_RENDER_TYPE:-VULKAN}" = "OPENGL" ]; then
+  cp "$RENDER_CPP" "$RENDER_CPP.orig"
+  trap 'mv -f "$RENDER_CPP.orig" "$RENDER_CPP"' EXIT
+  sed -i '' 's/NNRRenderType_VULKAN/NNRRenderType_OPENGL/g' "$RENDER_CPP"
+  echo "== 渲染后端: OPENGL（已临时改写 $RENDER_CPP）"
+fi
 
 # 官方 zip 里没有 sherpa 依赖头？——不需要：本模块只编 common/a2bs/tts/llm/jni，
 # 不编 sherpa。上游 cpp/project/include（PROJECT_INCLUDE_DIR）缺失也无妨，没有源文件引用它。

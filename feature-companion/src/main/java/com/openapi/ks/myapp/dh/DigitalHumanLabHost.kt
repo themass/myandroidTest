@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -109,11 +110,17 @@ fun DigitalHumanLabHost(
     // 首帧不在这里切（初始引擎已由 effectiveEngineId 决定）——尤其被熔断的持久偏好
     // 绝不能自动重试，否则每次冷启动都崩一次。只有用户随后**主动**选中被熔断的引擎
     // 才解除隔离、再试一次（再崩再熔）。
-    val initialEngineId = remember { engineId }
+    // 只跳过「首次组合」；之后用户选回最初那个 id（例如：持久偏好是 Duix 但被熔断降级成
+    // SIMPLE，用户先点 Live2D 再点回 Duix）必须照常切换。以前拿 initialEngineId 比较，
+    // 选回初始 id 会被当成「没变」吞掉，菜单打勾 Duix、屏幕却还是 Live2D。
+    var lastRequestedEngineId by remember { mutableStateOf(engineId) }
     LaunchedEffect(engineId) {
-        if (engineId == initialEngineId) return@LaunchedEffect
+        if (engineId == lastRequestedEngineId) return@LaunchedEffect
+        val previous = lastRequestedEngineId
+        lastRequestedEngineId = engineId
         watchdog.clear(engineId)
-        val target = if (watchdog.isQuarantined(engineId)) DhEngineId.SIMPLE else engineId
+        val target = DhEngineSwapPolicy.target(engineId, previous, watchdog::isQuarantined)
+            ?: return@LaunchedEffect
         val row = DhEngineRegistry.available(context).firstOrNull { it.id == target }
         if (row?.available != true) return@LaunchedEffect
         swapping = true
@@ -141,7 +148,10 @@ fun DigitalHumanLabHost(
                 )
             }
             // Duix / Live2D / Tao：Android View 视口
-            else -> {
+            // key(e)：AndroidView 的 factory 只在首次组合时执行。Live2D→Duix 这类
+            // View 引擎之间切换若不换 key，屏幕上还是上一个（已 release、冻结）的 View，
+            // 新引擎在后台收 PCM 却没有画面——表现为「唇形一直闭口」。
+            else -> key(e) {
                 val view = remember(e) { e.createView(context) }
                 if (view != null) {
                     AndroidView(
