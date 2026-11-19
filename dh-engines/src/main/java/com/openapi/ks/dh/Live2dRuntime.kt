@@ -15,14 +15,15 @@ import java.io.File
  *
  * Models are expected under [AssetStore] `cacheRoot(EngineAssets.LIVE2D)` (adb-push for now;
  * the LIVE2D AssetManifest entry is empty until a public ATRI URL exists). The JNI wrapper
- * `libchatwaifu-live2d.so` is **not** built by this module (no NDK in this task); only the
- * Cubism Core arm64 `.so` is packaged. A missing wrapper shows up as [availability] =
- * unavailable ([REASON_NATIVE_MISSING]).
+ * `libchatwaifu-live2d.so` ships as a stock arm64 prebuilt in the same cache layout as Duix's
+ * native pack (`cacheRoot(LIVE2D)/native-libs/<abi>`) and is loaded by absolute path via
+ * [Live2dNativeLoader]; a missing wrapper shows up as [availability] = unavailable
+ * ([REASON_NATIVE_MISSING]).
  *
- * The native library must export JNI symbols for the renamed class, i.e.
- * `Java_com_openapi_ks_dh_live2d_JniBridgeJava_*` (upstream prebuilts export
- * `Java_com_chatwaifu_live2d_JniBridgeJava_*`), and its `FindClass` must target
- * `com/openapi/ks/dh/live2d/JniBridgeJava`.
+ * The stock .so keeps upstream symbols `Java_com_chatwaifu_live2d_JniBridgeJava_*` and
+ * FindClass-es `com/chatwaifu/live2d/JniBridgeJava` inside JNI_OnLoad — the vendored mirror
+ * class under that FQN carries the native surface, and our
+ * [com.openapi.ks.dh.live2d.JniBridgeJava] delegates to it (Task-6 ruling, as for Duix).
  *
  * [createView] takes the host Context (typically the Activity / composition context from
  * `DigitalHumanEngine.createView`) — never the application context — so Activity resolution
@@ -143,15 +144,16 @@ class Live2dRuntime internal constructor(
         private val store: AssetStore,
         private val modelDirName: String,
     ) : Env {
+        // Same ruling as DuixRuntime: the stock .so lives in the AssetStore cache
+        // (cacheRoot(LIVE2D)/native-libs/<abi>) and is dlopen'd by absolute path —
+        // loadLibrary would only see APK-bundled libs. Its JNI_OnLoad FindClass-es
+        // com/chatwaifu/live2d/JniBridgeJava, vendored in this module with that FQN.
         private val nativeOk: Boolean by lazy {
-            try {
-                System.loadLibrary(NATIVE_LIB)
-                true
-            } catch (_: UnsatisfiedLinkError) {
-                false
-            } catch (_: SecurityException) {
-                false
-            }
+            val root = cacheRoot()
+            val abi = android.os.Build.SUPPORTED_ABIS.firstOrNull {
+                Live2dNativeLoader.nativeDirFor(root, it).isDirectory
+            } ?: android.os.Build.SUPPORTED_ABIS.firstOrNull() ?: "arm64-v8a"
+            Live2dNativeLoader.tryLoad(Live2dNativeLoader.nativeDirFor(root, abi))
         }
 
         override fun cacheRoot(): File = store.cacheRoot(EngineAssets.LIVE2D)
@@ -172,8 +174,6 @@ class Live2dRuntime internal constructor(
         const val REASON_NOT_DOWNLOADED = "未下载"
         const val REASON_NATIVE_MISSING = "native 库缺失"
         private const val REASON_RELEASED = "已释放"
-        /** JNI wrapper built by ChatWaifu's CMake; not packaged by this module. */
-        private const val NATIVE_LIB = "chatwaifu-live2d"
         private const val TAG = "Live2dRuntime"
 
         /**

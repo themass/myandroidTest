@@ -7,131 +7,97 @@
 
 package com.openapi.ks.dh.live2d;
 
+/**
+ * Vendored Live2D bridge (our package). The JNI binding itself lives in
+ * {@code com.chatwaifu.live2d.JniBridgeJava} — the exact FQN the stock
+ * libchatwaifu-live2d.so exports and FindClass-es inside JNI_OnLoad (same ruling as
+ * ai.guiji.duix.DuixNcnn for Duix: vendored Java keeps our packages, the stock .so keeps
+ * its symbols).
+ *
+ * Do NOT add a {@code System.loadLibrary} static block: the library is dlopen'd by
+ * absolute path from the AssetStore cache via {@code com.openapi.ks.dh.Live2dNativeLoader},
+ * and {@code Live2dRuntime} gates availability on that load. Calling a native here before
+ * the loader ran dies with UnsatisfiedLinkError.
+ *
+ * Live2dNativeBridgeTest pins this delegation against the .so's export table.
+ */
+
 import android.app.Activity;
 import android.content.Context;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 public class JniBridgeJava {
 
-    private static final String LIBRARY_NAME = "chatwaifu-live2d";
-    private static Activity _activityInstance;
-    private static Context _context;
-    private static Live2DLoadInterface _loadCallback;
-
-
-    static {
-        System.loadLibrary(LIBRARY_NAME);
+    private JniBridgeJava() {
     }
 
-    // Native -----------------------------------------------------------------
+    // Native (delegates to the upstream-FQN mirror) --------------------------
 
-    public static native void nativeOnStart();
+    public static void nativeOnStart() { com.chatwaifu.live2d.JniBridgeJava.nativeOnStart(); }
 
-    public static native void nativeOnPause();
+    public static void nativeOnPause() { com.chatwaifu.live2d.JniBridgeJava.nativeOnPause(); }
 
-    public static native void nativeOnStop();
+    public static void nativeOnStop() { com.chatwaifu.live2d.JniBridgeJava.nativeOnStop(); }
 
-    public static native void nativeOnDestroy();
+    public static void nativeOnDestroy() { com.chatwaifu.live2d.JniBridgeJava.nativeOnDestroy(); }
 
-    public static native void nativeOnSurfaceCreated();
+    public static void nativeOnSurfaceCreated() { com.chatwaifu.live2d.JniBridgeJava.nativeOnSurfaceCreated(); }
 
-    public static native void nativeOnSurfaceChanged(int width, int height);
+    public static void nativeOnSurfaceChanged(int width, int height) { com.chatwaifu.live2d.JniBridgeJava.nativeOnSurfaceChanged(width, height); }
 
-    public static native void nativeOnDrawFrame();
+    public static void nativeOnDrawFrame() { com.chatwaifu.live2d.JniBridgeJava.nativeOnDrawFrame(); }
 
-    public static native void nativeOnTouchesBegan(float pointX, float pointY);
+    public static void nativeOnTouchesBegan(float pointX, float pointY) { com.chatwaifu.live2d.JniBridgeJava.nativeOnTouchesBegan(pointX, pointY); }
 
-    public static native void nativeOnTouchesEnded(float pointX, float pointY);
+    public static void nativeOnTouchesEnded(float pointX, float pointY) { com.chatwaifu.live2d.JniBridgeJava.nativeOnTouchesEnded(pointX, pointY); }
 
-    public static native void nativeOnTouchesMoved(float pointX, float pointY);
+    public static void nativeOnTouchesMoved(float pointX, float pointY) { com.chatwaifu.live2d.JniBridgeJava.nativeOnTouchesMoved(pointX, pointY); }
 
-    public static native void nativeProjectChangeTo(String modelPath, String modelJsonFileName);
+    public static void nativeProjectChangeTo(String modelPath, String modelJsonFileName) { com.chatwaifu.live2d.JniBridgeJava.nativeProjectChangeTo(modelPath, modelJsonFileName); }
 
-    public static native void nativeApplyExpression(String expressionName);
+    public static void nativeApplyExpression(String expressionName) { com.chatwaifu.live2d.JniBridgeJava.nativeApplyExpression(expressionName); }
 
-    public static native void needRenderBack(boolean back);
+    public static void needRenderBack(boolean back) { com.chatwaifu.live2d.JniBridgeJava.needRenderBack(back); }
 
-    public static native void nativeProjectScale(float scale);
+    public static void nativeProjectScale(float scale) { com.chatwaifu.live2d.JniBridgeJava.nativeProjectScale(scale); }
 
-    public static native void nativeProjectTransformX(float transform);
+    public static void nativeProjectTransformX(float transform) { com.chatwaifu.live2d.JniBridgeJava.nativeProjectTransformX(transform); }
 
-    public static native void nativeProjectTransformY(float transform);
+    public static void nativeProjectTransformY(float transform) { com.chatwaifu.live2d.JniBridgeJava.nativeProjectTransformY(transform); }
 
-    public static native void nativeAutoBlinkEyes(boolean enabled);
+    public static void nativeAutoBlinkEyes(boolean enabled) { com.chatwaifu.live2d.JniBridgeJava.nativeAutoBlinkEyes(enabled); }
 
-    public static native void nativeProjectMouthForm(float value);
+    public static void nativeProjectMouthForm(float value) { com.chatwaifu.live2d.JniBridgeJava.nativeProjectMouthForm(value); }
 
-    public static native void nativeProjectMouthOpenY(float value);
+    public static void nativeProjectMouthOpenY(float value) { com.chatwaifu.live2d.JniBridgeJava.nativeProjectMouthOpenY(value); }
 
-    // Java -----------------------------------------------------------------
+    // Java (forwarded to the mirror — JNI_OnLoad caches IDs on the mirror) ---
 
     public static void SetContext(Context context) {
-        _context = context;
+        com.chatwaifu.live2d.JniBridgeJava.SetContext(context);
     }
 
     public static void SetActivityInstance(Activity activity) {
-        _activityInstance = activity;
+        com.chatwaifu.live2d.JniBridgeJava.SetActivityInstance(activity);
     }
 
     public static void setLive2DLoadInterface(Live2DLoadInterface loadInterface) {
-        _loadCallback = loadInterface;
-    }
-
-    public static byte[] LoadFile(String filePath) {
-        InputStream fileData = null;
-        try {
-            if (filePath.startsWith("/")) {
-                fileData = new FileInputStream(filePath);
-            } else {
-                fileData = _context.getAssets().open(filePath);
-            }
-            int fileSize = fileData.available();
-            byte[] fileBuffer = new byte[fileSize];
-            fileData.read(fileBuffer, 0, fileSize);
-            return fileBuffer;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            try {
-                if (fileData != null) {
-                    fileData.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (loadInterface == null) {
+            com.chatwaifu.live2d.JniBridgeJava.setCallback(null);
+            return;
         }
-    }
+        com.chatwaifu.live2d.JniBridgeJava.setCallback(new com.chatwaifu.live2d.JniBridgeJava.Callback() {
+            @Override
+            public void onLoadError() { loadInterface.onLoadError(); }
 
-    public static void MoveTaskToBack() {
-        _activityInstance.moveTaskToBack(true);
-    }
+            @Override
+            public void onLoadDone() { loadInterface.onLoadDone(); }
 
-    public static void OnLoadError() {
-        if (_loadCallback != null) {
-            _loadCallback.onLoadError();
-        }
-    }
+            @Override
+            public void onLoadOneMotion(String motionGroup, int index, String motionName) { loadInterface.onLoadOneMotion(motionGroup, index, motionName); }
 
-    public static void OnLoadDone() {
-        if (_loadCallback != null) {
-            _loadCallback.onLoadDone();
-        }
-    }
-
-    public static void OnLoadOneMotion(String motionGroup, int index, String motionName) {
-        if (_loadCallback != null) {
-            _loadCallback.onLoadOneMotion(motionGroup, index, motionName);
-        }
-    }
-
-    public static void OnLoadOneExpression(String expressionName, int index) {
-        if (_loadCallback != null) {
-            _loadCallback.onLoadOneExpression(expressionName, index);
-        }
+            @Override
+            public void onLoadOneExpression(String expressionName, int index) { loadInterface.onLoadOneExpression(expressionName, index); }
+        });
     }
 
     public interface Live2DLoadInterface {

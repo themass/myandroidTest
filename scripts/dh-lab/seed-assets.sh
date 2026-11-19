@@ -81,6 +81,14 @@ if echo " $ENGINES " | grep -q " duix "; then
 fi
 
 if echo " $ENGINES " | grep -q " live2d "; then
+  if [ -f "$PACKS/live2d-native-arm64-v8a/libchatwaifu-live2d.so" ]; then
+    # 与 Duix 的 native 包同布局：Live2dNativeLoader 按绝对路径 dlopen 这里。
+    "${ADB[@]}" push "$PACKS/live2d-native-arm64-v8a/libchatwaifu-live2d.so" "$DEVICE_TMP/" >/dev/null
+    ra "mkdir -p $DATA/files/dh-engines/live2d/native-libs/arm64-v8a && cp $DEVICE_TMP/libchatwaifu-live2d.so $DATA/files/dh-engines/live2d/native-libs/arm64-v8a/"
+    echo "== live2d native-libs/arm64-v8a/libchatwaifu-live2d.so 已推送"
+  else
+    echo "!! 跳过 Live2D native：把 libchatwaifu-live2d.so 放到 $PACKS/live2d-native-arm64-v8a/"
+  fi
   if [ -d "$PACKS/ATRI" ]; then
     local_stage="$DEVICE_TMP/live2d-ATRI"
     "${ADB[@]}" shell "rm -rf '$local_stage' && mkdir -p '$local_stage'"
