@@ -18,6 +18,19 @@
 下载清单在 `dh-engines/src/main/java/com/openapi/ks/dh/AssetManifest.kt`，
 每个包解压完后写 marker 文件才算就绪（原子安装）。
 
+### 开发机代下载（推荐，绕开设备网络）
+
+设备到 GitHub 的下载可能很慢或超时。用脚本在开发机下载（缓存在
+`.superpowers/dh-packs/`，不进 git）再 adb 推到手机，布局和 marker 与
+AssetStore 下载路径完全一致：
+
+```bash
+scripts/dh-lab/seed-assets.sh            # 三家全部
+scripts/dh-lab/seed-assets.sh duix tao   # 只推指定引擎
+```
+
+要求 debuggable 包（经 `run-as` 写入应用私有目录）。推完冷启动 App 即认。
+
 ## Duix
 
 清单（自动下载）：
@@ -28,16 +41,8 @@
 | `Oliver` 角色模型 | `https://github.com/duixcom/Duix.mobile/releases/download/v2.0.1/Oliver.zip` | `…/dh-engines/duix/model/Oliver/` |
 
 运行时读取路径即上表（`DuixRuntime` 不再读上游
-`getExternalFilesDir("duix")`）。adb 推送代替下载：
-
-```bash
-adb push gj_dh_res /sdcard/Android/data/<appId>/files/dh-engines/duix/model/gj_dh_res
-```
-
-注意：直接 adb 推送的目录没有 marker，`AssetStore.isReady` 会判未就绪——
-调试期以菜单内「立即下载」走下载链路为准；native 库（`libgjduix.so`，需按
-`Java_com_openapi_ks_dh_duix_*` 符号重编，见 `THIRD_PARTY.md`）当前未打包，
-缺它时引擎显示「native 库缺失」。
+`getExternalFilesDir("duix")`）。调试期用 `scripts/dh-lab/seed-assets.sh duix`
+代替设备端下载（见上）。
 
 音频策略：适配器 `setVolume(0)`，只驱动口型；LiveKit 扬声器出声。
 
@@ -46,12 +51,9 @@ adb push gj_dh_res /sdcard/Android/data/<appId>/files/dh-engines/duix/model/gj_d
 Cubism Core 是**唯一**随仓库提交的 `.so` 例外：
 `dh-engines/src/main/jniLibs/arm64-v8a/libLive2DCubismCore.so`（上游字节一致）。
 
-ATRI 模型无公开下载 URL（清单故意留空，`ensure()` 报明确原因）。开发路径为
-adb 推送：
-
-```bash
-adb push ATRI /sdcard/Android/data/<appId>/files/dh-engines/live2d/ATRI
-```
+ATRI 模型无公开下载 URL（清单故意留空，`ensure()` 报明确原因）。开发路径：把
+模型目录放到 `.superpowers/dh-packs/ATRI/` 后运行 `scripts/dh-lab/seed-assets.sh live2d`
+（推到 `cacheRoot(LIVE2D)/ATRI/`）。
 
 目录内需有 `ATRI.model3.json`（`Live2dRuntime.DEFAULT_MODEL_DIR = "ATRI"`）。
 不接 VITS / Sherpa。
@@ -68,12 +70,9 @@ adb push ATRI /sdcard/Android/data/<appId>/files/dh-engines/live2d/ATRI
 
 NNR 网格与 UniTalker A2BS 模型上游只提供 ModelScope downloader SDK（repo
 `MNN/TaoAvatar-NNR-MNN`、`MNN/UniTalker-MNN`），无稳定单包 URL，因此清单不钉；
-开发路径 adb 推送到模型目录，`TaoRuntime.modelsReady()` 直接检查这两个目录：
-
-```bash
-adb push TaoAvatar-NNR-MNN /sdcard/Android/data/<appId>/files/dh-engines/tao/TaoAvatar-NNR-MNN
-adb push UniTalker-MNN /sdcard/Android/data/<appId>/files/dh-engines/tao/UniTalker-MNN
-```
+开发路径：把两个模型目录放到 `.superpowers/dh-packs/` 下后运行
+`scripts/dh-lab/seed-assets.sh tao`，推到 `cacheRoot(TAO)/<模型名>/`，
+`TaoRuntime.modelsReady()` 直接检查这两个目录存在。
 
 JNI owner `libtaoavatar.so` 同样需按 `Java_com_openapi_ks_dh_tao_nnr_*` 符号
 重编（见 `THIRD_PARTY.md`），当前未打包：缺它时显示「native 库缺失」。
