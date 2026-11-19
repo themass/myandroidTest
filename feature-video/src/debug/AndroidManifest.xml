@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  仅调试包：把实验播放页导出，方便 adb 直接拉起做回归验证。
+  正式包不合并这个 manifest，新页面保持不导出。
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application>
+        <activity
+            android:name="com.openapi.feature.video.prototype.NewVideoShowActivity"
+            android:exported="true"
+            tools:replace="android:exported" />
+    </application>
+</manifest>

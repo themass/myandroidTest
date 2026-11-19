@@ -8,6 +8,8 @@ apply from: rootProject.file('gradle/android-library.gradle')
 
 android {
     namespace = 'com.openapi.feature.video'
+    // Only the debug-only Screening Activity uses these shared, offline sample assets.
+    sourceSets.debug.assets.srcDir(rootProject.file('docs/design/video-suite-prototype/media'))
     buildFeatures {
         compose = true
         viewBinding = true

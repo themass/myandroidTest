@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  新播放页专用主题：继承 AppTheme，但把系统栏改成播放页的底色，
+  否则会带出主页的橙色状态栏，播放页顶部与设计稿的 #101519 不一致。
+-->
+<resources>
+
+    <style name="NewPlayerTheme" parent="@style/AppTheme">
+        <item name="android:statusBarColor">@android:color/black</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+</resources>

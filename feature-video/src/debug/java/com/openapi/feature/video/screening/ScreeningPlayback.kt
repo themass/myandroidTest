@@ -1,0 +1,434 @@
+package com.openapi.feature.video.screening
+
+import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.PlayerView
+import com.openapi.cast.DlnaDevice
+import com.openapi.cast.DlnaDiscoveryCallback
+import com.openapi.cast.JavaCaster
+import com.openapi.feature.video.subtitle.local.ScreeningCaption
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.InputStreamReader
+
+internal data class ScreeningSource(val title: String, val description: String, val asset: String? = null, val uri: Uri? = null)
+
+internal fun documentName(context: Context, uri: Uri): String = runCatching {
+    context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+        ?.use { if (it.moveToFirst()) it.getString(0) else null }
+}.getOrNull() ?: "本地文件"
+
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSource, channel: String, initial: Long,
+                               onExit: () -> Unit, onSave: (Long) -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val store = remember { context.getSharedPreferences("screening-preview", 0) }
+    val id = source.asset ?: source.uri.toString()
+    val player = remember {
+        ExoPlayer.Builder(context).build().apply {
+            setMediaItem(MediaItem.fromUri(source.uri ?: Uri.parse("asset:///${source.asset}.mp4")))
+            if (initial in 1 until SAMPLE_MS) seekTo(initial)
+            prepare()
+        }
+    }
+    var playing by remember { mutableStateOf(false) }
+    var position by remember { mutableLongStateOf(initial) }
+    var width by remember { mutableLongStateOf(if (source.asset != null) SAMPLE_MS else 0L) }
+    var dragging by remember { mutableStateOf<Float?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var full by remember { mutableStateOf(false) }
+    var locked by remember { mutableStateOf(false) }
+    var chrome by remember { mutableStateOf(true) }
+    var interaction by remember { mutableIntStateOf(0) }
+    var panel by remember { mutableStateOf<String?>(null) }
+    var captions by remember { mutableStateOf<ScreeningCaption?>(null) }
+    var demo by remember { mutableStateOf<ScreeningCaption?>(null) }
+    var captionName by remember { mutableStateOf("") }
+    var captionSource by remember { mutableIntStateOf(0) }
+    var offset by remember { mutableIntStateOf(0) }
+    var info by remember { mutableStateOf("") }
+    var speed by remember { mutableFloatStateOf(1f) }
+    var danmaku by remember { mutableStateOf(false) }
+    var fill by remember { mutableStateOf(false) }
+    var liked by remember { mutableStateOf(store.getBoolean("favorite:$id", false)) }
+    val discovery = remember { DlnaDiscoveryCallback() }
+    val caster = remember { JavaCaster(context) }
+    var devices by remember { mutableStateOf<List<DlnaDevice>>(emptyList()) }
+    var scanning by remember { mutableStateOf(false) }
+    fun refresh() {
+        position = player.currentPosition.coerceAtLeast(0L)
+        if (player.duration > 0) width = player.duration
+        playing = player.isPlaying
+    }
+    fun jump(delta: Long) {
+        player.seekTo((player.currentPosition + delta).coerceIn(0, width)); refresh(); interaction++
+    }
+    fun setFull(value: Boolean) { full = value; locked = false; chrome = true; activity.immersive(value) }
+    BackHandler {
+        when { panel != null -> panel = null; locked -> { locked = false; interaction++ }; full -> setFull(false); else -> onExit() }
+    }
+    DisposableEffect(player) {
+        val changes = object : Player.Listener {
+            override fun onEvents(player: Player, events: Player.Events) = refresh()
+            override fun onPlayerError(exception: PlaybackException) { error = "无法播放这个视频。请换一个文件或重试。" }
+        }
+        val lifecycle = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_STOP) player.pause() }
+        player.addListener(changes)
+        activity.lifecycle.addObserver(lifecycle)
+        onDispose {
+            onSave(if (player.playbackState == Player.STATE_ENDED) width else player.currentPosition.coerceAtLeast(0))
+            activity.lifecycle.removeObserver(lifecycle)
+            player.removeListener(changes)
+            player.release(); discovery.close(); caster.close()
+            if (full) activity.immersive(false)
+        }
+    }
+    LaunchedEffect(player) { while (true) { refresh(); delay(125) } }
+    LaunchedEffect(full, playing, locked, panel, interaction) {
+        if (full && playing && !locked && panel == null && chrome) { delay(3500); chrome = false }
+    }
+    val picker = rememberLauncherForActivityResult(OpenDocument()) { uri ->
+        uri?.let {
+            scope.launch {
+                val result = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val name = documentName(context, it)
+                        val input = checkNotNull(context.contentResolver.openInputStream(it))
+                        val track = InputStreamReader(input, Charsets.UTF_8.newDecoder()).use(::ScreeningCaption)
+                        name to track
+                    }
+                }
+                result.onSuccess { pair ->
+                    captions = pair.second; captionName = pair.first; captionSource = 2; offset = 0; info = "已导入：${pair.first}"
+                }.onFailure { info = "读取失败：请选择 UTF-8 的 SRT 或 WebVTT。" }
+            }
+        }
+    }
+    // 演示字幕是一份真实的 WebVTT，走和导入文件完全相同的解析路径，不是写死的字符串
+    LaunchedEffect(source.asset) {
+        if (source.asset == null) return@LaunchedEffect
+        demo = withContext(Dispatchers.IO) {
+            runCatching {
+                context.assets.open("screening.vtt").use { stream ->
+                    InputStreamReader(stream, Charsets.UTF_8.newDecoder()).use(::ScreeningCaption)
+                }
+            }.getOrNull()
+        }
+    }
+    val cue = when (captionSource) {
+        1 -> demo?.at(position, offset).orEmpty()
+        2 -> captions?.at(position, offset).orEmpty()
+        else -> ""
+    }
+    val seekBlock: @Composable () -> Unit = {
+        Column {
+            Slider(
+                value = dragging ?: if (width > 0) (position.toFloat() / width).coerceIn(0f, 1f) else 0f,
+                onValueChange = { dragging = it; interaction++ },
+                onValueChangeFinished = {
+                    dragging?.let { player.seekTo((width * it).toLong()); refresh() }
+                    dragging = null
+                },
+                enabled = width > 0,
+                modifier = Modifier.fillMaxWidth().height(34.dp),
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("${time(dragging?.let { (it * width).toLong() } ?: position)} / ${time(width)}", color = Muted, fontSize = 12.sp)
+                Spacer(Modifier.weight(1f))
+                IconButton(onClick = { setFull(!full) }) {
+                    Icon(if (full) Icons.Default.FullscreenExit else Icons.Default.Fullscreen, if (full) "退出全屏" else "全屏")
+                }
+            }
+        }
+    }
+    val toolsRow: @Composable () -> Unit = {
+        Row(Modifier.fillMaxWidth().background(Lift, Tile), horizontalArrangement = Arrangement.SpaceEvenly) {
+            listOf(
+                "字幕" to Icons.Default.Subtitles,
+                (if (speed == 1f) "倍速" else "${speed}×") to Icons.Default.Speed,
+                "弹幕" to Icons.Default.ChatBubbleOutline,
+                "更多" to Icons.Default.MoreHoriz,
+            ).forEachIndexed { index, (name, picture) ->
+                Column(
+                    Modifier.weight(1f).heightIn(min = 51.dp).clip(Tile).clickable {
+                        info = ""; panel = if (index == 1) "倍速" else name
+                    },
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(picture, null, Modifier.size(17.dp), tint = if (index == 0 && captionSource != 0 || index == 2 && danmaku) Mint else White)
+                    Text(name, fontSize = 11.sp, maxLines = 1)
+                }
+            }
+        }
+    }
+    val favorRow: @Composable () -> Unit = {
+        Row(Modifier.background(Color(0xFF243A3F), Tile).padding(horizontal = 5.dp)) {
+            TextButton(onClick = { liked = !liked; store.edit().putBoolean("favorite:$id", liked).apply() }) {
+                Icon(if (liked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, null, Modifier.size(16.dp))
+                Text(if (liked) " 已收藏" else " 收藏")
+            }
+            TextButton(onClick = {
+                panel = "电视投屏"; info = ""; devices = emptyList(); scanning = true
+                discovery.discover { devices = it; scanning = false }
+            }) {
+                Icon(Icons.Default.Cast, null, Modifier.size(17.dp)); Text(" 电视投屏")
+            }
+        }
+    }
+    Column(Modifier.fillMaxSize().background(Ink).then(
+        if (!full) Modifier.safeDrawingPadding().verticalScroll(rememberScrollState()) else Modifier
+    )) {
+        Box(Modifier.fillMaxWidth().then(if (full) Modifier.weight(1f) else Modifier.aspectRatio(16f / 10)).background(Color.Black)) {
+            AndroidView(
+                factory = { ctx -> PlayerView(ctx).apply { useController = false; this.player = player } },
+                update = { it.resizeMode = if (fill) AspectRatioFrameLayout.RESIZE_MODE_ZOOM else AspectRatioFrameLayout.RESIZE_MODE_FIT },
+                modifier = Modifier.matchParentSize(),
+            )
+            Box(Modifier.matchParentSize().pointerInput(locked, full) {
+                detectTapGestures(
+                    onTap = { if (!locked) { chrome = !chrome; interaction++ } },
+                    onDoubleTap = { tap ->
+                        if (!locked) { jump(if (tap.x < size.width / 2) -10_000 else 10_000); chrome = true }
+                    },
+                )
+            })
+            if (danmaku && position in 2000..7000) {
+                Text(
+                    "这一幕太美了",
+                    Modifier.align(Alignment.TopEnd).padding(top = 65.dp, end = 30.dp)
+                        .background(Ink.copy(alpha = .8f), Tile).padding(6.dp),
+                    color = White,
+                )
+            }
+            if (cue.isNotEmpty()) {
+                Text(
+                    cue,
+                    Modifier.align(Alignment.BottomCenter)
+                        .padding(bottom = if (full && chrome && !locked) 137.dp else 14.dp, start = 24.dp, end = 24.dp)
+                        .background(Color.Black.copy(alpha = .78f), RoundedCornerShape(5.dp))
+                        .padding(horizontal = 9.dp, vertical = 4.dp),
+                    color = White, textAlign = TextAlign.Center, maxLines = 3, overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if ((chrome || !playing) && !locked) {
+                Row(
+                    Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = .7f), Color.Transparent)))
+                        .windowInsetsPadding(if (full) WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal) else WindowInsets(0, 0, 0, 0))
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ScreenIcon(Icons.AutoMirrored.Filled.ArrowBack, if (full) "退出全屏" else "返回列表", {
+                        if (full) setFull(false) else onExit()
+                    })
+                    if (full) {
+                        Text(
+                            source.title,
+                            Modifier.weight(1f).padding(start = 10.dp),
+                            color = White, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        )
+                        ScreenIcon(Icons.Default.Lock, "锁定控件", { locked = true })
+                    }
+                }
+                Row(
+                    Modifier.align(Alignment.Center).offset(y = if (full) (-28).dp else 0.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    ScreenIcon(Icons.Default.Replay10, "快退 10 秒", { jump(-10_000) })
+                    ScreenIcon(
+                        if (playing) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        if (playing) "暂停" else "播放",
+                        { if (player.isPlaying) player.pause() else { if (player.playbackState == Player.STATE_ENDED) player.seekTo(0); player.play() }; refresh(); interaction++ },
+                        primary = true,
+                    )
+                    ScreenIcon(Icons.Default.Forward10, "快进 10 秒", { jump(10_000) })
+                }
+                if (full) {
+                    Column(
+                        Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                            .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = .88f))))
+                            .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
+                            .padding(horizontal = 20.dp, vertical = 8.dp),
+                    ) {
+                        seekBlock()
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Box(Modifier.weight(1f)) { toolsRow() }
+                            favorRow()
+                        }
+                    }
+                }
+            }
+            if (locked) {
+                TextButton(
+                    onClick = { locked = false; chrome = true; interaction++ },
+                    modifier = Modifier.align(Alignment.TopStart).padding(12.dp),
+                ) { Text("解锁") }
+            }
+        }
+        if (!full) {
+            Column(Modifier.padding(horizontal = 18.dp, vertical = 9.dp)) {
+                seekBlock()
+                Text(channel.ifEmpty { "本周放映" }, color = Mint, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(source.title, color = White, fontSize = 35.sp, lineHeight = 40.sp, fontWeight = FontWeight.Black)
+                Text(source.description, color = Muted, modifier = Modifier.padding(top = 5.dp, bottom = 16.dp))
+                toolsRow()
+                Box(Modifier.fillMaxWidth().padding(top = 10.dp), contentAlignment = Alignment.CenterEnd) { favorRow() }
+                error?.let { message -> Text(message, color = Peach, modifier = Modifier.padding(top = 12.dp)) }
+            }
+        }
+    }
+    panel?.let { current ->
+        ModalBottomSheet(onDismissRequest = { panel = null; interaction++ }, containerColor = Ink) {
+            Column(
+                Modifier.fillMaxWidth().heightIn(max = if (full) 235.dp else 640.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(start = 20.dp, end = 20.dp, bottom = 18.dp),
+            ) {
+                Text(current, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                Spacer(Modifier.height(8.dp))
+                when (current) {
+                    "字幕" -> {
+                        Setting("关闭字幕", "不影响播放和弹幕", captionSource == 0) { captionSource = 0 }
+                        Setting("导入本地字幕", "打开系统文件选择器，支持 SRT / WebVTT") {
+                            // 同时允许 octet-stream：很多 srt 在系统库里没有注册成文本类型，只给 text/*
+                            // 会让选择器把它们过滤掉；给 */* 又会让华为选择器停在「图片」分区
+                            picker.launch(
+                                arrayOf(
+                                    "text/*",
+                                    "application/x-subrip",
+                                    "application/x-subtitle-vtt",
+                                    "application/octet-stream",
+                                ),
+                            )
+                        }
+                        if (captions != null) Setting("已导入的字幕", captionName, captionSource == 2) { captionSource = 2 }
+                        if (source.asset != null) Setting("使用演示字幕", "随包的 WebVTT，第 1 秒开始逐句出现", captionSource == 1) { captionSource = 1 }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("字幕延时", Modifier.weight(1f))
+                            TextButton({ offset = (offset - 500).coerceAtLeast(-60_000) }) { Text("−500 ms") }
+                            Text("${if (offset > 0) "+" else ""}$offset ms", color = Mint)
+                            TextButton({ offset = (offset + 500).coerceAtMost(60_000) }) { Text("+500 ms") }
+                        }
+                        Text("正值让字幕更晚出现。", color = Muted, fontSize = 12.sp)
+                    }
+                    "倍速" -> listOf(.5f, .75f, 1f, 1.25f, 1.5f, 2f).forEach { value ->
+                        Setting("${value}×", if (value == 1f) "正常速度" else "", speed == value) {
+                            speed = value; player.setPlaybackSpeed(value); panel = null
+                        }
+                    }
+                    "弹幕" -> {
+                        Setting("关闭弹幕", "", !danmaku) { danmaku = false }
+                        Setting("演示弹幕", "播放到第 2 秒时显示", danmaku) { danmaku = true }
+                    }
+                    "更多" -> {
+                        Setting("适应画面", "保留原始比例", !fill) { fill = false }
+                        Setting("填满画面", "可能裁掉画面边缘", fill) { fill = true }
+                    }
+                    "电视投屏" -> {
+                        Text("手机和电视须连接同一局域网。字幕和弹幕仅在手机显示。", color = Muted)
+                        if (scanning) Text("正在搜索电视…", Modifier.padding(top = 12.dp))
+                        else if (devices.isEmpty()) Text("未发现可投屏的电视。", Modifier.padding(top = 12.dp))
+                        devices.forEach { device ->
+                            Setting(device.friendlyName, "DLNA") {
+                                info = "正在准备投屏…"
+                                scope.launch {
+                                    val file = withContext(Dispatchers.IO) {
+                                        runCatching {
+                                            val input = source.asset?.let { context.assets.open("$it.mp4") }
+                                                ?: source.uri?.let(context.contentResolver::openInputStream)
+                                            checkNotNull(input).use { stream ->
+                                                File.createTempFile("screening-", ".mp4", context.cacheDir).also { out ->
+                                                    try { out.outputStream().use { stream.copyTo(it) } }
+                                                    catch (failure: Exception) { out.delete(); throw failure }
+                                                }
+                                            }
+                                        }.getOrNull()
+                                    }
+                                    if (file == null) {
+                                        info = "无法读取视频文件。"
+                                    } else {
+                                        caster.castLocal(device, file.path, source.title) { failure ->
+                                            info = failure?.let { "投屏失败：$it" } ?: "已发送到 ${device.friendlyName}"
+                                            if (failure == null) player.pause()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (info.isNotEmpty()) Text(info, Modifier.padding(top = 9.dp), color = Mint)
+            }
+        }
+    }
+}
+
+@Composable
+private fun Setting(title: String, hint: String, selected: Boolean = false, onClick: () -> Unit) {
+    FilledTonalButton(
+        onClick, Modifier.fillMaxWidth().padding(vertical = 2.dp), shape = Tile,
+        colors = ButtonDefaults.filledTonalButtonColors(containerColor = if (selected) Color(0xFF29483E) else Lift),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, fontWeight = FontWeight.Bold, color = if (selected) Mint else White)
+            if (hint.isNotEmpty()) Text(hint, color = Muted, fontSize = 11.sp)
+        }
+        if (selected) Icon(Icons.Default.Check, "已选中", tint = Mint)
+    }
+}
+
+@Composable
+private fun ScreenIcon(picture: ImageVector, label: String, onClick: () -> Unit, primary: Boolean = false) {
+    IconButton(
+        onClick,
+        Modifier.size(if (primary) 56.dp else 48.dp)
+            .background(if (primary) Mint else Ink.copy(alpha = .66f), CircleShape),
+    ) {
+        Icon(picture, label, tint = if (primary) Ink else White)
+    }
+}
