@@ -148,6 +148,16 @@ fun CompanionScreen(
     LaunchedEffect(state.emotion) {
         state.emotion?.let { renderer.dispatch(AvatarCommand.Emotion(it)) }
     }
+    LaunchedEffect(state.gestureSeq) {
+        if (state.gestureSeq == 0L) return@LaunchedEffect
+        state.gesture?.let { renderer.dispatch(AvatarCommand.Gesture(it)) }
+    }
+    LaunchedEffect(state.gazeSeq) {
+        if (state.gazeSeq == 0L) return@LaunchedEffect
+        val x = state.gazeX ?: return@LaunchedEffect
+        val y = state.gazeY ?: return@LaunchedEffect
+        renderer.dispatch(AvatarCommand.Gaze(x, y))
+    }
 
     // 新消息到达时滚到底。用消息条数与最后一条文本做 key：流式追加时也要跟。
     // 首批历史（从没滚过）用无动画 jump：否则先画在第 0 条再 animate，用户会看到「停在第一条」。

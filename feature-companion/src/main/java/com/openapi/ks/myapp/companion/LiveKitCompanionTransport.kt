@@ -944,6 +944,18 @@ class LiveKitCompanionTransport(
                     PresentationCue.stateEventJson(state)
                 }
             }
+            "presentation.gesture" -> {
+                val id = PresentationCue.parseGesture(args) ?: return
+                scheduleCue(eventType, envelope, at = envelope.at) {
+                    PresentationCue.gestureEventJson(id)
+                }
+            }
+            "presentation.gaze" -> {
+                val gaze = PresentationCue.parseGaze(args) ?: return
+                scheduleCue(eventType, envelope, at = envelope.at) {
+                    PresentationCue.gazeEventJson(gaze.name, gaze.x, gaze.y)
+                }
+            }
             // ---- 语音时间线（§9）----
             "speech.seg" -> {
                 // 句级声明（§9.3）：先于引用它的 cue 与 TTS 到达。

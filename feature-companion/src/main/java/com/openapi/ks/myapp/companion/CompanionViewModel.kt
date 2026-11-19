@@ -318,12 +318,27 @@ class CompanionViewModel(
             .find(raw)?.groupValues?.get(1)
         val emotion = Regex("\"type\"\\s*:\\s*\"emotion\".*?\"emotion\"\\s*:\\s*\"([^\"]+)\"")
             .find(raw)?.groupValues?.get(1)
+        val gesture = Regex("\"type\"\\s*:\\s*\"gesture\".*?\"id\"\\s*:\\s*\"([^\"]+)\"")
+            .find(raw)?.groupValues?.get(1)
+        val gazeX = numberField(raw, "x").takeIf { "\"type\"\\s*:\\s*\"gaze\"".toRegex().containsMatchIn(raw) }
+        val gazeY = numberField(raw, "y").takeIf { gazeX != null }
         _state.update {
             it.copy(
                 avatarState = state ?: it.avatarState,
                 emotion = emotion ?: it.emotion,
+                gesture = gesture ?: it.gesture,
+                gestureSeq = if (gesture != null) it.gestureSeq + 1 else it.gestureSeq,
+                gazeX = gazeX ?: it.gazeX,
+                gazeY = gazeY ?: it.gazeY,
+                gazeSeq = if (gazeX != null && gazeY != null) it.gazeSeq + 1 else it.gazeSeq,
             )
         }
+    }
+
+    private fun numberField(raw: String, name: String): Float? {
+        val text = Regex("\"$name\"\\s*:\\s*(-?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)")
+            .find(raw)?.groupValues?.get(1) ?: return null
+        return text.toFloatOrNull()
     }
 
     /**

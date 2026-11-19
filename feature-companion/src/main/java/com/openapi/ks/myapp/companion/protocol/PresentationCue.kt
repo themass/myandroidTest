@@ -56,4 +56,57 @@ object PresentationCue {
 
     fun stateEventJson(state: String): String =
         """{"v":1,"type":"state","state":${JSONObject.quote(state)}}"""
+
+    /**
+     * `presentation.gesture` 的 args：§11.1 示例是 `{"id":"nod","repeat":1}`。
+     *
+     * 服务端 CueCompiler 也写 `id`；顺带认 `name`，免得旧片段或手写冒烟包被静默丢掉。
+     */
+    fun parseGesture(args: JSONObject): String? {
+        val raw = sequenceOf("id", "name")
+            .map { args.optString(it).trim() }
+            .firstOrNull { it.isNotEmpty() }
+            ?: return null
+        return raw.lowercase()
+    }
+
+    /**
+     * `presentation.gaze`：模型侧用简短 name；渲染器要的是方向。
+     * 有数值 `x`/`y` 就用数值，否则按常见名字落到预设点，未知名默认看向用户。
+     */
+    data class Gaze(val name: String, val x: Float, val y: Float)
+
+    fun parseGaze(args: JSONObject): Gaze? {
+        val name = args.optString("name").trim().lowercase()
+        val hasX = args.has("x")
+        val hasY = args.has("y")
+        if (name.isEmpty() && !hasX && !hasY) return null
+        val preset = GAZE_PRESETS[name] ?: (0f to 0f)
+        val x = if (hasX) args.optDouble("x", preset.first.toDouble()).toFloat() else preset.first
+        val y = if (hasY) args.optDouble("y", preset.second.toDouble()).toFloat() else preset.second
+        val label = name.ifEmpty { "custom" }
+        return Gaze(label, x, y)
+    }
+
+    fun gestureEventJson(id: String): String =
+        """{"v":1,"type":"gesture","id":${JSONObject.quote(id)}}"""
+
+    fun gazeEventJson(name: String, x: Float, y: Float): String =
+        JSONObject()
+            .put("v", 1)
+            .put("type", "gaze")
+            .put("name", name)
+            .put("x", x.toDouble())
+            .put("y", y.toDouble())
+            .toString()
+
+    private val GAZE_PRESETS: Map<String, Pair<Float, Float>> = mapOf(
+        "look_user" to (0f to 0f),
+        "look_at_user" to (0f to 0f),
+        "center" to (0f to 0f),
+        "look_left" to (-0.5f to 0f),
+        "look_right" to (0.5f to 0f),
+        "look_up" to (0f to -0.35f),
+        "look_down" to (0f to 0.35f),
+    )
 }
