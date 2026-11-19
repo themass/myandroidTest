@@ -42,7 +42,7 @@ internal class SendActions(
             submitEdit(editingId, text)
             return
         }
-        state.update { it.copy(input = "", drafts = emptyList()) }
+        state.update { it.copy(input = "", drafts = emptyList(), editingMessageId = null) }
         if (drafts.isEmpty()) {
             sendText(text)
             return
@@ -77,7 +77,7 @@ internal class SendActions(
             createdAtMillis = now,
             delivery = DeliveryStatus.SENDING,
         )
-        state.update { it.copy(messages = it.messages + user) }
+        state.update { it.copy(messages = it.messages + user, editingMessageId = null) }
         streamer.stream(text, userMessageId = user.id, persistUser = true)
     }
 

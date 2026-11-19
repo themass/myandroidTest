@@ -16,6 +16,11 @@ data class ChatUiState(
     val streaming: Boolean = false,
     val loading: Boolean = false,
     val error: String? = null,
+    /**
+     * 历史加载失败的原因。和 [error] 分开：这条守着「消息区为空」时的显示，
+     * 不会被一次成功的发送清掉，也不能退化成空会话。
+     */
+    val loadError: String? = null,
     val sessionId: Long = 0L,
     val characters: List<ChatCharacterOption> = emptyList(),
     val selectedCharacterId: Int? = null,
