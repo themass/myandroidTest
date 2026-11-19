@@ -121,6 +121,17 @@ class DegradeControllerTest {
     }
 
     @Test
+    fun `data 死且 pcm 未死但已过 alive 窗口仍是 L3`() {
+        // 关闭 (pcmAliveMs, pcmDeadMs] 死区：以前会掉到 L2
+        // data@1000，pcm@5000，now@8000 → data 死 7s，pcm 龄 3s（>2s alive，≤6s dead）
+        val d = controller()
+        d.onDataAccepted(now = 1_000L)
+        d.onCueAccepted(now = 1_000L)
+        d.onPcm(now = 5_000L)
+        assertEquals(3, d.level(now = 8_000L))
+    }
+
+    @Test
     fun `pcm 死升到 L4`() {
         val d = controller()
         d.onPcm(now = 1_000L)

@@ -38,33 +38,41 @@ class DegradeController(
     private var stickyLevel = 0
     private var recoverSince: Long? = null
 
+    // AudioTrackSink + Default 协程都会摸传感器；对外方法全部串行化。
+    @Synchronized
     fun onCueApplied(lateMs: Long) {
         pushDecision(expired = false)
     }
 
+    @Synchronized
     fun onCueExpired() {
         pushDecision(expired = true)
     }
 
+    @Synchronized
     fun onCueGap() {
         cueGapStreak++
     }
 
     /** cue 到达：刷新静默计时。无 gap 的干净到达才会清零 streak。 */
+    @Synchronized
     fun onCueAccepted(now: Long, clearGapStreak: Boolean = true) {
         if (clearGapStreak) cueGapStreak = 0
         lastCueAt = now
         lastDataAt = now
     }
 
+    @Synchronized
     fun onDataAccepted(now: Long) {
         lastDataAt = now
     }
 
+    @Synchronized
     fun onPcm(now: Long) {
         lastPcmAt = now
     }
 
+    @Synchronized
     fun onConnection(state: Conn) {
         connection = state
         if (state == Conn.CONNECTED) {
@@ -74,6 +82,7 @@ class DegradeController(
         }
     }
 
+    @Synchronized
     fun level(now: Long): Int {
         forceLevel?.let { return it.coerceIn(0, 4) }
         val desired = desiredLevel(now)
@@ -105,10 +114,10 @@ class DegradeController(
         val pcmAt = lastPcmAt
         if (pcmAt != null && now - pcmAt > pcmDeadMs) return 4
 
+        // L3：data 死且 PCM 尚未判死。pcmAliveMs 只作「仍在出声」的宽松提示，
+        // 不再在 (alive, dead] 留死区——那段以前会掉到 L2。
         val dataAt = lastDataAt
-        if (dataAt != null && now - dataAt > dataDeadMs) {
-            if (pcmAt != null && now - pcmAt <= pcmAliveMs) return 3
-        }
+        if (dataAt != null && now - dataAt > dataDeadMs && pcmAt != null) return 3
 
         val cueAt = lastCueAt
         if (cueAt != null && now - cueAt > cueSilenceMs) return 2
