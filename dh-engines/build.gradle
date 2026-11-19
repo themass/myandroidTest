@@ -11,6 +11,10 @@ android {
 }
 
 dependencies {
+    // AssetStore downloads engine packs on demand; versions come from gradle/libs.versions.toml.
+    implementation libs.okhttp
+    implementation libs.kotlinx.coroutines.android
+
     // Plain JUnit is enough for Task 1's namespace constant smoke test.
     // Robolectric / androidx.test land later when engine tests need them.
     testImplementation 'junit:junit:4.13.2'
