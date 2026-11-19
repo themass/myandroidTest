@@ -2,11 +2,14 @@ package com.openapi.feature.video.page;
 
 
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -28,6 +31,7 @@ import com.openapi.feature.video.cast.GoogleCastSessionController;
 import com.openapi.feature.video.data.VideoUtil;
 import com.openapi.feature.video.player.DetailGSYVideoPlayer;
 import com.openapi.feature.video.subtitle.realtime.RealtimeSubtitleBindings;
+import com.openapi.feature.video.subtitle.local.LocalPlaybackTools;
 import com.openapi.speech.subtitle.realtime.VideoRealtimeSubtitleSession;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
@@ -61,6 +65,11 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
     private String url;
     /** 懒加载 URL 时保留至首次 {@link #openVideoShow}，用于恢复进度 */
     private Bundle playbackSavedState;
+    private LocalPlaybackTools localTools;
+    private final ActivityResultLauncher<String[]> subtitlePicker = registerForActivityResult(
+            new ActivityResultContracts.OpenDocument(), uri -> {
+                if (localTools != null) localTools.importSubtitle(uri);
+            });
 
     private void bindButterViews() {
         LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));
@@ -152,7 +161,14 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
                 () -> VideoUtil.headersForRecommend(vo));
         RealtimeSubtitleBindings.attachVideo(myFavoriteView, realtimeSession, videoPlayer);
 
-        videoPlayer.installGoogleCastRouteButton(this);
+        boolean prototype = local && !vo.needLazyUrl
+                && (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        if (prototype) {
+            localTools = new LocalPlaybackTools(this, videoPlayer,
+                    () -> subtitlePicker.launch(new String[]{"*/*"}), this::showDlnaDevices);
+        } else {
+            videoPlayer.installGoogleCastRouteButton(this);
+        }
         // 投屏入口封装在右下角 favor 工具条；发现/投屏仍由本页实现
         myFavoriteView.setCastClickListener(v -> showDlnaDevices());
         castSessionController = new GoogleCastSessionController(this, videoPlayer, new CastPlaySource() {
@@ -202,6 +218,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
 
     @Override
     protected void onPause() {
+        if (localTools != null) localTools.pause();
         if (castSessionController != null) {
             castSessionController.onPause();
         }
@@ -219,6 +236,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
     @Override
     protected void onResume() {
         super.onResume();
+        if (localTools != null) localTools.resume();
         try {
             GSYVideoManager.onResume();
         } catch (Throwable e) {
@@ -342,6 +360,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
 
     @Override
     public void onDestroy() {
+        if (localTools != null) localTools.close();
         if (myFavoriteView != null) {
             myFavoriteView.releaseTranslationOverlay();
         }

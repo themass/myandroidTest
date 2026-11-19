@@ -15,6 +15,7 @@ android {
 }
 
 dependencies {
+    testImplementation 'junit:junit:4.13.2'
     // 视频页的实时字幕与翻译
     implementation project(':speech')
     implementation libs.androidx.appcompat
