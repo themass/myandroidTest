@@ -160,6 +160,20 @@ class HttpCompanionApiTest {
     }
 
     @Test
+    fun `create script session posts character and case id to script-sessions`() {
+        val fake = Fake(body = """{"session_id":"s9","room_name":"script-barge-x","token":"lk","livekit_url":"wss://lk","expires_at":"2026-11-19T10:00:00Z"}""")
+        val s = runBlocking { api(fake).createScriptSession("linche", "barge_mid_sentence") }
+        assertEquals("POST", fake.seen.single().method)
+        assertEquals("https://example.test/v1/voice/script-sessions", fake.seen.single().url.toString())
+        val body = JSONObject(fake.bodies.single())
+        assertEquals("linche", body.getString("character_id"))
+        assertEquals("barge_mid_sentence", body.getString("case_id"))
+        assertEquals("script-barge-x", s.roomName)
+        assertEquals("s9", s.sessionId)
+        assertEquals("livekit", s.provider)
+    }
+
+    @Test
     fun `confirm action sends the decision and returns the status`() {
         val fake = Fake(body = """{"status":"declined"}""")
         val status = runBlocking { api(fake).confirmAction("c/1", accepted = false) }

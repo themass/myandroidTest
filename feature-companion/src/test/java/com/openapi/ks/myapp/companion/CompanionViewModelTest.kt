@@ -395,6 +395,8 @@ class FakeCompanionApi(
 
     override suspend fun createSession(characterId: String) = session
 
+    override suspend fun createScriptSession(characterId: String, caseId: String) = session
+
     override suspend fun history(sessionId: Long, limit: Int): List<CompanionHistoryItem> = emptyList()
 
     override suspend fun inbox(): List<InboxMessage> =
