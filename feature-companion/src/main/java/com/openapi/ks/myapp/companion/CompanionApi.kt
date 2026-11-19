@@ -19,6 +19,11 @@ import java.util.concurrent.TimeUnit
 interface CompanionApi {
     suspend fun createSession(characterId: String): SessionResponse
     /**
+     * 剧本房会话：进 `script-` 前缀房间，与 CLI `script_room` 会师同一 case。
+     * 返回形状与 [createSession] 相同，走现有 connect / protocol 路径；不削弱 AGENT 门禁。
+     */
+    suspend fun createScriptSession(characterId: String, caseId: String): SessionResponse
+    /**
      * 读回这段对话说过的话。
      *
      * 陪伴页的语音和文字写的是**同一段** `/v1` 聊天历史（服务端 `resolve_chat_session()`
@@ -69,21 +74,31 @@ class HttpCompanionApi(
     override suspend fun createSession(characterId: String): SessionResponse {
         // 建 LiveKit 房间与聊天会话是两种资源，前者在 /v1/voice 下
         val json = call("POST", "/v1/voice/sessions", JSONObject().put("character_id", characterId))
-        return SessionResponse(
-            sessionId = json.optString("session_id"),
-            roomName = json.optString("room_name"),
-            token = json.optString("token"),
-            livekitUrl = json.optString("livekit_url"),
-            expiresAt = json.optString("expires_at"),
-            // 服务端可能给 null（没绑定聊天会话时），用 0 表示「没有」而不是猜一个 id
-            chatSessionId = json.optLong("chat_session_id", 0L).takeIf { it > 0 },
-            // 线路选择权在服务端；这里只原样收下。老服务端不返回这个字段 → 归一成 livekit，
-            // 下游（工厂、测试）因此永远不必处理空串。
-            provider = json.optString("provider").takeIf { it.isNotBlank() }
-                ?: CompanionTransports.PROVIDER_LIVEKIT,
-            providerConfig = json.optJSONObject("provider_config"),
-        )
+        return parseSessionResponse(json)
     }
+
+    override suspend fun createScriptSession(characterId: String, caseId: String): SessionResponse {
+        val body = JSONObject()
+            .put("character_id", characterId)
+            .put("case_id", caseId)
+        val json = call("POST", "/v1/voice/script-sessions", body)
+        return parseSessionResponse(json)
+    }
+
+    private fun parseSessionResponse(json: JSONObject): SessionResponse = SessionResponse(
+        sessionId = json.optString("session_id"),
+        roomName = json.optString("room_name"),
+        token = json.optString("token"),
+        livekitUrl = json.optString("livekit_url"),
+        expiresAt = json.optString("expires_at"),
+        // 服务端可能给 null（没绑定聊天会话时），用 0 表示「没有」而不是猜一个 id
+        chatSessionId = json.optLong("chat_session_id", 0L).takeIf { it > 0 },
+        // 线路选择权在服务端；这里只原样收下。老服务端不返回这个字段 → 归一成 livekit，
+        // 下游（工厂、测试）因此永远不必处理空串。
+        provider = json.optString("provider").takeIf { it.isNotBlank() }
+            ?: CompanionTransports.PROVIDER_LIVEKIT,
+        providerConfig = json.optJSONObject("provider_config"),
+    )
 
     override suspend fun history(sessionId: Long, limit: Int): List<CompanionHistoryItem> {
         val json = call("GET", "/v1/sessions/$sessionId/messages?limit=$limit")
