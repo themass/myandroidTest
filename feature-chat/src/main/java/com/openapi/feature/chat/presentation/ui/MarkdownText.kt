@@ -2,13 +2,14 @@ package com.openapi.feature.chat.presentation.ui
 
 import android.widget.TextView
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.widget.TextViewCompat
 import com.openapi.feature.chat.markdown.ChatMarkwon
-import com.openapi.feature.chat.markdown.FormulaInputNormalizer
+import com.openapi.feature.chat.markdown.MarkdownRenderCache
 
 /**
  * Markdown 渲染。
@@ -27,6 +28,9 @@ fun MarkdownText(
     modifier: Modifier = Modifier,
     textSizeSp: Float = 16f,
 ) {
+    // 每个气泡一份分段缓存（整改清单 P1-12）：流式吐字时每拍只重新解析还在长的最后一段，
+    // 已完成的顶层块复用；文本没变的重组（滚动、兄弟消息刷新）直接拿回同一份结果。
+    val cache = remember { MarkdownRenderCache() }
     AndroidView(
         modifier = modifier,
         factory = { context ->
@@ -47,7 +51,11 @@ fun MarkdownText(
         },
         update = { view ->
             view.setTextColor(textColor.toArgb())
-            ChatMarkwon.get(view.context).setMarkdown(view, FormulaInputNormalizer.forRender(markdown))
+            val spanned = cache.render(ChatMarkwon.get(view.context), markdown)
+            // setParsedMarkdown 和 setMarkdown 一样会过所有插件的 before/afterSetText
+            // （图片调度、LaTeX 都挂在上面），只是跳过重复的 Markdown 解析。
+            // 缓存命中的重组里 TextView 里已经是这份内容：连 setText 都省掉，不重新排版。
+            if (view.text !== spanned) ChatMarkwon.get(view.context).setParsedMarkdown(view, spanned)
             // Markwon 会给带链接的文字挂上 LinkMovementMethod，它会吞掉按压，导致外层长按菜单打不开。
             // 只有真的有链接时才保留它；没有链接的文字不挂，让按压交给气泡。
             val hasLinks = (view.text as? android.text.Spanned)

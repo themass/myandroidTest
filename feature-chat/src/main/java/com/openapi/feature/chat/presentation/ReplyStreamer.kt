@@ -216,9 +216,16 @@ internal class ReplyStreamer(
         return kept != null
     }
 
+    /**
+     * 定点替换：只重建列表一次、只复制一次目标消息（整改清单 P1-12）。
+     * 吐字节拍约 25 次/秒，旧写法每拍都 `map` 全列表；没命中时直接返回，
+     * 连列表都不碰。语义与旧的 `map` 版完全一致（由 ReplyStreamerStreamTest 表征钉住）。
+     */
     fun updateByKey(key: String, transform: (ChatMessage) -> ChatMessage) {
         state.update { current ->
-            current.copy(messages = current.messages.map { if (it.key == key) transform(it) else it })
+            val i = current.messages.indexOfFirst { it.key == key }
+            if (i < 0) return@update current
+            current.copy(messages = current.messages.updatedAt(i) { transform(it) })
         }
     }
 
@@ -235,7 +242,17 @@ internal class ReplyStreamer(
 
     fun setDelivery(messageId: String, status: DeliveryStatus) {
         state.update { current ->
-            current.copy(messages = current.messages.map { if (it.id == messageId) it.copy(delivery = status) else it })
+            val i = current.messages.indexOfFirst { it.id == messageId }
+            // 没这条消息、或状态本来就是这样：零拷贝（发送状态每秒被检查多次，大多数时候没有变化）
+            if (i < 0 || current.messages[i].delivery == status) return@update current
+            current.copy(messages = current.messages.updatedAt(i) { it.copy(delivery = status) })
         }
+    }
+
+    /** 只复制列表本身、只在 [i] 处换掉一个元素（其余元素保持原实例）。 */
+    private inline fun List<ChatMessage>.updatedAt(i: Int, transform: (ChatMessage) -> ChatMessage): List<ChatMessage> {
+        val copy = this.toMutableList()
+        copy[i] = transform(copy[i])
+        return copy
     }
 }
