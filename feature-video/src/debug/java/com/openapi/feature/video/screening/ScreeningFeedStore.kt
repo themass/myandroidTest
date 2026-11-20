@@ -105,7 +105,7 @@ internal class ScreeningFeedStore(context: Context) {
      */
     suspend fun subtitles(videoId: String): List<SubtitleItem> {
         val raw: InfoListVo<SubtitleVo> = service.awaitInfoList(
-            Constants.getUrlWithParam(Constants.API_SUBTITLE_LIST_URL, videoId, 0), SubtitleVo::class.java, NET_TAG,
+            Constants.getUrlWithParam(Constants.API_SUBTITLE_LIST_URL, 0, videoId), SubtitleVo::class.java, NET_TAG,
         )
         return raw.voList.orEmpty().filter { it.id > 0L }.map { vo ->
             SubtitleItem(
