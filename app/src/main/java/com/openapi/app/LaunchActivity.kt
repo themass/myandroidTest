@@ -59,7 +59,9 @@ class LaunchActivity : LogActivity() {
     }
 
     private fun launch() {
-        startActivity(Intent(this, HomeActivity::class.java))
+        // 把启动 Intent 上的 extras 转给主页：adb / deep link 带的 script_case 等
+        // 不能丢在开屏页。HomeActivity 是 singleTask，冷启动走这里，热启动走它自己的 onNewIntent。
+        startActivity(Intent(this, HomeActivity::class.java).putExtras(intent))
         finish()
     }
 

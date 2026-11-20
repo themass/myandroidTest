@@ -103,6 +103,8 @@ import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
 fun CompanionScreen(
     viewModel: CompanionViewModel,
     characterId: String,
+    /** 剧本房 case；非空时走 createScriptSession。 */
+    scriptCaseId: String? = null,
     modifier: Modifier = Modifier,
     /** 进全屏通话页。由 CompanionRoute 接，页面本身不持有导航。 */
     onOpenCall: () -> Unit = {},
@@ -117,7 +119,15 @@ fun CompanionScreen(
     val renderer = remember { SimpleAvatarRenderer() }
     val listState = rememberLazyListState()
 
-    LaunchedEffect(characterId) { viewModel.start(characterId) }
+    LaunchedEffect(characterId, scriptCaseId) { viewModel.start(characterId, scriptCaseId) }
+    // 剧本房验收要听下行：连上后自动进通话页（开麦权限由 onOpenCall 处理）。
+    var autoCallArmed by remember(characterId, scriptCaseId) { mutableStateOf(scriptCaseId != null) }
+    LaunchedEffect(state.connection, autoCallArmed) {
+        if (autoCallArmed && state.connection == CompanionConnection.CONNECTED) {
+            autoCallArmed = false
+            onOpenCall()
+        }
+    }
 
     // 顶栏要显示她的真名和一句话人设，而不是 characterId（如 linche）。
     // 角色列表接口一次就能拿到，失败时退回「陪伴」标题，不阻塞页面。
