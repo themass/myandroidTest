@@ -122,12 +122,45 @@ private const val LANES = 5
 /** 相邻两条弹幕的尾巴之间至少留这么多，别首尾相接成一长串。 */
 private const val TAIL_GAP = 36f
 
+/** 一条弹幕排到的车道。 */
+internal data class LaneAssignment(val comment: TimedComment, val lane: Int)
+
 /**
- * 按时间顺序分车道：一条弹幕「尾巴完全进场」之后，同一车道才能再来下一条。
- * 全部在媒体时间里算，所以暂停、变速、seek 都不需要重排。
+ * 纯车道调度（[docs/design/media-suite.md] 里的密度上限 + 碰撞避让规则）：
+ * 按媒体时间顺序，一条弹幕「尾巴完全进场」之后同一车道才接下一条，全满就丢弃。
+ * 不碰 Compose，文字宽度由 [textWidthOf] 给，可以单独跑 JVM 单测（同 LocalSubtitleTrack 的做法）。
+ */
+internal fun planLanes(
+    comments: List<TimedComment>,
+    width: Float,
+    lanes: Int,
+    travelMs: Long,
+    tailGap: Float,
+    textWidthOf: (TimedComment) -> Float,
+): List<LaneAssignment> {
+    val freeAt = LongArray(lanes) { Long.MIN_VALUE }
+    val plan = ArrayList<LaneAssignment>(comments.size)
+    for (comment in comments.sortedBy { it.atMs }) {
+        var lane = -1
+        for (index in 0 until lanes) {
+            if (comment.atMs >= freeAt[index]) { lane = index; break }
+        }
+        // 车道全满就丢掉这条：宁可不显示，也不要几条叠在同一个位置糊成一团
+        if (lane < 0) continue
+        val textWidth = textWidthOf(comment)
+        // 尾巴进场所需的时间与它占的宽度成比例
+        val tailIn = travelMs * textWidth / (width + textWidth)
+        freeAt[lane] = comment.atMs + tailIn.toLong() + (tailGap / (width + textWidth) * travelMs).toLong()
+        plan.add(LaneAssignment(comment, lane))
+    }
+    return plan
+}
+
+/**
+ * 量宽度并落成可绘制的 [Track]。排布本身在媒体时间里一次算完，
+ * 所以暂停、变速、seek 都不需要重排。
  */
 private fun layout(comments: List<TimedComment>, measurer: TextMeasurer, box: IntSize): List<Track> {
-    val width = box.width.toFloat()
     val height = box.height.toFloat()
     val laneHeight = height / LANES
     // 单条占不到车道高度时宁可少画一行，也不要压到上一行
@@ -135,21 +168,10 @@ private fun layout(comments: List<TimedComment>, measurer: TextMeasurer, box: In
     val usable = laneHeight >= probe.size.height * 1.15f
     if (!usable) return emptyList()
 
-    val freeAt = LongArray(LANES) { Long.MIN_VALUE }
-    val tracks = ArrayList<Track>(comments.size)
-    for (comment in comments.sortedBy { it.atMs }) {
-        var lane = -1
-        for (index in 0 until LANES) {
-            if (comment.atMs >= freeAt[index]) { lane = index; break }
-        }
-        // 车道全满就丢掉这条：宁可不显示，也不要几条叠在同一个位置糊成一团
-        if (lane < 0) continue
-        val fill = measurer.measure(AnnotatedString(comment.text), DanmakuStyle)
-        val stroke = measurer.measure(AnnotatedString(comment.text), DanmakuStroke)
-        // 尾巴进场所需的时间与它占的宽度成比例
-        val tailIn = TRAVEL_MS * fill.size.width / (width + fill.size.width)
-        freeAt[lane] = comment.atMs + tailIn.toLong() + (TAIL_GAP / (width + fill.size.width) * TRAVEL_MS).toLong()
-        tracks.add(Track(comment.text, comment.atMs, lane, fill, stroke))
+    val fillOf: (TimedComment) -> TextLayoutResult = { measurer.measure(AnnotatedString(it.text), DanmakuStyle) }
+    return planLanes(comments, box.width.toFloat(), LANES, TRAVEL_MS, TAIL_GAP) {
+        fillOf(it).size.width.toFloat()
+    }.map { (comment, lane) ->
+        Track(comment.text, comment.atMs, lane, fillOf(comment), measurer.measure(AnnotatedString(comment.text), DanmakuStroke))
     }
-    return tracks
 }
