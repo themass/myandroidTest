@@ -83,6 +83,12 @@ interface ChatRepository {
     /** 本地还没有被服务端历史覆盖的用户消息（附件、正在发送或失败的消息），用于冷启动时恢复。 */
     suspend fun localPendingMessages(sessionId: Long): List<ChatMessage>
 
+    /**
+     * 该会话的本地缓存消息（不联网）。用于切换会话时立刻显示上一个已加载过的内容，
+     * 而不是让上一个会话的消息在界面上多停留几秒。可能为空（没缓存过），调用方自行决定。
+     */
+    suspend fun cachedMessages(sessionId: Long): List<ChatMessage>
+
     suspend fun deleteMessage(sessionId: Long, messageId: String): Boolean
 
     /** 当前会话 id，来自 SP（Constants.CHAT_SESSION）。0 表示还没有会话。 */

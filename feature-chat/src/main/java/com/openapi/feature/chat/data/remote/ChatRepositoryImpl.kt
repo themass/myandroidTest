@@ -139,6 +139,12 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
     override suspend fun localPendingMessages(sessionId: Long): List<ChatMessage> =
         withContext(Dispatchers.IO) { cache.localPending(sessionId) }
 
+    /** 切换会话时立刻显示的本地缓存（见接口注释）；远程图片等服务端页到达后再换 URL。 */
+    override suspend fun cachedMessages(sessionId: Long): List<ChatMessage> =
+        withContext(Dispatchers.IO) {
+            runCatching { cache.loadCached(sessionId) }.getOrDefault(emptyList())
+        }
+
     /**
      * 旧链路没有「只上传不回复」的接口（`recognize.json` 本身就是一次识别回合），
      * 这里返回 null；图文消息只在 `/v1` 上成立。legacy 实现不再被用作运行时实现。

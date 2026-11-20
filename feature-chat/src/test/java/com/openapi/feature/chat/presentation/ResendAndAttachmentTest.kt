@@ -52,7 +52,6 @@ class ResendAndAttachmentTest {
         val resend = ResendActions(
             repo, state, scope, streamer,
             startAttachments = { attachmentStarts++ },
-            refresh = {},
         )
     }
 
@@ -142,5 +141,60 @@ class ResendAndAttachmentTest {
         val saved = h.repo.saved.single()
         assertEquals(DeliveryStatus.FAILED, saved.delivery)
         assertTrue(h.state.value.sending.not())
+    }
+
+    // ---------------------------------------------------------------- submitEdit
+
+    private class EditHarness {
+        val repo = FakeChatRepository()
+        val user = ChatMessage(id = "42", role = ChatRole.USER, text = "原文字", createdAtMillis = 1L)
+        val assistant = ChatMessage(id = "43", role = ChatRole.ASSISTANT, text = "旧回答", createdAtMillis = 2L)
+        val state = MutableStateFlow(
+            ChatUiState(
+                sessionId = 1L,
+                messages = listOf(user, assistant),
+                input = "改过的字",
+                editingMessageId = "42",
+            ),
+        )
+        val scope = TestScope(StandardTestDispatcher())
+        val streamer = ReplyStreamer(
+            repo, state, scope, SendMessageUseCase(repo),
+            attachmentActive = { false }, reconcile = {}, syncSessions = {},
+        )
+        val resend = ResendActions(
+            repo, state, scope, streamer,
+            startAttachments = {},
+        )
+    }
+
+    @Test
+    fun failedEditKeepsTheEditedTextAndEditMode() {
+        // 服务端改写失败：用户辛苦改的那段字必须原样还在——输入框、编辑横幅、后续气泡都不动，
+        // 再点一次发送就是重试。以前的实现先乐观改写再 refresh 拉回旧文字，编辑内容直接丢了。
+        val h = EditHarness()
+        h.repo.editOk = false
+        h.resend.submitEdit("42", "改过的字")
+        h.scope.advanceUntilIdle()
+        assertEquals("改过的字", h.state.value.input)
+        assertEquals("42", h.state.value.editingMessageId)
+        assertEquals(listOf("42", "43"), h.state.value.messages.map { it.id })
+        assertEquals("原文字", h.state.value.messages.first().text)
+        org.junit.Assert.assertNotNull(h.state.value.error)
+        assertEquals("编辑失败不该触发重新生成", 0, h.repo.regenerateStreamCalls)
+    }
+
+    @Test
+    fun successfulEditAppliesTextTruncatesAndRegenerates() {
+        // 成功路径：气泡截断到这条并落新文字，输入框清空、退出编辑，然后走服务端 regenerate。
+        val h = EditHarness()
+        h.repo.editOk = true
+        h.resend.submitEdit("42", "改过的字")
+        h.scope.advanceUntilIdle()
+        assertEquals("", h.state.value.input)
+        assertEquals(null, h.state.value.editingMessageId)
+        assertEquals(listOf("42"), h.state.value.messages.map { it.id })
+        assertEquals("改过的字", h.state.value.messages.single().text)
+        assertEquals(1, h.repo.regenerateStreamCalls)
     }
 }
