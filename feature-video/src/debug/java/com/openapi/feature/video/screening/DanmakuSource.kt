@@ -29,9 +29,13 @@ internal interface TimedCommentSource {
     suspend fun retract(serverId: Int): Result<Unit>
 }
 
-/** 面板里来源的取值：0 本地样例，1 假服务端（接口和真服务端一致，随时可换成真实现）。 */
+/**
+ * 面板里来源的取值：0 本地样例，1 假服务端（离线链路演示），2 在线弹幕（真 HTTP 收发）。
+ * 三个实现共用 [DanmakuFeed] 与渲染，换来源不改任何其他代码。
+ */
 internal const val DANMAKU_SAMPLE = 0
 internal const val DANMAKU_SERVER = 1
+internal const val DANMAKU_ONLINE = 2
 
 /**
  * 时间轴身份：`namespace + contentId + editionId`。

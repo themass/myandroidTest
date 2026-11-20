@@ -40,6 +40,8 @@ import com.openapi.feature.video.screening.kernel.KernelHost
 import com.openapi.cast.DlnaDevice
 import com.openapi.cast.DlnaDiscoveryCallback
 import com.openapi.cast.JavaCaster
+import com.openapi.common.net.http.NetConfig
+import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.feature.video.subtitle.local.ScreeningCaption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -103,12 +105,19 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     var info by remember { mutableStateOf("") }
     var speed by remember { mutableFloatStateOf(1f) }
     var danmaku by remember { mutableStateOf(false) }
-    // 弹幕来源：没有服务端时默认本地样例，随时可切到假服务端源（接口形状和真服务端一致）
+    // 弹幕来源：没有服务端时默认本地样例；假服务端做离线链路演示；在线弹幕走真 HTTP 收发
     var danmakuSource by remember { mutableStateOf(DANMAKU_SAMPLE) }
+    val danmakuToken = remember { { PreferenceUtils.getPrefString(context, NetConfig.tokenHeader(), null) } }
     val feed = remember(danmakuSource, id) {
         DanmakuFeed(
             when (danmakuSource) {
                 DANMAKU_SERVER -> InMemoryDanmakuSource(TimelineKey.local(id))
+                DANMAKU_ONLINE -> HttpDanmakuSource(
+                    // 分窗 key 用页面暴露的稳定 id 字符串，不写死样例 id
+                    TimelineKey.local(id),
+                    OkHttpDanmakuTransport(),
+                    accessToken = danmakuToken,
+                )
                 else -> SampleDanmakuSource(TimelineKey.local(id))
             },
         )
@@ -407,6 +416,9 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                         }
                         Setting("服务端弹幕", "链路演示：分窗拉取、发送回显、重试、撤回（假服务端，接口与真服务端一致）", danmaku && danmakuSource == DANMAKU_SERVER) {
                             danmakuSource = DANMAKU_SERVER; danmaku = true
+                        }
+                        Setting("在线弹幕", "真 HTTP 收发：分窗分页拉取、幂等发送、撤回（服务端未就绪时显示错误，可切回本地）", danmaku && danmakuSource == DANMAKU_ONLINE) {
+                            danmakuSource = DANMAKU_ONLINE; danmaku = true
                         }
                         if (danmaku) {
                             OutlinedTextField(
