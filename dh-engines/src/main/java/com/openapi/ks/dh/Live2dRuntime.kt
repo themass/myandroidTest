@@ -67,6 +67,7 @@ class Live2dRuntime internal constructor(
     private var surface: GLSurfaceView? = null
     private var started = false
     private var released = false
+    private var gazeCaptured = false
 
     fun availability(): EngineStatus = when {
         released -> EngineStatus(false, REASON_RELEASED)
@@ -119,6 +120,31 @@ class Live2dRuntime internal constructor(
     fun setMouth(v: Float) {
         if (!started || released) return
         runCatching { JniBridgeJava.nativeProjectMouthOpenY(v.coerceIn(0f, 1f)) }
+    }
+
+    /**
+     * Head/eye/body follow. The Cubism sample treats a touch drag as "look here": it feeds
+     * ParamAngleX/Y, ParamEyeBallX/Y and ParamBodyAngleX. We drive that same path with a
+     * synthetic move event so the head turns without a finger on the screen.
+     * [nx], [ny] are -1..1 (0,0 = looking straight at the camera).
+     */
+    fun setGaze(nx: Float, ny: Float) {
+        if (!started || released) return
+        val v = surface ?: return
+        val w = v.width.toFloat()
+        val h = v.height.toFloat()
+        if (w <= 0f || h <= 0f) return
+        val x = (0.5f + nx.coerceIn(-1f, 1f) * 0.5f) * w
+        val y = (0.5f - ny.coerceIn(-1f, 1f) * 0.5f) * h
+        runCatching {
+            // Cubism only tracks a drag after a press ("captured"); press once and never release
+            // (a release would run the tap hit-test and fire motions).
+            if (!gazeCaptured) {
+                JniBridgeJava.nativeOnTouchesBegan(x, y)
+                gazeCaptured = true
+            }
+            JniBridgeJava.nativeOnTouchesMoved(x, y)
+        }
     }
 
     /** Applies a named expression (e.g. "Angry", "Smile") if the model defines it. */

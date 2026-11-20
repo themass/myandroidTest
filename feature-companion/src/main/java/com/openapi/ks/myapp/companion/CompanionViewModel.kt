@@ -357,6 +357,9 @@ class CompanionViewModel(
      */
     val mouthLevel: StateFlow<Float> get() = transport.mouthLevel
 
+    /** 她的声音的真 PCM（16k 单声道），供 Duix / Tao 口型使用。 */
+    val remotePcm: kotlinx.coroutines.flow.Flow<ByteArray> get() = transport.remotePcm
+
     /** 用户自己的音量 0..1（本地麦克风采集轨）。驱动通话页底部波形。 */
     val selfLevel: StateFlow<Float> get() = transport.selfLevel
 

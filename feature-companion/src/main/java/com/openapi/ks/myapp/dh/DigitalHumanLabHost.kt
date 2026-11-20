@@ -44,6 +44,7 @@ fun DigitalHumanLabHost(
     spec: AvatarSpec?,
     mouthLevel: kotlinx.coroutines.flow.StateFlow<Float>?,
     modifier: Modifier = Modifier,
+    remotePcm: kotlinx.coroutines.flow.Flow<ByteArray>? = null,
     engineId: DhEngineId = DhEngineId.SIMPLE,
 ) {
     val context = LocalContext.current
@@ -138,7 +139,12 @@ fun DigitalHumanLabHost(
     }
     LaunchedEffect(mouthLevel, engine) {
         val flow = mouthLevel ?: return@LaunchedEffect
-        flow.collect { bridge.onMouthLevel(it) }
+        // 吃 PCM 的引擎（Duix）有真 PCM 流时，不再用音量合成假 PCM。
+        flow.collect { if (!(remotePcm != null && bridge.current().pcmDriven)) bridge.onMouthLevel(it) }
+    }
+    LaunchedEffect(remotePcm, engine) {
+        val flow = remotePcm ?: return@LaunchedEffect
+        flow.collect { if (bridge.current().pcmDriven) bridge.onRemotePcm(it) }
     }
 
     Box(modifier = modifier.fillMaxSize()) {

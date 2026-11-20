@@ -521,6 +521,7 @@ fun CompanionRoute(
                         DigitalHumanLabHost(
                             spec = avatarFiles?.let { AvatarSpec(files = it) },
                             mouthLevel = chatViewModel.mouthLevel,
+                            remotePcm = chatViewModel.remotePcm,
                             modifier = Modifier.fillMaxSize(),
                             engineId = chosen,
                         )
