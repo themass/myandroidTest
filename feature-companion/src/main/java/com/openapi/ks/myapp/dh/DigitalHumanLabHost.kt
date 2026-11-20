@@ -7,9 +7,11 @@ import android.content.IntentFilter
 import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -65,6 +68,11 @@ fun DigitalHumanLabHost(
     val bridge = remember { DigitalHumanBridge(initial) }
     var engine by remember { mutableStateOf(bridge.current()) }
     val rigScope = rememberCoroutineScope()
+
+    // 双指缩放/拖动：Live2D 人物太小看不到唇形，所有引擎统一支持 1..4x 捏合放大，
+    // 放大后单指拖动，1x 时单指事件原样透传给引擎（点击触发形象动画、Live2D 视线）。
+    val stage = rememberAvatarStageTransform()
+    LaunchedEffect(engine) { stage.reset() }
 
     // 激活即上膛：正常销毁走 markClean；native crash 让标记残留 → 下次冷启动熔断。
     // release 仍只归 DisposableEffect(Unit)/replaceWith 管——切换时 bridge.current()
@@ -152,7 +160,10 @@ fun DigitalHumanLabHost(
             is SimpleDigitalHumanEngine -> {
                 SimpleAvatar(
                     renderer = e.renderer,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .avatarStageTransform(stage)
+                        .avatarStageLayer(stage),
                     mouthLevel = mouthLevel,
                 )
             }
@@ -163,10 +174,20 @@ fun DigitalHumanLabHost(
             else -> key(e) {
                 val view = remember(e) { e.createView(context) }
                 if (view != null) {
+                    // 手势层盖在引擎视口上；变换直接写 View 自身的 scale/translation——
+                    // Compose 的 graphicsLayer 到不了 AndroidView 里的 View。update 里
+                    // 读 stage 的快照状态，state 一变就重执行。
                     AndroidView(
                         factory = { view },
-                        modifier = Modifier.fillMaxSize(),
-                        update = { /* engine owns the View */ },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .avatarStageTransform(stage),
+                        update = { v ->
+                            v.scaleX = stage.scale
+                            v.scaleY = stage.scale
+                            v.translationX = stage.offsetX
+                            v.translationY = stage.offsetY
+                        },
                         onRelease = { /* release 由 bridge.replaceWith / DisposableEffect 负责 */ },
                     )
                 } else {
@@ -188,6 +209,22 @@ fun DigitalHumanLabHost(
                     }
                 }
             }
+        }
+
+        // 放大后的「复位」小胶囊：捏合跑偏或想看全貌时一键回 1x 居中。
+        if (stage.isZoomed) {
+            Text(
+                text = "复位",
+                color = Color.White,
+                fontSize = 13.sp,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 150.dp)
+                    .clip(RoundedCornerShape(percent = 50))
+                    .background(Color.White.copy(alpha = 0.18f))
+                    .clickable { stage.reset() }
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
+            )
         }
 
         if (swapping) {

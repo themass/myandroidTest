@@ -116,6 +116,10 @@ object DhTestAudio {
             off = end
             if (off < pcm.size) delay(20)
         }
+        if (pcmDriven) {
+            // 播完必须收尾，否则推送段永远挂着，人物停在带摆动的待机口型循环。
+            bridge.flushRemotePcm()
+        }
         return sent
     }
 

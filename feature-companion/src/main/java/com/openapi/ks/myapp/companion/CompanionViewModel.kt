@@ -574,7 +574,11 @@ class CompanionViewModel(
     private fun appendToStreaming(delta: String) {
         _state.update { st ->
             val idx = st.messages.indexOfLast { it.streaming }
-            if (idx < 0) return@update st
+            if (idx < 0) {
+                // 语音通话里没人先发 send()，没有占位可追加。以前直接丢弃 →
+                // 字幕永远空，「字幕开关」看着没效果。第一个 delta 自己开一条流式回复。
+                return@update st.copy(messages = st.messages + newMessage(MessageRole.ASSISTANT, delta, streaming = true))
+            }
             st.copy(messages = st.messages.toMutableList().also {
                 it[idx] = it[idx].copy(text = it[idx].text + delta)
             })
