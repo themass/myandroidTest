@@ -1,14 +1,13 @@
 package com.openapi.feature.video.screening
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -29,15 +28,18 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.math.max
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 /**
  * 图集原生页，三层：封面瀑布流 → 图集网格 → 全屏阅览。
+ *
+ * 数据来自真接口：列表用 `API_IMG_CHANNLE_URL`，册内图片用 `API_IMG_ITEMS_IMG_URL`，
+ * 分页参数跟旧页面一致（内页的 `channel=` 取服务端的 `param` 字段，见 `ScreeningFeed.param`）。
+ * 取不到就整层回落随包样例，页面结构不变。
  *
  * 与设计稿一致的点：
  * - 封面用双列受控瀑布流（按各自的宽高比），不是等高卡片；
@@ -46,13 +48,18 @@ import kotlin.math.max
  * - 全屏支持左右滑动、双指缩放、位置计数；缩放后拖动查看细节。
  */
 @Composable
-internal fun ScreeningGallery(activity: ScreeningActivity, onExit: () -> Unit) {
-    var album by rememberSaveable { mutableStateOf<String?>(null) }
-    var viewing by rememberSaveable { mutableStateOf(-1) }
+internal fun ScreeningGallery(
+    activity: ScreeningActivity,
+    store: ScreeningFeedStore,
+    /** 从首页图片卡进来时带的频道；null = 只逛随包样例。 */
+    channelParam: String?,
+    onExit: () -> Unit,
+) {
+    var album by remember { mutableStateOf<RemoteEntry?>(null) }
+    var viewing by remember { mutableStateOf(-1) }
     val coverState = rememberLazyListState()
-    val detail = album?.let(albums::getValue)
 
-    androidx.activity.compose.BackHandler(enabled = viewing >= 0 || album != null) {
+    BackHandler(enabled = viewing >= 0 || album != null) {
         when {
             viewing >= 0 -> viewing = -1
             album != null -> album = null
@@ -60,26 +67,74 @@ internal fun ScreeningGallery(activity: ScreeningActivity, onExit: () -> Unit) {
         }
     }
 
+    val pagerScope = rememberCoroutineScope()
+    val covers = remember(channelParam) {
+        FeedPager(
+            pagerScope,
+            fetch = { start ->
+                if (channelParam != null) store.albums(channelParam, start)
+                else ScreeningFeedStore.Page(sampleAlbums(), null, false, fromSample = true)
+            },
+            fallback = { sampleAlbums() },
+        )
+    }
+    val selected = album
+    val shots = remember(selected) {
+        FeedPager(
+            pagerScope,
+            fetch = { start ->
+                val key = selected?.imageListKey()
+                if (selected != null && key != null) store.albumImages(key, start)
+                else ScreeningFeedStore.Page(sampleAlbumImages(selected?.sampleAlbumId().orEmpty()), null, false, fromSample = true)
+            },
+            fallback = { sampleAlbumImages(selected?.sampleAlbumId().orEmpty()) },
+        )
+    }
+    LaunchedEffect(covers) { covers.load() }
+    LaunchedEffect(shots) { shots.load() }
+
     Box(Modifier.fillMaxSize().background(Ink)) {
-        if (album == null) {
-            AlbumCovers(coverState, onOpen = { album = it }, onExit = onExit)
-        } else if (detail != null) {
-            AlbumContents(detail, onBack = { album = null }, onOpen = { viewing = it })
+        if (selected == null) {
+            AlbumCovers(covers, coverState, onOpen = { album = it }, onExit = onExit)
+        } else {
+            AlbumContents(selected, shots, onBack = { album = null }, onOpen = { viewing = it })
         }
-        val shots = detail?.shots.orEmpty()
-        if (viewing in shots.indices) {
-            Lightbox(activity, shots, viewing) { viewing = it }
+        val images = shots.items
+        if (viewing in images.indices) {
+            Lightbox(images, viewing) { viewing = it }
         }
     }
 }
 
+/**
+ * 首页图片频道卡 → 图集列表的分页参数。
+ * 旧页面 `ImgChannleBodyFragment` 用的就是 actionUrl query 里的 `channel=`，跟它取同一个值。
+ */
+internal fun RemoteEntry.galleryChannelParam(): String? = channelParam
+
+/**
+ * 一册图集 → 册内图片的分页参数。
+ * 旧页面 `ImgChannelImgListFragment.getUrl` 传的是 `vo.param`，不是 actionUrl 里那个 `channel=`，
+ * 所以优先 [RemoteEntry.param]，没有才退回 actionUrl 的参数。
+ */
+internal fun RemoteEntry.imageListKey(): String? = param ?: channelParam
+
+/** 样例图集的 id（`sample:album:<id>`）；服务端条目返回 null。 */
+private fun RemoteEntry.sampleAlbumId(): String? =
+    key.takeIf { it.startsWith(SAMPLE_ALBUM_KEY_PREFIX) }?.removePrefix(SAMPLE_ALBUM_KEY_PREFIX)
+
+private const val SAMPLE_ALBUM_KEY_PREFIX = "sample:album:"
+
 @Composable
-private fun AlbumCovers(state: LazyListState, onOpen: (String) -> Unit, onExit: () -> Unit) {
-    var filter by rememberSaveable { mutableStateOf("全部") }
-    val shown = albumOrder.map(albums::getValue)
-        .filter { filter == "全部" || it.place.startsWith(filter) || (filter == "有更新" && it.shots.size >= 4) }
+private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteEntry) -> Unit, onExit: () -> Unit) {
+    val listState = state
+    LaunchedEffect(listState, pager) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
+            .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
+    }
+    val shown = pager.items
     LazyColumn(
-        Modifier.fillMaxSize().safeDrawingPadding(), state = state,
+        Modifier.fillMaxSize().safeDrawingPadding(), state = listState,
         contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 26.dp),
     ) {
         item {
@@ -87,35 +142,41 @@ private fun AlbumCovers(state: LazyListState, onOpen: (String) -> Unit, onExit: 
                 IconButton(onClick = onExit) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回频道") }
                 Text("图集", fontSize = 22.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.weight(1f))
-                Text("${albumOrder.size} 本", color = Muted, fontSize = 12.sp)
+                Text(if (pager.loading) "正在取数据…" else if (pager.fromSample) "随包样例" else "${shown.size} 本",
+                    color = Muted, fontSize = 12.sp)
             }
             Text("一册一个地方，\n翻到最后一张为止。", color = White, fontSize = 37.sp, lineHeight = 42.sp, fontWeight = FontWeight.Black)
-            Spacer(Modifier.height(14.dp))
-            FilterRow(listOf("全部", "野外放映", "夜行电台", "海边来信", "有更新"), filter) { filter = it }
+            FeedNotice(pager.notice)
             Spacer(Modifier.height(12.dp))
+            if (pager.loading && shown.isEmpty()) {
+                Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(Modifier.size(26.dp), strokeWidth = 2.dp)
+                }
+            }
         }
-        if (shown.isEmpty()) {
-            item { Text("这个筛选下还没有图集，换一个试试。", Modifier.padding(14.dp), color = Muted) }
+        if (!pager.loading && shown.isEmpty()) {
+            item { Text("这里还没有图集，返回换个频道试试。", Modifier.padding(14.dp), color = Muted) }
         }
-        item {
+        if (shown.isNotEmpty()) item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 repeat(2) { column ->
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         shown.filterIndexed { index, _ -> index % 2 == column }.forEach { book ->
-                            Column(Modifier.clip(Tile).clickable { onOpen(book.id) }) {
-                                Box(Modifier.fillMaxWidth().aspectRatio(book.coverRatio)) {
-                                    Cover(book.cover, Modifier.matchParentSize())
+                            Column(Modifier.clip(Tile).clickable { onOpen(book) }) {
+                                Box(Modifier.fillMaxWidth().aspectRatio(book.ratio.coerceIn(0.6f, 1.7f))) {
+                                    EntryCover(book, Modifier.matchParentSize())
                                     Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x33141729), Ink))))
-                                    Text(
-                                        "${book.shots.size} 张",
-                                        Modifier.align(Alignment.TopEnd).padding(8.dp)
-                                            .background(Ink.copy(alpha = .72f), RoundedCornerShape(6.dp))
-                                            .padding(horizontal = 7.dp, vertical = 3.dp),
-                                        fontSize = 11.sp,
-                                    )
+                                    if (book.description.isNotBlank()) {
+                                        Text(
+                                            book.description,
+                                            Modifier.align(Alignment.TopEnd).padding(8.dp)
+                                                .background(Ink.copy(alpha = .72f), RoundedCornerShape(6.dp))
+                                                .padding(horizontal = 7.dp, vertical = 3.dp),
+                                            fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                        )
+                                    }
                                     Column(Modifier.align(Alignment.BottomStart).padding(11.dp)) {
                                         Text(book.title, color = White, fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                        Text(book.place, color = Muted, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     }
                                 }
                             }
@@ -124,12 +185,18 @@ private fun AlbumCovers(state: LazyListState, onOpen: (String) -> Unit, onExit: 
                 }
             }
         }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
     }
 }
 
 @Composable
-private fun AlbumContents(book: Album, onBack: () -> Unit, onOpen: (Int) -> Unit) {
+private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Unit, onOpen: (Int) -> Unit) {
     val state = rememberLazyListState()
+    LaunchedEffect(state, pager) {
+        snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
+            .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 9) pager.loadMore() }
+    }
+    val shots = pager.items
     LazyColumn(
         Modifier.fillMaxSize().safeDrawingPadding(), state = state,
         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp),
@@ -137,44 +204,53 @@ private fun AlbumContents(book: Album, onBack: () -> Unit, onOpen: (Int) -> Unit
         item {
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回图集") }
             Box(Modifier.fillMaxWidth().aspectRatio(16f / 11f).clip(RoundedCornerShape(12.dp, 32.dp, 12.dp, 12.dp))) {
-                Cover(book.cover, Modifier.matchParentSize())
+                EntryCover(book, Modifier.matchParentSize())
                 Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink))))
                 Column(Modifier.align(Alignment.BottomStart).padding(19.dp)) {
-                    Text(book.place, color = Peach, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text(book.title, color = White, fontSize = 38.sp, lineHeight = 42.sp, fontWeight = FontWeight.Black)
-                    Text(book.description, color = Muted, fontSize = 13.sp)
+                    Text(book.title, color = White, fontSize = 34.sp, lineHeight = 40.sp, fontWeight = FontWeight.Black,
+                        maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    if (book.description.isNotBlank()) Text(book.description, color = Muted, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
             }
-            Heading("全部照片", "${book.shots.size} 张")
+            FeedNotice(pager.notice)
+            Heading("全部照片", if (pager.loading) "正在取数据…" else "${shots.size} 张")
+            if (pager.loading && shots.isEmpty()) {
+                Box(Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(Modifier.size(26.dp), strokeWidth = 2.dp)
+                }
+            }
         }
-        items(book.shots.chunked(3)) { row ->
+        if (!pager.loading && shots.isEmpty()) item { Text("这一册还没有图片，返回换一册。", Modifier.padding(14.dp), color = Muted) }
+        items(shots.chunked(3)) { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                row.forEachIndexed { slot, shot ->
-                    val index = book.shots.indexOf(shot)
+                row.forEach { shot ->
+                    val index = shots.indexOf(shot)
                     Box(
                         Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(7.dp)).clickable { onOpen(index) },
                     ) {
-                        Cover(shot.asset, Modifier.matchParentSize())
-                        Text(
-                            shot.caption,
-                            Modifier.align(Alignment.BottomStart).fillMaxWidth()
-                                .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xB3141729))))
-                                .padding(horizontal = 6.dp, vertical = 5.dp),
-                            color = White, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        )
+                        EntryCover(shot, Modifier.matchParentSize())
+                        if (shot.title.isNotBlank()) {
+                            Text(
+                                shot.title,
+                                Modifier.align(Alignment.BottomStart).fillMaxWidth()
+                                    .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xB3141729))))
+                                    .padding(horizontal = 6.dp, vertical = 5.dp),
+                                color = White, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                 }
                 repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
-                if (row.isEmpty()) Spacer(Modifier.width(0.dp))
             }
             Spacer(Modifier.height(5.dp))
         }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
     }
 }
 
 /** 全屏阅览：滑动换张、双指缩放、单击开关信息、返回收起。 */
 @Composable
-private fun Lightbox(activity: ScreeningActivity, shots: List<Shot>, start: Int, onMove: (Int) -> Unit) {
+private fun Lightbox(shots: List<RemoteEntry>, start: Int, onMove: (Int) -> Unit) {
     val pager = rememberPagerState(initialPage = start.coerceIn(shots.indices)) { shots.size }
     var chrome by remember { mutableStateOf(true) }
     var zoom by remember { mutableFloatStateOf(1f) }
@@ -188,14 +264,14 @@ private fun Lightbox(activity: ScreeningActivity, shots: List<Shot>, start: Int,
             modifier = Modifier.fillMaxSize(),
         ) { page ->
             val shot = shots[page]
-            Box(Modifier.fillMaxSize().pointerInput(shot.id) {
+            Box(Modifier.fillMaxSize().pointerInput(shot.key) {
                 detectTransformGestures { _, drag, gesture, _ ->
                     zoom = (zoom * gesture).coerceIn(1f, 4f)
                     pan = if (zoom > 1f) pan + drag else Offset.Zero
                 }
             }) {
-                Cover(
-                    shot.asset,
+                EntryCover(
+                    shot,
                     Modifier.fillMaxSize()
                         .graphicsLayer {
                             scaleX = zoom; scaleY = zoom
@@ -218,7 +294,7 @@ private fun Lightbox(activity: ScreeningActivity, shots: List<Shot>, start: Int,
                 IconButton(onClick = { onMove(-1) }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "收起", tint = White) }
                 Column(Modifier.weight(1f)) {
                     val shot = shots[pager.currentPage.coerceIn(shots.indices)]
-                    Text(shot.caption, color = White, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(shot.title, color = White, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text("${pager.currentPage + 1} / ${shots.size}", color = Muted, fontSize = 12.sp)
                 }
                 if (zoom > 1.01f) TextButton({ zoom = 1f; pan = Offset.Zero }) { Text("还原") }
@@ -237,15 +313,17 @@ private fun Lightbox(activity: ScreeningActivity, shots: List<Shot>, start: Int,
             }
         }
         if (chrome) {
-            // 滑动指示：细线在底部，比圆点更克制
+            // 滑动指示：细线在底部，比圆点更克制。图多的时候细线太密，只画前 20 段。
+            val ticks = shots.size.coerceAtMost(20)
             Row(
                 Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp).height(2.dp).fillMaxWidth(0.4f),
                 horizontalArrangement = Arrangement.spacedBy(3.dp),
             ) {
-                shots.indices.forEach { index ->
+                repeat(ticks) { index ->
+                    val page = (index.toFloat() * shots.size / ticks).toInt().coerceIn(shots.indices)
                     Box(
                         Modifier.weight(1f).fillMaxHeight().background(
-                            if (index == pager.currentPage) Mint else White.copy(alpha = .28f),
+                            if (page == pager.currentPage) Mint else White.copy(alpha = .28f),
                         ),
                     )
                 }

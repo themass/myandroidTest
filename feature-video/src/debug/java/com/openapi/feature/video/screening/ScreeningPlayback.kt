@@ -50,7 +50,19 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStreamReader
 
-internal data class ScreeningSource(val title: String, val description: String, val asset: String? = null, val uri: Uri? = null)
+/**
+ * 一个可播放的东西。
+ *
+ * [key] 是它在服务端 / 本机上稳定的身份：进度、收藏、弹幕分窗都用它，不用 uri 字符串——
+ * 懒播放地址每次可能不一样，拿地址当 key 会让同一片子的进度对不上。
+ */
+internal data class ScreeningSource(
+    val title: String,
+    val description: String,
+    val asset: String? = null,
+    val uri: Uri? = null,
+    val key: String = asset ?: uri.toString(),
+)
 
 internal fun documentName(context: Context, uri: Uri): String = runCatching {
     context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
@@ -65,7 +77,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val store = remember { context.getSharedPreferences("screening-preview", 0) }
-    val id = source.asset ?: source.uri.toString()
+    val id = source.key
     // 两套内核各占一格画面槽，换内核在播放中途完成，见 KernelHost
     val host = remember { KernelHost(context) }
     LaunchedEffect(source) {
@@ -84,7 +96,9 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
         host.open(
             uri = source.uri ?: Uri.parse("asset:///${source.asset}.mp4"),
             file = file,
-            startMs = if (initial in 1 until SAMPLE_MS) initial else 0L,
+            // 随包样片长度已知（SAMPLE_MS），越界的旧进度直接丢掉；
+            // 网络片总长度这时还不知道，先按存的进度起播，host 拿到 duration 自己会夹
+            startMs = if (initial <= 0L) 0L else if (source.asset != null) initial.coerceAtMost(SAMPLE_MS) else initial,
         )
     }
     var position by remember { mutableLongStateOf(initial) }
