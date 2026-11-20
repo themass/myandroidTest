@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 默认英文、中文在 values-zh/，同 strings.xml 与 chatkit 的做法（整改清单 P2-14）。 -->
 <resources>
-    <string name="roles_empty_favorites">还没有收藏的角色，点击角色右侧的星标即可收藏</string>
-    <string name="roles_empty_recent">最近还没有使用过角色</string>
-    <string name="roles_empty_search">没有找到相关角色</string>
-    <string name="roles_filter_favorites">收藏</string>
-    <string name="roles_filter_featured">精选</string>
-    <string name="roles_filter_recent">最近</string>
-    <string name="roles_load_failed">角色加载失败</string>
-    <string name="roles_search_hint">搜索角色，比如 翻译、前端、小红书</string>
-    <string name="ui_all">全部</string>
-    <string name="ui_retry">重试</string>
+    <string name="roles_empty_favorites">No favorite roles yet. Tap the star to the right of a role to favorite it.</string>
+    <string name="roles_empty_recent">No roles used recently</string>
+    <string name="roles_empty_search">No matching roles found</string>
+    <string name="roles_filter_favorites">Favorites</string>
+    <string name="roles_filter_featured">Featured</string>
+    <string name="roles_filter_recent">Recent</string>
+    <string name="roles_load_failed">Couldn\'t load roles</string>
+    <string name="roles_search_hint">Search roles, e.g. translation, frontend, Xiaohongshu</string>
+    <string name="ui_all">All</string>
+    <string name="ui_retry">Retry</string>
 </resources>

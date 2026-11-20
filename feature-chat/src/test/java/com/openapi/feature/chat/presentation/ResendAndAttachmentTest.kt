@@ -10,10 +10,12 @@ import com.openapi.feature.chat.domain.model.OutgoingAttachment
 import com.openapi.feature.chat.domain.usecase.SendMessageUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -48,6 +50,7 @@ class ResendAndAttachmentTest {
         val streamer = ReplyStreamer(
             repo, state, scope, SendMessageUseCase(repo),
             attachmentActive = { false }, reconcile = {}, syncSessions = {},
+            strings = FakeChatStrings(),
         )
         val resend = ResendActions(
             repo, state, scope, streamer,
@@ -87,6 +90,7 @@ class ResendAndAttachmentTest {
         val streamer = ReplyStreamer(
             repo, state, scope, SendMessageUseCase(repo),
             attachmentActive = { false }, reconcile = {}, syncSessions = {},
+            strings = FakeChatStrings(),
         )
         var sentAttachments: List<OutgoingAttachment>? = null
         val sender = AttachmentSender(
@@ -193,6 +197,58 @@ class ResendAndAttachmentTest {
         assertEquals(1, h.state.value.drafts.size)
     }
 
+    // ---------------------------------------------------------------- 停止语义（P3-20）
+
+    /**
+     * 整改清单 P3-20：用户在传输途中点「停止」。
+     * 旧实现靠 `coroutineContext[Job]!!` 猜「是不是被停了」，而这行只在
+     * 「仓库吞掉了取消异常」时才会被执行——真实仓库恰好 `runCatching` 吞了取消
+     * 所以侥幸能用，协程取消语义上是错的，而且假仓库不吞、发送就直接以取消结束：
+     * 消息永远停在「发送中」、没有失败记录、界面没有反馈。
+     * 正确契约：deliver 自己捕获 CancellationException，落「已停止」的失败状态，
+     * 然后把取消重新抛出（不许吞协程取消）。
+     */
+    @Test
+    fun stoppingMidUploadMarksTheMessageStoppedAndRethrowsCancellation() {
+        val h = SenderHarness()
+        h.repo.uploadImageHangs = true
+        val file = java.io.File.createTempFile("img", ".jpg")
+        file.deleteOnExit()
+        val message = imageMsg(images = listOf(ImageAttachment(path = file.absolutePath)))
+
+        var rethrown = false
+        val job = h.scope.launch {
+            try {
+                h.sender.deliver(message)
+            } catch (c: kotlinx.coroutines.CancellationException) {
+                rethrown = true
+            }
+        }
+        h.scope.runCurrent() // 启动并挂进 uploadImage（不能用 advanceUntilIdle：会先把 120s 超时烧完）
+        job.cancel()
+        h.scope.advanceUntilIdle() // 让收尾真的跑完
+
+        assertTrue("停止必须以取消结束 deliver（协程取消不许被吞）", rethrown)
+        assertEquals("停止也要留下可重试的失败记录", DeliveryStatus.FAILED, h.repo.saved.single().delivery)
+        // 这条文案出自 AttachmentSender（未列入 P2-14b 的注入范围），仍是字面量；
+        // ReplyStreamer 的同款文案已走 strings 端口（资源键 chat_stopped_no_reply）
+        assertEquals("已停止，消息未发出，可点重试", h.state.value.error)
+        assertTrue("收尾后 streaming 要撤掉", h.state.value.streaming.not())
+        assertTrue("停止后这条消息不再是「发送中」", h.sender.isInFlight(message.id).not())
+    }
+
+    /** 普通失败（超时/服务端拒绝，没有任何取消）说的必须是「发送失败」而不是「已停止」。 */
+    @Test
+    fun aPlainFailureSaysRetryNotStopped() {
+        val h = SenderHarness()
+        h.repo.uploadImageResult = null
+        val message = imageMsg(images = listOf(ImageAttachment(path = "/nonexistent/lost.jpg")))
+
+        runBlocking { h.sender.deliver(message) }
+
+        assertEquals("发送失败，请稍后重试", h.state.value.error)
+    }
+
     // ---------------------------------------------------------------- submitEdit
 
     private class EditHarness {
@@ -211,6 +267,7 @@ class ResendAndAttachmentTest {
         val streamer = ReplyStreamer(
             repo, state, scope, SendMessageUseCase(repo),
             attachmentActive = { false }, reconcile = {}, syncSessions = {},
+            strings = FakeChatStrings(),
         )
         val resend = ResendActions(
             repo, state, scope, streamer,

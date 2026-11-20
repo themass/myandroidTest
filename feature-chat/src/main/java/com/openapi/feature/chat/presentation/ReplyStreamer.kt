@@ -28,6 +28,7 @@ internal class ReplyStreamer(
     private val reconcile: suspend () -> Unit,
     /** 新会话出现时同步会话列表。 */
     private val syncSessions: suspend () -> Unit,
+    private val strings: ChatStrings,
 ) {
 
     private companion object {
@@ -143,7 +144,7 @@ internal class ReplyStreamer(
                     it.copy(
                         sending = false,
                         streaming = attachmentActive(),
-                        error = if (replied) it.error else "已停止，消息未发出，可点重试",
+                        error = if (replied) it.error else strings.stoppedNoReply(),
                     )
                 }
                 userMessageId?.let { setDelivery(it, if (replied) DeliveryStatus.SENT else DeliveryStatus.FAILED) }
@@ -179,8 +180,8 @@ internal class ReplyStreamer(
                     sending = false,
                     streaming = attachmentActive(),
                     error = when {
-                        emptyReply -> "没有收到回复，请重试"
-                        failed -> current.error ?: "回复失败，请重试"
+                        emptyReply -> strings.emptyReply()
+                        failed -> current.error ?: strings.replyFailed()
                         else -> current.error
                     },
                 )
@@ -188,7 +189,7 @@ internal class ReplyStreamer(
             // 流结束但没有 done 帧（服务端中途断开、只给了部分文字）：不能当成已完整收到，用户消息标成失败可重试
             val truncated = !failed && !emptyReply && serverId == null && serverUserId == null && userMessageId != null
             if (truncated) {
-                state.update { it.copy(error = "回复没有完整收到，请重试") }
+                state.update { it.copy(error = strings.replyTruncated()) }
             }
             userMessageId?.let { setDelivery(serverUserId ?: errorUserId ?: it, if (failed || emptyReply || truncated) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
             // 正常路径靠 done 帧里的正式 id，不再每轮拉历史；只有缺 id（失败、没有 done 帧、空回复）时兜底拉一页

@@ -84,12 +84,14 @@ internal fun VoiceDraftEditor(
             DraftAction(
                 label = stringResource(R.string.chatkit_cancel_short),
                 onClick = onCancel,
-                icon = { Icon(Icons.Filled.Close, contentDescription = null, tint = Color.Black, modifier = Modifier.size(24.dp)) },
+                // 图标在可点的圆内、文字标签在圆外：读屏聚焦圆时只能靠图标的描述
+                // 知道这是什么按钮（整改清单 P2-16）
+                icon = { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.chatkit_cancel_short), tint = Color.Black, modifier = Modifier.size(24.dp)) },
             )
             DraftAction(
                 label = stringResource(R.string.chatkit_send_original_voice),
                 onClick = onSendAudio,
-                icon = { Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null, tint = Color.Black, modifier = Modifier.size(24.dp)) },
+                icon = { Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = stringResource(R.string.chatkit_send_original_voice), tint = Color.Black, modifier = Modifier.size(24.dp)) },
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(

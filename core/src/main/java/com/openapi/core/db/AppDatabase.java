@@ -12,6 +12,7 @@ import androidx.sqlite.SQLite;
 import androidx.sqlite.SQLiteConnection;
 
 import com.openapi.core.db.FavoriteVo;
+import com.openapi.common.util.android.Background;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.core.model.ChatLog;
 import com.openapi.core.model.ChatSessionLog;
@@ -23,8 +24,11 @@ import com.openapi.core.model.HistoryVo;
  *
  * 库名换成了 app.db：旧的 greenDAO 库（freeSEX）不再读取，也不迁移。
  * 版本 1 → 2 只加了收藏表（见 [#MIGRATION_1_2]），已有数据保留。
- * 旧代码（聊天页、会话列表、启动页）会在主线程直接读写，greenDAO 不限制这一点，
- * 所以这里允许主线程查询以保持原行为；新代码应放到后台线程。
+ *
+ * 整改清单 P3-21：不再 {@code allowMainThreadQueries()}。以前旧代码在主线程直接读写
+ * app.db，全靠这个标志兜着——代价是主线程被 SQLite 卡住也没人发现。标志去掉后
+ * Room 会在主线程查询处直接抛 IllegalStateException，所有 UI 侧的库访问必须走后台
+ * （FavoriteUtil 的 *Async、HistoryUtil、feature-chat 的 suspend 仓库方法）。
  *
  * 生命周期：进程启动时由 MyApplication 调用一次 [#init(Context)]，之后用 [#getInstance()] 取库，
  * 首次取库时才真正打开 app.db。
@@ -43,10 +47,16 @@ public abstract class AppDatabase extends RoomDatabase {
     private static volatile AppDatabase instance;
     private static volatile Context appContext;
 
-    /** 应用启动时调用一次，保存 Application Context 并打印聊天记录条数。 */
+    /** 应用启动时调用一次，保存 Application Context；聊天记录条数在后台打，别把开库拖进主线程。 */
     public static void init(Context context) {
         appContext = context.getApplicationContext();
-        LogUtil.i("chat log count ====" + getInstance().chatLogDao().count());
+        Background.serial(() -> {
+            try {
+                LogUtil.i("chat log count ====" + getInstance().chatLogDao().count());
+            } catch (Throwable e) {
+                LogUtil.e(e);
+            }
+        });
     }
 
     /** 取得数据库，首次调用时用 [#init(Context)] 保存的 Context 创建。 */
@@ -58,7 +68,6 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (db == null) {
                     db = Room.databaseBuilder(appContext, AppDatabase.class, DB_NAME)
                             .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
-                            .allowMainThreadQueries()
                             .fallbackToDestructiveMigration()
                             .build();
                     instance = db;

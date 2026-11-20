@@ -79,8 +79,10 @@ public class FavoriteFragment extends Fragment {
 
     private void reload() {
         if (getContext() == null) return;
-        List<FavoriteVo> list = FavoriteUtil.getLocalFavorites(getContext());
-        state.replace(list == null ? new ArrayList<>() : list);
+        // P3-21：收藏表后台读，结果回主线程再换列表
+        FavoriteUtil.getLocalFavoritesAsync(getContext(), list -> {
+            state.replace(list == null ? new ArrayList<>() : list);
+        });
     }
 
     private void onOpen(FavoriteVo data) {

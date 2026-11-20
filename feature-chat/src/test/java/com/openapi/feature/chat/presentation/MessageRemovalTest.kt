@@ -27,6 +27,7 @@ class MessageRemovalTest {
             state = state,
             scope = scope,
             reconcile = { reconciles++ },
+            strings = FakeChatStrings(),
             io = StandardTestDispatcher(scope.testScheduler),
         )
     }
@@ -70,7 +71,7 @@ class MessageRemovalTest {
         // 本地临时消息不删服务端，留在列表里并提示
         assertEquals(listOf("local-2"), h.state.value.messages.map { it.id })
         assertEquals(listOf("10", "12"), h.repo.deletedMessages)
-        assertEquals("1 条尚未同步，请稍后再删", h.state.value.error)
+        assertEquals("S:deleteManyPartUnsynced:1", h.state.value.error)
         assertEquals(1, h.reconciles)
     }
 
@@ -112,7 +113,7 @@ class MessageRemovalTest {
         h.removal.clearConversation()
         h.scope.advanceUntilIdle()
         assertEquals(setOf("10", "11"), h.state.value.messages.map { it.id }.toSet())
-        assertEquals("有 2 条消息清空失败，请稍后重试", h.state.value.error)
+        assertEquals("S:clearFailed:2", h.state.value.error)
         assertEquals(0, h.repo.clearedLocal)
     }
 }

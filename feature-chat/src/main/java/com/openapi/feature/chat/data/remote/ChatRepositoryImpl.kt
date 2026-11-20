@@ -136,7 +136,8 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
         speech.synthesize(messageId, text)
 
     override suspend fun saveMessage(sessionId: Long, message: ChatMessage) {
-        cache.persist(sessionId, message)
+        // P3-21：cache.persist 是 Room 写，此前漏了切线程，主线程调用会崩
+        withContext(Dispatchers.IO) { cache.persist(sessionId, message) }
     }
 
     override suspend fun localPendingMessages(sessionId: Long): List<ChatMessage> =
@@ -169,7 +170,7 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
 
     override suspend fun deleteCharacter(characterId: Int): Boolean = characterStore.deleteCharacter(characterId)
 
-    override fun sessions(): List<ChatSession> = sessionStore.sessions()
+    override suspend fun sessions(): List<ChatSession> = sessionStore.sessions()
 
     override fun setCurrentSessionId(sessionId: Long) = sessionStore.setCurrentSessionId(sessionId)
 

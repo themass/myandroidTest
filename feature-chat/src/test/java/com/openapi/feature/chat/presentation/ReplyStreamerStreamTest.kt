@@ -36,6 +36,7 @@ class ReplyStreamerStreamTest {
         val streamer = ReplyStreamer(
             repo, state, scope, SendMessageUseCase(repo),
             attachmentActive = { false }, reconcile = {}, syncSessions = {},
+            strings = FakeChatStrings(),
         )
 
         /** 推进虚拟时钟 [ms] 并跑完到点任务（吐字节拍按这个走）。 */

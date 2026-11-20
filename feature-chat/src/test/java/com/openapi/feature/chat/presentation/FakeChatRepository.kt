@@ -96,8 +96,11 @@ internal class FakeChatRepository : ChatRepository {
     /** 非 null 时 uploadImage 直接返回它；同时记录每次调用的文件，验证「该不该重新上传」。 */
     var uploadImageResult: String? = null
     val uploadImageCalls = mutableListOf<java.io.File>()
+    /** true 时 uploadImage 永不返回（真挂起点，只能被取消打断），供停止用例打断。 */
+    var uploadImageHangs = false
     override suspend fun uploadImage(localFile: java.io.File, fileName: String): String? {
         uploadImageCalls += localFile
+        if (uploadImageHangs) kotlinx.coroutines.suspendCancellableCoroutine<Nothing> { }
         return uploadImageResult
     }
     /** 重签通道（整改清单 P1-10）：非 null 时 refreshImageUrl 返回它；记录每个 id 的调用次数。 */
@@ -117,7 +120,7 @@ internal class FakeChatRepository : ChatRepository {
         deletedCharacters += characterId
         return deleteCharacterOk
     }
-    override fun sessions(): List<ChatSession> = sessionList
+    override suspend fun sessions(): List<ChatSession> = sessionList
     override fun setCurrentSessionId(sessionId: Long) {
         setCurrentCalls += sessionId
         current = sessionId

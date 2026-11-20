@@ -20,7 +20,6 @@ import com.openapi.feature.chat.domain.usecase.SendMessageUseCase
 import com.openapi.speech.audio.VoiceRecorder
 import com.openapi.feature.chat.roles.data.RolesDependencies
 import com.openapi.feature.chat.roles.domain.SelectedRole
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,18 +27,15 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ChatViewModel : ViewModel() {
 
-    private companion object {
-        /** 流式文字的释放节拍：约 25 次/秒，既顺滑又不会让 Markdown 重解析太频繁。 */
-        const val REVEAL_TICK_MS = 40L
-        /** 单个附件上传+识别的超时：超时按失败处理，气泡显示重试图标，不再一直转圈。 */
-        const val ATTACHMENT_TIMEOUT_MS = 120_000L
-    }
+    // 节拍与超时不在这里定义：真值在使用它们的 ReplyStreamer / AttachmentSender 里，
+    // 这里曾经抄了一份没人用的副本（整改清单 P3-18），改抄本不生效纯误导，删。
 
     private val repository = ChatDependencies.require()
+    // 错误文案端口：文字在 feature-chat 资源里，实现在 app（整改清单 P2-14b）
+    private val strings = ChatDependencies.strings()
     private val loadHistory = LoadHistoryUseCase(repository)
     private val sendMessage = SendMessageUseCase(repository)
     private val roles = RolesDependencies.require()
@@ -48,13 +44,14 @@ class ChatViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ChatUiState(selectedRole = roles.selected(), loading = true))
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
-    private val characterActions = CharacterActions(repository, roles, _uiState, viewModelScope, onSessionChanged = ::refresh)
+    private val characterActions = CharacterActions(repository, roles, _uiState, viewModelScope, strings, onSessionChanged = ::refresh)
     private val composer = ComposerActions(_uiState)
     private val streamer = ReplyStreamer(
         repository, _uiState, viewModelScope, sendMessage,
         attachmentActive = { attachmentJob?.isActive == true },
         reconcile = { fallbackReloadMessages() },
         syncSessions = { syncSessionsList() },
+        strings = strings,
     )
     private val attachments = AttachmentSender(
         repository, _uiState, streamer,
@@ -72,10 +69,11 @@ class ChatViewModel : ViewModel() {
         repository, _uiState, viewModelScope, composer, streamer,
         submitEdit = { id, text -> submitEdit(id, text) },
         startAttachmentSend = { m -> attachmentJob = viewModelScope.launch { repository.saveMessage(repository.currentSessionId(), m); deliverAttachments(m, restoreDraftsOnFailure = true) } },
+        strings = strings,
     )
-    private val history = HistoryActions(repository, _uiState, viewModelScope, isInFlight = { attachments.isInFlight(it) })
+    private val history = HistoryActions(repository, _uiState, viewModelScope, isInFlight = { attachments.isInFlight(it) }, strings = strings)
     private val feedback = FeedbackActions(_uiState)
-    private val removal = MessageRemoval(repository, _uiState, viewModelScope, reconcile = { fallbackReloadMessages() })
+    private val removal = MessageRemoval(repository, _uiState, viewModelScope, reconcile = { fallbackReloadMessages() }, strings = strings)
     private val imageRetry = ImageRetryActions(repository, _uiState, viewModelScope)
 
     init {
@@ -98,7 +96,7 @@ class ChatViewModel : ViewModel() {
             val loadError = loaded.exceptionOrNull()?.let(::describeLoadFailure)
             val sessionId = repository.currentSessionId()
             val merged = mergePending(page.messages, sessionId)
-            val sessions = withContext(Dispatchers.IO) { repository.sessions() }
+            val sessions = repository.sessions()
             val current = sessions.firstOrNull { it.id == sessionId }
             val sessionRole = SessionRole.resolve(current, roles, sessionId)
             val sessionCharacterId = current?.characterId?.takeIf { it > 0 && sessionRole == null }
@@ -129,7 +127,7 @@ class ChatViewModel : ViewModel() {
         if (visible) viewModelScope.launch { runCatching { syncSessionsList() } }
     }
 
-    private val sessionActions = SessionActions(repository, _uiState, viewModelScope, ::refresh)
+    private val sessionActions = SessionActions(repository, _uiState, viewModelScope, ::refresh, strings)
 
     fun onSessionSelected(sessionId: Long) = sessionActions.select(sessionId)
 
@@ -266,7 +264,7 @@ class ChatViewModel : ViewModel() {
     private suspend fun syncSessionsList() {
         repository.syncSessionsFromServer()
         val sessionId = repository.currentSessionId()
-        val sessions = withContext(Dispatchers.IO) { repository.sessions() }
+        val sessions = repository.sessions()
         _uiState.update { it.copy(sessionId = sessionId, sessions = sessions) }
     }
 

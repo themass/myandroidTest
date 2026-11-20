@@ -34,11 +34,13 @@ class SendActionsTest {
             val streamer = ReplyStreamer(
                 repo, state, scope, SendMessageUseCase(repo),
                 attachmentActive = { false }, reconcile = {}, syncSessions = {},
+                strings = FakeChatStrings(),
             )
             send = SendActions(
                 repo, state, scope, ComposerActions(state), streamer,
                 submitEdit = { id, text -> submitted = id to text },
                 startAttachmentSend = { m -> attachmentSends += m },
+                strings = FakeChatStrings(),
             )
         }
     }

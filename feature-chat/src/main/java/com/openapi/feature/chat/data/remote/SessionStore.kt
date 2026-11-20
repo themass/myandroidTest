@@ -26,8 +26,9 @@ internal class SessionStore(
         PreferenceUtils.setSettingLong(context, Constants.CHAT_SESSION, sessionId)
     }
 
-    fun sessions(): List<ChatSession> {
-        return AppDatabase.getInstance().chatSessionLogDao().loadAll().map { log ->
+    /** 整改清单 P3-21：Room 读，自己切 IO；调用方可以在任意线程。 */
+    suspend fun sessions(): List<ChatSession> = withContext(Dispatchers.IO) {
+        AppDatabase.getInstance().chatSessionLogDao().loadAll().map { log ->
             ChatSession(
                 id = log.id ?: 0L,
                 name = log.name.orEmpty(),

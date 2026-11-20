@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import com.openapi.common.image.ImageUtils
+import com.openapi.feature.chat.R
 import com.openapi.common.image.ImageCompressor
 import com.openapi.feature.chat.domain.model.MessageKind
 import java.io.File
@@ -69,7 +70,7 @@ object AttachmentStager {
         }
         val (name, size) = displayNameAndSize(context, uri)
         if (size != null && size > MAX_FILE_BYTES) {
-            return StageOutcome.Rejected("文件超过 20 MB，无法发送")
+            return StageOutcome.Rejected(context.getString(R.string.chat_file_too_large))
         }
         val safeName = name?.replace(Regex("[\\\\/:*?\"<>|]"), "_")?.takeIf { it.isNotBlank() } ?: "file_$stamp"
         val file = File(dir, "file_${stamp}_$safeName")
@@ -81,7 +82,7 @@ object AttachmentStager {
         // 大小未知（部分选择器不给 SIZE）时，复制后再按实际大小判断
         if (file.length() > MAX_FILE_BYTES) {
             file.delete()
-            return StageOutcome.Rejected("文件超过 20 MB，无法发送")
+            return StageOutcome.Rejected(context.getString(R.string.chat_file_too_large))
         }
         return StageOutcome.Staged(StagedAttachment(file = file, displayName = safeName, sizeBytes = file.length()))
     }

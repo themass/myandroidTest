@@ -1,5 +1,6 @@
 package com.openapi.core.favorite;
 
+import com.openapi.common.util.android.Background;
 import com.openapi.common.util.log.LogUtil;
 
 import android.content.Context;
@@ -36,16 +37,16 @@ public class FavoriteUtil {
     }
 
     /**
-     * 读取数据库 得到本地收藏
+     * 读取数据库 得到本地收藏。
      *
-     * @param context
-     * @return
+     * 只许在后台线程调用：AppDatabase 不再 allowMainThreadQueries，
+     * 主线程调用会直接抛 IllegalStateException。UI 请用 {@link #getLocalFavoritesAsync}。
      */
-
     public static List<FavoriteVo> getLocalFavorites(Context context) {
         return store().localFavorites();
     }
 
+    /** 同上：只许在后台线程调用；UI 用 {@link #getFavoriteAsync}。 */
     public static FavoriteVo getFavorite(Context context, String url) {
         try {
             List<FavoriteVo> list = store().byUrl(url);
@@ -56,6 +57,42 @@ public class FavoriteUtil {
         }catch (Exception e){
             return null;
         }
+    }
+
+    /** 收藏列表回调，一定在主线程触发。 */
+    public interface FavoriteListListener {
+        void onFavorites(List<FavoriteVo> list);
+    }
+
+    /** 单条收藏回调（没命中是 null），一定在主线程触发。 */
+    public interface FavoriteVoListener {
+        void onFavorite(FavoriteVo vo);
+    }
+
+    /**
+     * 整改清单 P3-21：收藏表在后台线程读、结果回主线程，UI 侧不再碰 Room。
+     * 读表失败按空列表交付（旧同步写法在这种情况下本来会直接崩在 UI 上）。
+     */
+    public static void getLocalFavoritesAsync(Context context, FavoriteListListener listener) {
+        Background.parallel(() -> {
+            List<FavoriteVo> list;
+            try {
+                list = store().localFavorites();
+            } catch (Throwable e) {
+                LogUtil.e(e);
+                list = java.util.Collections.emptyList();
+            }
+            final List<FavoriteVo> result = list;
+            Background.main(() -> listener.onFavorites(result));
+        });
+    }
+
+    /** 单条收藏的后台读 + 主线程回调；没命中或读失败都交付 null。 */
+    public static void getFavoriteAsync(Context context, String url, FavoriteVoListener listener) {
+        Background.parallel(() -> {
+            FavoriteVo vo = getFavorite(context, url);
+            Background.main(() -> listener.onFavorite(vo));
+        });
     }
 
     public static void getLocalFavoritesAsync(Context context, String url, GetFavoriteListener listener) {
