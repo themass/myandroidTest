@@ -20,6 +20,7 @@ dependencies {
     testImplementation libs.kotlinx.coroutines.test
     // org.json 在 JVM 单测里是 stub；解析真实 SSE 帧的用例需要真实现（与 :app、:feature-companion 同款）
     testImplementation 'org.robolectric:robolectric:4.17'
+    testImplementation 'androidx.test:core:1.7.0'
     // 对话业务：依赖 core（设计 token、媒体、权限）、chatkit（对话 UI 组件）、roles（角色选择）
     implementation project(':common')
     implementation project(':speech')
