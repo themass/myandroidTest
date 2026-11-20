@@ -20,14 +20,28 @@ internal class SessionActions(
     private val io: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
-    /** 切换会话：写入当前会话 id，然后重新加载这个会话的历史。 */
+    /** 切换会话：写入当前会话 id，立刻显示该会话的本地缓存，再向服务端重拉历史。 */
     fun select(sessionId: Long) {
         if (sessionId == state.value.sessionId) {
             state.update { it.copy(sessionsVisible = false) }
             return
         }
         repository.setCurrentSessionId(sessionId)
+        val previousSessionId = state.value.sessionId
         state.update { it.copy(sessionsVisible = false) }
+        // 先把目标会话的本地缓存顶上方：服务端一页要 0.4~2 秒，期间不读缓存的话，
+        // 上一个会话的消息会在界面上多停留几秒——用户读作「切换慢」甚至「串会话」。
+        scope.launch {
+            val cached = repository.cachedMessages(sessionId)
+            // 缓存为空就不顶：留着旧会话的内容也比白屏/闪空强，服务端页到了自然替换。
+            if (cached.isEmpty()) return@launch
+            // Room 读盘回来时可能已经发生两件事，任何一件都不许再画这份缓存：
+            // 1. 用户又切到了别的会话（仓库里的当前会话已变）——迟到的缓存会盖成新界面的内容；
+            // 2. 服务端那一页已经到了并画完（refresh 完成时才把 state.sessionId 推进）——
+            //    拿更旧、还没有签名 URL 的缓存盖掉新鲜内容，是倒退。
+            if (repository.currentSessionId() != sessionId || state.value.sessionId != previousSessionId) return@launch
+            state.update { it.copy(messages = cached) }
+        }
         refresh()
     }
 

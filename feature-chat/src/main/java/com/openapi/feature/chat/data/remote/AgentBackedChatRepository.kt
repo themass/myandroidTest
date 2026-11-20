@@ -560,6 +560,16 @@ class AgentBackedChatRepository(
     override suspend fun localPendingMessages(sessionId: Long): List<ChatMessage> =
         withContext(Dispatchers.IO) { local.localPending(sessionId) }
 
+    /**
+     * 该会话的本地缓存整页消息，供切换会话时立刻显示。
+     * 远程图片在这份缓存里是空路径（库里只存 upload_id，签名 URL 有 300 秒寿命），
+     * 等服务端那页到了再换 URL——切会话的瞬间先看到文字历史，比白屏强。
+     */
+    override suspend fun cachedMessages(sessionId: Long): List<ChatMessage> =
+        withContext(Dispatchers.IO) {
+            runCatching { local.loadCached(sessionId) }.getOrDefault(emptyList())
+        }
+
     // ------------------------------------------------------------ 映射
 
     private fun AgentMessageVo.toChatMessage(): ChatMessage {

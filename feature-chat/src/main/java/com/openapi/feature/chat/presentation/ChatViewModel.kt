@@ -67,7 +67,6 @@ class ChatViewModel : ViewModel() {
     private val resend = ResendActions(
         repository, _uiState, viewModelScope, streamer,
         startAttachments = { m -> attachmentJob = viewModelScope.launch { deliverAttachments(m) } },
-        refresh = { refresh() },
     )
     private val send = SendActions(
         repository, _uiState, viewModelScope, composer, streamer,
