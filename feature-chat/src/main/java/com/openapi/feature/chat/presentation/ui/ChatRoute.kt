@@ -201,6 +201,8 @@ fun ChatRoute(
                     // 多选由列表自己处理（见 ChatMessageList），不会到这里
                     MessageAction.Select -> Unit
                     MessageAction.Retry -> viewModel.onRetry(message.id)
+                    // 点失败的图片：组件已重载，这里给远程图重新签 URL（整改清单 P1-10）
+                    is MessageAction.RetryImage -> viewModel.onRetryImage(message.id, action.index)
                     MessageAction.Edit -> viewModel.onEditMessage(message.id)
                     MessageAction.Speak -> viewModel.onSpeakMessage(context, message)
                     MessageAction.Like -> {

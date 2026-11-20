@@ -77,6 +77,12 @@ sealed interface MessageAction {
     /** 长按菜单「多选」：进入多选，并选中这条消息。 */
     data object Select : MessageAction
     data class OpenFile(val file: MessagePart.File) : MessageAction
+    /**
+     * 点击了加载失败的那张图（整改清单 P1-10）。[index] 是它在消息里的下标。
+     * 组件已经自己做了「强制重新加载」；调用方若还能重新换取远程地址（签名 URL），
+     * 拿到后更新消息里的路径即可——下标对应的路径一变，组件会按新地址重新加载。
+     */
+    data class RetryImage(val index: Int) : MessageAction
 }
 
 /** 附件的长按目标：一张图片（本地路径或地址）或一个文件。 */

@@ -76,6 +76,7 @@ class ChatViewModel : ViewModel() {
     private val history = HistoryActions(repository, _uiState, viewModelScope, isInFlight = { attachments.isInFlight(it) })
     private val feedback = FeedbackActions(_uiState)
     private val removal = MessageRemoval(repository, _uiState, viewModelScope, reconcile = { fallbackReloadMessages() })
+    private val imageRetry = ImageRetryActions(repository, _uiState, viewModelScope)
 
     init {
         characterActions.load()
@@ -219,6 +220,12 @@ class ChatViewModel : ViewModel() {
 
     /** 重新发送一条失败的用户消息（不重新插入气泡，也不重复保存）。 */
     fun onRetry(messageId: String) = resend.retry(messageId)
+
+    /**
+     * 点击了加载失败的那张图片（整改清单 P1-10）。组件已强制重新加载现有地址；
+     * 远程图在这里额外做一件事：重新签一个 URL 换掉旧的。
+     */
+    fun onRetryImage(messageId: String, index: Int) = imageRetry.retry(messageId, index)
 
     /** 重新生成：去掉最后一条用户消息之后的助手回复，然后重新回答。 */
     fun onRegenerate(assistantId: String) = resend.regenerate(assistantId)
