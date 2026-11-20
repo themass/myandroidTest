@@ -353,8 +353,10 @@ class AgentBackedChatRepository(
             .flatMap { m -> m.images.filter { it.source == ImageSource.REMOTE }.mapNotNull { it.uploadId } }
             .distinct()
         if (ids.isEmpty()) return messages
+        // 串行版在 9 张图的会话上实测要 4–18s（每张 0.4–2s），全部压在切会话的关键路径上；
+        // 并发化后只剩最慢的一张。上限 8：一页几十张图时不把连接池和服务端瞬间打满。
         val urls = withContext(Dispatchers.IO) {
-            ids.associateWith { id -> runCatching { remote.attachmentUrl(id) }.getOrNull() }
+            boundedMap(ids) { id -> remote.attachmentUrl(id) }
         }
         return messages.map { m ->
             if (m.images.none { it.source == ImageSource.REMOTE }) m
