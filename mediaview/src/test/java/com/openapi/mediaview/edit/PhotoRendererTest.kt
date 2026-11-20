@@ -108,9 +108,11 @@ class PhotoRendererTest {
     @Test
     fun annotationsStayOnTheSameSpotUnderRotateAndFlip() {
         val w = 200; val h = 100
+        // 蓝块以 0.15×200=30 为中心、关于归一化坐标对称（27..35）：
+        // 26..34 会整体偏半像素，宽边再折到 100 宽的显示上就放大成 ~7px 量化误差，测不出真 bug。
         val marked = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).apply {
             eraseColor(Color.WHITE)
-            for (x in 26..34) for (y in 16..24) setPixel(x, y, Color.BLUE)
+            for (x in 27..35) for (y in 16..24) setPixel(x, y, Color.BLUE)
         }.copy(Bitmap.Config.ARGB_8888, false)
         val blank = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.WHITE) }
             .copy(Bitmap.Config.ARGB_8888, false)
