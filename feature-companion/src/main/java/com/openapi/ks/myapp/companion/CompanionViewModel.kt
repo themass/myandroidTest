@@ -40,6 +40,8 @@ class CompanionViewModel(
     val state: StateFlow<CompanionUiState> = _state.asStateFlow()
 
     private var characterId: String? = null
+    /** 当前会话的剧本 case；null = 普通语音会话。换 case 必须重建房间。 */
+    private var activeCaseId: String? = null
     private var collectJob: Job? = null
     private var startupJob: Job? = null
     private var inboxJob: Job? = null
@@ -79,14 +81,15 @@ class CompanionViewModel(
 
     /** 没有 [CompanionApi] 时直接连替身，用于预览与离线调试。 */
     fun start(characterId: String, caseId: String? = null) {
-        // 同一个角色：已经连上/正在重连/启动流程还在跑，都不能再建一个房间（会泄漏上一个 Room）。
-        // 只有出错或空闲（启动流程已结束）才允许重试。
-        if (this.characterId == characterId) {
+        // 同一角色 + 同一 case：已经连上/正在重连/启动流程还在跑，都不能再建一个房间（会泄漏上一个 Room）。
+        // 只有出错或空闲（启动流程已结束）才允许重试。换 case（含普通↔剧本）必须重建。
+        if (this.characterId == characterId && this.activeCaseId == caseId) {
             val connection = _state.value.connection
             val inFlight = startupJob?.isActive == true
             if (inFlight || connection == CompanionConnection.CONNECTED || connection == CompanionConnection.RECONNECTING) return
         }
         this.characterId = characterId
+        this.activeCaseId = caseId
         _state.update { it.copy(connection = CompanionConnection.CONNECTING, error = null) }
         startupJob?.cancel()
         startupJob = viewModelScope.launch {
