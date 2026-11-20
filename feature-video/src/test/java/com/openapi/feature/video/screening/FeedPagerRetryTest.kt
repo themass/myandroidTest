@@ -68,7 +68,7 @@ class FeedPagerRetryTest {
         advanceUntilIdle()
 
         assertEquals(2, starts.size)
-        assertTrue(pager.error?.contains("没取到服务端数据") == true)
+        assertTrue(pager.error?.contains("内容没加载出来") == true)
         assertFalse(pager.loading)
     }
 
@@ -90,7 +90,7 @@ class FeedPagerRetryTest {
 
         assertEquals(2, starts.size)
         assertEquals(1, pager.items.size)
-        assertTrue(pager.error?.contains("没取到服务端数据") == true)
+        assertTrue(pager.error?.contains("内容没加载出来") == true)
     }
 
     @Test

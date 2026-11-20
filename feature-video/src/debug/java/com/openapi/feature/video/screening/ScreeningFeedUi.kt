@@ -139,14 +139,16 @@ internal class FeedPager(
 }
 
 /**
- * 取数失败的文案：先分「是我们没连上」还是「服务端自己错了」，再给人话。
+ * 取数失败的文案：只说「发生了什么、能做什么」，不印接口细节。
  *
- * 原来一律拼「没取到服务端数据：<异常 toString>」，把服务端 500 也报成看着像网络问题，
- * 用户就会去查明明正常的网络（真机就撞上了）。错误类型是 NetError 的四个子类，分支直白。
+ * 两代教训：① 拼异常 toString 让用户看到 `NetError$BusinessError: System error…`；
+ * ② 改成「服务端返回错误（errno 10000）：…」后用户点名叫这是把接口和错误直接
+ * 打印到端上——errno、HTTP 码、服务端英文原文对用户的行动没有任何价值。
+ * 界面上只留人话 + 一个重试；errno 和原始报文进 logcat（FeedPager.onFailure 已 Log.w），
+ * 排查走日志，不拿用户当调试面板。
  *
  * 注意网络层的形状：`awaitInfoList`/`awaitGet` 为了兼容旧同步调用，把 NetError 又包了一层
- * `ExecutionException`（BaseServiceAwait.kt）。不先剥掉这层，下面的 when 永远落 else，
- * 新文案形同虚设（真机截图里旧文案复活就是这个原因）。
+ * `ExecutionException`（BaseServiceAwait.kt）。不先剥掉这层，下面的 when 永远落 else。
  */
 internal fun friendlyFeedError(cause: Throwable): String {
     var c = cause
@@ -156,13 +158,11 @@ internal fun friendlyFeedError(cause: Throwable): String {
         c = c.cause!!
     }
     return when (c) {
-        is NetError.BusinessError ->
-            if (c.errno > 0) "服务端返回错误（errno ${c.errno}）：${c.msg}"
-            else "服务端返回错误：${c.msg}"
-        is NetError.ServerError -> "服务端没接住这个请求（HTTP ${c.statusCode}）"
-        is NetError.TimeoutError -> "等服务端回应超时，网络可能很慢"
-        is NetError.NetworkError -> "没连上服务端，检查下网络再重试"
-        else -> "没取到服务端数据：${c.message ?: "未知原因"}"
+        is NetError.BusinessError -> "服务端出了点小问题，点重试再试一次"
+        is NetError.ServerError -> "服务端没接住这个请求，稍后再试"
+        is NetError.TimeoutError -> "等了很久，服务端没回应，点重试再试一次"
+        is NetError.NetworkError -> "没连上网，检查一下网络再重试"
+        else -> "内容没加载出来，点重试再试一次"
     }
 }
 

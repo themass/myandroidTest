@@ -413,7 +413,8 @@ private fun Library(
                 else RemoteCover(page.coverUrl, Modifier.matchParentSize())
                 Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink))))
                 Column(Modifier.align(Alignment.BottomStart).padding(19.dp)) {
-                    Text(if (page.channelParam != null) Constants.BASE_IP else "离线样片库", color = Peach, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    // 这里原来印 Constants.BASE_IP（接口域名）——调试信息，不是给用户看的（用户点过名）
+                    Text(if (page.channelParam != null) "放映场" else "离线样片库", color = Peach, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     Text(page.title, color = White, fontWeight = FontWeight.Black, fontSize = 34.sp, lineHeight = 42.sp,
                         maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text(if (pager.loading) "正在取数据…" else "${pager.items.size} 条", color = Muted)
