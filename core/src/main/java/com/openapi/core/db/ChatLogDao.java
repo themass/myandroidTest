@@ -52,12 +52,18 @@ public interface ChatLogDao {
     long count();
 
     /**
-     * 只保留最近 [keep] 条纯文字缓存：删掉 id 比最大 id 小 [keep] 以上的文字记录。
-     * 语音、图片、文件（msgType != 0）和本地临时消息（chatId 以 local- 开头）不删：
-     * 服务端历史里只有文字，这些记录里的附件信息只存在本机，删了就找不回来了。
+     * 每个会话各自保留最近 [keep] 条纯文字缓存：某一行要删，当且仅当**同一会话**里
+     * id 比它新的文字行不少于 [keep] 条。
+     * 以前是全表共享一个额度（id <= MAX(id) - keep），多切几个会话后每个会话断网时只剩几行
+     * （整改清单 P1-7）。语音、图片、文件（msgType != 0）和本地临时消息（chatId 以 local- 开头）
+     * 不删：服务端历史里只有文字，这些记录里的附件信息只存在本机，删了就找不回来了。
+     * 用相关子查询而不是窗口函数：低版本 Android 的 SQLite（<3.25）没有 ROW_NUMBER()。
      */
     @Query("DELETE FROM ChatLog WHERE msgType = 0 AND chatId NOT LIKE 'local-%' "
-            + "AND id <= (SELECT MAX(id) FROM ChatLog) - :keep")
+            + "AND (SELECT COUNT(*) FROM ChatLog AS newer "
+            + "     WHERE newer.sessionId = ChatLog.sessionId "
+            + "       AND newer.msgType = 0 AND newer.chatId NOT LIKE 'local-%' "
+            + "       AND newer.id > ChatLog.id) >= :keep")
     void trimToLatest(long keep);
 
     @Query("SELECT * FROM ChatLog WHERE chatId = :chatId LIMIT 1")
