@@ -8,7 +8,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.util.Log
-import com.openapi.imaging.CropNorm
+import com.openapi.imaging.quad.QuadNorm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.FloatBuffer
@@ -54,17 +54,18 @@ class DocQuadNetCropAssistProvider(context: Context) : CropAssistProvider {
         runCatching { detect(ortSession, bitmap) }
             .onFailure { Log.e(TAG, "inference failed", it) }
             .getOrNull()
-            ?.let { norm ->
+            ?.let { quad ->
                 CropAssistResult.SuggestedBox(
-                    norm = norm,
+                    norm = quad.bounds(),
                     confidenceLabel = "DocQuadNet",
                     elapsedMs = System.currentTimeMillis() - start,
+                    quad = quad,
                 )
             }
             ?: CropAssistResult.Unavailable("推理失败")
     }
 
-    private fun detect(session: OrtSession, bitmap: Bitmap): CropNorm? {
+    private fun detect(session: OrtSession, bitmap: Bitmap): QuadNorm? {
         val env = OrtEnvironment.getEnvironment()
         val srcW = bitmap.width
         val srcH = bitmap.height
@@ -109,41 +110,18 @@ class DocQuadNetCropAssistProvider(context: Context) : CropAssistProvider {
             }
         } ?: return null
 
-        // 4 channels of 64x64 heatmaps; the peak of each channel is that corner's location.
-        // Order among the 4 corners doesn't matter here since we only need their bounding box.
-        val points = (0 until 4).map { channel ->
-            var bestIdx = 0
-            var bestVal = Float.NEGATIVE_INFINITY
-            val base = channel * HEATMAP_SIZE * HEATMAP_SIZE
-            for (i in 0 until HEATMAP_SIZE * HEATMAP_SIZE) {
-                val v = heatmapBuffer[base + i]
-                if (v > bestVal) {
-                    bestVal = v
-                    bestIdx = i
-                }
-            }
-            val hy = bestIdx / HEATMAP_SIZE
-            val hx = bestIdx % HEATMAP_SIZE
-            // Heatmap cell -> canvas pixel (heatmap covers the full INPUT_SIZE canvas).
-            val canvasX = (hx + 0.5f) / HEATMAP_SIZE * INPUT_SIZE
-            val canvasY = (hy + 0.5f) / HEATMAP_SIZE * INPUT_SIZE
-            // Undo the letterbox to get back to original-bitmap pixel coordinates.
-            val origX = (canvasX - offsetX) / scale
-            val origY = (canvasY - offsetY) / scale
-            origX.coerceIn(0f, srcW.toFloat()) to origY.coerceIn(0f, srcH.toFloat())
-        }
-
-        val minX = points.minOf { it.first }
-        val maxX = points.maxOf { it.first }
-        val minY = points.minOf { it.second }
-        val maxY = points.maxOf { it.second }
-        if (maxX <= minX || maxY <= minY) return null
-
-        return CropNorm(
-            left = minX / srcW,
-            top = minY / srcH,
-            right = maxX / srcW,
-            bottom = maxY / srcH,
+        // 4 channels of 64x64 heatmaps; peaks are the 4 document corners. The decoding
+        // (peak → confidence-gated corner → QuadNorm, incl. the letterbox inverse map) is
+        // pure math and unit-tested in CornerHeatmapDecoderTest.
+        return CornerHeatmapDecoder.decode(
+            heatmaps = heatmapBuffer,
+            heatmapSize = HEATMAP_SIZE,
+            canvasSize = INPUT_SIZE,
+            offsetX = offsetX,
+            offsetY = offsetY,
+            scale = scale,
+            srcW = srcW,
+            srcH = srcH,
         )
     }
 
