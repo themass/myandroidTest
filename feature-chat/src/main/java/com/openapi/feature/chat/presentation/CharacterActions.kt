@@ -74,20 +74,23 @@ internal class CharacterActions(
      * - 新建失败时**不改任何选中状态**，只提示：否则界面显示新角色、实际还停在旧会话，
      *   就是这次要修的那个问题；
      * - [applySelection] 只在会话确定之后才执行。
+     *
+     * 整改清单 P3-21：查已有会话要读 Room（sessions() 已是 suspend），
+     * 所以整个判定挪进协程，主线程不再直接碰数据库。
      */
     private fun switchTo(roleId: String?, characterId: Int?, sessionName: String, applySelection: () -> Unit) {
-        val current = repository.currentSessionId()
-        val existing = repository.sessions().firstOrNull { it.matches(roleId, characterId) }
-        if (existing != null && existing.id == current) {
-            applySelection()
-            state.update { it.copy(rolePickerVisible = false) }
-            return
-        }
-        if (existing != null) {
-            enter(existing.id, roleId, characterId, applySelection)
-            return
-        }
         scope.launch {
+            val current = repository.currentSessionId()
+            val existing = repository.sessions().firstOrNull { it.matches(roleId, characterId) }
+            if (existing != null && existing.id == current) {
+                applySelection()
+                state.update { it.copy(rolePickerVisible = false) }
+                return@launch
+            }
+            if (existing != null) {
+                enter(existing.id, roleId, characterId, applySelection)
+                return@launch
+            }
             val created = runCatching { repository.createSessionFor(sessionName, roleId, characterId) }.getOrNull()
             if (created == null) {
                 state.update { it.copy(error = strings.roleSwitchFailed(), rolePickerVisible = false) }

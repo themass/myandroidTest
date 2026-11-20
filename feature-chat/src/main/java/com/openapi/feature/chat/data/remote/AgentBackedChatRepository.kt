@@ -294,7 +294,8 @@ class AgentBackedChatRepository(
 
     // ------------------------------------------------------------ 会话
 
-    override fun sessions(): List<ChatSession> = local.cachedSessions()
+    // P3-21：cachedSessions 读 Room，这里切 IO 后再交给调用方
+    override suspend fun sessions(): List<ChatSession> = withContext(Dispatchers.IO) { local.cachedSessions() }
 
     override suspend fun createSession(name: String): ChatSession? = withContext(Dispatchers.IO) {
         val trimmed = name.trim()

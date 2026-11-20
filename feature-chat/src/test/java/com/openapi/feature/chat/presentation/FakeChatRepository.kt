@@ -120,7 +120,7 @@ internal class FakeChatRepository : ChatRepository {
         deletedCharacters += characterId
         return deleteCharacterOk
     }
-    override fun sessions(): List<ChatSession> = sessionList
+    override suspend fun sessions(): List<ChatSession> = sessionList
     override fun setCurrentSessionId(sessionId: Long) {
         setCurrentCalls += sessionId
         current = sessionId

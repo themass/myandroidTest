@@ -20,7 +20,6 @@ import com.openapi.feature.chat.domain.usecase.SendMessageUseCase
 import com.openapi.speech.audio.VoiceRecorder
 import com.openapi.feature.chat.roles.data.RolesDependencies
 import com.openapi.feature.chat.roles.domain.SelectedRole
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,7 +27,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ChatViewModel : ViewModel() {
 
@@ -98,7 +96,7 @@ class ChatViewModel : ViewModel() {
             val loadError = loaded.exceptionOrNull()?.let(::describeLoadFailure)
             val sessionId = repository.currentSessionId()
             val merged = mergePending(page.messages, sessionId)
-            val sessions = withContext(Dispatchers.IO) { repository.sessions() }
+            val sessions = repository.sessions()
             val current = sessions.firstOrNull { it.id == sessionId }
             val sessionRole = SessionRole.resolve(current, roles, sessionId)
             val sessionCharacterId = current?.characterId?.takeIf { it > 0 && sessionRole == null }
@@ -266,7 +264,7 @@ class ChatViewModel : ViewModel() {
     private suspend fun syncSessionsList() {
         repository.syncSessionsFromServer()
         val sessionId = repository.currentSessionId()
-        val sessions = withContext(Dispatchers.IO) { repository.sessions() }
+        val sessions = repository.sessions()
         _uiState.update { it.copy(sessionId = sessionId, sessions = sessions) }
     }
 

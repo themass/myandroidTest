@@ -86,7 +86,8 @@ internal class SessionActions(
 
     /** 只刷新会话列表，不动消息。 */
     suspend fun reloadSessions() {
-        val sessions = withContext(io) { repository.sessions() }
+        // P3-21：sessions() 已是 suspend（实现内部切 IO），不用再手动 withContext
+        val sessions = repository.sessions()
         state.update { it.copy(sessions = sessions) }
     }
 }
