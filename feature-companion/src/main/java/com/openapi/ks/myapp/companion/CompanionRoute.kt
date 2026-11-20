@@ -246,6 +246,7 @@ fun CompanionRoute(
 
         // 波形样式：用户选了就记住，下次进通话还是那一套。
         var waveOptions by remember { mutableStateOf(loadWaveOptions(context)) }
+        var callTheme by remember { mutableStateOf(loadCallTheme(context)) }
 
         // 标题与字标要用她的真名，不能拿 characterId（如 linche）当人看。通话期间拉一次，
         // 失败就退回「陪伴」——名字拿不到不该挡住通话。
@@ -433,6 +434,11 @@ fun CompanionRoute(
                 waveOptions = next
                 saveWaveOptions(context, next)
             },
+            theme = callTheme,
+            onThemeChange = { next ->
+                callTheme = next
+                saveCallTheme(context, next)
+            },
             onHangUp = { chatViewModel.endCall() },
             onToggleMute = {
                 // 静音状态下点「取消静音」就是真的要开麦，没权限得先申请。
@@ -524,6 +530,8 @@ fun CompanionRoute(
                             remotePcm = chatViewModel.remotePcm,
                             modifier = Modifier.fillMaxSize(),
                             engineId = chosen,
+                            // 点她一下：本地立刻有反馈（舞台脉冲），区域上报给 agent 决定回不回。
+                            onTapped = chatViewModel::onAvatarTapped,
                         )
                         }
                     }
