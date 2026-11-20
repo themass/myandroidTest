@@ -117,7 +117,8 @@ private fun ZoomableImage(
     Box(Modifier.fillMaxSize()) {
         AsyncImage(
             model = model,
-            contentDescription = null,
+            // 全屏查看器里的图是内容本体，不是装饰（整改清单 P2-16）
+            contentDescription = stringResource(R.string.chatkit_image),
             contentScale = ContentScale.Fit,
             onSuccess = { onLoaded() },
             onError = { onFailed() },

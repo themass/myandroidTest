@@ -46,6 +46,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -73,6 +76,8 @@ internal fun VoiceBubble(
     voice: MessagePart.Voice,
     onClick: () -> Unit,
     onLongPress: () -> Unit,
+    /** 读屏动作（整改清单 P2-16）：与长按菜单同一批操作，挂在气泡自身节点上。 */
+    screenReaderActions: List<CustomAccessibilityAction> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val colors = ChatKit.colors
@@ -89,7 +94,11 @@ internal fun VoiceBubble(
         shape = bubbleShape(sender),
         modifier = modifier
             .widthIn(min = minWidth)
-            .combinedClickable(onClick = onClick, onLongClick = onLongPress),
+            .combinedClickable(onClick = onClick, onLongClick = onLongPress)
+            .then(
+                if (screenReaderActions.isEmpty()) Modifier
+                else Modifier.semantics { customActions = screenReaderActions }
+            ),
     ) {
         // 宽度取内容的最大固有宽度：分割线 fillMaxWidth 不再把气泡撑满限宽
         Column(modifier = Modifier.width(IntrinsicSize.Max).padding(horizontal = 12.dp, vertical = 10.dp)) {
