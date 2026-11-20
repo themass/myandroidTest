@@ -43,6 +43,10 @@ import com.openapi.cast.JavaCaster
 import com.openapi.common.net.http.NetConfig
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.feature.video.subtitle.local.ScreeningCaption
+import com.openapi.feature.video.subtitle.style.CaptionOverlay
+import com.openapi.feature.video.subtitle.style.CaptionPosition
+import com.openapi.feature.video.subtitle.style.captionPresets
+import com.openapi.feature.video.subtitle.style.captionPresetIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -126,6 +130,9 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     var serverCaptionName by remember { mutableStateOf("") }
     var serverBusy by remember { mutableStateOf<Long?>(null) }
     var offset by remember { mutableIntStateOf(0) }
+    // 字幕样式：预设序号，跟着这个播放器偏好走（和收藏同一个 prefs）
+    var presetIndex by remember { mutableIntStateOf(captionPresetIndex(store.getInt("caption-style", 0))) }
+    val captionStyle = captionPresets[presetIndex].style
     var info by remember { mutableStateOf("") }
     var speed by remember { mutableFloatStateOf(1f) }
     var danmaku by remember { mutableStateOf(false) }
@@ -325,13 +332,21 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 )
             }
             if (cue.isNotEmpty()) {
-                Text(
-                    cue,
-                    Modifier.align(Alignment.BottomCenter)
-                        .padding(bottom = if (full && chrome && !locked) 137.dp else 14.dp, start = 24.dp, end = 24.dp)
-                        .background(Color.Black.copy(alpha = .78f), RoundedCornerShape(5.dp))
-                        .padding(horizontal = 9.dp, vertical = 4.dp),
-                    color = White, textAlign = TextAlign.Center, maxLines = 3, overflow = TextOverflow.Ellipsis,
+                // 通用字幕渲染层：样式（颜色/底衬/字号/位置/滚动）全走 CaptionStyle，放映场只决定贴边距
+                CaptionOverlay(
+                    cue, captionStyle,
+                    Modifier.align(
+                        when (captionStyle.position) {
+                            CaptionPosition.BOTTOM -> Alignment.BottomCenter
+                            CaptionPosition.MIDDLE -> Alignment.Center
+                            CaptionPosition.TOP -> Alignment.TopCenter
+                        }
+                    )
+                        .padding(
+                            bottom = if (captionStyle.position == CaptionPosition.BOTTOM && full && chrome && !locked) 137.dp else 14.dp,
+                            top = if (captionStyle.position == CaptionPosition.TOP) (if (full) 44.dp else 14.dp) else 0.dp,
+                            start = 12.dp, end = 12.dp,
+                        ),
                 )
             }
             if ((chrome || !playing) && !locked) {
@@ -481,6 +496,14 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                             TextButton({ offset = (offset + 500).coerceAtMost(60_000) }) { Text("+500 ms") }
                         }
                         Text("正值让字幕更晚出现。", color = Muted, fontSize = 12.sp)
+                        Spacer(Modifier.height(4.dp))
+                        Text("字幕样式", Modifier.padding(top = 8.dp), fontWeight = FontWeight.Bold)
+                        captionPresets.forEachIndexed { index, preset ->
+                            Setting(preset.title, preset.hint, presetIndex == index) {
+                                presetIndex = index
+                                store.edit().putInt("caption-style", index).apply()
+                            }
+                        }
                     }
                     "倍速" -> listOf(.5f, .75f, 1f, 1.25f, 1.5f, 2f).forEach { value ->
                         Setting("${value}×", if (value == 1f) "正常速度" else "", speed == value) {
