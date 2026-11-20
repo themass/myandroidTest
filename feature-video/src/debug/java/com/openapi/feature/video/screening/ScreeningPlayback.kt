@@ -103,6 +103,38 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     var info by remember { mutableStateOf("") }
     var speed by remember { mutableFloatStateOf(1f) }
     var danmaku by remember { mutableStateOf(false) }
+    // 弹幕来源：没有服务端时默认本地样例，随时可切到假服务端源（接口形状和真服务端一致）
+    var danmakuSource by remember { mutableStateOf(DANMAKU_SAMPLE) }
+    val feed = remember(danmakuSource, id) {
+        DanmakuFeed(
+            when (danmakuSource) {
+                DANMAKU_SERVER -> InMemoryDanmakuSource(TimelineKey.local(id))
+                else -> SampleDanmakuSource(TimelineKey.local(id))
+            },
+        )
+    }
+    var danmakuState by remember { mutableStateOf(feed.state) }
+    var danmakuDraft by remember { mutableStateOf("") }
+    DisposableEffect(feed) {
+        feed.onChange = { danmakuState = feed.state }
+        danmakuState = feed.state
+        onDispose { feed.onChange = null }
+    }
+    LaunchedEffect(feed, danmaku) {
+        if (!danmaku) return@LaunchedEffect
+        // 打开或换来源就当一次 seek：清掉上一份缓存，从当前位置重新排
+        var last = host.positionNow()
+        feed.seek(last)
+        while (danmaku) {
+            // 进度条和快进快退都走 host.seekTo，这里按「一次跳太远」认 seek：
+            // 换代数作废在途回包，从新位置重新排队，旧位置的弹幕不会冒出来
+            val now = host.positionNow()
+            if (kotlin.math.abs(now - last) > feed.windowMs) feed.seek(now)
+            last = now
+            feed.sync(now)
+            delay(400)
+        }
+    }
     var fill by remember { mutableStateOf(false) }
     var liked by remember { mutableStateOf(store.getBoolean("favorite:$id", false)) }
     val discovery = remember { DlnaDiscoveryCallback() }
@@ -246,8 +278,8 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
             // 弹幕占上半区：底部永远留给字幕和控件，二者不互相压
             if (danmaku && !locked) {
                 DanmakuOverlay(
-                    source = { host.positionNow() },
-                    comments = sampleTimeline,
+                    clock = { host.positionNow() },
+                    state = danmakuState,
                     modifier = Modifier.fillMaxWidth().fillMaxHeight(.56f).align(Alignment.TopCenter),
                 )
             }
@@ -369,7 +401,45 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                     }
                     "弹幕" -> {
                         Setting("关闭弹幕", "立即清屏，不影响字幕和播放", !danmaku) { danmaku = false }
-                        Setting("本地样例弹幕", "${sampleTimeline.size} 条，按播放时间轴滚动", danmaku) { danmaku = true }
+                        // 来源切换：两个来源实现同一个 TimedCommentSource，渲染和车道调度完全共用
+                        Setting("本地样例弹幕", "随包内置，无需网络", danmaku && danmakuSource == DANMAKU_SAMPLE) {
+                            danmakuSource = DANMAKU_SAMPLE; danmaku = true
+                        }
+                        Setting("服务端弹幕", "链路演示：分窗拉取、发送回显、重试、撤回（假服务端，接口与真服务端一致）", danmaku && danmakuSource == DANMAKU_SERVER) {
+                            danmakuSource = DANMAKU_SERVER; danmaku = true
+                        }
+                        if (danmaku) {
+                            OutlinedTextField(
+                                value = danmakuDraft,
+                                onValueChange = { danmakuDraft = it.take(40) },
+                                placeholder = { Text("发一条弹幕，贴在 ${time(host.positionNow())}") },
+                                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                                singleLine = true,
+                            )
+                            danmakuState.outgoing.lastOrNull()?.let { mine ->
+                                val label = when (mine.state) {
+                                    SendState.Sending -> "发送中"
+                                    SendState.Sent -> "已发送"
+                                    SendState.Failed -> "发送失败：${mine.error ?: "未知原因"}"
+                                    SendState.Retracted -> "已撤回"
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("「${mine.text}」 $label", color = if (mine.state == SendState.Failed) Peach else Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                                    if (mine.state == SendState.Failed) TextButton(onClick = { scope.launch { feed.retry(mine.clientMessageId) } }) { Text("重试") }
+                                    if (mine.state == SendState.Sent) TextButton(onClick = { scope.launch { feed.retract(mine.clientMessageId) } }) { Text("撤回") }
+                                }
+                            }
+                            TextButton(
+                                enabled = danmakuDraft.isNotBlank(),
+                                onClick = {
+                                    // 发送时刻固定为打开输入时的播放位置，避免打字时视频在走贴错场景
+                                    val at = host.positionNow()
+                                    val text = danmakuDraft
+                                    danmakuDraft = ""
+                                    scope.launch { feed.send(at, text) }
+                                },
+                            ) { Text("发送，贴在 ${time(host.positionNow())}") }
+                        }
                         Text(
                             "弹幕跟着媒体时钟走：暂停就停住，倍速会一起变快变慢，拖进度条立刻换成那个位置的弹幕。" +
                                 "固定在上半区，底部留给字幕。",

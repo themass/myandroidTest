@@ -33,35 +33,10 @@ import androidx.compose.ui.text.rememberTextMeasurer
  * - 车道分配在**媒体时间**里一次算完，所以变速不需要重新排布，同一时刻两行不会叠在一起。
  * - 只用一块 Canvas 画，不逐条起 Compose 布局：条数多的时候也不会把每帧的测量拖垮。
  *
- * 这是本地样例源（[sampleTimeline]）。真正接服务端只需要换数据来源，
- * 渲染这段不用动 —— 见 `docs/design/media-suite.md` 的 `TimedCommentSource`。
+ * 数据从哪来（本地样例 / 服务端 / 注入的假服务端）由 [DanmakuSource.kt] 的 `TimedCommentSource` 决定，
+ * 这里只吃 [DanmakuState]：换来源不改渲染，见 `docs/design/media-suite.md`。
  */
-internal data class TimedComment(val id: Int, val atMs: Long, val text: String)
-
-/**
- * 本地样例弹幕。故意排成「同一秒里两三条一起出来」，用来验证车道不会互相压住；
- * 也放了几条长句，用来看宽度估算和出屏节奏是否正常。
- */
-internal val sampleTimeline: List<TimedComment> = listOf(
-    TimedComment(1, 400, "这个开场真舒服"),
-    TimedComment(2, 900, "前面别快进"),
-    TimedComment(3, 1400, "山脊线太好看了"),
-    TimedComment(4, 1500, "这一段配乐是谁做的"),
-    TimedComment(5, 2600, "这一幕太美了"),
-    TimedComment(6, 3100, "截图当壁纸了"),
-    TimedComment(7, 3600, "云在动，人不动"),
-    TimedComment(8, 4200, "我也是从推荐里点进来的"),
-    TimedComment(9, 4800, "感觉风是凉的"),
-    TimedComment(10, 5600, "这里就该停下来看一会儿"),
-    TimedComment(11, 6000, "高海拔的天气真的说变就变"),
-    TimedComment(12, 6400, "绿色好干净"),
-    TimedComment(13, 7300, "已经循环第三遍了"),
-    TimedComment(14, 7900, "有没有人注意到右边那条小径"),
-    TimedComment(15, 8600, "取景真的很克制"),
-    TimedComment(16, 9400, "这句旁白好听"),
-    TimedComment(17, 10200, "看完想去山里"),
-    TimedComment(18, 11000, "谢谢你拍下来"),
-)
+internal data class TimedComment(val id: Int, val atMs: Long, val text: String, val author: String = "")
 
 /** 一条弹幕横向走完全程需要的**媒体时间**；变速时整体等比缩短或拉长，不用单独处理。 */
 private const val TRAVEL_MS = 6500L
@@ -79,18 +54,21 @@ private class Track(
 )
 
 /**
- * [source] 每帧读一次播放位置：控件层的 125ms 同步不够顺滑，这里自己跟帧走，
+ * [clock] 每帧读一次播放位置：控件层的 125ms 同步不够顺滑，这里自己跟帧走，
  * 但只有这块 Canvas 会重组，页面其它部分不受影响。
+ * [state] 来自 [DanmakuFeed]：来源（本地样例 / 服务端 / 注入实现）已经在它后面被换掉了，
+ * 渲染这一段对来源无感知。
  */
 @Composable
-internal fun DanmakuOverlay(source: () -> Long, comments: List<TimedComment>, modifier: Modifier = Modifier) {
+internal fun DanmakuOverlay(clock: () -> Long, state: DanmakuState, modifier: Modifier = Modifier) {
+    val comments = state.comments
     val measurer = rememberTextMeasurer()
     var box by remember { mutableStateOf(IntSize.Zero) }
-    var now by remember { mutableLongStateOf(source()) }
+    var now by remember { mutableLongStateOf(clock()) }
     LaunchedEffect(Unit) {
         while (true) {
             withFrameNanos { }
-            now = source()
+            now = clock()
         }
     }
     // 车道和宽度只跟尺寸、字号有关，跟播放位置无关：位置变了不重新排版
