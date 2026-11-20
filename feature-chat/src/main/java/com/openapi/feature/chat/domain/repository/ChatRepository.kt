@@ -126,6 +126,16 @@ interface ChatRepository {
     suspend fun uploadImage(localFile: java.io.File, fileName: String): String?
 
     /**
+     * 为已上传的对象重新换取一个可渲染地址（整改清单 P1-10：历史图片签名 URL 过期 /
+     * 换 URL 失败后，点击失败占位走这里重签，走的是历史整页换 URL 的同一条
+     * `GET /uploads/{id}` 通道）。
+     *
+     * 只有 /v1 后端支持；返回 null 表示换不到（旧链路、对象不存在、网络失败），
+     * 调用方保持原样即可——界面上的失败占位仍在，用户可以再点一次。
+     */
+    suspend fun refreshImageUrl(uploadId: String): String? = null
+
+    /**
      * 上传一个图片或文件附件，等待大模型的回复。
      *
      * 上传走旧版已有的接口（图片 `/chat/ai/recognize.json`，文件 `/chat/ai/local/file.json`），

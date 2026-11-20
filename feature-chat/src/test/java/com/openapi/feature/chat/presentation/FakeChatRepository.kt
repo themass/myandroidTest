@@ -98,6 +98,13 @@ internal class FakeChatRepository : ChatRepository {
         uploadImageCalls += localFile
         return uploadImageResult
     }
+    /** 重签通道（整改清单 P1-10）：非 null 时 refreshImageUrl 返回它；记录每个 id 的调用次数。 */
+    var refreshImageUrlResult: String? = null
+    val refreshImageUrlCalls = mutableListOf<String>()
+    override suspend fun refreshImageUrl(uploadId: String): String? {
+        refreshImageUrlCalls += uploadId
+        return refreshImageUrlResult
+    }
     override suspend fun sendAttachment(
         sessionId: Long, kind: MessageKind, localFile: java.io.File, fileName: String, placeholderId: String,
     ): ChatReply? = null
