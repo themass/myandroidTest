@@ -44,7 +44,8 @@ class ChatViewModel : ViewModel() {
     private val sendMessage = SendMessageUseCase(repository)
     private val roles = RolesDependencies.require()
 
-    private val _uiState = MutableStateFlow(ChatUiState(selectedRole = roles.selected()))
+    // 初始就是「加载中」：第一帧不该先画一个空会话，再跳成历史。
+    private val _uiState = MutableStateFlow(ChatUiState(selectedRole = roles.selected(), loading = true))
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
     private val characterActions = CharacterActions(repository, roles, _uiState, viewModelScope, onSessionChanged = ::refresh)
@@ -89,8 +90,12 @@ class ChatViewModel : ViewModel() {
     /** 重新加载当前会话：服务端最新一页历史 + 会话列表（服务端不可达时回退到本地缓存）。 */
     fun refresh() {
         viewModelScope.launch {
-            _uiState.update { it.copy(loading = true, error = null) }
-            val page = runCatching { loadHistory() }.getOrElse { HistoryPage(emptyList(), hasMore = false) }
+            _uiState.update { it.copy(loading = true, error = null, loadError = null) }
+            // 读失败不能静默成空页：那会让「断网」和「历史被清空」看起来一模一样。
+            // 页面照常装配（会话列表、角色都还能用），但把失败原因留下来给消息区渲染。
+            val loaded = runCatching { loadHistory() }
+            val page = loaded.getOrElse { HistoryPage(emptyList(), hasMore = false) }
+            val loadError = loaded.exceptionOrNull()?.let(::describeLoadFailure)
             val sessionId = repository.currentSessionId()
             val merged = mergePending(page.messages, sessionId)
             val sessions = withContext(Dispatchers.IO) { repository.sessions() }
@@ -107,6 +112,7 @@ class ChatViewModel : ViewModel() {
                     loadingOlder = false,
                     editingMessageId = null,
                     loading = false,
+                    loadError = loadError,
                     sessionId = sessionId,
                     // 会话的角色以会话自己为准：每个角色一段独立历史，不能沿用“最近一次选的角色”
                     selectedRole = sessionRole?.also { roles.setSelected(it) },

@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import com.openapi.feature.chat.domain.model.ChatCharacterOption
 import com.openapi.feature.chat.domain.model.ChatMessage
 import com.openapi.feature.chat.presentation.ChatUiState
+import com.openapi.feature.chat.presentation.EmptyState
+import com.openapi.feature.chat.presentation.emptyStateFor
 import com.openapi.chatkit.input.ChatComposer
 import com.openapi.chatkit.message.ChatMessageList
 import com.openapi.chatkit.message.parts.DefaultMessageText
@@ -111,6 +113,8 @@ fun ChatScreen(
     onMenuClick: (() -> Unit)?,
     /** 关掉错误条。错误信息本身来自 ViewModel，界面只负责显示与关闭。 */
     onDismissError: () -> Unit = {},
+    /** 历史读取失败时的重试入口。 */
+    onReload: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val playback by AudioPlayer.state.collectAsState()
@@ -213,7 +217,12 @@ fun ChatScreen(
                     }
                 },
                 emptyContent = {
-                    if (!state.loading) EmptyChat(identity = identity, onSuggestion = onInputChange)
+                    // 读失败不能画成空会话：那和「历史被清空」没有区别。
+                    when (val empty = emptyStateFor(state)) {
+                        EmptyState.Loading -> Unit
+                        is EmptyState.Failed -> LoadFailedChat(message = empty.message, onRetry = onReload)
+                        EmptyState.Blank -> EmptyChat(identity = identity, onSuggestion = onInputChange)
+                    }
                 },
             )
 

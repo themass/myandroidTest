@@ -102,3 +102,30 @@ internal fun EmptyChat(identity: AssistantIdentity, onSuggestion: (String) -> Un
         }
     }
 }
+
+/**
+ * 历史读不出来时的空态。
+ *
+ * 关键点：**不能画成 [EmptyChat]**。断网冷启动时那两个界面一模一样，
+ * 用户会以为历史被清空了；这里给原因和重试入口，把「没读到」和「没有消息」分开。
+ * 只读失败时也照常显示输入栏，聊天本身不因为历史读不出来就不可用。
+ */
+@Composable
+internal fun LoadFailedChat(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(AppSpacing.xl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            message,
+            fontSize = AppTypography.body,
+            color = AppColors.Error,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(AppSpacing.md))
+        TextButton(onClick = onRetry) {
+            Text(stringResource(R.string.chat_load_failed_retry), color = AppColors.Primary)
+        }
+    }
+}
