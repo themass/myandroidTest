@@ -29,6 +29,10 @@
     <string name="chat_role_persona">人设描述（会作为对话的提示词）</string>
     <string name="chat_session_name_hint">给这个对话起个名字</string>
     <string name="chat_session_untitled">未命名对话</string>
+    <string name="chat_search_hint">搜索对话和消息</string>
+    <string name="chat_search_empty">没有匹配的内容</string>
+    <string name="chat_search_sessions">对话</string>
+    <string name="chat_search_messages">消息</string>
     <string name="chat_sessions_desc">对话列表</string>
     <string name="chat_sessions_title">对话</string>
     <string name="chat_suggest_example">给我一个上手的例子</string>
