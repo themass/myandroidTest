@@ -82,7 +82,7 @@ private fun ScreeningHome(activity: ScreeningActivity) {
     var channelPage by remember { mutableStateOf<ScreeningChannelPage?>(null) }
     var selection by remember { mutableStateOf<ScreeningSource?>(null) }
     var gallery by remember { mutableStateOf(false) }
-    /** 从首页图片卡进图集时带的 `channel=`；null 就是只逛随包样例。 */
+    /** 从首页图片卡进图集时带的 `channel=`；null 时图集页直接给空态，不演样例。 */
     var galleryChannel by remember { mutableStateOf<String?>(null) }
     /** 懒播放地址在路上：点了卡到地址回来之间要有反馈，不能像没点上。 */
     var opening by remember { mutableStateOf(false) }
@@ -190,10 +190,8 @@ private fun Channels(
     var filter by rememberSaveable { mutableStateOf(FeedCategory.ALL.label) }
     val category = FeedCategory.entries.firstOrNull { it.label == filter } ?: FeedCategory.ALL
     val pagerScope = rememberCoroutineScope()
-    // 换分类就是换接口：pager 跟着分类重建，进来先取真实数据，取不到才回落样例
-    val pager = remember(category) {
-        FeedPager(pagerScope, fetch = { start -> store.channels(category, start) }, fallback = { category.fallback })
-    }
+    // 换分类就是换接口：pager 跟着分类重建，进来先取真实数据；取不到就报错误给重试，没有样例兜底
+    val pager = remember(category) { FeedPager(pagerScope, fetch = { start -> store.channels(category, start) }) }
     val listState = rememberLazyListState()
     LaunchedEffect(pager) { pager.load() }
     LaunchedEffect(listState, pager) {
@@ -209,7 +207,14 @@ private fun Channels(
                 Icon(Icons.Default.PlayArrow, null, tint = Mint)
                 Text("放映场", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
                 Spacer(Modifier.weight(1f))
-                Text(if (pager.fromSample) "随包样例" else "服务端数据", color = Muted, fontSize = 12.sp)
+                Text(
+                    when {
+                        pager.loading && pager.items.isEmpty() -> "正在取数据…"
+                        pager.error != null -> "未连上服务端"
+                        else -> "服务端数据"
+                    },
+                    color = Muted, fontSize = 12.sp,
+                )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column {
@@ -221,7 +226,7 @@ private fun Channels(
                 TextButton(onClick = onOpenLocal) { Text("本地视频", color = Muted, fontSize = 18.sp) }
                 TextButton(onClick = { onGallery(null) }) { Text("图集", color = Muted, fontSize = 18.sp) }
             }
-            FeedNotice(pager.notice)
+            FeedError(pager.error, pager::reload)
             hero?.let { entry ->
                 Spacer(Modifier.height(13.dp))
                 Box(Modifier.fillMaxWidth().height(352.dp).clip(RoundedCornerShape(13.dp, 38.dp, 13.dp, 13.dp))
@@ -317,15 +322,13 @@ private fun Library(
     var filter by rememberSaveable { mutableStateOf("全部") }
     var poster by rememberSaveable { mutableStateOf(false) }
     val channelParam = page.channelParam
-    // 真实频道按 channel= 取服务端片单；本地样片库继续用随包 assets
+    // 真实频道按 channel= 取服务端片单；「本地视频」页放的是随包样片，本来就不走网络
     val pager = remember(page) {
         FeedPager(scope,
             fetch = { start ->
                 if (channelParam != null) store.videos(channelParam, start)
-                // 本地样片库不发请求：提示语不能谎称「没连上」
-                else ScreeningFeedStore.Page(sampleReels(page.sample), null, false, fromSample = true, requested = false)
-            },
-            fallback = { sampleReels(page.sample) })
+                else ScreeningFeedStore.Page(sampleReels(page.sample), null, false)
+            })
     }
     val listState = rememberLazyListState()
     LaunchedEffect(pager) {
@@ -355,7 +358,7 @@ private fun Library(
                     Text(if (pager.loading) "正在取数据…" else "${pager.items.size} 条", color = Muted)
                 }
             }
-            FeedNotice(pager.notice)
+            FeedError(pager.error, pager::reload)
             if (page.sample != null) FilledTonalButton(onClick = { picker.launch(arrayOf("video/*")) }, modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
                 Text("打开手机里的视频")
             }
