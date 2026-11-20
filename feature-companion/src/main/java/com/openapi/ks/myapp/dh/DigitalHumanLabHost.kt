@@ -6,8 +6,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.util.Log
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -27,7 +30,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -49,6 +56,11 @@ fun DigitalHumanLabHost(
     modifier: Modifier = Modifier,
     remotePcm: kotlinx.coroutines.flow.Flow<ByteArray>? = null,
     engineId: DhEngineId = DhEngineId.SIMPLE,
+    /**
+     * 点了她一下：上报归一化区域（"head"/"body"，与分层立绘同一语义），由 agent 决定
+     * 回不回。本地脉冲反馈不等这个回调——点了没反应是体验底线。null = 不监听（聊天页）。
+     */
+    onTapped: ((String) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
@@ -73,6 +85,30 @@ fun DigitalHumanLabHost(
     // 放大后单指拖动，1x 时单指事件原样透传给引擎（点击触发形象动画、Live2D 视线）。
     val stage = rememberAvatarStageTransform()
     LaunchedEffect(engine) { stage.reset() }
+
+    // 点她一下的本地脉冲：按下缩 2% 抬手弹回。减弱动态时缩放归零，只剩震动。
+    val reducedMotion = remember(context) {
+        runCatching {
+            android.provider.Settings.Global.getFloat(
+                context.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f,
+            ) == 0f
+        }.getOrDefault(false)
+    }
+    val pulseSpec = remember(reducedMotion) { stageTapPulse(reducedMotion) }
+    var tapPressed by remember { mutableStateOf(false) }
+    val tapScale by animateFloatAsState(
+        targetValue = if (tapPressed) 1f - pulseSpec.scaleDelta else 1f,
+        animationSpec = tween(if (tapPressed) pulseSpec.pressDownMs else pulseSpec.returnMs),
+        label = "tapPulse",
+    )
+    LaunchedEffect(tapPressed) {
+        if (tapPressed) {
+            kotlinx.coroutines.delay(pulseSpec.pressDownMs.toLong())
+            tapPressed = false
+        }
+    }
+    val haptics = LocalHapticFeedback.current
+    val tappedNow by androidx.compose.runtime.rememberUpdatedState(onTapped)
 
     // 激活即上膛：正常销毁走 markClean；native crash 让标记残留 → 下次冷启动熔断。
     // release 仍只归 DisposableEffect(Unit)/replaceWith 管——切换时 bridge.current()
@@ -163,7 +199,8 @@ fun DigitalHumanLabHost(
                     modifier = Modifier
                         .fillMaxSize()
                         .avatarStageTransform(stage)
-                        .avatarStageLayer(stage),
+                        .avatarStageLayer(stage)
+                        .graphicsLayer { scaleX = tapScale; scaleY = tapScale },
                     mouthLevel = mouthLevel,
                 )
             }
@@ -183,8 +220,10 @@ fun DigitalHumanLabHost(
                             .fillMaxSize()
                             .avatarStageTransform(stage),
                         update = { v ->
-                            v.scaleX = stage.scale
-                            v.scaleY = stage.scale
+                            // 触摸脉冲乘在引擎 View 自身的 scale 上（与双指缩放同源，
+                            // Compose 图层到不了这个 View，见 AvatarStageTransform 注释）。
+                            v.scaleX = stage.scale * tapScale
+                            v.scaleY = stage.scale * tapScale
                             v.translationX = stage.offsetX
                             v.translationY = stage.offsetY
                         },
@@ -209,6 +248,25 @@ fun DigitalHumanLabHost(
                     }
                 }
             }
+        }
+
+        // 点她一下（GL/TextureView 引擎）：引擎 View 自己不回单点触摸，这里补上。
+        // 事件顺序：缩放/拖动层在 Initial pass 先看手指（双指、放大拖拽被它吃掉），
+        // 剩下的单点轻触由这层在 Main pass 认成 tap——捏合时多点按下不会误判成点击。
+        if (engine.id != DhEngineId.SIMPLE) {
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .pointerInput(engine) {
+                        detectTapGestures { offset ->
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            tapPressed = true
+                            tappedNow?.invoke(
+                                stageTapRegion(offset.x / size.width, offset.y / size.height),
+                            )
+                        }
+                    },
+            )
         }
 
         // 放大后的「复位」小胶囊：捏合跑偏或想看全貌时一键回 1x 居中。
