@@ -9,11 +9,10 @@ import com.openapi.feature.chat.domain.model.ChatMessage
 import com.openapi.feature.chat.domain.model.FileAttachment
 import com.openapi.feature.chat.domain.model.ImageAttachment
 import com.openapi.feature.chat.domain.model.ChatRole
-import com.openapi.feature.chat.domain.model.HistoryPage
+import com.openapi.feature.chat.domain.model.OutgoingAttachment
 import com.openapi.feature.chat.domain.model.ChatStreamEvent
 import com.openapi.feature.chat.domain.model.DeliveryStatus
 import com.openapi.feature.chat.domain.model.MessageKind
-import com.openapi.feature.chat.domain.model.OutgoingAttachment
 import com.openapi.feature.chat.domain.model.VoiceAttachment
 import com.openapi.feature.chat.domain.usecase.LoadHistoryUseCase
 import com.openapi.feature.chat.domain.usecase.SendMessageUseCase
@@ -90,7 +89,12 @@ class ChatViewModel : ViewModel() {
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(loading = true, error = null) }
-            val page = runCatching { loadHistory() }.getOrElse { HistoryPage(emptyList(), hasMore = false) }
+            // 失败不能吞成空页：断网冷启动会和「历史被清空」长得一模一样。
+            val page = runCatching { loadHistory() }.getOrNull()
+            if (page == null) {
+                _uiState.update { it.historyLoadFailed() }
+                return@launch
+            }
             val sessionId = repository.currentSessionId()
             val merged = mergePending(page.messages, sessionId)
             val sessions = withContext(Dispatchers.IO) { repository.sessions() }
@@ -107,6 +111,8 @@ class ChatViewModel : ViewModel() {
                     loadingOlder = false,
                     editingMessageId = null,
                     loading = false,
+                    // 成功到位：失败标记和它带来的错误条一起清掉
+                    historyFailed = false,
                     sessionId = sessionId,
                     // 会话的角色以会话自己为准：每个角色一段独立历史，不能沿用“最近一次选的角色”
                     selectedRole = sessionRole?.also { roles.setSelected(it) },

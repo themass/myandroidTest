@@ -213,7 +213,9 @@ fun ChatScreen(
                     }
                 },
                 emptyContent = {
-                    if (!state.loading) EmptyChat(identity = identity, onSuggestion = onInputChange)
+                    // 加载失败时不能画 EmptyChat：那是「从没聊过」的样子，
+                    // 断网冷启动会被读成「历史被清空」。错误条在下面照常提示重试。
+                    if (!state.loading && !state.historyFailed) EmptyChat(identity = identity, onSuggestion = onInputChange)
                 },
             )
 

@@ -43,11 +43,25 @@ data class ChatUiState(
     val hasMoreHistory: Boolean = false,
     /** 正在加载更早的一页历史。 */
     val loadingOlder: Boolean = false,
+    /**
+     * 当前会话的历史**加载失败**过（断网、服务端 5xx）。
+     * 没有它，失败被吞成空页后界面落到 EmptyChat——断网冷启动看起来和「历史被清空」
+     * 一模一样。置位时保留已显示的消息、抑制空状态、由 error 条提示重试。
+     */
+    val historyFailed: Boolean = false,
 ) {
     val canSend: Boolean get() = (input.isNotBlank() || drafts.isNotEmpty()) && !sending
 
     val selectedCharacter: ChatCharacterOption?
         get() = characters.firstOrNull { it.id == selectedCharacterId }
+
+    /** 历史加载失败时的状态迁移：消息一条不动，只标记失败、结束 loading、给出可重试的错误。 */
+    fun historyLoadFailed(): ChatUiState = copy(
+        historyFailed = true,
+        loading = false,
+        loadingOlder = false,
+        error = error ?: "加载对话记录失败，请检查网络后重试",
+    )
 }
 
 /** 输入栏里待发送的一个附件。 */

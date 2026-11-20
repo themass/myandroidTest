@@ -42,7 +42,9 @@ internal class SendActions(
             submitEdit(editingId, text)
             return
         }
-        state.update { it.copy(input = "", drafts = emptyList()) }
+        // 走到这里就是普通发送（文字或附件）：编辑态必须一并退出，
+        // 否则发出的是新消息，「编辑消息」横幅却还挂着，再点发送又走同一条错路。
+        state.update { it.copy(input = "", drafts = emptyList(), editingMessageId = null) }
         if (drafts.isEmpty()) {
             sendText(text)
             return
