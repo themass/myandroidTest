@@ -180,7 +180,7 @@ class AgentBackedChatRepository(
     }.flowOn(Dispatchers.IO)
 
     /**
-     * 订阅事件流，把 `/v1` 的事件折叠成 [ChatStreamEvent]。
+     * 订阅事件流，把 `/v1` 的事件折叠成 [ChatStreamEvent]（折叠规则与断线续传在 [TurnEventCollector]）。
      *
      * 关键点：先 submit 再订阅**是安全的**——服务端的事件是 Redis Stream，订阅时会先补发
      * `turn.snapshot`（带已生成的全部文字）。所以网络慢、或客户端重连时不会丢字，
@@ -194,92 +194,15 @@ class AgentBackedChatRepository(
         userText: String?,
         persistUser: Boolean,
     ) {
-        val acc = StringBuilder()
-        var matchedTurn: String? = expectedTurnId
-        var finished = false
-        var errorEmitted = false
-
-        // 直接 collect 并把事件 emit 给本函数的接收者。
-        // 不能写成 `remote.events(..).transformWhile { emit(..) }`：那里的 emit 属于 transform 自己的下游，
-        // 再套一层 `.collect { }` 就把所有 delta/done 全丢掉了——界面收不到任何增量，
-        // 只能靠事后拉历史补出整段文字，表现为「回复出现了但同时又弹『没有收到回复』」。
-        try {
-            remote.events(sessionId, null).collect { frame ->
-                val obj = runCatching { JSONObject(frame.data) }.getOrNull()
-                if (obj != null) {
-                    val turn = obj.optString("turn_id", "")
-                    // 第一次拿到 turn_id 时把它固定下来，后续只认这一轮，避免并发回合串台。
-                    if (turn.isNotEmpty() && matchedTurn == null) matchedTurn = turn
-                    val ours = turn.isNotEmpty() && turn == matchedTurn
-                    when (frame.event) {
-                        "turn.snapshot" -> if (ours) {
-                            // 补发的是「已生成的全部文字」，把本地没有的尾巴补上即可。
-                            val text = obj.optString("text", "")
-                            if (text.length > acc.length && text.startsWith(acc.toString())) {
-                                val tail = text.substring(acc.length)
-                                acc.append(tail)
-                                emit(ChatStreamEvent.Delta(assistantLocalId, tail))
-                            }
-                        }
-                        "message.delta" -> if (ours) {
-                            val delta = obj.optString("delta", "")
-                            if (delta.isNotEmpty()) {
-                                acc.append(delta)
-                                emit(ChatStreamEvent.Delta(assistantLocalId, delta))
-                            }
-                        }
-                        "message.done" -> if (ours) {
-                            val assistantMessageId = obj.optLong("assistant_message_id", 0L)
-                            persistTurn(sessionId, clientMessageId, userText, persistUser, acc.toString())
-                            emit(
-                                ChatStreamEvent.Done(
-                                    assistantId = assistantMessageId.takeIf { it > 0 }?.toString(),
-                                    userId = null,
-                                    fullText = acc.toString(),
-                                ),
-                            )
-                            finished = true
-                            throw TurnFinished
-                        }
-                        "turn.cancelled" -> if (ours) {
-                            emit(
-                                ChatStreamEvent.Done(
-                                    assistantId = obj.optLong("assistant_message_id", 0L).takeIf { it > 0 }?.toString(),
-                                    userId = null,
-                                    fullText = acc.toString(),
-                                ),
-                            )
-                            finished = true
-                            throw TurnFinished
-                        }
-                        "error" -> if (ours || matchedTurn == null) {
-                            val code = obj.optString("code", "unknown")
-                            emit(ChatStreamEvent.Error(describeError(code), null))
-                            errorEmitted = true
-                            finished = true
-                            throw TurnFinished
-                        }
-                    }
-                }
-            }
-        } catch (_: TurnFinished) {
-            // 本轮正常收尾（done / cancelled / error），不需要继续读事件流。
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            if (!errorEmitted) emit(ChatStreamEvent.Error(e.message ?: "事件流出错"))
-            return
-        }
-
-        if (!finished && !errorEmitted) {
-            // 流断了但没收到 done：把已收到的内容交出去，让界面保留半截回复而不是整段消失。
-            if (acc.isNotEmpty()) {
-                persistTurn(sessionId, clientMessageId, userText, persistUser, acc.toString())
-                emit(ChatStreamEvent.Done(assistantId = null, userId = null, fullText = acc.toString()))
-            } else {
-                emit(ChatStreamEvent.Error("没有收到回复，请重试"))
-            }
-        }
+        TurnEventCollector(
+            open = { lastEventId -> remote.events(sessionId, lastEventId) },
+            parse = ::parseAgentEvent,
+        ).collect(
+            emit = { emit(it) },
+            expectedTurnId = expectedTurnId,
+            assistantLocalId = assistantLocalId,
+            persist = { fullText -> persistTurn(sessionId, clientMessageId, userText, persistUser, fullText) },
+        )
     }
 
     private suspend fun persistTurn(
@@ -313,14 +236,6 @@ class AgentBackedChatRepository(
         }
     }
 
-    /** `/v1` 的错误码是本机看不懂的短串，翻成用户能据此行动的话。 */
-    private fun describeError(code: String): String = when (code) {
-        "content_policy" -> "这条消息不符合内容规范"
-        "rate_limited" -> "太频繁了，稍等一下再发"
-        "conflict" -> "上一轮回复还没结束"
-        "invalid_json" -> "回复格式异常，请重试"
-        else -> "回复失败（$code），请重试"
-    }
 
     // ------------------------------------------------------------ 历史
 
