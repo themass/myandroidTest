@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.google.android.material.imageview.ShapeableImageView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -136,7 +137,9 @@ internal fun RemoteCover(url: String?, modifier: Modifier = Modifier) {
         factory = {
             ShapeableImageView(context).apply {
                 scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-                Glide.with(this).load(url).centerCrop().dontAnimate().into(this)
+                // 短交叉淡入而不是硬切：远程图落地时不闪白块
+                Glide.with(this).load(url).centerCrop()
+                    .transition(DrawableTransitionOptions.withCrossFade(180)).into(this)
             }
         },
         onRelease = { view -> runCatching { Glide.with(view).clear(view) } },
