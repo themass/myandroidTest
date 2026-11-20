@@ -385,6 +385,13 @@ class AgentBackedChatRepository(
             }
         }.getOrNull()
 
+    /**
+     * 重新换取一个签名 URL（整改清单 P1-10）。和历史整页换 URL 走同一条
+     * `GET /uploads/{id}` 通道（`AgentChatRemote.attachmentUrl`），所以服务端不需要新接口。
+     */
+    override suspend fun refreshImageUrl(uploadId: String): String? =
+        runCatching { withContext(Dispatchers.IO) { remote.attachmentUrl(uploadId) } }.getOrNull()
+
     override suspend fun sendAttachment(
         sessionId: Long,
         kind: MessageKind,

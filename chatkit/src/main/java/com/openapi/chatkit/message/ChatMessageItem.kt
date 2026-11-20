@@ -254,6 +254,8 @@ internal fun MessageContent(
                 sources = part.sources,
                 maxWidth = maxWidth,
                 onLongPress = { source -> onAttachmentLongPress(AttachmentTarget.Image(source)) },
+                // 失败图片上的点击：组件已做本地重载，这里把「换源」的活儿交给调用方（P1-10）
+                onRetryImage = { index -> onAction(MessageAction.RetryImage(index)) },
             )
         }
         files.forEach { file ->

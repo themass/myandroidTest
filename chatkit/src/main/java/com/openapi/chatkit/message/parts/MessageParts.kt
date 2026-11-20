@@ -54,11 +54,15 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.openapi.chatkit.media.ImageViewer
 import com.openapi.chatkit.media.imageModel
+import com.openapi.chatkit.model.ImageLoadState
+import com.openapi.chatkit.model.ImageVisualStatus
 import com.openapi.chatkit.model.MessagePart
 import com.openapi.mediaview.MediaCarousel
 import com.openapi.mediaview.MediaItem
+import com.openapi.mediaview.MediaLoadFailedOverlay
 import com.openapi.mediaview.MediaStack
 import com.openapi.mediaview.MediaTheme
+import com.openapi.mediaview.rememberStatefulImageModel
 import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.theme.ChatKit
 import java.util.Locale
@@ -151,6 +155,11 @@ private val SINGLE_IMAGE_MIN = 96.dp
 /**
  * 图片块。单张按原图比例显示；多张排成方格（2、4 张两列，其余三列），最多 9 张，
  * 超出的数量盖在第 9 张上。点击任意一张打开全屏查看器（组件自己管理查看器状态）。
+ *
+ * 加载失败不再是一块无出路的底色（整改清单 P1-10）：失败的图显示「图片加载失败，点击重试」
+ * 占位，整块可点击重试；重试期间显示进度样式。每台设备的换源能力不同：组件先做本地强制重载
+ * （换缓存 key 重新解码 / 重新请求原地址），同时把 [onRetryImage] 交给调用方去重新换取远程
+ * 地址（签名 URL）；调用方换到新地址后更新来源，来源一变组件会按新地址重新加载。
  */
 @Composable
 fun ImageGrid(
@@ -159,16 +168,38 @@ fun ImageGrid(
     /** 长按某一张图：传它的来源（本地路径或地址）。 */
     onLongPress: (String) -> Unit,
     modifier: Modifier = Modifier,
+    /** 点击了加载失败的那张图（下标）。组件已做本地重载；调用方若能重新换源就换源。 */
+    onRetryImage: (Int) -> Unit = {},
 ) {
     if (sources.isEmpty()) return
     var viewerStart by remember { mutableStateOf<Int?>(null) }
     val placeholder = ChatKit.colors.surfaceVariant
+    // 每张图一个状态机实例。来源一换（例如重新签好了 URL）整组回到 Loading，
+    // 迟到的旧回调只会落在已被换掉的状态对象上，不会把新图盖成失败。
+    val states = remember(sources) { sources.map { mutableStateOf(ImageLoadState()) } }
+    fun update(index: Int, transform: (ImageLoadState) -> ImageLoadState) {
+        val slot = states.getOrNull(index) ?: return
+        slot.value = transform(slot.value)
+    }
+    fun retry(index: Int) {
+        val slot = states.getOrNull(index) ?: return
+        val before = slot.value
+        val after = before.onRetryClick()
+        if (after === before) return // 不在失败态：没有可重试的东西，也不通知调用方
+        slot.value = after
+        onRetryImage(index)
+    }
 
     if (sources.size == 1) {
-        AsyncImage(
-            model = imageModel(sources[0]),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
+        val state by states[0]
+        val failed = state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying
+        val stateful = rememberStatefulImageModel(imageModel(sources[0]), state.attempt)
+        val model: Any? = if (failed && state.status != ImageVisualStatus.Retrying) {
+            null // 失败且未点重试：不发请求，避免每次重组都重烧一次必失败的加载
+        } else {
+            stateful
+        }
+        Box(
             modifier = modifier
                 .sizeIn(
                     minWidth = SINGLE_IMAGE_MIN,
@@ -178,19 +209,61 @@ fun ImageGrid(
                 )
                 .clip(RoundedCornerShape(12.dp))
                 .background(placeholder)
-                .combinedClickable(onClick = { viewerStart = 0 }, onLongClick = { onLongPress(sources[0]) }),
-        )
+                .combinedClickable(
+                    onClick = {
+                        if (state.status == ImageVisualStatus.Failed) retry(0) else viewerStart = 0
+                    },
+                    onLongClick = { onLongPress(sources[0]) },
+                ),
+        ) {
+            AsyncImage(
+                model = model,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                onSuccess = { update(0) { it.onLoaded() } },
+                onError = { update(0) { it.onFailed() } },
+                modifier = Modifier.fillMaxSize(),
+            )
+            if (state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying) {
+                MediaLoadFailedOverlay(
+                    retrying = state.status == ImageVisualStatus.Retrying,
+                    compact = true, // 气泡缩略图最大 168×200dp，用紧凑版图标和文字
+                )
+            }
+        }
     } else {
         // 多图：2–4 张用堆叠卡片，5 张及以上用横向轮播（通用媒体组件 :mediaview）
-        val items = sources.map { MediaItem(model = imageModel(it)) }
+        val items = sources.mapIndexed { index, source ->
+            val state by states[index]
+            MediaItem(
+                model = imageModel(source),
+                failed = state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying,
+                retrying = state.status == ImageVisualStatus.Retrying,
+                attempt = state.attempt,
+            )
+        }
         val onTap: (Int) -> Unit = { index -> viewerStart = index }
         val onLong: (Int) -> Unit = { index -> onLongPress(sources[index]) }
         val theme = if (androidx.compose.foundation.isSystemInDarkTheme()) MediaTheme.Dark else MediaTheme.Light
         Box(modifier) {
             if (sources.size <= 4) {
-                MediaStack(items = items, theme = theme, onClick = onTap, onLongClick = onLong)
+                MediaStack(
+                    items = items,
+                    theme = theme,
+                    onClick = onTap,
+                    onLongClick = onLong,
+                    onRetry = ::retry,
+                    onItemError = { index -> update(index) { it.onFailed() } },
+                )
             } else {
-                MediaCarousel(items = items, theme = theme, onClick = onTap, onLongClick = onLong)
+                MediaCarousel(
+                    items = items,
+                    theme = theme,
+                    onClick = onTap,
+                    onLongClick = onLong,
+                    onRetry = ::retry,
+                    onItemError = { index -> update(index) { it.onFailed() } },
+                )
             }
         }
     }
@@ -200,6 +273,7 @@ fun ImageGrid(
             sources = sources,
             startIndex = start,
             onDismiss = { viewerStart = null },
+            onRetry = ::retry,
             onLongPress = { source ->
                 // 先关掉查看器（它是独立窗口，会挡住菜单），再弹出同一张图的菜单
                 viewerStart = null
