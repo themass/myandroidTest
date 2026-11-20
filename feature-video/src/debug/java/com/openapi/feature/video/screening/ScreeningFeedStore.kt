@@ -29,33 +29,23 @@ internal class ScreeningFeedStore(context: Context) {
         /** 下一页的 start；没有更多时为 null。 */
         val nextStart: Int?,
         val hasMore: Boolean,
-        /** true = 这次没拿到真实数据，用的是随包样例。 */
-        val fromSample: Boolean,
-        /**
-         * 这一页有没有真的发过请求。本地样片库这类页面不发请求，
-         * 提示语要能说清「试过但没连上」和「本来就不走网络」的区别。
-         */
-        val requested: Boolean = true,
     )
 
     /** 首页的频道列表（电影 / 夜色 / 自定义）。 */
     suspend fun channels(category: FeedCategory, start: Int = 0): Page<RemoteEntry> =
-        page(Constants.getUrlWithParam(category.api, start), category.fallback)
+        page(Constants.getUrlWithParam(category.api, start))
 
     /** 频道里的视频列表；`channel` 取自频道卡 actionUrl 里的 `channel=` 参数。 */
     suspend fun videos(channelParam: String, start: Int = 0, keyword: String = ""): Page<RemoteEntry> =
-        page(
-            Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, start, channelParam, keyword),
-            emptyList(),
-        )
+        page(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, start, channelParam, keyword))
 
     /** 图集列表（图片频道）。 */
     suspend fun albums(channelParam: String, start: Int = 0): Page<RemoteEntry> =
-        page(Constants.getUrlWithParam(Constants.API_IMG_CHANNLE_URL, start, channelParam), emptyList())
+        page(Constants.getUrlWithParam(Constants.API_IMG_CHANNLE_URL, start, channelParam))
 
     /** 图集内的图片。 */
     suspend fun albumImages(channelParam: String, start: Int = 0): Page<RemoteEntry> =
-        page(Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, channelParam, ""), emptyList())
+        page(Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, channelParam, ""))
 
     /**
      * 懒播放地址：`needLazyUrl` 的条目要再问一次才拿到真正可播的地址。
@@ -73,11 +63,12 @@ internal class ScreeningFeedStore(context: Context) {
         return resolved?.takeIf { it.isNotBlank() } ?: item.actionUrl
     }
 
-    /** 取一页并映射；请求失败或返回空都算「没数据」，回落样例而不是留一片空白。 */
-    private suspend fun page(url: String, fallback: List<RemoteEntry>): Page<RemoteEntry> {
-        val raw: InfoListVo<*>? = runCatching {
-            service.awaitInfoList(url, RecommendVo::class.java, NET_TAG)
-        }.getOrNull()
+    /**
+     * 取一页并映射。返回空就是空，失败就抛——页面对此负责（空态/错误+重试），
+     * 这里不再拿随包样例填空，屏幕上的每张卡都必须真来自服务端。
+     */
+    private suspend fun page(url: String): Page<RemoteEntry> {
+        val raw: InfoListVo<*>? = service.awaitInfoList(url, RecommendVo::class.java, NET_TAG)
         val items = raw?.rows().orEmpty().mapIndexedNotNull { index, vo ->
             if (vo.dataType == RecommendVo.dataType_ADS || vo.actionUrl.isNullOrEmpty()) null
             else remoteEntry(
@@ -94,9 +85,8 @@ internal class ScreeningFeedStore(context: Context) {
                 param = vo.param,
             )
         }
-        if (items.isEmpty()) return Page(fallback, nextStart = null, hasMore = false, fromSample = true)
-        val more = raw!!.hasMore
-        return Page(items, nextStart = if (more) raw.pageNum else null, hasMore = more, fromSample = false)
+        val more = raw?.hasMore == true
+        return Page(items, nextStart = if (more) raw!!.pageNum else null, hasMore = more)
     }
 
     /**
