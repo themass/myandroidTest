@@ -74,9 +74,9 @@ public class AppDatabaseMigrationTest {
 
     @Test
     public void upgradeToCurrentVersionAddsFavorites() {
-        // 库的当前版本是 3，所以迁移链必须包含 1 -> 2 -> 3，只注册 1 -> 2 时 Room 会拒绝打开
+        // 库的当前版本是 4，所以迁移链必须包含 1 -> 2 -> 3 -> 4，缺一段 Room 就拒绝打开
         db = Room.databaseBuilder(context, AppDatabase.class, NAME)
-                .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+                .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
                 .allowMainThreadQueries()
                 .build();
 
@@ -89,6 +89,12 @@ public class AppDatabaseMigrationTest {
                 "SELECT COUNT(*) FROM pragma_table_info('ChatSessionLog') WHERE name = 'updatedAt'"))) {
             assertTrue(c.moveToFirst());
             assertEquals(1, c.getInt(0));
+        }
+        // 3 -> 4：会话记住自己的角色（roleId / characterId）
+        try (Cursor c = db.query(new SimpleSQLiteQuery(
+                "SELECT COUNT(*) FROM pragma_table_info('ChatSessionLog') WHERE name IN ('roleId','characterId')"))) {
+            assertTrue(c.moveToFirst());
+            assertEquals(2, c.getInt(0));
         }
 
         FavoriteVo vo = new FavoriteVo();

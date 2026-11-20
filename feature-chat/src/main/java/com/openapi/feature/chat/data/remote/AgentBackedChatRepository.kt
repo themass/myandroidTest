@@ -545,11 +545,15 @@ private object TurnFinished : Exception() {
 }
 
 /** 本地缓存：/v1 会话 id 空间独立，历史以服务端为准，这里只做离线副本。 */
-class LocalChatStore(private val context: Context) {
+class LocalChatStore @JvmOverloads constructor(
+    private val context: Context,
+    /** 单测注入内存库；生产传 null，走全局 AppDatabase。 */
+    private val injectedDb: com.openapi.core.db.AppDatabase? = null,
+) {
 
     @Volatile private var ready = false
 
-    private fun db() = com.openapi.core.db.AppDatabase.getInstance()
+    private fun db() = injectedDb ?: com.openapi.core.db.AppDatabase.getInstance()
 
     fun cachedSessions(): List<ChatSession> =
         db().chatSessionLogDao().loadAll().map {
@@ -607,7 +611,7 @@ class LocalChatStore(private val context: Context) {
                 it.delivery != com.openapi.feature.chat.domain.model.DeliveryStatus.SENT
         }
 
-    fun persist(sessionId: Long, message: ChatMessage) {
+    private fun toLog(sessionId: Long, message: ChatMessage): com.openapi.core.model.ChatLog {
         val log = com.openapi.core.model.ChatLog()
         log.content = com.openapi.feature.chat.data.mapper.ChatLogMapper.toRawContent(message)
         log.who = com.openapi.feature.chat.data.mapper.ChatLogMapper.toWho(message.role)
@@ -615,7 +619,11 @@ class LocalChatStore(private val context: Context) {
         log.chatId = message.id
         log.createTime = java.util.Date(message.createdAtMillis)
         log.sessionId = sessionId
-        db().chatLogDao().save(log)
+        return log
+    }
+
+    fun persist(sessionId: Long, message: ChatMessage) {
+        db().chatLogDao().save(toLog(sessionId, message))
     }
 
     /**
@@ -629,9 +637,14 @@ class LocalChatStore(private val context: Context) {
      * 或已经并过的服务端 id）：文字用服务端的，附件优先本机文件（文件还在就直接显示，
      * 不依赖 5 分钟的签名 URL），upload_id 两边合到一起，然后整体改挂到服务端正式 id 下、
      * 删掉旧的临时 id 行。合并后缓存与历史一一对应，不会「同一句话存两行」。
+     *
+     * 性能（整改清单 P0-6.3）：合并只在内存里算，写库集中在最后一个事务——
+     * 一次 saveAll（Room 内部对整列表复用预编译语句）+ 一次 deleteByChatIds，
+     * 代替以前「每条消息一个隐式事务」的逐条 save。30 条一页从 30+ 个事务降到 1 个。
      */
     fun cacheRemote(sessionId: Long, messages: List<ChatMessage>, replaceAll: Boolean) {
-        val dao = db().chatLogDao()
+        val db = db()
+        val dao = db.chatLogDao()
         if (replaceAll) dao.deleteSessionTextOnly(sessionId)
         val local = dao.bySession(sessionId).mapNotNull { log ->
             com.openapi.feature.chat.data.mapper.ChatLogMapper.toDomain(
@@ -639,11 +652,13 @@ class LocalChatStore(private val context: Context) {
                 rawContent = log.content, createdAtMillis = log.createTime?.time ?: 0L,
             )?.let { (log.chatId ?: "") to it }
         }.toMap()
+        val toSave = ArrayList<com.openapi.core.model.ChatLog>(messages.size)
+        val staleIds = ArrayList<String>()
         messages.forEach { message ->
             val client = message.clientMessageId
             val mine = local[message.id] ?: client?.let { local[it] }
             if (mine == null) {
-                persist(sessionId, message)
+                toSave.add(toLog(sessionId, message))
                 return@forEach
             }
             // 本机文件还在就继续用本机文件；否则退回服务端对象（渲染时换签名 URL）
@@ -654,23 +669,34 @@ class LocalChatStore(private val context: Context) {
             } else {
                 message.images
             }
-            persist(
-                sessionId,
-                mine.copy(
-                    id = message.id,
-                    text = message.text.ifBlank { mine.text },
-                    createdAtMillis = message.createdAtMillis,
-                    kind = when {
-                        mine.kind != MessageKind.TEXT -> mine.kind
-                        images.isNotEmpty() -> MessageKind.IMAGE
-                        else -> MessageKind.TEXT
-                    },
-                    images = images,
-                    delivery = com.openapi.feature.chat.domain.model.DeliveryStatus.SENT,
-                    clientMessageId = null,
+            toSave.add(
+                toLog(
+                    sessionId,
+                    mine.copy(
+                        id = message.id,
+                        text = message.text.ifBlank { mine.text },
+                        createdAtMillis = message.createdAtMillis,
+                        kind = when {
+                            mine.kind != MessageKind.TEXT -> mine.kind
+                            images.isNotEmpty() -> MessageKind.IMAGE
+                            else -> MessageKind.TEXT
+                        },
+                        images = images,
+                        delivery = com.openapi.feature.chat.domain.model.DeliveryStatus.SENT,
+                        clientMessageId = null,
+                    ),
                 ),
             )
-            if (mine.id != message.id) dao.deleteByChatId(mine.id)
+            if (mine.id != message.id) staleIds.add(mine.id)
+        }
+        db.runInTransaction {
+            if (toSave.isNotEmpty()) dao.saveAll(toSave)
+            // saveAll 按列表顺序逐条 REPLACE：若先删的行 id 恰好也是本页某条的目标 id，
+            // 删在写后仍会误删新行，所以「行没被本页重新写入」才删。当前调用方传的都是
+            // 本地临时 id（local- 前缀，服务端 id 不会撞上），这里保险起见按目标 id 过滤。
+            val rewritten = toSave.mapNotNull { it.chatId }.toSet()
+            val toDelete = staleIds.filterNot { it in rewritten }
+            if (toDelete.isNotEmpty()) dao.deleteByChatIds(toDelete)
         }
     }
 
