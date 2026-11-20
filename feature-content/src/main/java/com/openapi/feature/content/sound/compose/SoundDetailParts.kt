@@ -18,7 +18,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -65,10 +68,11 @@ internal fun DetailTopBar(onBack: () -> Unit) {
                 .semantics { contentDescription = backDescription },
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = stringResource(R.string.sound_detail_back_symbol),
-                color = TextPrimary,
-                fontSize = 22.sp,
+            // 与其它二级页统一：标准返回箭头图标，不用「←」文字
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = null,
+                tint = TextPrimary,
             )
         }
         Text(

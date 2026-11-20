@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="88dp"
         android:background="@drawable/bg_gallery_page_badge"
         android:letterSpacing="0.04"
         android:paddingStart="14dp"
@@ -40,6 +40,23 @@
         android:textColor="#F0FFFFFF"
         android:textSize="13sp"
         android:visibility="gone" />
+
+    <!-- 工具栏被隐藏了（沉浸式看大图），返回入口必须在内容里自带，否则用户只能靠系统返回键 -->
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/iv_back"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/bg_gallery_save_fab"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/gallery_back"
+        android:padding="14dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_arrow_back_white"
+        app:tint="#E8FFFFFF" />
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/iv_save"

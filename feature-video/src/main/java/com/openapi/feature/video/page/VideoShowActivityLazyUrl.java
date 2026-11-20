@@ -53,6 +53,8 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));
         videoPlayer = b.jzVideo;
         myFavoriteView = b.myFavoriteview;
+        // 播放器控制条收起后唯一的返回入口，常驻可见
+        b.btnBack.setOnClickListener(v -> finish());
     }
 
     @Override

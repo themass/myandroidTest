@@ -59,6 +59,8 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         videoPlayer = b.jzVideo;
         dlnaCastButton = b.btnDlnaCast;
         myFavoriteView = b.myFavoriteview;
+        // 播放器控制条收起后唯一的返回入口，常驻可见
+        b.btnBack.setOnClickListener(v -> finish());
     }
 
     @Override

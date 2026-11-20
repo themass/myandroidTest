@@ -50,13 +50,13 @@ public final class Routes {
         return new Intent().setClassName(context.getPackageName(), SETTING);
     }
 
-    /** 全局搜索：用 vo.param 作为关键词打开视频列表页。 */
+    /** 全局搜索：用 vo.param 作为关键词打开视频列表页。
+     *  toolbar 必须显示——隐藏它曾是早期需求，但那样用户进来后没有任何返回入口（只能系统返回键）。 */
     public static Intent globalSearch(Context context, RecommendVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT_NAME, GLOBAL_VIDEO_SEARCH);
         intent.putExtra(CommonFragmentActivity.TITLE, vo.title);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
-        intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN1);
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
         StaticDataUtil.add(Constants.VIDEO_CHANNEL, vo);

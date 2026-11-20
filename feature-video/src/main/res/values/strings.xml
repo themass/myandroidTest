@@ -4,4 +4,5 @@
     <string name="playback_engine_ijk_ffmpeg">IJK + FFmpeg (ex_so)</string>
     <string name="playback_engine_ali">AliPlayer (Alibaba)</string>
     <string name="playback_engine_system">System MediaPlayer</string>
+    <string name="video_back_desc">Back</string>
 </resources>

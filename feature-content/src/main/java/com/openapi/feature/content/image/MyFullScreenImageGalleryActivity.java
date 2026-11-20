@@ -62,6 +62,8 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
         viewPager = b.vpBigContainer;
         tvPage = b.tvPage;
         b.ivSave.setOnClickListener(this::onSave);
+        // 工具栏隐藏后页内唯一的返回入口
+        b.ivBack.setOnClickListener(v -> finish());
     }
 
     @Override

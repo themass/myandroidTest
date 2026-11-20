@@ -21,15 +21,21 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -73,6 +79,7 @@ class LoginActivity : ComponentActivity() {
                     LoginScreen(
                         initialName = lastName,
                         initialPassword = lastPassword,
+                        onBack = ::finish,
                         onLogin = ::login,
                         onRegister = {
                             finish()
@@ -133,10 +140,12 @@ class LoginActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LoginScreen(
     initialName: String,
     initialPassword: String,
+    onBack: () -> Unit,
     onLogin: (name: String, pwd: String, onDone: () -> Unit) -> Unit,
     onRegister: () -> Unit,
     onForgotPassword: () -> Unit,
@@ -156,10 +165,24 @@ private fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .padding(horizontal = 25.dp),
-            verticalArrangement = Arrangement.Center,
+                .statusBarsPadding(),
         ) {
+            // 与其它二级页（注册、找回密码、反馈）同款顶栏：返回箭头 + 标题
+            TopAppBar(
+                title = { Text(stringResource(R.string.login)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                    }
+                },
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 25.dp),
+                verticalArrangement = Arrangement.Center,
+            ) {
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -210,6 +233,7 @@ private fun LoginScreen(
                     .fillMaxWidth()
                     .padding(top = 24.dp),
             )
+            }
         }
 
         if (loading) {

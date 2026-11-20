@@ -1,0 +1,52 @@
+#!/usr/bin/expect -f
+# 用法:
+#   ./scripts/ssh-test.io-expect.exp jumphost
+#   ./scripts/ssh-test.io-expect.exp test.io
+#   ./scripts/ssh-test.io-expect.exp config   # 依赖 ~/.ssh/config 里的 jumphost / test.io
+#
+set timeout 90
+set mode [lindex $argv 0]
+if {$mode eq ""} { set mode "config" }
+
+set password "112345"
+
+proc handle_auth {} {
+    global password
+    expect {
+        -re "(?i)password:" {
+            send "$password\r"
+            exp_continue
+        }
+        -re "(?i)yes/no|fingerprint" {
+            send "yes\r"
+            exp_continue
+        }
+    }
+}
+
+switch -- $mode {
+    jumphost {
+        spawn ssh -p 1122 root@139.196.79.65 hostname
+        handle_auth
+    }
+    test.io {
+        # 不经 config：ProxyCommand 会再要一次跳板密码 + 目标密码
+        spawn ssh \
+            -o ProxyCommand="ssh -W %h:%p -p 1122 root@139.196.79.65" \
+            root@172.16.3.23 hostname
+        handle_auth
+    }
+    config {
+        spawn ssh test.io hostname
+        handle_auth
+    }
+    default {
+        puts "Usage: $argv0 jumphost|test.io|config"
+        exit 1
+    }
+}
+
+expect eof
+catch wait result
+exit [lindex $result 3]
+
