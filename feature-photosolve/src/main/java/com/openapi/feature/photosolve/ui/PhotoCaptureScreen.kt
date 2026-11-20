@@ -91,7 +91,10 @@ fun PhotoCaptureScreen(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
                 val previewView = PreviewView(ctx).apply {
-                    scaleType = PreviewView.ScaleType.FILL_CENTER
+                    // FIT_CENTER：预览显示完整取景范围。以前的 FILL_CENTER 会裁掉画幅
+                    // 边缘，而实拍是全画幅——自动边框检测跑在实拍图上，
+                    // 用户看到的题目和算法框住的题目因此对不上。
+                    scaleType = PreviewView.ScaleType.FIT_CENTER
                 }
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
                 cameraProviderFuture.addListener(
