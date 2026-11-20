@@ -191,8 +191,12 @@ private fun Channels(
     var filter by rememberSaveable { mutableStateOf(FeedCategory.ALL.label) }
     val category = FeedCategory.entries.firstOrNull { it.label == filter } ?: FeedCategory.ALL
     val pagerScope = rememberCoroutineScope()
-    // 换分类就是换接口：pager 跟着分类重建，进来先取真实数据；取不到就报错误给重试，没有样例兜底
-    val pager = remember(category) { FeedPager(pagerScope, fetch = { start -> store.channels(category, start) }) }
+    // 每个分类一个 pager 并留档：切回看过的分类直接展示已加载内容（秒回、不闪、不重复打接口），
+    // 没看过的分类从占位加载开始。原来 pager 随分类整个重建，切 tab 必先整屏清空再填——那就是闪。
+    val pagerCache = remember { mutableStateMapOf<FeedCategory, FeedPager>() }
+    val pager = pagerCache.getOrPut(category) {
+        FeedPager(pagerScope, fetch = { start -> store.channels(category, start) })
+    }
     val listState = rememberLazyListState()
     LaunchedEffect(pager) { pager.load() }
     LaunchedEffect(listState, pager) {
