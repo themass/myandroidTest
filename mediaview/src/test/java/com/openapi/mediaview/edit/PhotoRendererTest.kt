@@ -55,7 +55,20 @@ class PhotoRendererTest {
         }
         val source = mutable.copy(Bitmap.Config.ARGB_8888, false)
 
-        val out = PhotoRenderer.render(source, edits(source).push(EditOp.Mosaic(0f, 0f, 1f, 1f)))
+        // 马赛克现在是折线笔迹（3acd69d4）：一条横贯中线、粗细 = 短边的笔迹覆盖整幅图。
+        // widthRatio=1 → 笔宽 = 1×短边100 = 100 像素，正好从顶到底。
+        val out = PhotoRenderer.render(
+            source,
+            edits(source).push(
+                EditOp.Mosaic(
+                    listOf(
+                        androidx.compose.ui.geometry.Offset(0f, 0.5f),
+                        androidx.compose.ui.geometry.Offset(1f, 0.5f),
+                    ),
+                    widthRatio = 1f,
+                ),
+            ),
+        )
 
         assertNotSame(source, out)
         var changed = 0
