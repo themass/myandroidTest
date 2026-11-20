@@ -25,6 +25,7 @@ class Live2dDigitalHumanEngine(
     override val capabilities: Set<AvatarCapability> = setOf(
         AvatarCapability.MOUTH,
         AvatarCapability.EMOTION,
+        AvatarCapability.GAZE,
         AvatarCapability.STATE,
     )
 
@@ -39,7 +40,13 @@ class Live2dDigitalHumanEngine(
     override fun dispatch(command: AvatarCommand) {
         val rt = runtime?.takeIf { viewCreated } ?: return
         when (command) {
-            is AvatarCommand.Mouth -> rt.setMouth(command.openness)
+            is AvatarCommand.Mouth -> {
+                rt.setMouth(command.openness)
+                // 说话时头轻轻摆动（慢速两轴正弦）；闭口时回正。让「头会动」肉眼可见。
+                val (gx, gy) = Live2dHeadSway.gaze(command.openness, System.currentTimeMillis())
+                rt.setGaze(gx, gy)
+            }
+            is AvatarCommand.Gaze -> rt.setGaze(command.x, command.y)
             is AvatarCommand.Emotion -> rt.setExpression(command.name)
             else -> Unit
         }

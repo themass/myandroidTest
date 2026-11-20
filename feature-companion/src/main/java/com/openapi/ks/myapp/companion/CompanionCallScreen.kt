@@ -402,6 +402,9 @@ fun CompanionCallScreen(
     val selfBands = rememberUpdatedState(if (state.isMuted) FloatArray(0) else state.selfBands)
 
     var composerOpen by rememberSaveable { mutableStateOf(false) }
+    // 主角模式右侧收纳盒：展开状态与字幕显隐（旋转后保留；默认字幕显示）。
+    var drawerOpen by rememberSaveable { mutableStateOf(false) }
+    var captionsVisible by rememberSaveable { mutableStateOf(true) }
 
     // 主角模式：形象铺满整屏做最底层，顶栏与操作条以浮层压在上面（各带渐变遮罩）；
     // 其余布局保持原有「顶栏 / 舞台 / 操作条」纵向排布。摄像头开着时仍走视频舞台。
@@ -422,8 +425,9 @@ fun CompanionCallScreen(
                 engineMenu = engineMenu,
                 selectedEngine = selectedEngine,
                 onEngineMenuClick = onEngineMenuClick,
+                // 试听按钮搬到右侧收纳盒（HeroSideDrawer），菜单里不再重复。
                 previewState = previewState,
-                onPreviewAudio = onPreviewAudio,
+                onPreviewAudio = null,
             )
         }
     } else {
@@ -484,6 +488,7 @@ fun CompanionCallScreen(
             avatarStage = avatarStage,
             characterHero = characterHero,
             reducedMotion = reducedMotion,
+            captionsVisible = captionsVisible,
             modifier = Modifier.fillMaxSize(),
         )
     }
@@ -493,6 +498,23 @@ fun CompanionCallScreen(
             // 背景铺满全屏，内容让开状态栏/导航栏；浮层坐在形象之上。
             Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars)) {
                 voiceStage()
+                HeroSideDrawer(
+                    expanded = drawerOpen,
+                    onToggleExpanded = { drawerOpen = !drawerOpen },
+                    rows = heroDrawerRows(
+                        previewAvailable = onPreviewAudio != null,
+                        previewSpeaker = previewState.speaker,
+                        captionsVisible = captionsVisible,
+                    ),
+                    onRowClick = { action ->
+                        when (action) {
+                            DrawerAction.LISTEN_USER -> onPreviewAudio?.invoke("user")
+                            DrawerAction.LISTEN_AI -> onPreviewAudio?.invoke("ai")
+                            DrawerAction.TOGGLE_CAPTIONS -> captionsVisible = !captionsVisible
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                )
                 Column(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
@@ -989,6 +1011,7 @@ private fun VoiceStage(
     characterHero: Boolean,
     reducedMotion: Boolean,
     modifier: Modifier = Modifier,
+    captionsVisible: Boolean = true,
 ) {
     BoxWithConstraints(modifier = modifier) {
         // 布局模式（纯函数 + JVM 测试钉住，见 CompanionCallStageLayoutTest）：
@@ -1069,7 +1092,7 @@ private fun VoiceStage(
                     waveform(Modifier.align(Alignment.BottomCenter).padding(bottom = HERO_CONTROL_BAR_DP.dp))
                 }
                 // 字幕叠层：坐在波形上方，上限两行滚动；不再从人物身上切走一栏。
-                CaptionStack(
+                if (captionsVisible) CaptionStack(
                     captions = state.captions,
                     speakerCaptions = state.speakerCaptions,
                     streaming = state.isAgentSpeaking,

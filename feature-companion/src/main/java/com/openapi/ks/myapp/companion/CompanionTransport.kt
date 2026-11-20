@@ -69,6 +69,14 @@ interface CompanionTransport {
         get() = silentMouth
 
     /**
+     * 她的声音的**真 PCM**（16kHz 单声道 PCM16LE，约 10ms 一块），给吃 PCM 的形象引擎
+     * （Duix / Tao）做口型。默认空流：没有音频轨的替身不该编造语音。
+     * 只保留最新的块（慢消费者丢旧的）：口型只关心「此刻」。
+     */
+    val remotePcm: Flow<ByteArray>
+        get() = emptyPcm
+
+    /**
      * **用户自己**说话的瞬时振幅 0..1，用来驱动通话页底部那条波形。
      *
      * 与 [mouthLevel] 分开：上面那个是她的声音（驱动呼吸环、嘴型），这个是你的声音
@@ -138,6 +146,9 @@ private val defaultConnected: StateFlow<TransportConnection> =
 
 /** [CompanionTransport.mouthLevel] 的默认值：没有音频轨就等于一直闭着嘴。 */
 private val silentMouth: StateFlow<Float> = MutableStateFlow(0f).asStateFlow()
+
+/** [CompanionTransport.remotePcm] 的默认值：没有音频轨就没有 PCM。 */
+private val emptyPcm: Flow<ByteArray> = kotlinx.coroutines.flow.emptyFlow()
 
 /** [CompanionTransport.selfBands] 的默认值：没有采集就没有频谱。 */
 private val noBands: StateFlow<FloatArray> = MutableStateFlow(FloatArray(0)).asStateFlow()

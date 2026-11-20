@@ -125,6 +125,13 @@ class LiveKitCompanionTransport(
     private val _mouthLevel = MutableStateFlow(0f)
     override val mouthLevel: StateFlow<Float> = _mouthLevel.asStateFlow()
 
+    private val _remotePcm = MutableSharedFlow<ByteArray>(
+        replay = 0,
+        extraBufferCapacity = 64,
+        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST,
+    )
+    override val remotePcm: Flow<ByteArray> = _remotePcm.asSharedFlow()
+
     /**
      * 用户自己的音量 0..1。本地麦克风采集轨的 PCM。
      *
@@ -603,6 +610,10 @@ class LiveKitCompanionTransport(
                 val rms = sqrt(sum / n) / Short.MAX_VALUE
                 val level = (rms / FULL_SCALE_RMS).coerceIn(0.0, 1.0).toFloat() * LEVEL_CEILING
                 _mouthLevel.value = level
+                if (_remotePcm.subscriptionCount.value > 0) {
+                    com.openapi.ks.myapp.dh.PcmConvert.toMono16k(data, bitsPerSample, sampleRate, numberOfChannels, frames)
+                        ?.let { _remotePcm.tryEmit(it) }
+                }
 
                 // §9.4：远端首帧就是"这句话的 t0"。没有这一步，所有 `before` /
                 // `after` 锚点都解不出来，表现 cue 会挂在队列里直到 2 秒后过期。
