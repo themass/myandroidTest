@@ -67,12 +67,19 @@ internal class MessageRemoval(
     }
 
     /**
-     * 清空当前会话的消息，保留会话本身。服务端没有「清空消息」接口：先分页拉出全部消息 id，再逐条删除。
-     * 任一条失败会保留它并提示数量。
+     * 清空当前会话的消息，保留会话本身。优先走服务端的一键清空接口
+     * （`DELETE /sessions/{id}/messages`，整改清单 P1-9）；接口不可用（旧服务端）时
+     * 回退到旧路径：先分页拉出全部消息 id，再逐条删除，任一条失败会保留它并提示数量。
      */
     fun clearConversation() {
         scope.launch {
             val sessionId = repository.currentSessionId()
+            if (repository.clearHistory(sessionId)) {
+                // 服务端已清空：本地缓存里的助手回复也要清掉，否则刷新时会被读回来
+                repository.clearLocalMessages(sessionId)
+                state.update { it.copy(messages = emptyList(), hasMoreHistory = false) }
+                return@launch
+            }
             val ids = mutableListOf<String>()
             try {
                 // 按最旧的 id 一直往前翻，直到一页都没有新消息为止（不依赖 hasMore，服务端可能不可靠）

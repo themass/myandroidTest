@@ -71,7 +71,7 @@ class ChatViewModel : ViewModel() {
     private val send = SendActions(
         repository, _uiState, viewModelScope, composer, streamer,
         submitEdit = { id, text -> submitEdit(id, text) },
-        startAttachmentSend = { m -> attachmentJob = viewModelScope.launch { repository.saveMessage(repository.currentSessionId(), m); deliverAttachments(m) } },
+        startAttachmentSend = { m -> attachmentJob = viewModelScope.launch { repository.saveMessage(repository.currentSessionId(), m); deliverAttachments(m, restoreDraftsOnFailure = true) } },
     )
     private val history = HistoryActions(repository, _uiState, viewModelScope, isInFlight = { attachments.isInFlight(it) })
     private val feedback = FeedbackActions(_uiState)
@@ -207,12 +207,11 @@ class ChatViewModel : ViewModel() {
     /**
      * 发送带附件的用户消息：逐个上传附件，各自的识别结果合并成一条助手回复；
      * 有配文时再把配文走文字流（用户消息已保存过，不再重复保存）。
+     * [restoreDraftsOnFailure]：从输入栏发起（而不是气泡重试）时为 true，
+     * 失败后把附件和文字放回输入栏，用户能改一下再发（整改清单 P1-11）。
      */
-    /**
-     * 历史页 + 本地还没同步的用户消息（附件等）。冷启动时，上次没发完的「发送中」消息说明进程被杀了，
-     * 标成失败（红色重试），而不是消失或一直转圈。
-     */
-    private suspend fun deliverAttachments(message: ChatMessage) = attachments.deliver(message)
+    private suspend fun deliverAttachments(message: ChatMessage, restoreDraftsOnFailure: Boolean = false) =
+        attachments.deliver(message, restoreDraftsOnFailure)
 
     private suspend fun mergePending(page: List<ChatMessage>, sessionId: Long): List<ChatMessage> =
         history.mergePending(page, sessionId)
