@@ -40,4 +40,9 @@ class DigitalHumanBridge(
     fun onRemotePcm(pcm16leMono16k: ByteArray) {
         engine.pushRemotePcm(pcm16leMono16k)
     }
+
+    /** 「这段说完了」：让当前引擎结束 PCM 推送段收尾；其它引擎默认空实现。 */
+    fun flushRemotePcm() {
+        engine.flushRemotePcm()
+    }
 }

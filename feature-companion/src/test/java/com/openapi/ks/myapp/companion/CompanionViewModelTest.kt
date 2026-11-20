@@ -225,6 +225,31 @@ class CompanionViewModelTest {
     }
 
     /**
+     * 语音通话的字幕回归：语音链路里没有人先发 send()，所以**没有**流式占位，
+     * 服务端推来的 TextDelta 以前全被 appendToStreaming 丢掉——字幕永远是空的，
+     * 「字幕开/关」看起来毫无效果。第一个 delta 必须自己开一条流式消息。
+     */
+    @Test
+    fun `a text delta without a placeholder starts a streaming caption`() = runTest(dispatcher) {
+        val transport = ScriptedTransport(
+            listOf(
+                CompanionEvent.TextDelta("你好，"),
+                CompanionEvent.TextDelta("今天过得怎么样？"),
+                CompanionEvent.TurnDone,
+            ),
+        )
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+
+        val reply = vm.state.value.messages.single { it.role == MessageRole.ASSISTANT }
+        assertEquals("你好，今天过得怎么样？", reply.text)
+        assertEquals("TurnDone 之后不再是流式", false, reply.streaming)
+        vm.stopListening()
+    }
+
+    /**
      * 「重新回答」必须真的能重问：删掉她的回复后 chatkit 会露出这个入口，
      * 所以它不能是个死按钮。这里验证它补了一个流式占位，且不重复添加用户气泡。
      */

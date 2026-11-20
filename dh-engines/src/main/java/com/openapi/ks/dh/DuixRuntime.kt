@@ -105,6 +105,20 @@ class DuixRuntime internal constructor(
     }
 
     /**
+     * 结束当前推流段（对应上游 playAudio 的 startPush→push→stopPush 单段语义）：
+     * 口型会话 flush 收尾，人物回到模型自带的待机视频循环。**必须**在说完后调用——
+     * 只要推送不结束，口型会话就一直挂着，待机循环里头部也带着小幅摆动，静默态
+     * 看起来就像她还在小声说话。下一次 [pushPcm] 会开新段。
+     */
+    fun endPush() {
+        val sdk = duix ?: return
+        if (pushing) {
+            sdk.stopPush()
+            pushing = false
+        }
+    }
+
+    /**
      * Plays the motion region named `id.toString()` from the model's motion list; a negative [id]
      * picks a random motion. [loop] maps to the SDK's `now` flag (interrupt the idle loop and play
      * immediately instead of queueing after it).
