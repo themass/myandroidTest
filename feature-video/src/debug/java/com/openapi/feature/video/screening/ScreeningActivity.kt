@@ -353,13 +353,13 @@ private fun GalleryFeed(allPager: FeedPager, onOpen: (RemoteEntry) -> Unit) {
 private fun TabHeader(tab: Int, onBack: () -> Unit, onSelect: (Int) -> Unit) {
     val tabs = listOf("频道", "本地视频", "图集")
     Column(Modifier.padding(horizontal = 18.dp)) {
-        Row(Modifier.fillMaxWidth().height(60.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().height(52.dp), verticalAlignment = Alignment.CenterVertically) {
             // 放映场是独立 Activity，系统返回之外得有个看得见的退出口
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") }
             Icon(Icons.Default.PlayArrow, null, tint = Mint)
             Text("放映场", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
         }
-        Row(Modifier.fillMaxWidth().height(46.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().height(40.dp), verticalAlignment = Alignment.CenterVertically) {
             tabs.forEachIndexed { index, label ->
                 val selected = index == tab
                 Box(Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
@@ -422,10 +422,10 @@ private fun ChannelsFeed(
         item {
             FeedError(pager.error, pager::reload)
             // 推荐位高度恒定：hero 没到位时同一块高度放扫光，数据落地只换内容不挪布局。
-            // 高度从 352dp 收到 258dp（≈16:11 海报比例）：一屏能同时露出推荐位和
-            // 两行频道卡，「太大压屏」是用户点名的第二件事。
+            // 屏小是用户点名的第三件事：推荐位再收到 16:9（216dp），首屏要能同时露出
+            // 推荐位 + 分类 + 两行三列网格；卡上的字也整档收小，标题单行截断。
             Spacer(Modifier.height(2.dp))
-            Box(Modifier.fillMaxWidth().height(258.dp).clip(RoundedCornerShape(13.dp, 30.dp, 13.dp, 13.dp))) {
+            Box(Modifier.fillMaxWidth().height(216.dp).clip(RoundedCornerShape(13.dp, 26.dp, 13.dp, 13.dp))) {
                 val entry = hero
                 if (entry == null) {
                     // 加载中扫一层缓慢移动的光（失败停成静态底）。这里不叠转圈——
@@ -442,17 +442,17 @@ private fun ChannelsFeed(
                     }) {
                         EntryCover(entry, Modifier.matchParentSize())
                         Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x45202340), Ink))))
-                        Column(Modifier.align(Alignment.BottomStart).padding(16.dp)) {
+                        Column(Modifier.align(Alignment.BottomStart).padding(14.dp)) {
                             Text(if (entry.isGroupEntry) "频道推荐" else "正在热映", Modifier.background(Peach, RoundedCornerShape(5.dp))
                                 .padding(horizontal = 7.dp, vertical = 3.dp), color = Ink, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(7.dp))
-                            Text(entry.title, color = White, fontSize = 27.sp, lineHeight = 31.sp, fontWeight = FontWeight.Black,
+                            Spacer(Modifier.height(6.dp))
+                            Text(entry.title, color = White, fontSize = 22.sp, lineHeight = 26.sp, fontWeight = FontWeight.Black,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis)
                             if (entry.description.isNotBlank()) {
-                                Spacer(Modifier.height(4.dp))
+                                Spacer(Modifier.height(3.dp))
                                 Text(entry.description, color = White, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
-                            Spacer(Modifier.height(10.dp))
+                            Spacer(Modifier.height(9.dp))
                             Button(onClick = {
                                 when (routeOf(entry)) {
                                     FeedRoute.PLAY -> onPlay(entry)
@@ -474,11 +474,13 @@ private fun ChannelsFeed(
             // 数据一到直接填网格，没有「占位块整块消失」的第二次跳动。
         }
         if (cards.isNotEmpty()) item {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                repeat(2) { column ->
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        cards.filterIndexed { index, _ -> index % 2 == column }.forEachIndexed { index, entry ->
-                            Box(Modifier.fillMaxWidth().aspectRatio(0.72f)
+            // 三列方格（用户点名：屏小，一屏要能装下更多）。窄格放不下一行描述，
+            // 描述就让位——卡面本身比一行截断的字更有辨识度；点进去内页看全。
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                repeat(3) { column ->
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        cards.filterIndexed { index, _ -> index % 3 == column }.forEachIndexed { index, entry ->
+                            Box(Modifier.fillMaxWidth().aspectRatio(1f)
                                 .enterFeedItem(seen, entry.key, index)
                                 .pressable(Tile) {
                                     when (routeOf(entry)) {
@@ -489,13 +491,12 @@ private fun ChannelsFeed(
                                 }) {
                                 EntryCover(entry, Modifier.matchParentSize())
                                 Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent, Ink))))
-                                Column(Modifier.align(Alignment.BottomStart).padding(11.dp)) {
-                                    Text(entry.title, color = White, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold,
-                                        maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    if (entry.description.isNotBlank()) {
-                                        Text(entry.description, color = Muted, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    }
-                                }
+                                Text(entry.title,
+                                    Modifier.align(Alignment.BottomStart).fillMaxWidth()
+                                        .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xB3141729))))
+                                        .padding(horizontal = 6.dp, vertical = 5.dp),
+                                    color = White, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
                     }
@@ -570,7 +571,9 @@ private fun Library(
         onFile(ScreeningSource(documentName(context, it), "在此设备上播放", uri = it, key = "file:${it}"))
     } }
     var filter by rememberSaveable { mutableStateOf("全部") }
-    var poster by rememberSaveable { mutableStateOf(false) }
+    // 默认就是三列网格（用户点名：屏小，一行两列要点好几屏才看完）；
+    // 右上开关留着切到带观看进度的紧凑行视图。
+    var poster by rememberSaveable { mutableStateOf(true) }
     val listState = rememberLazyListState()
     LaunchedEffect(pager) {
         pager.load()
@@ -586,58 +589,59 @@ private fun Library(
     val resume = pager.items.firstOrNull { (progress[it.key] ?: 0L) > 0L }
     val seen = remember(page) { mutableSetOf<String>() }
     LazyColumn(Modifier.fillMaxSize(), state = listState,
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = if (embedded) 12.dp else 9.dp, bottom = 9.dp)) {
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = if (embedded) 10.dp else 8.dp, bottom = 9.dp)) {
         item {
             // 内嵌进标签时不画返回键：标签本身就是位置，返回键会把人带回同一个列表（原地打转）
             if (!embedded) IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回频道") }
-            // 顶卡从 215dp 收到 168dp（≈16:9 封面）：列表本来就是主角，头部只做确认身份用
-            Box(Modifier.fillMaxWidth().height(168.dp).clip(RoundedCornerShape(12.dp, 26.dp, 12.dp, 12.dp))) {
+            // 顶卡 168→148dp：屏小，头部只做到「认出这是哪个频道」就够，高度留给片单
+            Box(Modifier.fillMaxWidth().height(148.dp).clip(RoundedCornerShape(12.dp, 22.dp, 12.dp, 12.dp))) {
                 if (page.coverAsset != null) Cover(page.coverAsset, Modifier.matchParentSize())
                 else RemoteCover(page.coverUrl, Modifier.matchParentSize())
                 Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink))))
-                Column(Modifier.align(Alignment.BottomStart).padding(15.dp)) {
+                Column(Modifier.align(Alignment.BottomStart).padding(13.dp)) {
                     // 这里原来印 Constants.BASE_IP（接口域名）——调试信息，不是给用户看的（用户点过名）
-                    Text(if (page.channelParam != null) "放映场" else "离线样片库", color = Peach, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    Text(page.title, color = White, fontWeight = FontWeight.Black, fontSize = 25.sp, lineHeight = 30.sp,
+                    Text(if (page.channelParam != null) "放映场" else "离线样片库", color = Peach, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(page.title, color = White, fontWeight = FontWeight.Black, fontSize = 21.sp, lineHeight = 25.sp,
                         maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(if (pager.loading) "正在取数据…" else "${pager.items.size} 条", color = Muted, fontSize = 12.sp)
+                    Text(if (pager.loading) "正在取数据…" else "${pager.items.size} 条", color = Muted, fontSize = 11.sp)
                 }
             }
             FeedError(pager.error, pager::reload)
-            if (page.sample != null) FilledTonalButton(onClick = { picker.launch(arrayOf("video/*")) }, modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
+            if (page.sample != null) FilledTonalButton(onClick = { picker.launch(arrayOf("video/*")) }, modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
                 Text("打开手机里的视频")
             }
             resume?.let { entry ->
-                Row(Modifier.padding(top = 12.dp).fillMaxWidth().clip(Tile).background(Lift).clickable { openEntry(entry) }.padding(13.dp),
+                Row(Modifier.padding(top = 10.dp).fillMaxWidth().clip(Tile).background(Lift).clickable { openEntry(entry) }.padding(11.dp),
                     verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.PlayArrow, null, tint = Mint)
                     Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
-                        Text("继续看《${entry.title}》", fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text("从 ${time(progress.getValue(entry.key))} 接着播", color = Muted, fontSize = 12.sp)
+                        Text("继续看《${entry.title}》", fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("从 ${time(progress.getValue(entry.key))} 接着播", color = Muted, fontSize = 11.sp)
                     }
                     Text("续播", color = Mint)
                 }
             }
-            Row(Modifier.fillMaxWidth().padding(top = 11.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("全部视频", Modifier.weight(1f), fontSize = 24.sp, fontWeight = FontWeight.Black)
+            Row(Modifier.fillMaxWidth().padding(top = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("全部视频", Modifier.weight(1f), fontSize = 19.sp, fontWeight = FontWeight.Black)
                 IconButton(onClick = { poster = !poster }) { Icon(if (poster) Icons.Default.ViewList else Icons.Default.GridView, if (poster) "切换列表视图" else "切换海报视图") }
             }
             FilterRow(listOf("全部", "未观看"), filter) { filter = it }
             // 首屏加载：用和条目等高的扫光骨架占位，而不是再来一个转圈
             //（用户点过名「2 个 loading 只要一个」：转圈和底部的转圈会同屏出现）
             if (pager.loading && pager.items.isEmpty()) {
-                ListSkeleton(Modifier.padding(top = 10.dp), rowHeight = 74.dp)
+                ListSkeleton(Modifier.padding(top = 8.dp), rowHeight = 64.dp)
             }
         }
         if (!pager.loading && shown.isEmpty()) item { Text("这一页没有内容。切回「全部」或者返回上一个频道。", Modifier.padding(14.dp), color = Muted) }
-        if (poster) items(shown.chunked(2)) { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (poster) items(shown.chunked(3)) { row ->
+            // 海报视图与首页网格同一档：三列，一屏多装一半
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEachIndexed { column, entry ->
                     EntryCard(entry, progress[entry.key] ?: 0L, true,
                         Modifier.weight(1f).enterFeedItem(seen, entry.key, column), openEntry)
                 }
-                if (row.size == 1) Spacer(Modifier.weight(1f))
+                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
             }
         } else items(shown, key = { it.key }) { entry ->
             EntryCard(entry, progress[entry.key] ?: 0L, false,
@@ -651,7 +655,8 @@ private fun Library(
 private fun EntryCard(entry: RemoteEntry, position: Long, poster: Boolean, modifier: Modifier, open: (RemoteEntry) -> Unit) {
     val duration = entry.sampleDurationMs()
     val art: @Composable (Modifier) -> Unit = { m ->
-        Box(m.aspectRatio(if (poster) entry.ratio.coerceIn(0.6f, 1.6f) else 16f / 9).clip(Tile)) {
+        // 海报视图三列后格子很窄，比例再乱就是锯齿：统一 0.8 竖片比例，行行对齐。
+        Box(m.aspectRatio(if (poster) 0.8f else 16f / 9).clip(Tile)) {
             EntryCover(entry, Modifier.matchParentSize())
             if (duration > 0L) Text(time(duration), Modifier.align(Alignment.BottomEnd).padding(6.dp)
                 .background(Ink, RoundedCornerShape(5.dp)).padding(horizontal = 5.dp), fontSize = 11.sp)
@@ -660,24 +665,25 @@ private fun EntryCard(entry: RemoteEntry, position: Long, poster: Boolean, modif
         }
     }
     val title: @Composable () -> Unit = {
-        Text(entry.title, color = White, fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(entry.title, color = White, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(when {
             duration > 0L && position >= duration -> "已看完"
             position > 0 -> "已看到 ${time(position)}"
             else -> "未观看"
-        }, color = Muted, fontSize = 12.sp)
+        }, color = Muted, fontSize = 11.sp)
     }
     val clickable = modifier.pressable(Tile) { open(entry) }
-    if (poster) Column(clickable) { art(Modifier.fillMaxWidth()); Spacer(Modifier.height(5.dp)); title() }
+    if (poster) Column(clickable) { art(Modifier.fillMaxWidth()); Spacer(Modifier.height(4.dp)); title() }
     else Row(clickable, verticalAlignment = Alignment.CenterVertically) {
-        art(Modifier.width(130.dp)); Column(Modifier.padding(horizontal = 13.dp)) { title() }
+        art(Modifier.width(112.dp)); Column(Modifier.padding(horizontal = 11.dp)) { title() }
     }
 }
 
+/** 区块标题：字大不等于占地方——行高与上下留白收小，标题本身仍压得住层级。 */
 @Composable
 internal fun Heading(title: String, detail: String = "") {
-    Row(Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, Modifier.weight(1f), color = White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+    Row(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, Modifier.weight(1f), color = White, fontSize = 19.sp, fontWeight = FontWeight.Black)
         if (detail.isNotEmpty()) Text(detail, color = Muted, fontSize = 12.sp)
     }
 }
