@@ -24,6 +24,7 @@ import com.bumptech.glide.Glide
 import com.google.android.material.imageview.ShapeableImageView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -32,6 +33,9 @@ import kotlinx.coroutines.launch
  * 频道列表、频道里的片单、图集列表、图集内的图片都用这一个形状，页面只认它。
  * 这里没有「随包样例」这条路：服务端没通就说没通（[error]，页面给重试），
  * 通了但没数据就是空（items 为空）。页面绝不拿假数据填屏幕。
+ *
+ * 首屏失败先自动重试一次（短退避），还不行才落到 [error] —— 一次网络抖动
+ * 不该逼用户去找重试按钮；只重试一次，不会无限打服务端。
  */
 internal class FeedPager(
     private val scope: CoroutineScope,
@@ -74,7 +78,14 @@ internal class FeedPager(
     private fun request(start: Int, append: Boolean) {
         loading = true
         scope.launch(Dispatchers.Main) {
-            val page = runCatching { fetch(start) }
+            val page = runCatching { fetch(start) }.recoverCatching { cause ->
+                // 首屏失败自动补一次（短退避）：一次网络抖动不该逼用户去找「重试」按钮；
+                // 只补这一次，再失败就落到 error，不会无限打服务端。
+                // 翻页失败不补——屏上已有列表，保留它、说清失败就够了。
+                if (append) throw cause
+                delay(RETRY_BACKOFF_MS)
+                fetch(start)
+            }
             loading = false
             page.fold(
                 onSuccess = { data ->
@@ -91,6 +102,10 @@ internal class FeedPager(
                 },
             )
         }
+    }
+
+    private companion object {
+        const val RETRY_BACKOFF_MS = 800L
     }
 }
 
