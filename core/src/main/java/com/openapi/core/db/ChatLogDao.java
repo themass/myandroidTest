@@ -16,11 +16,22 @@ public interface ChatLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long save(ChatLog log);
 
+    /**
+     * 批量 upsert：整页历史一次写入。Room 会把整个 @Insert 列表放进同一个事务，
+     * 代替历史刷新里「每条消息一个隐式事务」的逐条 save（切换会话慢的三处之一，见整改清单 P0-6.3）。
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void saveAll(List<ChatLog> logs);
+
     @Query("SELECT * FROM ChatLog WHERE sessionId = :sessionId ORDER BY id ASC")
     List<ChatLog> bySession(long sessionId);
 
     @Query("DELETE FROM ChatLog WHERE chatId = :chatId")
     void deleteByChatId(String chatId);
+
+    /** 批量删除旧临时 id 行（历史刷新时与 saveAll 同事务提交）。调用方保证列表非空。 */
+    @Query("DELETE FROM ChatLog WHERE chatId IN (:chatIds)")
+    void deleteByChatIds(List<String> chatIds);
 
     /** 删除某个会话的全部缓存（会话被删除，或整页刷新前清掉旧缓存）。 */
     @Query("DELETE FROM ChatLog WHERE sessionId = :sessionId")
