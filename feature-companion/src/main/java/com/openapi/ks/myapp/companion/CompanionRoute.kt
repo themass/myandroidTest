@@ -85,6 +85,11 @@ enum class CompanionPage { CHAT, CHARACTERS, MEMORY, SETTINGS }
 fun CompanionRoute(
     modifier: Modifier = Modifier,
     initialCharacterId: String = DEFAULT_CHARACTER_ID,
+    /**
+     * 剧本房 case id（adb `--es script_case …`）。非空时走 createScriptSession，
+     * 并在连接后自动进通话页以便听下行。
+     */
+    scriptCaseId: String? = null,
     /** 打开抽屉。由 HomeScreen 传入，与「对话」页一致。 */
     onMenuClick: (() -> Unit)? = null,
 ) {
@@ -98,6 +103,10 @@ fun CompanionRoute(
 
     var page by rememberSaveable { mutableStateOf(CompanionPage.CHAT) }
     var characterId by rememberSaveable { mutableStateOf(initialCharacterId) }
+    // 热启动 adb 再带 script_case：rememberSaveable 不会吃新的 initialCharacterId，显式跟上。
+    LaunchedEffect(initialCharacterId, scriptCaseId) {
+        if (scriptCaseId != null) characterId = initialCharacterId
+    }
 
     val chatViewModel: CompanionViewModel = viewModel(
         factory = viewModelFactory {
@@ -171,6 +180,7 @@ fun CompanionRoute(
                 CompanionScreen(
                     viewModel = chatViewModel,
                     characterId = characterId,
+                    scriptCaseId = scriptCaseId,
                     modifier = Modifier.fillMaxWidth(),
                     onOpenCall = {
                         if (hasMicPermission(context)) {

@@ -8,11 +8,17 @@ import com.openapi.ks.myapp.agent.ui.AgentChatEntry
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.runtime.SideEffect
 import android.app.Activity
+import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.core.util.Consumer
+import com.openapi.app.home.HomeActivity
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -103,6 +109,22 @@ fun HomeScreen() {
     val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
 
     val context = LocalContext.current
+    val activity = context as ComponentActivity
+    // singleTask 热启动只换 Intent：监听 onNewIntent，否则 Compose 读不到新的 script_case。
+    var launchIntent by remember { mutableStateOf(activity.intent) }
+    DisposableEffect(activity) {
+        val listener = Consumer<Intent> { launchIntent = it }
+        activity.addOnNewIntentListener(listener)
+        onDispose { activity.removeOnNewIntentListener(listener) }
+    }
+    val scriptCaseId = launchIntent.getStringExtra(HomeActivity.EXTRA_SCRIPT_CASE)?.takeIf { it.isNotBlank() }
+    val scriptCharacterId = launchIntent.getStringExtra(HomeActivity.EXTRA_CHARACTER_ID)?.takeIf { it.isNotBlank() }
+    LaunchedEffect(scriptCaseId) {
+        if (scriptCaseId != null) {
+            selected = HomeTab.Companion.ordinal
+            profilePageOpen = false
+        }
+    }
     val entries = remember { HomeDependencies.require() }
     var profile by remember { mutableStateOf(entries.profile(context)) }
     LifecycleResumeEffect(Unit) {
@@ -212,7 +234,12 @@ fun HomeScreen() {
                 stateHolder.SaveableStateProvider(current.name) {
                     when (current) {
                         HomeTab.Chat -> ChatRoute(onMenuClick = openDrawer)
-                        HomeTab.Companion -> CompanionRoute(onMenuClick = openDrawer)
+                        HomeTab.Companion -> CompanionRoute(
+                            onMenuClick = openDrawer,
+                            initialCharacterId = scriptCharacterId
+                                ?: com.openapi.ks.myapp.companion.DEFAULT_CHARACTER_ID,
+                            scriptCaseId = scriptCaseId,
+                        )
                         HomeTab.Channels -> ChannelsHub()
                         HomeTab.AgentChat -> AgentChatEntry()
                         HomeTab.Profile -> Unit // 「我的」由右侧覆盖页显示
