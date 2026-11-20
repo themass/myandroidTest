@@ -1,0 +1,69 @@
+package com.openapi.core.account;
+
+import android.content.Context;
+import android.content.Intent;
+
+import com.openapi.core.config.CommonConstants;
+import com.openapi.common.util.android.PreferenceUtils;
+import com.openapi.common.ads.analytics.MobAgent;
+import com.openapi.common.util.android.StaticDataUtil;
+import com.openapi.core.app.AppContext;
+import com.openapi.core.model.UserInfoVo;
+import com.openapi.core.config.Constants;
+
+/**
+ * Created by openapi on 2016/8/15.
+ */
+public class UserLoginUtil {
+    public static UserInfoVo getStoreData(Context context) {
+        return PreferenceUtils.getPrefObj(context, Constants.LOGIN_USER, UserInfoVo.class);
+
+//        if (user != null) {
+//            LogUtil.i("login ok");
+//            StaticDataUtil.add(Constants.LOGIN_USER, user);
+//    //            context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
+//        } else {
+//            LogUtil.i("login fail");
+//        }
+    }
+
+    public static void login(Context context, UserInfoVo vo) {
+        PreferenceUtils.setPrefObj(context, Constants.LOGIN_USER, vo);
+        PreferenceUtils.setPrefString(context, com.openapi.common.net.http.NetConfig.tokenHeader(), vo.token);
+        StaticDataUtil.add(Constants.LOGIN_USER, vo);
+        context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
+        MobAgent.onProfileSignIn(vo.name);
+    }
+
+    public static void logout(Context context) {
+        PreferenceUtils.remove(context, Constants.LOGIN_USER);
+        PreferenceUtils.remove(context, com.openapi.common.net.http.NetConfig.tokenHeader());
+        StaticDataUtil.del(Constants.LOGIN_USER);
+        context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
+        MobAgent.onProfileSignOff();
+    }
+
+    public static UserInfoVo getUserCache() {
+        return StaticDataUtil.get(Constants.LOGIN_USER, UserInfoVo.class);
+    }
+
+    public static boolean isVIP() {
+        UserInfoVo vo = getUserCache();
+        return !(vo == null || vo.level < Constants.UserLevel.LEVEL_VIP);
+    }
+
+    public static boolean isVIP2() {
+        UserInfoVo vo = getUserCache();
+        return !(vo == null || vo.level < Constants.UserLevel.LEVEL_VIP2);
+    }
+
+    public static boolean isVIP3() {
+        UserInfoVo vo = getUserCache();
+        return !(vo == null || vo.level < Constants.UserLevel.LEVEL_VIP3);
+    }
+
+    public static boolean showAds() {
+        UserInfoVo vo = getUserCache();
+        return vo == null || !vo.adsNo;
+    }
+}

@@ -1,0 +1,23 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+// :speech：语音与字幕——火山引擎流式识别（asr/）、设备朗读（tts/）、录音与语音消息播放（audio/）、
+// 翻译接口与实时字幕（subtitle/）。实时字幕组合识别和覆盖层，所以放在同一个模块。
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.speech'
+}
+
+dependencies {
+    implementation libs.androidx.core.ktx
+    implementation libs.kotlinx.coroutines.android
+    // 语音消息播放（AudioPlayer）
+    implementation libs.androidx.media3.exoplayer
+    // 火山引擎流式 ASR：WebSocket，配置读偏好、日志
+    implementation libs.okhttp
+    implementation project(':common')
+    // 实时字幕的 PCM 音频源已由上面的 media3-exoplayer 提供
+}

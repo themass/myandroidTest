@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="favorite_m3u8_line1">外网播放 线路一</string>
+    <string name="favorite_external_sheet_title">在外部浏览器打开</string>
+    <string name="favorite_m3u8_line2">外网播放 线路二</string>
+    <string name="favorite_external_sheet_cancel">取消</string>
+</resources>

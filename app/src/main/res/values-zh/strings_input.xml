@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_hold_to_talk">按住说话</string>
+    <string name="chat_toggle_voice_desc">切换语音输入</string>
+    <string name="chat_remove_attachment_desc">移除附件</string>
+</resources>

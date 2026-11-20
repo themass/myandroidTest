@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="roles_empty_favorites">还没有收藏的角色，点击角色右侧的星标即可收藏</string>
+    <string name="roles_empty_recent">最近还没有使用过角色</string>
+    <string name="roles_empty_search">没有找到相关角色</string>
+    <string name="roles_filter_favorites">收藏</string>
+    <string name="roles_filter_featured">精选</string>
+    <string name="roles_filter_recent">最近</string>
+    <string name="roles_load_failed">角色加载失败</string>
+    <string name="roles_search_hint">搜索角色，比如 翻译、前端、小红书</string>
+    <string name="ui_all">全部</string>
+    <string name="ui_retry">重试</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playback_engine_exo">Exo (Media3)</string>
+    <string name="playback_engine_ijk_ffmpeg">IJK + FFmpeg (ex_so)</string>
+    <string name="playback_engine_ali">AliPlayer (Alibaba)</string>
+    <string name="playback_engine_system">System MediaPlayer</string>
+</resources>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="playback_engine_names">
+        <item>@string/playback_engine_exo</item>
+        <item>@string/playback_engine_ijk_ffmpeg</item>
+        <item>@string/playback_engine_ali</item>
+        <item>@string/playback_engine_system</item>
+    </string-array>
+    <string-array name="recharge_arry">
+        <item>WeChat</item>
+        <item>Alipay</item>
+        <item>Other</item>
+    </string-array>
+    <plurals name="likes_count">
+        <item quantity="one">%d like</item>
+        <item quantity="other">%d likes</item>
+    </plurals>
+    <string name="re_bt_code">Get Code</string>
+    <string name="reg">Sign up</string>
+    <string name="email_hint">E-mail</string>
+    <string name="sound_picshow">Video pic show</string>
+    <string name="remark">Timeline RIGHTS RESERVED.</string>
+    <string name="my_charater">setting my Ai charater</string>
+    <string name="iwanna_title">support</string>
+    <string name="empty_info">Please fill in the information</string>
+    <string name="playback_engine_toast_fmt">Playback: %1$s</string>
+    <string name="custome_title">Add Custome</string>
+    <string name="volcano_asr_cluster_hint">Cluster (v2 only, e.g. volcengine_input_common)</string>
+    <string name="volcano_asr_use_v3">Use v3 bigmodel WebSocket</string>
+    <string name="list_video_tiny_need">List Video tiny need</string>
+    <string name="menu_btn_share">Share</string>
+    <string name="empty_name_pwd">Please fill in the information</string>
+    <string name="findpass_sent_title">Email sent</string>
+    <string name="feedback_hint">$3 $5 VIP3</string>
+    <string name="findpass_sent_body">We sent your password to %1$s. Check your inbox, and your spam folder if you don\'t see it.</string>
+    <string name="home_channels_retry">Retry</string>
+    <string name="submit">submit</string>
+    <string name="findpass_hint">Enter the email you signed up with. We will send your password to it.</string>
+    <string name="playcore_setting">Video player engine</string>
+    <string name="use_tts">Enable Speech</string>
+    <string name="setting">Setting</string>
+    <string name="sex">Sex:</string>
+    <string name="recharge">Recharge:</string>
+    <string name="iwanna_content_error">Tell me something!</string>
+    <string name="money_back_title">Score?</string>
+    <string name="findpass_send_failed">Couldn\'t send. Check your connection and try again.</string>
+    <string name="findpass_resend">Resend</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
+    <string name="music_ui_auxio_disabled_toast">Classic music UI on. Re-open the music list.</string>
+    <string name="feedback_load_error">Couldn\'t load feedback</string>
+    <string name="volcano_asr_access_key_hint">Access Token</string>
+    <string name="custome_ok">Add OK</string>
+    <string name="save">Save</string>
+    <string name="error_repwd">Password error</string>
+    <string name="area_mi">Area encry</string>
+    <string name="volcano_asr_resource_id_hint">Resource-Id (v3 only, e.g. volc.bigasr.sauc.duration)</string>
+    <string name="volcano_asr_setting_title">Volcano streaming ASR (live subtitles)</string>
+    <string name="sound_setting">Play audio in not wifi</string>
+    <string name="music_ui_auxio_enabled_toast">Auxio-style music UI on. Re-open the music list.</string>
+    <string name="menu_btn_version">Version:</string>
+    <string name="username_hint">Username</string>
+    <string name="volcano_asr_app_key_hint">App Key / AppId</string>
+    <string name="music_ui_use_auxio_hint">Dark Material look inspired by the open-source app Auxio (GPL). This app does not bundle Auxio code. Re-open the music channel to apply.</string>
+    <string name="findpass_back_login">Back to sign in</string>
+    <string name="reg_success">Register success，login now？</string>
+    <string name="login">Sign in</string>
+    <string name="findpass">Forget Pass?</string>
+    <string name="findpass_email_invalid">Enter a valid email address</string>
+    <string name="findpass_resend_wait">Resend in %1$d s</string>
+    <string name="playvideo_setting">play video-jiaozi</string>
+    <string name="music_ui_use_auxio_title">Music list: Auxio-style UI</string>
+    <string name="re_password_hint">RePassword</string>
+    <string name="re_code">Code</string>
+    <string name="need_login">Login please</string>
+    <string name="feed_back">Feedback</string>
+    <string name="send">send</string>
+    <string name="area_setting">Show Area</string>
+    <string name="password_hint">Password</string>
+    <string name="playback_engine_system">System MediaPlayer</string>
+    <string name="playback_engine_ali">AliPlayer (Alibaba)</string>
+    <string name="playback_engine_ijk_ffmpeg">IJK + FFmpeg (ex_so)</string>
+    <string name="playback_engine_exo">Exo (Media3)</string>
+</resources>

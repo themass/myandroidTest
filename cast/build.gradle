@@ -1,0 +1,20 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+// :cast：DLNA 投屏协议——SSDP 发现设备、SOAP 控制 AVTransport、本地文件的 HTTP 分发。
+// 与播放器和界面无关；投屏按钮、Google Cast 接入留在 :feature-video。
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.cast'
+}
+
+dependencies {
+    implementation libs.kotlinx.coroutines.android
+    // SOAP 请求和设备描述下载
+    implementation libs.okhttp
+    // LocalMediaServer：把本地视频文件通过 HTTP 提供给电视
+    implementation 'org.nanohttpd:nanohttpd:2.3.1'
+}

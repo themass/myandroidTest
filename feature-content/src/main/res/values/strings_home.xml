@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_channels_empty">Nothing here yet</string>
+    <string name="home_channels_error">Couldn\'t load channels</string>
+    <string name="home_channels_retry">Retry</string>
+</resources>

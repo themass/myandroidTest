@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.openapi.feature.video.player.DetailGSYVideoPlayer
+        android:id="@+id/jz_video"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 占位保留 id，实际工具条挂在 DetailGSYVideoPlayer 内（全屏克隆需要）；投屏入口在 MyFavoriteView -->
+    <com.openapi.core.favorite.MyFavoriteView
+        android:id="@+id/my_favoriteview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_marginEnd="@dimen/margin_22"
+        android:layout_marginBottom="@dimen/margin_55"
+        android:visibility="gone" />
+</FrameLayout>

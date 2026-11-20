@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sound">Аудио</string>
+    <string name="video">Видео</string>
+    <string name="down_to_loadmore">Потяните вниз для обновления</string>
+    <string name="menu_btn_favorite">Избранное</string>
+    <string name="menu_btn_app">Рекомендуемые приложения</string>
+    <string name="ads_logo">Реклама</string>
+    <string name="save_fail">Ошибка сохранения</string>
+    <string name="no_select">Не выбрано</string>
+    <string name="save_ok">Сохранено успешно</string>
+    <string name="menu_share_copy_ok">Скопировано в буфер обмена</string>
+    <string name="menu_btn_donation">Оплата</string>
+    <string name="sound_play_not_wifi">Воспроизводить аудио без Wi-Fi?</string>
+    <string name="app_name">kimi</string>
+    <string name="vip_tips">Пожалуйста, обновите до VIP</string>
+    <string name="save_start">Начало сохранения...</string>
+    <string name="del_cancel">Отмена</string>
+    <string name="tv">ТВ</string>
+    <string name="text">Рассказы</string>
+    <string name="del_ok">Подтвердить</string>
+    <string name="menu_favorite">Добавить в избранное</string>
+    <string name="img">Изображения</string>
+    <string name="menu_share_text_only">ОШИБКА!! Можно поделиться только текстом</string>
+    <string name="menu_favorite_cancel">Удалить из избранного</string>
+</resources>

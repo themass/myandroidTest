@@ -1,0 +1,607 @@
+package com.openapi.ks.myapp.companion
+
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.openapi.core.config.CommonConstants
+import com.openapi.common.util.android.PreferenceUtils
+import com.openapi.feature.companion.R
+import com.openapi.core.config.Constants
+import com.openapi.ks.myapp.avatar.AvatarPackStore
+import com.openapi.ks.myapp.avatar.BundledAvatars
+import com.openapi.ks.myapp.avatar.LayeredAvatar
+import com.openapi.ks.myapp.avatar.LayeredAvatarPack
+import com.openapi.ks.myapp.avatar.AvatarPortrait
+import com.openapi.ks.myapp.avatar.AvatarEventMapper
+import com.openapi.ks.myapp.avatar.AvatarSpec
+import com.openapi.ks.myapp.avatar.SimpleAvatar
+import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
+import com.openapi.ks.myapp.dh.DhEngineDownloadGate
+import com.openapi.ks.myapp.dh.DhEngineRegistry
+import com.openapi.ks.myapp.dh.DhEngineWatchdog
+import com.openapi.ks.myapp.dh.EngineClickAction
+import com.openapi.ks.myapp.dh.dhEngineLabel
+import com.openapi.ks.myapp.dh.DhLabBootstrap
+import com.openapi.ks.myapp.dh.DhLabGate
+import com.openapi.ks.myapp.dh.DhLabPreferences
+import com.openapi.ks.myapp.dh.DigitalHumanLabHost
+import com.openapi.ks.myapp.dh.dhEngineMenuRows
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+
+/** 陪伴界面里能去的页面。聊天是主页面，其余三个从顶部进入。 */
+enum class CompanionPage { CHAT, CHARACTERS, MEMORY, SETTINGS }
+
+/**
+ * 陪伴界面的完整装配：聊天主页面 + 角色列表 / 记忆 / 偏好三个子页面。
+ *
+ * API 在这里创建（地址与登录 token 来自现有配置），ViewModel 只拿接口，不认 HTTP。
+ * 默认角色是林澈；在角色列表里选了别的，会话切到那个角色。
+ */
+@Composable
+fun CompanionRoute(
+    modifier: Modifier = Modifier,
+    initialCharacterId: String = DEFAULT_CHARACTER_ID,
+    /** 打开抽屉。由 HomeScreen 传入，与「对话」页一致。 */
+    onMenuClick: (() -> Unit)? = null,
+) {
+    val context = LocalContext.current.applicationContext
+    val api = remember(context) {
+        HttpCompanionApi(
+            baseUrl = CompanionConfig.baseUrl,
+            tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.common.net.http.NetConfig.tokenHeader(), null) },
+        )
+    }
+
+    var page by rememberSaveable { mutableStateOf(CompanionPage.CHAT) }
+    var characterId by rememberSaveable { mutableStateOf(initialCharacterId) }
+
+    val chatViewModel: CompanionViewModel = viewModel(
+        factory = viewModelFactory {
+            initializer {
+                CompanionViewModel(
+                    api = api,
+                    transportFactory = { provider -> CompanionTransports.create(context, provider) },
+                )
+            }
+        },
+    )
+
+    // 系统返回键：在子页面时回到聊天页，而不是把整个应用退出（真机上踩到：
+    // 子页面只是 page 状态切换，没有返回栈，返回键会直接回到桌面）。
+    BackHandler(enabled = page != CompanionPage.CHAT) { page = CompanionPage.CHAT }
+
+    // 全屏通话是覆盖层而不是子页面：它要保持房间连接，退出后回到原来的对话现场，
+    // 所以不走 CompanionPage 那套"切换页面"的状态。
+    val uiState by chatViewModel.state.collectAsStateWithLifecycle()
+    val inCall = uiState.callActive
+
+    // 进通话先要有录音权限：没有就申请；用户拒绝也照样进，只是以静音形态进（她能说，你只能看/打字）。
+    // 用一个待办动作区分「拒绝后该继续做什么」——申请前不知道回调回来对应哪件事。
+    var pendingMicAction by remember { mutableStateOf(PendingMicAction.NONE) }
+    val micLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        val action = pendingMicAction
+        pendingMicAction = PendingMicAction.NONE
+        when (action) {
+            PendingMicAction.START_CALL -> chatViewModel.startCall(micAllowed = granted)
+            PendingMicAction.UNMUTE ->
+                if (granted) {
+                    chatViewModel.toggleMute()
+                } else {
+                    toast(context, "没有麦克风权限，先以静音方式继续")
+                }
+
+            PendingMicAction.NONE -> Unit
+        }
+    }
+
+    // 系统返回键也走二次确认：全屏通话里返回 = 挂断，误触的代价是一次断线。
+    var backArmed by remember { mutableStateOf(false) }
+    LaunchedEffect(backArmed) {
+        if (backArmed) {
+            delay(CALL_BACK_CONFIRM_WINDOW_MS)
+            backArmed = false
+        }
+    }
+    LaunchedEffect(inCall) { if (!inCall) backArmed = false }
+    BackHandler(enabled = inCall) {
+        if (backArmed) {
+            chatViewModel.endCall()
+        } else {
+            backArmed = true
+            toast(context, "再按一次返回键挂断通话")
+        }
+    }
+
+    Box(modifier = modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // 离开聊天页就停掉收件箱轮询，回来时由 CompanionScreen 的 start() 重新拉起。
+        LaunchedEffect(page) {
+            if (page != CompanionPage.CHAT) chatViewModel.stopListening()
+        }
+        when (page) {
+            CompanionPage.CHAT -> {
+                // 顶部栏只由 CompanionScreen 里那一条渲染（它带抽屉入口，与对话页一致）。
+                // 这里原来还有一条 TopActions，两条叠在一起，屏幕上出现两行「陪伴」标题。
+                CompanionScreen(
+                    viewModel = chatViewModel,
+                    characterId = characterId,
+                    modifier = Modifier.fillMaxWidth(),
+                    onOpenCall = {
+                        if (hasMicPermission(context)) {
+                            chatViewModel.startCall(micAllowed = true)
+                        } else {
+                            pendingMicAction = PendingMicAction.START_CALL
+                            micLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        }
+                    },
+                    onOpenCharacters = { page = CompanionPage.CHARACTERS },
+                    onOpenProfile = { page = CompanionPage.MEMORY },
+                    onMenuClick = onMenuClick,
+                )
+            }
+
+            CompanionPage.CHARACTERS -> {
+                val vm: CharacterListViewModel = viewModel(
+                    factory = viewModelFactory { initializer { CharacterListViewModel(api) } },
+                )
+                val state by vm.state.collectAsStateWithLifecycle()
+                CharacterListScreen(
+                    state = state,
+                    onRetry = vm::load,
+                    currentCharacterId = characterId,
+                    onPick = {
+                        characterId = it.id
+                        page = CompanionPage.CHAT
+                    },
+                    onBack = { page = CompanionPage.CHAT },
+                )
+            }
+
+            CompanionPage.MEMORY -> {
+                val vm: MemoryViewModel = viewModel(
+                    factory = viewModelFactory { initializer { MemoryViewModel(api, characterId) } },
+                )
+                val state by vm.state.collectAsStateWithLifecycle()
+                MemoryScreen(
+                    state = state,
+                    onRetry = vm::reload,
+                    onDeleteFact = vm::deleteFact,
+                    onDeleteEvent = vm::deleteEvent,
+                    onMarkDone = vm::markEventDone,
+                    onAddEvent = vm::addEvent,
+                    onSuppressProfile = vm::suppressProfile,
+                    onDeleteProfile = vm::deleteProfile,
+                    onBack = { page = CompanionPage.CHAT },
+                )
+            }
+
+            CompanionPage.SETTINGS -> {
+                val vm: CompanionSettingsViewModel = viewModel(
+                    factory = viewModelFactory { initializer { CompanionSettingsViewModel(api) } },
+                )
+                val state by vm.state.collectAsStateWithLifecycle()
+                CompanionSettingsScreen(
+                    state = state,
+                    onRetry = vm::load,
+                    onChange = vm::update,
+                    onPauseHour = { vm.pauseUntil(utcIsoAfterHours(1)) },
+                    onResume = { vm.pauseUntil("") },
+                    onBack = { page = CompanionPage.CHAT },
+                )
+            }
+        }
+    }
+
+    // 通话覆盖层：只在需要时组合，挂上去后旧界面不再接收点击。
+    if (inCall) {
+        val transcript = remember(uiState.messages) {
+            uiState.messages.filter { it.role == MessageRole.ASSISTANT }.map { it.text }.filter { it.isNotBlank() }
+        }
+
+        // 波形样式：用户选了就记住，下次进通话还是那一套。
+        var waveOptions by remember { mutableStateOf(loadWaveOptions(context)) }
+
+        // 标题与字标要用她的真名，不能拿 characterId（如 linche）当人看。通话期间拉一次，
+        // 失败就退回「陪伴」——名字拿不到不该挡住通话。
+        var agentName by rememberSaveable(characterId) { mutableStateOf("陪伴") }
+        var voiceLabel by rememberSaveable(characterId) { mutableStateOf<String?>(null) }
+        LaunchedEffect(characterId) {
+            val summary = runCatching { api.character(characterId).summary }.getOrNull()
+                ?: runCatching {
+                    api.characters().items.firstOrNull { it.id == characterId }
+                }.getOrNull()
+            if (summary != null && summary.name.isNotBlank()) agentName = summary.name
+            voiceLabel = summary?.voiceLabel
+        }
+
+        // 形象包里装了立绘就出图，没有才用首字占位：素材没装时不能假装有图，
+        // 一个默认字标比一张「加载中」的空圆更诚实。
+        val avatarStore = remember(context) { AvatarPackStore(context) }
+        val avatarFiles = remember(characterId, avatarStore) {
+            avatarStore.avatarFor(characterId)?.let { avatarStore.load(it) }
+        }
+
+        // 分层形象按角色绑定（服务端绑定优先，其次内置绑定表，见 BundledAvatars）。
+        // 没有绑定的角色不显示形象，退回圆形头像；不会被兜底成别人的样子。
+        val layeredPack by produceState<LayeredAvatarPack?>(initialValue = null, characterId, avatarStore) {
+            value = withContext(Dispatchers.IO) {
+                val key = BundledAvatars.keyFor(characterId, avatarStore) ?: return@withContext null
+                if (BundledAvatars.isBundled(key)) runCatching { BundledAvatars.ensureDemo(context, avatarStore) }
+                avatarStore.loadLayered(key)
+            }
+        }
+
+        // DH Lab 只决定右上角下拉里有没有「形象」段，不改默认画面。
+        // 默认（callStage == null）仍是原来的圆头像 / 分层立绘；选了引擎才换舞台。
+        DhLabBootstrap.ensureDefaults()
+        val labEnabled = remember(context) { DhLabGate.isEnabled(context) }
+        val dhPrefs = remember(context) { DhLabPreferences(context) }
+        var callStage by remember { mutableStateOf(dhPrefs.callStage) }
+        // 用户在菜单里再点已勾选的引擎 = 「解除熔断再试一次」。引擎 id 没变，Compose 不会重组，
+        // 所以用计数器重建 LabHost（key），让它重新读隔离状态。
+        var engineRetry by remember { mutableIntStateOf(0) }
+        val uiScope = rememberCoroutineScope()
+        // 重型引擎的素材没下好时，点菜单先下载；下载成功后**重查引擎可用性**再换舞台——
+        // 素材下齐但 native 缺失时不换（否则舞台上静默退回 Simple）。Simple / 原形象不受影响。
+        val engineGate = remember(context) {
+            val store = DhLabBootstrap.assetStore(context)
+            DhEngineDownloadGate(
+                availability = { id ->
+                    DhEngineRegistry.available(context).firstOrNull { it.id == id }?.available == true
+                },
+                ensure = { assets, onProgress -> store.ensure(assets, onProgress) },
+            )
+        }
+        // 下载/失败后 +1：菜单行（未下载 / native 库缺失 / 机型不足）跟着引擎状态刷新。
+        var engineMenuTick by remember { mutableIntStateOf(0) }
+        val engineMenu = remember(context, labEnabled, engineMenuTick) {
+            if (labEnabled) dhEngineMenuRows(DhEngineRegistry.available(context)) else null
+        }
+
+        // 通话页用**会动的**形象，而不是单张立绘：这里是她被盯着看最久的地方，
+        // 一张不眨眼、不说话的照片比不显示还糟。嘴型由远端音频振幅驱动，
+        // 眨眼/呼吸由渲染器自己跑。素材缺失时退回单张立绘，再缺就退回字标。
+        val callAvatarRenderer = remember { SimpleAvatarRenderer() }
+        LaunchedEffect(avatarFiles) {
+            avatarFiles?.let { callAvatarRenderer.bind(AvatarSpec(files = it)) }
+        }
+        // 状态与表情要喂给通话页的渲染器。没有这两跳，渲染器永远停在 IDLE，
+        // 而 Mouth 指令在非 SPEAKING 时被整条丢弃——头像的嘴根本不会动；
+        // 她的表情同理到不了脸上。chat 页同样的接线在 CompanionScreen。
+        LaunchedEffect(uiState.avatarState) {
+            AvatarEventMapper.mapState(uiState.avatarState)?.let(callAvatarRenderer::dispatch)
+        }
+        LaunchedEffect(uiState.emotion) {
+            // 与 chat 页同一跳：null → ClearEmotion，降级清场时表情真的下脸。
+            callAvatarRenderer.dispatch(AvatarEventMapper.emotionCommand(uiState.emotion))
+        }
+        DisposableEffect(callAvatarRenderer) {
+            onDispose { callAvatarRenderer.release() }
+        }
+        val avatarSlot: (@Composable () -> Unit)? = when {
+            avatarFiles != null -> {
+                {
+                    SimpleAvatar(
+                        renderer = callAvatarRenderer,
+                        modifier = Modifier.fillMaxSize(),
+                        mouthLevel = chatViewModel.mouthLevel,
+                    )
+                }
+            }
+            else -> avatarFiles?.portrait?.let { file ->
+                { AvatarPortrait(file = file, modifier = Modifier.fillMaxSize()) }
+            }
+        }
+
+        // 计时从进通话页开始（重连期间暂停，不清零）。状态放在覆盖层里，挂断再进来自然从 0 起。
+        var elapsedSeconds by remember { mutableLongStateOf(0L) }
+        LaunchedEffect(uiState.connection) {
+            while (uiState.connection == CompanionConnection.CONNECTED) {
+                delay(1_000)
+                elapsedSeconds += 1
+            }
+        }
+
+        // 两条不同的电平：
+        // - mouthLevel = 她的声音，驱动头像呼吸环与嘴型；
+        // - selfLevel  = 你的声音，驱动底部波形。
+        // 以前两者共用一个，结果就是「你说话波形不动」——那个波形画的是她的音量。
+        val mouthLevel by chatViewModel.mouthLevel.collectAsStateWithLifecycle()
+        val selfLevel by chatViewModel.selfLevel.collectAsStateWithLifecycle()
+        val selfBands by chatViewModel.selfBands.collectAsStateWithLifecycle()
+
+        val audioPreview = remember { CallAudioPreview(context) }
+        val preview by audioPreview.state.collectAsStateWithLifecycle()
+        val previewActive = preview.speaker != null
+        DisposableEffect(audioPreview) {
+            onDispose {
+                audioPreview.close()
+                chatViewModel.setAudioPreviewActive(false)
+            }
+        }
+        LaunchedEffect(previewActive, uiState.isMuted) {
+            chatViewModel.setAudioPreviewActive(previewActive)
+        }
+        val labeledCaptions = uiState.messages.filter { it.text.isNotBlank() }.map {
+            CallCaption(it.text, if (it.role == MessageRole.USER) "你" else agentName, it.streaming)
+        } + if (previewActive && preview.text.isNotBlank()) listOf(
+            CallCaption(preview.text, if (preview.speaker == "user") "你 · 试听" else "$agentName · 试听"),
+        ) else emptyList()
+
+        // 退出通话页时静音播放：房间不断开（通话只是形态），但用户的心智是
+        // 「我挂断了，她不该还在说话」。进来时恢复。
+        DisposableEffect(Unit) {
+            chatViewModel.setPlaybackAudible(true)
+            onDispose { chatViewModel.setPlaybackAudible(false) }
+        }
+
+        val callConnection = when (uiState.connection) {
+            CompanionConnection.CONNECTED -> CallConnection.CONNECTED
+            CompanionConnection.RECONNECTING -> CallConnection.RECONNECTING
+            // 断开/出错不能显示「正在接通」：她那边已经没声音了，界面要给出原因。
+            CompanionConnection.ERROR -> CallConnection.ENDED
+            CompanionConnection.IDLE, CompanionConnection.CONNECTING -> CallConnection.CONNECTING
+        }
+
+        val currentPreview by rememberUpdatedState(preview)
+        val mouthFlow = chatViewModel.mouthLevel
+        val aiMouthLevel: () -> Float = {
+            val pv = currentPreview
+            if (pv.speaker != null) { if (pv.speaker == "ai") pv.level else 0f } else mouthFlow.value
+        }
+
+        CompanionCallScreen(
+            state = CompanionCallState(
+                agentName = agentName,
+                voiceLabel = voiceLabel,
+                captions = transcript,
+                speakerCaptions = labeledCaptions,
+                elapsedSeconds = elapsedSeconds,
+                isMuted = uiState.isMuted,
+                cameraActive = false,
+                // 她的音量：驱动呼吸环与「她在说话」的视觉强度。
+                audioLevel = if (previewActive) { if (preview.speaker == "ai") preview.level else 0f } else mouthLevel,
+                // 你的音量：驱动底部波形。静音时读 0。
+                selfLevel = if (previewActive) { if (preview.speaker == "user") preview.level else 0f } else if (uiState.isMuted) 0f else selfLevel,
+                // 你的声音的频段：决定波形的形状（低沉/尖细、元音/辅音）。试听时取试听音频的频段。
+                selfBands = if (previewActive) {
+                    if (preview.speaker == "user") preview.bands else FloatArray(0)
+                } else if (uiState.isMuted) FloatArray(0) else selfBands,
+                isAgentSpeaking = uiState.messages.lastOrNull()?.streaming == true,
+                connection = callConnection,
+                statusHint = if (uiState.connection == CompanionConnection.ERROR) {
+                    uiState.error ?: "连接已断开"
+                } else {
+                    null
+                },
+            ),
+            // 摄像头目前不支持；由按钮显示不可用状态，不注入点击回调。
+            cameraAvailable = false,
+            previewState = preview,
+            // 试听按钮只是调试工具：正式包不显示（onPreviewAudio == null 时整行不渲染）。
+            onPreviewAudio = if (
+                context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
+            ) audioPreview::toggle else null,
+            waveOptions = waveOptions,
+            onWaveOptionsChange = { next ->
+                waveOptions = next
+                saveWaveOptions(context, next)
+            },
+            onHangUp = { chatViewModel.endCall() },
+            onToggleMute = {
+                // 静音状态下点「取消静音」就是真的要开麦，没权限得先申请。
+                if (uiState.isMuted && !hasMicPermission(context)) {
+                    pendingMicAction = PendingMicAction.UNMUTE
+                    micLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                } else {
+                    chatViewModel.toggleMute()
+                }
+            },
+            onToggleCamera = {},
+            onSendText = { text ->
+                chatViewModel.onInputChange(text)
+                chatViewModel.send()
+            },
+            avatarContent = avatarSlot,
+            // 数字人引擎舞台 = 主角模式（人物铺满整块舞台）；「原来的形象」分层立绘
+            // 与圆形头像保持原有分栏布局不变。
+            characterHero = callStage != null,
+            engineMenu = engineMenu,
+            selectedEngine = callStage,
+            onEngineMenuClick = { row ->
+                when (engineGate.actionFor(row)) {
+                    EngineClickAction.UNAVAILABLE_REASON ->
+                        toast(context, row.detail ?: "这个形象现在不能用")
+                    EngineClickAction.SELECT -> {
+                        // 用户主动再选 = 解除上次崩溃留下的熔断（再崩会重新熔断）。
+                        row.id?.let { DhEngineWatchdog(context).clear(it) }
+                        engineRetry++
+                        callStage = row.id
+                        dhPrefs.callStage = row.id
+                    }
+                    EngineClickAction.NOT_READY_START_DOWNLOAD -> {
+                        val id = row.id
+                        if (id != null) {
+                            val name = dhEngineLabel(id)
+                            uiScope.launch {
+                                if (engineGate.isDownloading(id)) {
+                                    toast(context, "$name 正在下载…")
+                                    return@launch
+                                }
+                                toast(context, "正在下载 $name 素材…")
+                                // onProgress 在 IO 线程回调，v1 不展示进度，传空实现；只在下载结束后（主线程）切换。
+                                when (val outcome = engineGate.download(id) {}) {
+                                    DhEngineDownloadGate.Outcome.Success -> {
+                                        // 素材下好 ≠ 能用：native 缺失 / 模型不全时引擎自判仍不可用，
+                                        // 换舞台只会静默退回 Simple。重查，不可用就报原因、不换。
+                                        engineMenuTick++
+                                        val now = DhEngineRegistry.available(context)
+                                            .firstOrNull { it.id == id }
+                                        if (now?.available == true) {
+                                            DhEngineWatchdog(context).clear(id)
+                                            callStage = id
+                                            dhPrefs.callStage = id
+                                        } else {
+                                            toast(context, "$name 素材已下好，但${now?.reason ?: "现在还不能用"}")
+                                        }
+                                    }
+                                    DhEngineDownloadGate.Outcome.Busy ->
+                                        toast(context, "$name 正在下载…")
+                                    is DhEngineDownloadGate.Outcome.Failed -> {
+                                        engineMenuTick++
+                                        toast(context, "$name 下载失败：${outcome.reason}")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            // 只有下拉里点了某个引擎才换舞台；默认仍是原来的分层立绘。
+            avatarStage = when (val chosen = callStage) {
+                null -> layeredPack?.let { pack ->
+                    {
+                        LayeredAvatar(
+                            pack = pack,
+                            modifier = Modifier.fillMaxSize(),
+                            mouthLevel = { aiMouthLevel() },
+                            onTapped = chatViewModel::onAvatarTapped,
+                        )
+                    }
+                }
+                else -> {
+                    {
+                        key(engineRetry) {
+                        DigitalHumanLabHost(
+                            spec = avatarFiles?.let { AvatarSpec(files = it) },
+                            mouthLevel = chatViewModel.mouthLevel,
+                            remotePcm = chatViewModel.remotePcm,
+                            modifier = Modifier.fillMaxSize(),
+                            engineId = chosen,
+                        )
+                        }
+                    }
+                }
+            },
+        )
+    }
+    }
+}
+
+/** 录音权限申请回来后要接着做的事。申请前不知道回调对应哪件事，所以先记下来。 */
+private enum class PendingMicAction { NONE, START_CALL, UNMUTE }
+
+/** 返回键二次确认窗口，与通话页挂断按钮保持一致的三秒。 */
+private const val CALL_BACK_CONFIRM_WINDOW_MS = 3_000L
+
+private fun hasMicPermission(context: Context): Boolean =
+    context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+
+private fun toast(context: Context, message: String) {
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+}
+
+// ---- 波形样式偏好（本地，不涉及服务端） ----
+
+private const val WAVE_PREFS = "companion_wave"
+
+/**
+ * 读用户选过的波形样式。新结构分底部样式（bottom）与中央效果（center）两个键。
+ * 兼容旧版本只存一个 "style" 的情况：旧值里 Orbit/Blob/Blast 本就是中央效果，
+ * 迁移到 center；Wave/Bars/Ribbon 留在 bottom；认不出来的字符串回落到各自默认。
+ */
+internal fun loadWaveOptions(context: Context): WaveOptions {
+    val prefs = context.getSharedPreferences(WAVE_PREFS, Context.MODE_PRIVATE)
+
+    val bottom = prefs.getString("bottom", null)?.let {
+        runCatching { BottomWaveStyle.valueOf(it) }.getOrNull()
+    } ?: migrateLegacyBottom(prefs.getString("style", null))
+
+    val center = prefs.getString("center", null)?.let {
+        runCatching { CenterEffect.valueOf(it) }.getOrNull()
+    } ?: migrateLegacyCenter(prefs.getString("style", null))
+
+    return WaveOptions(
+        bottom = bottom,
+        center = center,
+        particles = prefs.getBoolean("particles", true),
+    )
+}
+
+private fun migrateLegacyBottom(legacy: String?): BottomWaveStyle = when (legacy) {
+    "Bars" -> BottomWaveStyle.Bars
+    "Ribbon" -> BottomWaveStyle.Ribbon
+    "Wave" -> BottomWaveStyle.Wave
+    else -> BottomWaveStyle.Wave
+}
+
+private fun migrateLegacyCenter(legacy: String?): CenterEffect = when (legacy) {
+    "Orbit" -> CenterEffect.Orbit
+    "Blob" -> CenterEffect.Blob
+    "Blast" -> CenterEffect.Blast
+    else -> CenterEffect.Ring
+}
+
+internal fun saveWaveOptions(context: Context, options: WaveOptions) {
+    context.getSharedPreferences(WAVE_PREFS, Context.MODE_PRIVATE).edit()
+        .putString("bottom", options.bottom.name)
+        .putString("center", options.center.name)
+        .putBoolean("particles", options.particles)
+        // 旧键清掉，避免下次安装旧版本又把迁移值读回去造成来回跳。
+        .remove("style")
+        .apply()
+}
+
+object CompanionConfig {
+    /** 服务端与主站同一网关，路径由 HttpCompanionApi 拼上 /companion/... 前缀。 */
+    val baseUrl: String get() = "https://${Constants.BASE_IP}"
+}
+
+/** 默认角色。角色列表选过之后以列表为准，这里只保证第一次进来有一个角色。 */
+const val DEFAULT_CHARACTER_ID = "linche"

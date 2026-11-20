@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cast_no_device">没有找到可投屏设备，请确认电视与本机在同一 Wi-Fi</string>
+    <string name="cast_pick_device">选择投屏设备</string>
+    <string name="cast_research_desc">重新搜索</string>
+    <string name="ui_cancel">取消</string>
+    <string name="core_permission_rationale_title">需要权限</string>
+    <string name="core_permission_go_settings_title">权限未开启</string>
+    <string name="core_permission_go_settings_message">%1$s\n\n你之前选择了“不再询问”，需要到 设置 → 权限 中手动开启。</string>
+    <string name="core_permission_continue">继续</string>
+    <string name="core_permission_go_settings">去设置</string>
+    <string name="core_permission_cancel">暂不</string>
+</resources>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="style_color_accent">#01bcd5</color>
+    <color name="base_gray">#968d8d</color>
+    <color name="base_white">#ffffff</color>
+    <dimen name="margin_55">55dip</dimen>
+    <dimen name="margin_2">2dip</dimen>
+    <dimen name="margin_3">3dip</dimen>
+    <dimen name="margin_22">22dip</dimen>
+    <dimen name="btn_fab_size">56dp</dimen>
+    <string name="version_low">version is to low！</string>
+    <string name="video">Sex video</string>
+    <string name="about_version_update_to_date">Is the latest version</string>
+    <string name="about_version_download">Download</string>
+    <string name="about_version_download_title">Discover new version</string>
+    <string name="about_download_begin">Start download</string>
+    <string name="about_download_confirm_content">
+You are now using a non WIFI network, continue to download may consume more network traffic, whether to continue to download？</string>
+    <string name="custome_ok">Add OK</string>
+    <string name="about_download_confirm_title">Confirm Download</string>
+    <string name="about_version_confirm">Confirm</string>
+    <string name="about_download_percent">Downloading %1$s/%2$s</string>
+    <string name="load">loading more data</string>
+    <string name="about_download_prepare">Is preparing to download</string>
+    <string name="about_download_finish">End download</string>
+    <string name="about_version_cancel">Cancel</string>
+    <string name="about_download_title">Downloading Freedom</string>
+    <string name="about_download_error">File download error</string>
+</resources>

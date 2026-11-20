@@ -1,0 +1,53 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.feature.chat'
+    buildFeatures {
+        compose = true
+    }
+}
+
+dependencies {
+    implementation libs.gson
+    implementation libs.okhttp
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation libs.kotlinx.coroutines.test
+    // org.json 在 JVM 单测里是 stub；解析真实 SSE 帧的用例需要真实现（与 :app、:feature-companion 同款）
+    testImplementation 'org.robolectric:robolectric:4.17'
+    testImplementation 'androidx.test:core:1.7.0'
+    // 对话业务：依赖 core（设计 token、媒体、权限）、chatkit（对话 UI 组件）、roles（角色选择）
+    implementation project(':common')
+    implementation project(':speech')
+    implementation project(':core')
+    implementation project(':chatkit')
+    // 图片编辑（待发送图片的标注、裁剪）
+    implementation project(':mediaview')
+
+    // Markdown 渲染（chat/ui/markdown）
+    implementation 'io.noties.markwon:core:4.6.2'
+    implementation 'io.noties.markwon:image-glide:4.6.2'
+    implementation 'io.noties.markwon:ext-latex:4.6.2'
+    implementation 'io.noties.markwon:image:4.6.2'
+    implementation 'io.noties.markwon:html:4.6.2'
+    implementation 'io.noties.markwon:ext-strikethrough:4.6.2'
+    implementation 'io.noties.markwon:ext-tables:4.6.2'
+    implementation 'io.noties.markwon:linkify:4.6.2'
+    implementation libs.androidx.appcompat
+
+    // Compose
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.material3
+    implementation libs.androidx.compose.material.icons.extended
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.lifecycle.viewmodel.compose
+    implementation libs.androidx.lifecycle.runtime.compose
+    implementation libs.kotlinx.coroutines.android
+}

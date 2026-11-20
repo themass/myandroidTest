@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="favorite_m3u8_line1">External line 1 (m3u8)</string>
+    <string name="favorite_external_sheet_title">Open in external player</string>
+    <string name="favorite_m3u8_line2">External line 2 (m3u8)</string>
+    <string name="favorite_external_sheet_cancel">Cancel</string>
+</resources>
