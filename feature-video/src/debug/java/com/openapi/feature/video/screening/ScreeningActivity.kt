@@ -8,6 +8,8 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,6 +34,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -89,12 +93,15 @@ private fun ScreeningHome(activity: ScreeningActivity) {
     val holder = rememberSaveableStateHolder()
     val preferences = remember { activity.getSharedPreferences("screening-preview", 0) }
     val progress = remember { mutableStateMapOf<String, Long>() }
+    // 转场要知道「往里走还是往回退」：开新页时置真、返回时置假，滑动方向跟着翻。
+    var forward by remember { mutableStateOf(true) }
     val openEntry: (RemoteEntry) -> Unit = { entry ->
         scope.launch {
             opening = true
             // needLazyUrl 的条目这一步才拿到真正能播的地址；样例条目原样返回
             val url = store.playUrl(entry)
             val asset = entry.assetId()
+            forward = true
             selection = if (asset != null) {
                 ScreeningSource(entry.title, entry.description, asset = asset, key = entry.key)
             } else {
@@ -104,6 +111,7 @@ private fun ScreeningHome(activity: ScreeningActivity) {
         }
     }
     val openChannel: (RemoteEntry) -> Unit = { entry ->
+        forward = true
         channelPage = ScreeningChannelPage(
             title = entry.title,
             detail = entry.description,
@@ -114,38 +122,75 @@ private fun ScreeningHome(activity: ScreeningActivity) {
         )
     }
     val openGallery: (RemoteEntry?) -> Unit = { entry ->
+        forward = true
         galleryChannel = entry?.galleryChannelParam()
         gallery = true
     }
-    BackHandler(channelPage != null && selection == null) { channelPage = null }
+    BackHandler(channelPage != null && selection == null) { forward = false; channelPage = null }
+    val motion = remember { MotionPlan(isReduceMotion(activity)) }
+    val density = LocalDensity.current
+    val slidePx = remember(density) { with(density) { motion.slideDistanceDp().dp.toPx() } }
+    // 当前页连同它要的数据一起装进 target：退场动画播的是旧页自己那份快照，
+    // 不会在切走的一瞬间因为状态已变而渲染成空白。
+    val selected = selection
+    val current = channelPage
+    // 优先级跟原来一致：播放 > 频道内页 > 图集 > 首页。
+    val screen: Any = when {
+        selected != null -> PlayScreen(selected, current?.title.orEmpty())
+        current != null -> LibraryScreen(current)
+        gallery -> GalleryScreen(galleryChannel)
+        else -> HomeScreen
+    }
     Surface(Modifier.fillMaxSize()) {
-        val selected = selection
-        val current = channelPage
-        when {
-            selected != null -> key(selected) {
-                ScreeningPlayback(activity, selected, current?.title.orEmpty(), progress[selected.key] ?: 0L,
-                    onExit = { selection = null }, onSave = { position ->
-                        progress[selected.key] = position
-                        preferences.edit().putLong(progressKey(selected.key), position).apply()
-                    })
-            }
-            current != null -> holder.SaveableStateProvider(current.title) {
-                Library(current, store, progress, preferences, { channelPage = null }, openEntry) { source ->
-                    selection = source
+        // 动效契约（含系统的减弱动态开关）在这里下发，深层卡片不逐层传参。
+        CompositionLocalProvider(LocalScreeningMotion provides motion) {
+        AnimatedContent(targetState = screen, transitionSpec = {
+            screenSlide(motion, slidePx, forward)
+        }, label = "screen") { target ->
+            when (target) {
+                is PlayScreen -> key(target.source) {
+                    holder.SaveableStateProvider(target.source.key) {
+                        ScreeningPlayback(activity, target.source, target.channel, progress[target.source.key] ?: 0L,
+                            onExit = { forward = false; selection = null }, onSave = { position ->
+                                progress[target.source.key] = position
+                                preferences.edit().putLong(progressKey(target.source.key), position).apply()
+                            })
+                    }
+                }
+                is GalleryScreen -> holder.SaveableStateProvider("gallery") {
+                    ScreeningGallery(activity, store, target.channelParam) { forward = false; gallery = false }
+                }
+                is LibraryScreen -> holder.SaveableStateProvider(target.page.title) {
+                    Library(target.page, store, progress, preferences, { forward = false; channelPage = null }, openEntry) { source ->
+                        selection = source
+                    }
+                }
+                else -> holder.SaveableStateProvider("channels") {
+                    Channels(store, onBack = { activity.finish() }, onChannel = openChannel, onPlay = openEntry, onOpenLocal = {
+                        forward = true
+                        channelPage = ScreeningChannelPage(samples.title, samples.category, null, samples.cover, null, samples)
+                    }, onGallery = openGallery)
                 }
             }
-            gallery -> ScreeningGallery(activity, store, galleryChannel) { gallery = false }
-            else -> holder.SaveableStateProvider("channels") {
-                Channels(store, onBack = { activity.finish() }, onChannel = openChannel, onPlay = openEntry, onOpenLocal = {
-                    channelPage = ScreeningChannelPage(samples.title, samples.category, null, samples.cover, null, samples)
-                }, onGallery = openGallery)
+        }
+        val (fadeEnter, fadeExit) = screenFade(motion)
+        AnimatedVisibility(visible = opening, enter = fadeEnter, exit = fadeExit, label = "opening") {
+            Box(Modifier.fillMaxSize().background(Color(0x99000000)), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(Modifier.size(30.dp), strokeWidth = 3.dp, color = Mint)
             }
         }
-        if (opening) Box(Modifier.fillMaxSize().background(Color(0x99000000)), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(Modifier.size(30.dp), strokeWidth = 3.dp, color = Mint)
         }
     }
 }
+
+/**
+ * 转场的目标状态：一页一个类型，AnimatedContent 据此判断「换页」还是「同页刷新」。
+ * 页面要渲染的数据都装在这里，退场动画期间渲染的是离开页自己的快照。
+ */
+private object HomeScreen
+private data class LibraryScreen(val page: ScreeningChannelPage)
+private data class GalleryScreen(val channelParam: String?)
+private data class PlayScreen(val source: ScreeningSource, val channel: String)
 
 /** 进度存的键：所有条目（样例和真实）都按 [RemoteEntry.key] 存，一条规则。 */
 private fun progressKey(entryKey: String) = "position:$entryKey"
@@ -205,8 +250,8 @@ private fun Channels(
     }
     val cards = pager.items.filter { routeOf(it) != FeedRoute.PLAY }
     val hero = pager.items.firstOrNull { !it.isImageCard }
-    LazyColumn(Modifier.fillMaxSize().safeDrawingPadding(), state = listState,
-        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 24.dp)) {
+    val seen = remember { mutableSetOf<String>() }
+    LazyColumn(Modifier.fillMaxSize().safeDrawingPadding(), state = listState,         contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 24.dp)) {
         item {
             Row(Modifier.fillMaxWidth().height(64.dp), verticalAlignment = Alignment.CenterVertically) {
                 // 放映场是独立 Activity，系统返回之外得有个看得见的退出口
@@ -248,14 +293,13 @@ private fun Channels(
                         )
                     }
                 } else {
-                    Box(Modifier.matchParentSize()
-                        .clickable {
-                            when (routeOf(entry)) {
-                                FeedRoute.PLAY -> onPlay(entry)
-                                FeedRoute.CHANNEL -> onChannel(entry)
-                                FeedRoute.ALBUM -> onGallery(entry)
-                            }
-                        }) {
+                    Box(Modifier.matchParentSize().pressable(RoundedCornerShape(13.dp, 38.dp, 13.dp, 13.dp)) {
+                        when (routeOf(entry)) {
+                            FeedRoute.PLAY -> onPlay(entry)
+                            FeedRoute.CHANNEL -> onChannel(entry)
+                            FeedRoute.ALBUM -> onGallery(entry)
+                        }
+                    }) {
                         EntryCover(entry, Modifier.matchParentSize())
                         Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x45202340), Ink))))
                         Column(Modifier.align(Alignment.BottomStart).padding(23.dp)) {
@@ -272,15 +316,15 @@ private fun Channels(
                             Button(onClick = {
                                 when (routeOf(entry)) {
                                     FeedRoute.PLAY -> onPlay(entry)
-                                FeedRoute.CHANNEL -> onChannel(entry)
-                                FeedRoute.ALBUM -> onGallery(entry)
+                                    FeedRoute.CHANNEL -> onChannel(entry)
+                                    FeedRoute.ALBUM -> onGallery(entry)
+                                }
+                            }, shape = RoundedCornerShape(9.dp)) {
+                                Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(7.dp))
+                                Text(if (entry.isGroupEntry) "看这个频道" else "看预告")
                             }
-                        }, shape = RoundedCornerShape(9.dp)) {
-                            Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(7.dp))
-                            Text(if (entry.isGroupEntry) "看这个频道" else "看预告")
                         }
                     }
-                }
                 }
             }
             Heading("逛频道", if (pager.loading && pager.items.isEmpty()) "正在取数据…" else "${cards.size} 个频道")
@@ -293,9 +337,10 @@ private fun Channels(
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 repeat(2) { column ->
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        cards.filterIndexed { index, _ -> index % 2 == column }.forEach { entry ->
-                            Box(Modifier.fillMaxWidth().aspectRatio(entry.ratio.coerceIn(0.6f, 1.6f)).clip(Tile)
-                                .clickable {
+                        cards.filterIndexed { index, _ -> index % 2 == column }.forEachIndexed { index, entry ->
+                            Box(Modifier.fillMaxWidth().aspectRatio(entry.ratio.coerceIn(0.6f, 1.6f))
+                                .enterFeedItem(seen, entry.key, index)
+                                .pressable(Tile) {
                                     when (routeOf(entry)) {
                                         FeedRoute.PLAY -> onPlay(entry)
                                         FeedRoute.CHANNEL -> onChannel(entry)
@@ -360,8 +405,8 @@ private fun Library(
     }
     val shown = pager.items.filter { filter != "未观看" || (progress[it.key] ?: 0L) == 0L }
     val resume = pager.items.firstOrNull { (progress[it.key] ?: 0L) > 0L }
-    LazyColumn(Modifier.fillMaxSize().safeDrawingPadding(), state = listState,
-        verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp)) {
+    val seen = remember { mutableSetOf<String>() }
+    LazyColumn(Modifier.fillMaxSize().safeDrawingPadding(), state = listState,         verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp)) {
         item {
             IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回频道") }
             Box(Modifier.fillMaxWidth().height(215.dp).clip(RoundedCornerShape(12.dp, 32.dp, 12.dp, 12.dp))) {
@@ -404,10 +449,16 @@ private fun Library(
         if (!pager.loading && shown.isEmpty()) item { Text("这一页没有内容。切回「全部」或者返回上一个频道。", Modifier.padding(14.dp), color = Muted) }
         if (poster) items(shown.chunked(2)) { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                row.forEach { entry -> EntryCard(entry, progress[entry.key] ?: 0L, true, Modifier.weight(1f), openEntry) }
+                row.forEachIndexed { column, entry ->
+                    EntryCard(entry, progress[entry.key] ?: 0L, true,
+                        Modifier.weight(1f).enterFeedItem(seen, entry.key, column), openEntry)
+                }
                 if (row.size == 1) Spacer(Modifier.weight(1f))
             }
-        } else items(shown, key = { it.key }) { entry -> EntryCard(entry, progress[entry.key] ?: 0L, false, Modifier.fillMaxWidth(), openEntry) }
+        } else items(shown, key = { it.key }) { entry ->
+            EntryCard(entry, progress[entry.key] ?: 0L, false,
+                Modifier.fillMaxWidth().enterFeedItem(seen, entry.key, pager.items.indexOf(entry)), openEntry)
+        }
         item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
     }
 }
@@ -432,7 +483,7 @@ private fun EntryCard(entry: RemoteEntry, position: Long, poster: Boolean, modif
             else -> "未观看"
         }, color = Muted, fontSize = 12.sp)
     }
-    val clickable = modifier.clip(Tile).clickable { open(entry) }
+    val clickable = modifier.pressable(Tile) { open(entry) }
     if (poster) Column(clickable) { art(Modifier.fillMaxWidth()); Spacer(Modifier.height(5.dp)); title() }
     else Row(clickable, verticalAlignment = Alignment.CenterVertically) {
         art(Modifier.width(130.dp)); Column(Modifier.padding(horizontal = 13.dp)) { title() }
