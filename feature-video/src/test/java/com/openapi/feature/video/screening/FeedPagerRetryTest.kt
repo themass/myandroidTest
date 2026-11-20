@@ -92,4 +92,26 @@ class FeedPagerRetryTest {
         assertEquals(1, pager.items.size)
         assertTrue(pager.error?.contains("没取到服务端数据") == true)
     }
+
+    @Test
+    fun `首屏失败后触底判定不得替首屏无限重拉`() = runTest {
+        val starts = mutableListOf<Int>()
+        val pager = FeedPager(this) { start ->
+            starts += start
+            throw IOException("连不上")
+        }
+        Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+
+        pager.load()
+        advanceUntilIdle()
+        // 首屏含自动补一次，共两次——到此为止
+        assertEquals(2, starts.size)
+
+        // 页面里的触底判定在空列表上恒真，会反复调 loadMore()；这里模拟连按 5 次
+        repeat(5) { pager.loadMore() }
+        advanceUntilIdle()
+
+        // 首屏只归 load()/reload() 管：loadMore 一枪都不该补，否则就是无限拉取刷屏
+        assertEquals(2, starts.size)
+    }
 }
