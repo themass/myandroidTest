@@ -14,6 +14,12 @@ android {
         compose = true
         viewBinding = true
     }
+    testOptions {
+        unitTests {
+            // FeedPager 的重试路径带 Log.i/w，JVM 测试里按 no-op 处理即可
+            returnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
