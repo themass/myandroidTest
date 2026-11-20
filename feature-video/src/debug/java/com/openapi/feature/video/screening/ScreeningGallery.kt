@@ -39,7 +39,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
  *
  * 数据来自真接口：列表用 `API_IMG_CHANNLE_URL`，册内图片用 `API_IMG_ITEMS_IMG_URL`，
  * 分页参数跟旧页面一致（内页的 `channel=` 取服务端的 `param` 字段，见 `ScreeningFeed.param`）。
- * 取不到就整层回落随包样例，页面结构不变。
+ * 没通就报错误 + 重试，通了没数据就是空——这里没有任何随包样例数据。
  *
  * 与设计稿一致的点：
  * - 封面用双列受控瀑布流（按各自的宽高比），不是等高卡片；
@@ -51,7 +51,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 internal fun ScreeningGallery(
     activity: ScreeningActivity,
     store: ScreeningFeedStore,
-    /** 从首页图片卡进来时带的频道；null = 只逛随包样例。 */
+    /** 从首页图片卡进来时带的频道；null 就直说没有可看的频道，不演样例。 */
     channelParam: String?,
     onExit: () -> Unit,
 ) {
@@ -69,29 +69,15 @@ internal fun ScreeningGallery(
 
     val pagerScope = rememberCoroutineScope()
     val covers = remember(channelParam) {
-        FeedPager(
-            pagerScope,
-            fetch = { start ->
-                if (channelParam != null) store.albums(channelParam, start)
-                else ScreeningFeedStore.Page(sampleAlbums(), null, false, fromSample = true)
-            },
-            fallback = { sampleAlbums() },
-        )
+        FeedPager(pagerScope, fetch = { start -> store.albums(channelParam ?: "", start) })
     }
     val selected = album
     val shots = remember(selected) {
-        FeedPager(
-            pagerScope,
-            fetch = { start ->
-                val key = selected?.imageListKey()
-                if (selected != null && key != null) store.albumImages(key, start)
-                else ScreeningFeedStore.Page(sampleAlbumImages(selected?.sampleAlbumId().orEmpty()), null, false, fromSample = true)
-            },
-            fallback = { sampleAlbumImages(selected?.sampleAlbumId().orEmpty()) },
-        )
+        FeedPager(pagerScope, fetch = { start -> store.albumImages(selected?.imageListKey() ?: "", start) })
     }
-    LaunchedEffect(covers) { covers.load() }
-    LaunchedEffect(shots) { shots.load() }
+    // 没有频道参数或没有册子参数就没有可请求的 key：不发无意义的请求，直接给空态
+    LaunchedEffect(covers, channelParam) { if (channelParam != null) covers.load() }
+    LaunchedEffect(shots, selected) { if (selected?.imageListKey() != null) shots.load() }
 
     Box(Modifier.fillMaxSize().background(Ink)) {
         if (selected == null) {
@@ -119,12 +105,6 @@ internal fun RemoteEntry.galleryChannelParam(): String? = channelParam
  */
 internal fun RemoteEntry.imageListKey(): String? = param ?: channelParam
 
-/** 样例图集的 id（`sample:album:<id>`）；服务端条目返回 null。 */
-private fun RemoteEntry.sampleAlbumId(): String? =
-    key.takeIf { it.startsWith(SAMPLE_ALBUM_KEY_PREFIX) }?.removePrefix(SAMPLE_ALBUM_KEY_PREFIX)
-
-private const val SAMPLE_ALBUM_KEY_PREFIX = "sample:album:"
-
 @Composable
 private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteEntry) -> Unit, onExit: () -> Unit) {
     val listState = state
@@ -142,11 +122,11 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
                 IconButton(onClick = onExit) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回频道") }
                 Text("图集", fontSize = 22.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.weight(1f))
-                Text(if (pager.loading) "正在取数据…" else if (pager.fromSample) "随包样例" else "${shown.size} 本",
+                Text(if (pager.loading) "正在取数据…" else "${shown.size} 本",
                     color = Muted, fontSize = 12.sp)
             }
             Text("一册一个地方，\n翻到最后一张为止。", color = White, fontSize = 37.sp, lineHeight = 42.sp, fontWeight = FontWeight.Black)
-            FeedNotice(pager.notice)
+            FeedError(pager.error, pager::reload)
             Spacer(Modifier.height(12.dp))
             if (pager.loading && shown.isEmpty()) {
                 Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
@@ -212,7 +192,7 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
                     if (book.description.isNotBlank()) Text(book.description, color = Muted, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
             }
-            FeedNotice(pager.notice)
+            FeedError(pager.error, pager::reload)
             Heading("全部照片", if (pager.loading) "正在取数据…" else "${shots.size} 张")
             if (pager.loading && shots.isEmpty()) {
                 Box(Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {

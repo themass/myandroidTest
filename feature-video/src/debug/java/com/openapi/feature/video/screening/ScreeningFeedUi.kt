@@ -2,11 +2,13 @@ package com.openapi.feature.video.screening
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -14,9 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -27,28 +27,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
- * 一页可分页的服务端列表状态：首屏、翻页、失败回落样例。
+ * 一页可分页的服务端列表状态：首屏、翻页、失败重试。
  *
  * 频道列表、频道里的片单、图集列表、图集内的图片都用这一个形状，页面只认它。
- * 失败和空结果都落到 [fallback]，并标记 [fromSample]，所以断网时页面还是能逛的。
+ * 这里没有「随包样例」这条路：服务端没通就说没通（[error]，页面给重试），
+ * 通了但没数据就是空（items 为空）。页面绝不拿假数据填屏幕。
  */
 internal class FeedPager(
     private val scope: CoroutineScope,
     /** 取一页；返回的 [ScreeningFeedStore.Page.nextStart] 决定还能不能继续翻。 */
     private val fetch: suspend (Int) -> ScreeningFeedStore.Page<RemoteEntry>,
-    /** 取不到真实数据时用的样例。 */
-    private val fallback: () -> List<RemoteEntry>,
 ) {
     val items = mutableStateListOf<RemoteEntry>()
     var loading by mutableStateOf(false)
         private set
     var hasMore by mutableStateOf(false)
         private set
-    /** true = 现在这批数据来自随包样例（服务端没通，或者返回空）。 */
-    var fromSample by mutableStateOf(false)
-        private set
-    /** 给用户看的一句话：只在回落到样例时出现，说明为什么不是真实数据。 */
-    var notice by mutableStateOf<String?>(null)
+    /** 上次取数失败的原因；null = 没失败过。页面据此显示错误 + 重试，而不是假数据。 */
+    var error by mutableStateOf<String?>(null)
         private set
 
     private var nextStart: Int? = 0
@@ -78,22 +74,23 @@ internal class FeedPager(
     private fun request(start: Int, append: Boolean) {
         loading = true
         scope.launch(Dispatchers.Main) {
-            val page = runCatching { fetch(start) }.getOrElse {
-                ScreeningFeedStore.Page(fallback(), nextStart = null, hasMore = false, fromSample = true)
-            }
-            if (!append) items.clear()
-            items.addAll(page.items)
-            nextStart = page.nextStart
-            hasMore = page.hasMore
-            fromSample = page.fromSample
-            // 提示要说实话：真发过请求才算「没连上」；本地样片库压根不发请求，说没连上是骗人
-            notice = if (page.fromSample && page.requested) FALLBACK_NOTICE else null
+            val page = runCatching { fetch(start) }
             loading = false
+            page.fold(
+                onSuccess = { data ->
+                    if (!append) items.clear()
+                    items.addAll(data.items)
+                    nextStart = data.nextStart
+                    hasMore = data.hasMore
+                    error = null
+                },
+                onFailure = { cause ->
+                    // 首屏失败清干净，别让半截列表冒充数据；翻页失败保留已加载的部分
+                    if (!append) { items.clear(); nextStart = 0; hasMore = false }
+                    error = "没取到服务端数据：${cause.message ?: "网络问题"}"
+                },
+            )
         }
-    }
-
-    private companion object {
-        const val FALLBACK_NOTICE = "没取到服务端数据，现在是随包样例。"
     }
 }
 
@@ -123,12 +120,15 @@ internal fun RemoteCover(url: String?, modifier: Modifier = Modifier) {
     )
 }
 
-/** 内容区上方的数据源说明：让「现在是样例」这件事在页面上看得见。 */
+/** 取数失败的横条：说清没取到，并给一个重试。绝不拿样例填这块位置。 */
 @Composable
-internal fun FeedNotice(notice: String?, modifier: Modifier = Modifier) {
-    if (notice == null) return
-    Box(modifier.fillMaxWidth().background(Lift).padding(horizontal = 18.dp, vertical = 8.dp)) {
-        Text(notice, color = Muted, fontSize = 12.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+internal fun FeedError(error: String?, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    if (error == null) return
+    Box(modifier.fillMaxWidth().background(Lift).padding(horizontal = 18.dp, vertical = 6.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(error, color = Peach, fontSize = 12.sp, modifier = Modifier.weight(1f))
+            TextButton(onClick = onRetry) { Text("重试") }
+        }
     }
 }
 
