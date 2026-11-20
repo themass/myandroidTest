@@ -52,6 +52,8 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
     protected BaseRecyclerViewAdapter getAdapter() {
         adapter = new TextChannelListItemsViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         adapter.setLongClickListener(this);
+        // P3-21：「看过」地址后台读一次，bind 里不再碰数据库
+        HistoryUtil.loadVisitedUrls(getActivity(), adapter::setVisitedUrls);
         return adapter;
     }
 
@@ -75,6 +77,7 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
     @Override
     public void onItemClick(View view, TextItemsVo data, int postion) {
         adapter.setSelected(-1);
+        adapter.markVisited(data.fileUrl);
         HistoryUtil.addHistory(getActivity(), data.fileUrl);
         if (StringUtils.hasText(data.fileUrl) && data.fileUrl.endsWith("html")) {
 //            TextItemsStrFragment.startFragment(getActivity(),data);
@@ -87,16 +90,18 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
 
     @Override
     public void onItemLongClick(View view, final TextItemsVo data, int position) {
-        FavoriteVo favoriteVo = FavoriteUtil.getFavorite(getActivity(), data.fileUrl);
-        int title;
-        int icon = com.openapi.core.R.drawable.ic_menu_favorite_ed;
-        if (favoriteVo == null) {
-            title = R.string.menu_favorite;
-            icon = com.openapi.core.R.drawable.ic_menu_favorite_no;
-        } else {
-            title = R.string.menu_favorite_cancel;
-        }
-        MenuOneContext.showOneMenu(getActivity(), view, title, icon, TextChannelListFragment.this, position);
+        // P3-21：菜单标题取决于是否已收藏，收藏表后台读、菜单回主线程再弹
+        FavoriteUtil.getFavoriteAsync(getActivity(), data.fileUrl, favoriteVo -> {
+            int title;
+            int icon = com.openapi.core.R.drawable.ic_menu_favorite_ed;
+            if (favoriteVo == null) {
+                title = R.string.menu_favorite;
+                icon = com.openapi.core.R.drawable.ic_menu_favorite_no;
+            } else {
+                title = R.string.menu_favorite_cancel;
+            }
+            MenuOneContext.showOneMenu(getActivity(), view, title, icon, TextChannelListFragment.this, position);
+        });
     }
 
     @Override

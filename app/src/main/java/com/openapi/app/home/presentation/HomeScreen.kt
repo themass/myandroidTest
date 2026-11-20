@@ -8,11 +8,17 @@ import com.openapi.ks.myapp.agent.ui.AgentChatEntry
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.runtime.SideEffect
 import android.app.Activity
+import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.core.util.Consumer
+import com.openapi.app.home.HomeActivity
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -94,6 +100,9 @@ internal enum class HomeTab(@StringRes val label: Int, val icon: ImageVector) {
 @Composable
 fun HomeScreen() {
     var selected by rememberSaveable { mutableIntStateOf(HomeTab.Chat.ordinal) }
+    // P0-4：聊天页的电话入口 = 跳到陪伴页并直接进通话。这里是跨标签的一次性信号，
+    // CompanionRoute 消费后立即复位，回到本页不会重复弹通话。
+    var callLaunchPending by rememberSaveable { mutableStateOf(false) }
     // 「我的」：从侧边栏进入，从右边滑入的独立页面，可以右滑关闭
     var profilePageOpen by rememberSaveable { mutableStateOf(false) }
     val current = HomeTab.entries[selected]
@@ -103,6 +112,22 @@ fun HomeScreen() {
     val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
 
     val context = LocalContext.current
+    val activity = context as ComponentActivity
+    // singleTask 热启动只换 Intent：监听 onNewIntent，否则 Compose 读不到新的 script_case。
+    var launchIntent by remember { mutableStateOf(activity.intent) }
+    DisposableEffect(activity) {
+        val listener = Consumer<Intent> { launchIntent = it }
+        activity.addOnNewIntentListener(listener)
+        onDispose { activity.removeOnNewIntentListener(listener) }
+    }
+    val scriptCaseId = launchIntent.getStringExtra(HomeActivity.EXTRA_SCRIPT_CASE)?.takeIf { it.isNotBlank() }
+    val scriptCharacterId = launchIntent.getStringExtra(HomeActivity.EXTRA_CHARACTER_ID)?.takeIf { it.isNotBlank() }
+    LaunchedEffect(scriptCaseId) {
+        if (scriptCaseId != null) {
+            selected = HomeTab.Companion.ordinal
+            profilePageOpen = false
+        }
+    }
     val entries = remember { HomeDependencies.require() }
     var profile by remember { mutableStateOf(entries.profile(context)) }
     LifecycleResumeEffect(Unit) {
@@ -211,8 +236,24 @@ fun HomeScreen() {
             ) {
                 stateHolder.SaveableStateProvider(current.name) {
                     when (current) {
-                        HomeTab.Chat -> ChatRoute(onMenuClick = openDrawer)
-                        HomeTab.Companion -> CompanionRoute(onMenuClick = openDrawer)
+                        HomeTab.Chat -> ChatRoute(
+                            onMenuClick = openDrawer,
+                            // 拍照解题在 :feature-photosolve：feature 之间不依赖，由 app 在这里接上入口（P3-22）
+                            onOpenPhotoSolve = { com.openapi.feature.photosolve.PhotoSolveActivity.start(context) },
+                            // 语音通话在 :feature-companion：同样不建依赖边，跳陪伴标签并请求直接进通话（P0-4）
+                            onStartVoiceCall = {
+                                callLaunchPending = true
+                                selected = HomeTab.Companion.ordinal
+                            },
+                        )
+                        HomeTab.Companion -> CompanionRoute(
+                            onMenuClick = openDrawer,
+                            initialCharacterId = scriptCharacterId
+                                ?: com.openapi.ks.myapp.companion.DEFAULT_CHARACTER_ID,
+                            scriptCaseId = scriptCaseId,
+                            launchCallOnOpen = callLaunchPending,
+                            onLaunchCallHandled = { callLaunchPending = false },
+                        )
                         HomeTab.Channels -> ChannelsHub()
                         HomeTab.AgentChat -> AgentChatEntry()
                         HomeTab.Profile -> Unit // 「我的」由右侧覆盖页显示

@@ -46,11 +46,13 @@ internal class FakeChatRepository : ChatRepository {
         if (historyFails) throw java.io.IOException("offline")
         return if (beforeId == null) HistoryPage(history, hasMore = false) else HistoryPage(olderMessages, olderHasMore)
     }
+    /** 非 null 时 sendMessageStream 返回它：流式回复的表征测试在这里注入 Delta/Done 序列。 */
+    var streamFlow: Flow<ChatStreamEvent>? = null
     override fun sendMessageStream(
         sessionId: Long, userText: String, characterId: Int?, roleId: String?,
         persistUserMessage: Boolean, clientMessageId: String?,
         attachments: List<OutgoingAttachment>,
-    ): Flow<ChatStreamEvent> = emptyFlow()
+    ): Flow<ChatStreamEvent> = streamFlow ?: emptyFlow()
     /** regenerateStream 被调了几次：验证「带图消息的重跑走服务端，而不是整条重发」。 */
     var regenerateStreamCalls = 0
     override fun regenerateStream(sessionId: Long, characterId: Int?, roleId: String?): Flow<ChatStreamEvent> {
@@ -94,8 +96,11 @@ internal class FakeChatRepository : ChatRepository {
     /** 非 null 时 uploadImage 直接返回它；同时记录每次调用的文件，验证「该不该重新上传」。 */
     var uploadImageResult: String? = null
     val uploadImageCalls = mutableListOf<java.io.File>()
+    /** true 时 uploadImage 永不返回（真挂起点，只能被取消打断），供停止用例打断。 */
+    var uploadImageHangs = false
     override suspend fun uploadImage(localFile: java.io.File, fileName: String): String? {
         uploadImageCalls += localFile
+        if (uploadImageHangs) kotlinx.coroutines.suspendCancellableCoroutine<Nothing> { }
         return uploadImageResult
     }
     /** 重签通道（整改清单 P1-10）：非 null 时 refreshImageUrl 返回它；记录每个 id 的调用次数。 */
@@ -115,7 +120,7 @@ internal class FakeChatRepository : ChatRepository {
         deletedCharacters += characterId
         return deleteCharacterOk
     }
-    override fun sessions(): List<ChatSession> = sessionList
+    override suspend fun sessions(): List<ChatSession> = sessionList
     override fun setCurrentSessionId(sessionId: Long) {
         setCurrentCalls += sessionId
         current = sessionId

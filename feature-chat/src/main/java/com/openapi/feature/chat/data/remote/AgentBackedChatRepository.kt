@@ -2,7 +2,6 @@ package com.openapi.feature.chat.data.remote
 
 import android.content.Context
 import com.openapi.common.util.android.PreferenceUtils
-import com.openapi.common.util.log.LogUtil
 import com.openapi.core.config.Constants
 import com.openapi.feature.chat.domain.model.ChatCharacterOption
 import com.openapi.feature.chat.domain.model.ChatMessage
@@ -11,8 +10,6 @@ import com.openapi.feature.chat.domain.model.ChatRole
 import com.openapi.feature.chat.domain.model.ChatSession
 import com.openapi.feature.chat.domain.model.ChatStreamEvent
 import com.openapi.feature.chat.domain.model.HistoryPage
-import com.openapi.feature.chat.domain.model.ImageAttachment
-import com.openapi.feature.chat.domain.model.ImageSource
 import com.openapi.feature.chat.domain.model.MessageKind
 import com.openapi.feature.chat.domain.model.OutgoingAttachment
 import com.openapi.feature.chat.domain.repository.ChatRepository
@@ -22,11 +19,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.time.OffsetDateTime
-import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * 「对话」页的仓库实现，底层换成 Python `companion-agent` 的 `/v1`。
@@ -48,6 +42,9 @@ class AgentBackedChatRepository(
     private val local: LocalChatStore,
     private val legacy: ChatRepository,
 ) : ChatRepository {
+
+    /** 图片上传与附件回合（P3-17 拆出）：字节不进仓库类，这里只编排。 */
+    private val attachments = AttachmentApi(remote)
 
     private companion object {
         /**
@@ -247,7 +244,6 @@ class AgentBackedChatRepository(
         }
     }
 
-
     // ------------------------------------------------------------ 历史
 
     override suspend fun loadHistoryPage(sessionId: Long, beforeId: Long?, limit: Int): HistoryPage {
@@ -305,7 +301,8 @@ class AgentBackedChatRepository(
 
     // ------------------------------------------------------------ 会话
 
-    override fun sessions(): List<ChatSession> = local.cachedSessions()
+    // P3-21：cachedSessions 读 Room，这里切 IO 后再交给调用方
+    override suspend fun sessions(): List<ChatSession> = withContext(Dispatchers.IO) { local.cachedSessions() }
 
     override suspend fun createSession(name: String): ChatSession? = withContext(Dispatchers.IO) {
         val trimmed = name.trim()
@@ -358,43 +355,16 @@ class AgentBackedChatRepository(
     // ------------------------------------------------------------ 附件 / 语音 / 人设
 
     /**
-     * 图片附件走 `/v1`：先 `POST /v1/uploads` 拿到 `upload_id`，再随消息只带这个引用。
+     * 图片附件走 `/v1`：先拿到 `upload_id`，再随消息只带这个引用。
+     * 直传优先、失败降级中转的完整逻辑在 [AttachmentApi.uploadImage]。
      *
-     * 以前这里委托给旧的 multipart 链路（`/chat/ai/recognize.json`），当时有两个阻塞：
-     * 服务端 TOS 的 secret 与 access key 不配对（`SignatureDoesNotMatch` 500），
-     * 以及 `/v1/uploads` 只认图片。第一个是真 bug，已修（`.env` 的 `TOS_SECRET_KEY`）。
-     * 第二个是能力边界：**文件**（非图片）在 `/v1` 仍然没有对应接口，继续走 legacy，
-     * 这是功能缺口，不是绕路。
-     *
+     * 能力边界：文件（非图片）在 `/v1` 仍然没有对应接口，继续走 legacy，这是功能缺口，不是绕路。
      * 图片一旦上传成功，服务端回合层会把它读成 data URL 交给模型（见
      * `turn_runner._load_images` 与 `ImageAttachmentMiddleware`），所以这里必须带 `upload_id`
      * 而不是本地路径——本地路径只有这台手机认识。
      */
-    /**
-     * 上传图片拿 upload_id，不产生回复。图片附件走这条，文字与它合成一个回合（见 ChatRepository.uploadImage）。
-     *
-     * 优先**直传**（ADR-011 同款）：sign 要一个单 key 只写的短期凭证，字节直接 PUT 进桶，
-     * 不再穿过应用服务器；发消息时服务端按 upload_id 绑定校验（归属/时效/HEAD 复核）。
-     * 签发或 PUT 任何一步失败（配额、CORS、网络）都**降级回中转** `/v1/uploads`——
-     * 旧通道同时是降级通道，直传挂了不能把整条发送带走。heic 不在直传白名单里，直接走中转。
-     */
     override suspend fun uploadImage(localFile: File, fileName: String): String? =
-        runCatching {
-            withContext(Dispatchers.IO) {
-                val mime = mimeOf(localFile)
-                if (mime != "image/heic") {
-                    runCatching {
-                        val (uploadId, putUrl) = remote.signUpload("chat-image", mime, localFile.length())
-                        remote.putToPresigned(putUrl, localFile, mime)
-                        uploadId
-                    }.onFailure {
-                        // 只记异常类型与消息：预签名 URL 是 bearer secret，绝不进日志
-                        LogUtil.w("直传失败，已降级中转上传: ${it.message}")
-                    }.getOrNull()?.let { return@withContext it }
-                }
-                remote.upload(localFile, mime)
-            }
-        }.getOrNull()
+        attachments.uploadImage(localFile)
 
     /**
      * 重新换取一个签名 URL（整改清单 P1-10）。和历史整页换 URL 走同一条
@@ -415,9 +385,7 @@ class AgentBackedChatRepository(
             return legacy.sendAttachment(sessionId, kind, localFile, fileName, placeholderId)
         }
         val session = resolveSessionId(sessionId, null, null)
-        val uploadId = withContext(Dispatchers.IO) {
-            remote.upload(localFile, mimeOf(localFile))
-        }
+        val uploadId = attachments.uploadRelayed(localFile)
         val attachment = JSONObject()
             .put("upload_id", uploadId)
             .put("kind", "image")
@@ -428,50 +396,7 @@ class AgentBackedChatRepository(
             clientMessageId = placeholderId,
             attachments = listOf(attachment),
         )
-        return ChatReply(id = placeholderId, text = awaitTurnText(session, receipt.turnId))
-    }
-
-    /** 按扩展名给 Content-Type；服务端只认 jpeg/png/webp/heic，其他一律按 jpeg 试。 */
-    private fun mimeOf(file: File): String = when (file.extension.lowercase()) {
-        "png" -> "image/png"
-        "webp" -> "image/webp"
-        "heic", "heif" -> "image/heic"
-        else -> "image/jpeg"
-    }
-
-    /** 收一轮的完整文字（附件路径用：界面只关心最终那段回复，不需要逐字）。 */
-    private suspend fun awaitTurnText(sessionId: Long, expectedTurnId: String?): String {
-        val acc = StringBuilder()
-        var matchedTurn = expectedTurnId
-        try {
-            remote.events(sessionId, null).collect { frame ->
-                val obj = runCatching { JSONObject(frame.data) }.getOrNull()
-                if (obj != null) {
-                    val turn = obj.optString("turn_id", "")
-                    if (turn.isNotEmpty() && matchedTurn == null) matchedTurn = turn
-                    val ours = turn.isNotEmpty() && turn == matchedTurn
-                    when (frame.event) {
-                        "turn.snapshot" -> if (ours) {
-                            val text = obj.optString("text", "")
-                            if (text.length > acc.length && text.startsWith(acc.toString())) {
-                                acc.setLength(0)
-                                acc.append(text)
-                            }
-                        }
-                        "message.delta" -> if (ours) acc.append(obj.optString("delta", ""))
-                        "message.done", "turn.cancelled" -> if (ours) throw TurnFinished
-                        "error" -> if (ours) throw TurnFinished
-                    }
-                }
-            }
-        } catch (_: TurnFinished) {
-            // 正常收尾：这一轮已经结束，不需要继续读事件流。
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            LogUtil.w("AgentBackedChatRepository 附件回合读取失败: ${e.message}")
-        }
-        return acc.toString()
+        return ChatReply(id = placeholderId, text = attachments.awaitTurnText(session, receipt.turnId))
     }
 
     /**
@@ -509,37 +434,6 @@ class AgentBackedChatRepository(
             runCatching { local.loadCached(sessionId) }.getOrDefault(emptyList())
         }
 
-    // ------------------------------------------------------------ 映射
-
-    private fun AgentMessageVo.toChatMessage(): ChatMessage {
-        // 历史里的图片只带 upload_id（字节在对象存储）。先挂成 REMOTE 形态，
-        // loadHistoryPage 再逐个换签名 URL；有图就把 kind 判成 IMAGE，
-        // 本地缓存才有富类型可保（TEXT 行会被刷新清掉）。
-        val images = attachments.filter { it.kind == "image" }.map {
-            ImageAttachment(path = "", source = ImageSource.REMOTE, uploadId = it.uploadId)
-        }
-        return ChatMessage(
-            id = id.toString(),
-            role = if (role == "user") ChatRole.USER else ChatRole.ASSISTANT,
-            text = content,
-            createdAtMillis = parseIso(createdAt),
-            kind = if (images.isNotEmpty()) MessageKind.IMAGE else MessageKind.TEXT,
-            images = images,
-            clientMessageId = clientMessageId,
-        )
-    }
-
-    private fun AgentSessionVo.toChatSession(): ChatSession = ChatSession(
-        id = id,
-        name = name.ifBlank { "新会话" },
-        isDefault = false,
-        roleId = roleId,
-        characterId = null,
-    )
-
-    private fun parseIso(value: String): Long = runCatching {
-        OffsetDateTime.parse(value).toInstant().toEpochMilli()
-    }.getOrDefault(System.currentTimeMillis())
 }
 
 /**
@@ -562,173 +456,3 @@ private object MigrationGuard {
     }
 }
 
-/** 事件流里读到本轮结束的信号：用它退出 `collect`，比 `transformWhile` 的类型推断更可靠。 */
-private object TurnFinished : Exception() {
-    private fun readResolve(): Any = TurnFinished
-    override fun fillInStackTrace(): Throwable = this
-}
-
-/** 本地缓存：/v1 会话 id 空间独立，历史以服务端为准，这里只做离线副本。 */
-class LocalChatStore @JvmOverloads constructor(
-    private val context: Context,
-    /** 单测注入内存库；生产传 null，走全局 AppDatabase。 */
-    private val injectedDb: com.openapi.core.db.AppDatabase? = null,
-) {
-
-    @Volatile private var ready = false
-
-    private fun db() = injectedDb ?: com.openapi.core.db.AppDatabase.getInstance()
-
-    fun cachedSessions(): List<ChatSession> =
-        db().chatSessionLogDao().loadAll().map {
-            ChatSession(
-                id = it.id ?: 0L,
-                name = it.name.orEmpty(),
-                isDefault = false,
-                roleId = it.roleId,
-                characterId = it.characterId,
-            )
-        }
-
-    fun cacheSession(session: ChatSession) {
-        val dao = db().chatSessionLogDao()
-        dao.insertOrReplace(com.openapi.core.model.ChatSessionLog().also { log ->
-            log.id = session.id
-            log.name = session.name
-            log.updatedAt = System.currentTimeMillis()
-            log.roleId = session.roleId
-            log.type = com.openapi.core.model.ChatSessionLog.TYPE.CUSTOMER.type
-        })
-    }
-
-    fun replaceSessions(sessions: List<ChatSession>) {
-        val dao = db().chatSessionLogDao()
-        dao.deleteAll()
-        sessions.forEach { cacheSession(it) }
-    }
-
-    fun forgetSession(sessionId: Long) {
-        val db = db()
-        db.chatLogDao().deleteBySession(sessionId)
-        db.chatSessionLogDao().deleteById(sessionId)
-    }
-
-    fun loadCached(sessionId: Long): List<ChatMessage> =
-        db().chatLogDao().bySession(sessionId).mapNotNull { log ->
-            com.openapi.feature.chat.data.mapper.ChatLogMapper.toDomain(
-                chatId = log.chatId,
-                who = log.who,
-                msgType = log.msgType,
-                rawContent = log.content,
-                createdAtMillis = log.createTime?.time ?: 0L,
-            )
-        }
-
-    /**
-     * 本地行里「还没送达」的那些：SENDING（上次没发完）或 FAILED（可重试）。
-     * 已 SENT 的 local- 行不算——服务端历史里一定有它的正式版（对不上 id 也对得上内容），
-     * 再合进列表就是同一句话显示两遍。整页刷新保留 local- 行以后，这里必须按状态过滤。
-     */
-    fun localPending(sessionId: Long): List<ChatMessage> =
-        loadCached(sessionId).filter {
-            it.role == ChatRole.USER && it.id.startsWith("local-") &&
-                it.delivery != com.openapi.feature.chat.domain.model.DeliveryStatus.SENT
-        }
-
-    private fun toLog(sessionId: Long, message: ChatMessage): com.openapi.core.model.ChatLog {
-        val log = com.openapi.core.model.ChatLog()
-        log.content = com.openapi.feature.chat.data.mapper.ChatLogMapper.toRawContent(message)
-        log.who = com.openapi.feature.chat.data.mapper.ChatLogMapper.toWho(message.role)
-        log.msgType = com.openapi.feature.chat.data.mapper.ChatLogMapper.toMsgType(message.kind)
-        log.chatId = message.id
-        log.createTime = java.util.Date(message.createdAtMillis)
-        log.sessionId = sessionId
-        return log
-    }
-
-    fun persist(sessionId: Long, message: ChatMessage) {
-        db().chatLogDao().save(toLog(sessionId, message))
-    }
-
-    /**
-     * 把服务端一页消息写进本地缓存。
-     *
-     * 服务端历史只有文字和 upload_id；语音时长、图片的本机文件路径只存在本地行里，
-     * 所以整页刷新只能清「服务端能原样重建」的纯文字行——以前的 deleteBySession
-     * 连富内容行一起删，图片/语音消息退出重进就再也回不来。
-     *
-     * 每条服务端消息先找本地同一次发送的行（chatId == 服务端带回的 client_message_id，
-     * 或已经并过的服务端 id）：文字用服务端的，附件优先本机文件（文件还在就直接显示，
-     * 不依赖 5 分钟的签名 URL），upload_id 两边合到一起，然后整体改挂到服务端正式 id 下、
-     * 删掉旧的临时 id 行。合并后缓存与历史一一对应，不会「同一句话存两行」。
-     *
-     * 性能（整改清单 P0-6.3）：合并只在内存里算，写库集中在最后一个事务——
-     * 一次 saveAll（Room 内部对整列表复用预编译语句）+ 一次 deleteByChatIds，
-     * 代替以前「每条消息一个隐式事务」的逐条 save。30 条一页从 30+ 个事务降到 1 个。
-     */
-    fun cacheRemote(sessionId: Long, messages: List<ChatMessage>, replaceAll: Boolean) {
-        val db = db()
-        val dao = db.chatLogDao()
-        if (replaceAll) dao.deleteSessionTextOnly(sessionId)
-        val local = dao.bySession(sessionId).mapNotNull { log ->
-            com.openapi.feature.chat.data.mapper.ChatLogMapper.toDomain(
-                chatId = log.chatId, who = log.who, msgType = log.msgType,
-                rawContent = log.content, createdAtMillis = log.createTime?.time ?: 0L,
-            )?.let { (log.chatId ?: "") to it }
-        }.toMap()
-        val toSave = ArrayList<com.openapi.core.model.ChatLog>(messages.size)
-        val staleIds = ArrayList<String>()
-        messages.forEach { message ->
-            val client = message.clientMessageId
-            val mine = local[message.id] ?: client?.let { local[it] }
-            if (mine == null) {
-                toSave.add(toLog(sessionId, message))
-                return@forEach
-            }
-            // 本机文件还在就继续用本机文件；否则退回服务端对象（渲染时换签名 URL）
-            val keepLocalImages = mine.images.isNotEmpty() && mine.images.size == message.images.size &&
-                mine.images.all { it.source == com.openapi.feature.chat.domain.model.ImageSource.FILE && java.io.File(it.path).exists() }
-            val images = if (keepLocalImages) {
-                mine.images.mapIndexed { i, img -> img.copy(uploadId = message.images[i].uploadId ?: img.uploadId) }
-            } else {
-                message.images
-            }
-            toSave.add(
-                toLog(
-                    sessionId,
-                    mine.copy(
-                        id = message.id,
-                        text = message.text.ifBlank { mine.text },
-                        createdAtMillis = message.createdAtMillis,
-                        kind = when {
-                            mine.kind != MessageKind.TEXT -> mine.kind
-                            images.isNotEmpty() -> MessageKind.IMAGE
-                            else -> MessageKind.TEXT
-                        },
-                        images = images,
-                        delivery = com.openapi.feature.chat.domain.model.DeliveryStatus.SENT,
-                        clientMessageId = null,
-                    ),
-                ),
-            )
-            if (mine.id != message.id) staleIds.add(mine.id)
-        }
-        db.runInTransaction {
-            if (toSave.isNotEmpty()) dao.saveAll(toSave)
-            // saveAll 按列表顺序逐条 REPLACE：若先删的行 id 恰好也是本页某条的目标 id，
-            // 删在写后仍会误删新行，所以「行没被本页重新写入」才删。当前调用方传的都是
-            // 本地临时 id（local- 前缀，服务端 id 不会撞上），这里保险起见按目标 id 过滤。
-            val rewritten = toSave.mapNotNull { it.chatId }.toSet()
-            val toDelete = staleIds.filterNot { it in rewritten }
-            if (toDelete.isNotEmpty()) dao.deleteByChatIds(toDelete)
-        }
-    }
-
-    fun delete(messageId: String) {
-        db().chatLogDao().deleteByChatId(messageId)
-    }
-
-    fun clear(sessionId: Long) {
-        db().chatLogDao().deleteBySession(sessionId)
-    }
-}

@@ -172,8 +172,13 @@ interface ChatRepository {
     /** 删除自己的自定义角色；失败返回 false。 */
     suspend fun deleteCharacter(characterId: Int): Boolean
 
-    /** 本地缓存的会话列表，按服务端 updatedAt 倒序。 */
-    fun sessions(): List<ChatSession>
+    /**
+     * 本地缓存的会话列表，按服务端 updatedAt 倒序。
+     *
+     * 整改清单 P3-21：这是对 Room 的读，AppDatabase 不再允许主线程查询，
+     * 所以它是 suspend（实现内部切 IO），调用方都已在协程里。
+     */
+    suspend fun sessions(): List<ChatSession>
 
     /** 切换当前会话（写入 SP，之后的历史和发送都以它为准）。 */
     fun setCurrentSessionId(sessionId: Long)

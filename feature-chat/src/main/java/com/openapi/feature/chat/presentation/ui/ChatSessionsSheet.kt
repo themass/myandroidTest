@@ -8,15 +8,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -29,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,9 +41,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import com.openapi.core.model.ChatMessageHit
 import com.openapi.feature.chat.domain.model.ChatSession
+import com.openapi.feature.chat.presentation.filterSessions
+import com.openapi.feature.chat.presentation.searchMessages
 import com.openapi.common.ui.theme.AppColors
 import com.openapi.common.ui.theme.AppSpacing
 import com.openapi.common.ui.theme.AppTypography
@@ -66,6 +75,21 @@ fun ChatSessionsSheet(
     var creating by remember { mutableStateOf(false) }
     var confirmClear by remember { mutableStateOf(false) }
     var renaming by remember { mutableStateOf<ChatSession?>(null) }
+    // P2-15：搜索词。会话名过滤是内存操作即时生效；消息搜索查库，输入停顿 250ms 再发，
+    // 避免每敲一个字都打一次 LIKE 全表扫。
+    var query by remember { mutableStateOf("") }
+    var messageHits by remember { mutableStateOf<List<ChatMessageHit>>(emptyList()) }
+    LaunchedEffect(query) {
+        if (query.trim().length < 2) {
+            messageHits = emptyList()
+            return@LaunchedEffect
+        }
+        delay(250)
+        messageHits = searchMessages(query)
+    }
+    val trimmedQuery = query.trim()
+    val matchingSessions = filterSessions(sessions, query)
+    val searching = trimmedQuery.isNotEmpty()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -91,17 +115,63 @@ fun ChatSessionsSheet(
                 }
             }
 
-            LazyColumn {
-                items(sessions, key = { it.id }) { session ->
-                    SessionRow(
-                        session = session,
-                        current = session.id == currentSessionId,
-                        canDelete = true,
-                        onSelect = { onSelect(session.id) },
-                        onRename = { renaming = session },
-                        onClear = { confirmClear = true },
-                        onDelete = { onDelete(session.id) },
-                    )
+            // 搜索框（整改清单 P2-15）：同时过滤会话名与消息正文
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = AppSpacing.screenHorizontal),
+                singleLine = true,
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = AppColors.TextSecondary) },
+                placeholder = { Text(stringResource(R.string.chat_search_hint)) },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            )
+
+            LazyColumn(modifier = Modifier.heightIn(max = 480.dp)) {
+                if (searching) {
+                    // 搜索态：会话命中 + 消息命中两个分组，都空时给明确的空态而不是留白
+                    if (matchingSessions.isEmpty() && messageHits.isEmpty()) {
+                        item {
+                            Text(
+                                stringResource(R.string.chat_search_empty),
+                                modifier = Modifier.padding(horizontal = AppSpacing.screenHorizontal, vertical = AppSpacing.lg),
+                                color = AppColors.TextSecondary,
+                            )
+                        }
+                    }
+                    if (matchingSessions.isNotEmpty()) {
+                        item { SearchSectionTitle(stringResource(R.string.chat_search_sessions)) }
+                        items(matchingSessions, key = { "s-" + it.id }) { session ->
+                            SessionRow(
+                                session = session,
+                                current = session.id == currentSessionId,
+                                canDelete = true,
+                                onSelect = { onSelect(session.id) },
+                                onRename = { renaming = session },
+                                onClear = { confirmClear = true },
+                                onDelete = { onDelete(session.id) },
+                            )
+                        }
+                    }
+                    if (messageHits.isNotEmpty()) {
+                        item { SearchSectionTitle(stringResource(R.string.chat_search_messages)) }
+                        items(messageHits, key = { "m-${it.sessionId}-${it.preview}" }) { hit ->
+                            MessageHitRow(hit = hit, onSelect = { onSelect(hit.sessionId) })
+                        }
+                    }
+                } else {
+                    items(sessions, key = { it.id }) { session ->
+                        SessionRow(
+                            session = session,
+                            current = session.id == currentSessionId,
+                            canDelete = true,
+                            onSelect = { onSelect(session.id) },
+                            onRename = { renaming = session },
+                            onClear = { confirmClear = true },
+                            onDelete = { onDelete(session.id) },
+                        )
+                    }
                 }
             }
         }
@@ -147,6 +217,45 @@ fun ChatSessionsSheet(
                 onRename(session.id, name)
             },
             onDismiss = { renaming = null },
+        )
+    }
+}
+
+@Composable
+private fun SearchSectionTitle(title: String) {
+    Text(
+        title,
+        modifier = Modifier.padding(start = AppSpacing.screenHorizontal, end = AppSpacing.sm, top = AppSpacing.sm, bottom = AppSpacing.xs),
+        fontSize = AppTypography.caption,
+        color = AppColors.TextSecondary,
+    )
+}
+
+/**
+ * 一条消息命中：预览 + 所属会话名。点它 = 跳到那个会话（整改清单 P2-15）。
+ * 预览是正文开头 120 字符（SQL substr），不做关键词高亮——那是下一步的事，先把「找得到、点得进」跑通。
+ */
+@Composable
+private fun MessageHitRow(hit: ChatMessageHit, onSelect: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onSelect)
+            .padding(horizontal = AppSpacing.screenHorizontal, vertical = AppSpacing.xs),
+    ) {
+        Text(
+            text = hit.preview,
+            fontSize = AppTypography.bodyLarge,
+            color = AppColors.TextPrimary,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            text = hit.sessionName,
+            fontSize = AppTypography.caption,
+            color = AppColors.TextSecondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

@@ -37,11 +37,13 @@ class SendWhileEditingTest {
         val streamer = ReplyStreamer(
             repo, ui, scope, SendMessageUseCase(repo),
             attachmentActive = { false }, reconcile = {}, syncSessions = {},
+            strings = FakeChatStrings(),
         )
         val send = SendActions(
             repo, ui, scope, composer, streamer,
             submitEdit = { id, text -> submitEditCalls += id to text },
             startAttachmentSend = { attachmentStarts++ },
+            strings = FakeChatStrings(),
         )
     }
 

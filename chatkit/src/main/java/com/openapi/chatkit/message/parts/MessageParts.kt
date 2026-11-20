@@ -46,12 +46,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.openapi.chatkit.R
 import com.openapi.chatkit.media.ImageViewer
 import com.openapi.chatkit.media.imageModel
 import com.openapi.chatkit.model.ImageLoadState
@@ -82,6 +87,11 @@ fun TextBubble(
     modifier: Modifier = Modifier,
     /** 气泡卡片内部、正文下面的 footer（助手最新回复）。 */
     footer: (@Composable () -> Unit)? = null,
+    /**
+     * 读屏动作（整改清单 P2-16）：与长按菜单同一批操作。
+     * 挂在气泡自身节点上，读屏在局部菜单里直接执行，不需要「长按」这个摸不到的手势。
+     */
+    screenReaderActions: List<CustomAccessibilityAction> = emptyList(),
     content: @Composable () -> Unit,
 ) {
     val colors = ChatKit.colors
@@ -91,7 +101,12 @@ fun TextBubble(
         color = if (isUser) colors.userBubble else colors.assistantBubble,
         contentColor = if (isUser) colors.userBubbleText else colors.assistantBubbleText,
         shape = bubbleShape(sender),
-        modifier = modifier.combinedClickable(onClick = {}, onLongClick = onLongPress),
+        modifier = modifier
+            .combinedClickable(onClick = {}, onLongClick = onLongPress)
+            .then(
+                if (screenReaderActions.isEmpty()) Modifier
+                else Modifier.semantics { customActions = screenReaderActions }
+            ),
     ) {
         Box(Modifier.padding(horizontal = dimens.bubblePaddingHorizontal, vertical = dimens.bubblePaddingVertical)) {
             if (footer == null) {
@@ -218,7 +233,8 @@ fun ImageGrid(
         ) {
             AsyncImage(
                 model = model,
-                contentDescription = null,
+                // 气泡里的图片不是纯装饰：读屏要报得出这里有一张图（整改清单 P2-16）
+                contentDescription = stringResource(R.string.chatkit_image),
                 contentScale = ContentScale.Fit,
                 onSuccess = { update(0) { it.onLoaded() } },
                 onError = { update(0) { it.onFailed() } },

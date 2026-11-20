@@ -14,10 +14,17 @@ android {
         compose = true
         viewBinding = true
     }
+    testOptions {
+        unitTests {
+            // FeedPager 的重试路径带 Log.i/w，JVM 测试里按 no-op 处理即可
+            returnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
     testImplementation 'junit:junit:4.13.2'
+    // FeedPager 的重试策略跑在协程上，用虚拟时间测退避等待
     testImplementation libs.kotlinx.coroutines.test
     // 视频页的实时字幕与翻译
     implementation project(':speech')

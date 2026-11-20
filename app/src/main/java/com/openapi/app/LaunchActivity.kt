@@ -49,6 +49,11 @@ class LaunchActivity : LogActivity() {
         launchBinding.skipView.setOnClickListener { skip(it) }
         MobAgent.init(this)
         LoginTask.start(this)
+        // 剧本房 adb 验收带 script_case：跳过开屏倒计时/广告，立刻进主页，避免 hello 门禁超时。
+        if (!intent.getStringExtra(com.openapi.app.home.HomeActivity.EXTRA_SCRIPT_CASE).isNullOrBlank()) {
+            launch()
+            return
+        }
         countdownHandler.postDelayed(startMainRunnable, max.toLong())
         observeAdEvents()
         showAdview()
@@ -59,7 +64,9 @@ class LaunchActivity : LogActivity() {
     }
 
     private fun launch() {
-        startActivity(Intent(this, HomeActivity::class.java))
+        // 把启动 Intent 上的 extras 转给主页：adb / deep link 带的 script_case 等
+        // 不能丢在开屏页。HomeActivity 是 singleTask，冷启动走这里，热启动走它自己的 onNewIntent。
+        startActivity(Intent(this, HomeActivity::class.java).putExtras(intent))
         finish()
     }
 

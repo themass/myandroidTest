@@ -20,6 +20,7 @@ internal class MessageRemoval(
     private val state: MutableStateFlow<ChatUiState>,
     private val scope: CoroutineScope,
     private val reconcile: suspend () -> Unit,
+    private val strings: ChatStrings,
     private val io: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
@@ -35,7 +36,7 @@ internal class MessageRemoval(
             if (deleteOnServer(messageId)) {
                 state.update { it.copy(messages = it.messages.filterNot { m -> m.id == messageId }) }
             } else {
-                state.update { it.copy(error = "删除失败，请稍后重试") }
+                state.update { it.copy(error = strings.deleteFailed()) }
             }
         }
     }
@@ -58,10 +59,10 @@ internal class MessageRemoval(
             reconcile()
             if (failed + unsynced > 0) {
                 val parts = buildList {
-                    if (failed > 0) add("$failed 条删除失败")
-                    if (unsynced > 0) add("$unsynced 条尚未同步，请稍后再删")
+                    if (failed > 0) add(strings.deleteManyPartFailed(failed))
+                    if (unsynced > 0) add(strings.deleteManyPartUnsynced(unsynced))
                 }
-                state.update { it.copy(error = parts.joinToString("，")) }
+                state.update { it.copy(error = parts.joinToString(strings.errorPartSeparator())) }
             }
         }
     }
@@ -94,7 +95,7 @@ internal class MessageRemoval(
                     beforeId = oldest
                 }
             } catch (e: Exception) {
-                state.update { it.copy(error = "读取消息失败，请稍后重试") }
+                state.update { it.copy(error = strings.readMessagesFailed()) }
                 return@launch
             }
             val removed = mutableListOf<String>()
@@ -114,7 +115,7 @@ internal class MessageRemoval(
                 state.update { it.copy(messages = emptyList(), hasMoreHistory = false) }
             } else {
                 state.update { it.copy(messages = it.messages.filterNot { m -> m.id in removed }) }
-                state.update { it.copy(error = "有 $failed 条消息清空失败，请稍后重试") }
+                state.update { it.copy(error = strings.clearFailed(failed)) }
             }
         }
     }

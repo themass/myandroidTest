@@ -58,6 +58,11 @@ class ModuleGraphTest {
         "app/src/main/java/com/openapi/ks/myapp/agent",
         "feature-companion/src/main/java/com/openapi/ks/myapp/avatar",
         "feature-companion/src/main/java/com/openapi/ks/myapp/companion",
+        // 厂商 SDK 的随源文件（duix / live2d / tao a2bs）：保留原厂包名方便对上游打补丁，
+        // 永久豁免，不属于「搬完删掉」那批。模块自有代码仍钉在 com.openapi.ks.dh 下。
+        "dh-engines/src/main/java/ai",
+        "dh-engines/src/main/java/com/chatwaifu",
+        "dh-engines/src/main/java/com/taobao",
     )
 
     private fun modules(): List<String> =
@@ -68,6 +73,7 @@ class ModuleGraphTest {
         if (module.startsWith("feature-")) 3 else layerOf[module] ?: error("模块 :$module 没有分层，先在测试里登记")
 
     private fun rootPackage(module: String): String = when {
+        module == "dh-engines" -> "com.openapi.ks.dh"
         module.startsWith("feature-") -> "com.openapi.feature." + module.removePrefix("feature-")
         else -> "com.openapi.$module"
     }

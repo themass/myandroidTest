@@ -85,8 +85,20 @@ enum class CompanionPage { CHAT, CHARACTERS, MEMORY, SETTINGS }
 fun CompanionRoute(
     modifier: Modifier = Modifier,
     initialCharacterId: String = DEFAULT_CHARACTER_ID,
+    /**
+     * 剧本房 case id（adb `--es script_case …`）。非空时走 createScriptSession，
+     * 并在连接后自动进通话页以便听下行。
+     */
+    scriptCaseId: String? = null,
     /** 打开抽屉。由 HomeScreen 传入，与「对话」页一致。 */
     onMenuClick: (() -> Unit)? = null,
+    /**
+     * P0-4：聊天页的电话入口跳进陪伴页时置 true——进来就复用页内「进通话」的
+     * 同一套决策（含麦克风权限申请），处理后由 [onLaunchCallHandled] 复位，
+     * 避免下次回到本页再自动弹一次。
+     */
+    launchCallOnOpen: Boolean = false,
+    onLaunchCallHandled: () -> Unit = {},
 ) {
     val context = LocalContext.current.applicationContext
     val api = remember(context) {
@@ -98,6 +110,10 @@ fun CompanionRoute(
 
     var page by rememberSaveable { mutableStateOf(CompanionPage.CHAT) }
     var characterId by rememberSaveable { mutableStateOf(initialCharacterId) }
+    // 热启动 adb 再带 script_case：rememberSaveable 不会吃新的 initialCharacterId，显式跟上。
+    LaunchedEffect(initialCharacterId, scriptCaseId) {
+        if (scriptCaseId != null) characterId = initialCharacterId
+    }
 
     val chatViewModel: CompanionViewModel = viewModel(
         factory = viewModelFactory {
@@ -140,6 +156,24 @@ fun CompanionRoute(
         }
     }
 
+    // 页内通话按钮与聊天页跳入共用这一个入口：权限决策只有一份（见 CallLaunch 的测试）。
+    val openCall: () -> Unit = {
+        launchCallWithMic(
+            hasMicPermission = hasMicPermission(context),
+            startCall = { chatViewModel.startCall(micAllowed = it) },
+            requestMic = {
+                pendingMicAction = PendingMicAction.START_CALL
+                micLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            },
+        )
+    }
+    LaunchedEffect(launchCallOnOpen) {
+        if (launchCallOnOpen) {
+            openCall()
+            onLaunchCallHandled()
+        }
+    }
+
     // 系统返回键也走二次确认：全屏通话里返回 = 挂断，误触的代价是一次断线。
     var backArmed by remember { mutableStateOf(false) }
     LaunchedEffect(backArmed) {
@@ -171,15 +205,9 @@ fun CompanionRoute(
                 CompanionScreen(
                     viewModel = chatViewModel,
                     characterId = characterId,
+                    scriptCaseId = scriptCaseId,
                     modifier = Modifier.fillMaxWidth(),
-                    onOpenCall = {
-                        if (hasMicPermission(context)) {
-                            chatViewModel.startCall(micAllowed = true)
-                        } else {
-                            pendingMicAction = PendingMicAction.START_CALL
-                            micLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                        }
-                    },
+                    onOpenCall = openCall,
                     onOpenCharacters = { page = CompanionPage.CHARACTERS },
                     onOpenProfile = { page = CompanionPage.MEMORY },
                     onMenuClick = onMenuClick,
@@ -246,6 +274,7 @@ fun CompanionRoute(
 
         // 波形样式：用户选了就记住，下次进通话还是那一套。
         var waveOptions by remember { mutableStateOf(loadWaveOptions(context)) }
+        var callTheme by remember { mutableStateOf(loadCallTheme(context)) }
 
         // 标题与字标要用她的真名，不能拿 characterId（如 linche）当人看。通话期间拉一次，
         // 失败就退回「陪伴」——名字拿不到不该挡住通话。
@@ -433,6 +462,11 @@ fun CompanionRoute(
                 waveOptions = next
                 saveWaveOptions(context, next)
             },
+            theme = callTheme,
+            onThemeChange = { next ->
+                callTheme = next
+                saveCallTheme(context, next)
+            },
             onHangUp = { chatViewModel.endCall() },
             onToggleMute = {
                 // 静音状态下点「取消静音」就是真的要开麦，没权限得先申请。
@@ -524,6 +558,8 @@ fun CompanionRoute(
                             remotePcm = chatViewModel.remotePcm,
                             modifier = Modifier.fillMaxSize(),
                             engineId = chosen,
+                            // 点她一下：本地立刻有反馈（舞台脉冲），区域上报给 agent 决定回不回。
+                            onTapped = chatViewModel::onAvatarTapped,
                         )
                         }
                     }

@@ -22,7 +22,7 @@ class CharacterActionsTest {
         val roles = FakeRolesRepository()
         val state = MutableStateFlow(ChatUiState(selectedCharacterId = selectedCharacter))
         val scope = TestScope(StandardTestDispatcher())
-        val actions = CharacterActions(repo, roles, state, scope)
+        val actions = CharacterActions(repo, roles, state, scope, FakeChatStrings())
     }
 
     private val role = SelectedRole(id = "r1", name = "侦探", emoji = "🕵", colorArgb = 0xFF00FF00L)

@@ -10,7 +10,8 @@ import com.openapi.core.model.RecommendUrl
 import com.openapi.core.model.RecommendVo
 
 /**
- * 放映场的数据来源：真实服务端接口，取不到时回落随包样例。
+ * 放映场的数据来源：真实服务端接口。取不到就抛给调用方（页面显示错误 + 重试），
+ * 这里没有随包样例兜底。
  *
  * 走的是 app 自己的网络层（`BaseService` + `awaitInfoList`），不自己拼 OkHttp：
  * 服务端返回体是 AES 加密的、密钥来自请求自己的 User-Agent（见 `BaseRequest.authkey`），

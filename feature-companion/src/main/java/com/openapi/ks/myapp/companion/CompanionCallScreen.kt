@@ -344,6 +344,10 @@ fun CompanionCallScreen(
     avatarStage: (@Composable () -> Unit)? = null,
     remoteVideoContent: (@Composable () -> Unit)? = null,
     localVideoContent: (@Composable () -> Unit)? = null,
+    /** 通话页背景主题。由调用方持有（要持久化），本页只消费；默认=旧版画面。 */
+    theme: CallTheme = CallTheme.Default,
+    /** 切换背景主题。null 时菜单不出现「背景」段（保持旧界面）。 */
+    onThemeChange: ((CallTheme) -> Unit)? = null,
     /** 波形样式与粒子开关。由调用方持有（要持久化），本页只消费。 */
     waveOptions: WaveOptions = WaveOptions(),
     /** 切换波形样式 / 粒子。null 时不显示切换入口。 */
@@ -429,6 +433,8 @@ fun CompanionCallScreen(
                 // 试听按钮搬到右侧收纳盒（HeroSideDrawer），菜单里不再重复。
                 previewState = previewState,
                 onPreviewAudio = null,
+                theme = theme,
+                onThemeChange = onThemeChange,
             )
         }
     } else {
@@ -494,7 +500,7 @@ fun CompanionCallScreen(
         )
     }
 
-    CallBackdrop(level = ringLevel, modifier = modifier.fillMaxSize()) {
+    CallBackdrop(level = ringLevel, theme = theme, modifier = modifier.fillMaxSize()) {
         if (fullBleed) {
             // 背景铺满全屏，内容让开状态栏/导航栏；浮层坐在形象之上。
             Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars)) {
@@ -613,15 +619,17 @@ fun CompanionCallScreen(
 private fun CallBackdrop(
     level: State<Float>,
     modifier: Modifier = Modifier,
+    /** 背景主题；默认值与旧版 CallColors 常量一致，未设置主题时画面不变。 */
+    theme: CallTheme = CallTheme.Default,
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(
         modifier = modifier.drawBehind {
             drawRect(
                 Brush.verticalGradient(
-                    0f to CallColors.BackdropTop,
-                    0.45f to CallColors.BackdropMid,
-                    1f to CallColors.BackdropBottom,
+                    0f to theme.top,
+                    0.45f to theme.mid,
+                    1f to theme.bottom,
                 ),
             )
 
@@ -632,8 +640,8 @@ private fun CallBackdrop(
             drawRect(
                 Brush.radialGradient(
                     colors = listOf(
-                        CallColors.VioletDeep.copy(alpha = 0.34f),
-                        CallColors.VioletDeep.copy(alpha = 0.12f),
+                        theme.glow.copy(alpha = theme.glowStrength),
+                        theme.glow.copy(alpha = theme.glowStrength * 0.35f),
                         Color.Transparent,
                     ),
                     center = Offset(cx, cy),
@@ -645,7 +653,7 @@ private fun CallBackdrop(
             drawRect(
                 Brush.radialGradient(
                     colors = listOf(
-                        Color(0xFF2A3A6B).copy(alpha = 0.28f),
+                        theme.bottomGlow.copy(alpha = 0.28f),
                         Color.Transparent,
                     ),
                     center = Offset(cx, size.height * 0.96f),
@@ -802,6 +810,8 @@ private fun HeroCallHeader(
     onEngineMenuClick: ((DhEngineMenuRow) -> Unit)?,
     previewState: CallAudioPreviewState,
     onPreviewAudio: ((String) -> Unit)?,
+    theme: CallTheme = CallTheme.Default,
+    onThemeChange: ((CallTheme) -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
@@ -851,7 +861,7 @@ private fun HeroCallHeader(
                 }
             }
         }
-        if (onWaveOptionsChange != null || engineMenu != null || onPreviewAudio != null) {
+        if (onWaveOptionsChange != null || engineMenu != null || onPreviewAudio != null || onThemeChange != null) {
             WaveStyleMenu(
                 options = waveOptions,
                 onChange = onWaveOptionsChange,
@@ -860,6 +870,8 @@ private fun HeroCallHeader(
                 onEngineMenuClick = onEngineMenuClick,
                 previewState = previewState,
                 onPreviewAudio = onPreviewAudio,
+                theme = theme,
+                onThemeChange = onThemeChange,
             )
         }
     }
@@ -880,6 +892,8 @@ private fun WaveStyleMenu(
     onEngineMenuClick: ((DhEngineMenuRow) -> Unit)? = null,
     previewState: CallAudioPreviewState = CallAudioPreviewState(),
     onPreviewAudio: ((String) -> Unit)? = null,
+    theme: CallTheme = CallTheme.Default,
+    onThemeChange: ((CallTheme) -> Unit)? = null,
 ) {
     var open by remember { mutableStateOf(false) }
     Box {
@@ -921,6 +935,18 @@ private fun WaveStyleMenu(
                     text = { Text(if (previewState.speaker == "ai") "■ 停止 AI 试听" else "▶ AI 试听") },
                     onClick = { open = false; onPreviewAudio("ai") },
                 )
+            }
+            if (onThemeChange != null) {
+                MenuSectionLabel("背景")
+                CallTheme.Presets.forEach { preset ->
+                    DropdownMenuItem(
+                        text = { Text(if (theme.id == preset.id) "✓ ${preset.uiName}" else "　 ${preset.uiName}") },
+                        onClick = {
+                            open = false
+                            onThemeChange(preset)
+                        },
+                    )
+                }
             }
             if (onChange == null) return@DropdownMenu
             MenuSectionLabel("底部 · 你的声音")

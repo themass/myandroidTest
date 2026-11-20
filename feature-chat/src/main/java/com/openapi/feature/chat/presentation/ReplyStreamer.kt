@@ -28,6 +28,7 @@ internal class ReplyStreamer(
     private val reconcile: suspend () -> Unit,
     /** 新会话出现时同步会话列表。 */
     private val syncSessions: suspend () -> Unit,
+    private val strings: ChatStrings,
 ) {
 
     private companion object {
@@ -143,7 +144,7 @@ internal class ReplyStreamer(
                     it.copy(
                         sending = false,
                         streaming = attachmentActive(),
-                        error = if (replied) it.error else "已停止，消息未发出，可点重试",
+                        error = if (replied) it.error else strings.stoppedNoReply(),
                     )
                 }
                 userMessageId?.let { setDelivery(it, if (replied) DeliveryStatus.SENT else DeliveryStatus.FAILED) }
@@ -179,8 +180,8 @@ internal class ReplyStreamer(
                     sending = false,
                     streaming = attachmentActive(),
                     error = when {
-                        emptyReply -> "没有收到回复，请重试"
-                        failed -> current.error ?: "回复失败，请重试"
+                        emptyReply -> strings.emptyReply()
+                        failed -> current.error ?: strings.replyFailed()
                         else -> current.error
                     },
                 )
@@ -188,7 +189,7 @@ internal class ReplyStreamer(
             // 流结束但没有 done 帧（服务端中途断开、只给了部分文字）：不能当成已完整收到，用户消息标成失败可重试
             val truncated = !failed && !emptyReply && serverId == null && serverUserId == null && userMessageId != null
             if (truncated) {
-                state.update { it.copy(error = "回复没有完整收到，请重试") }
+                state.update { it.copy(error = strings.replyTruncated()) }
             }
             userMessageId?.let { setDelivery(serverUserId ?: errorUserId ?: it, if (failed || emptyReply || truncated) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
             // 正常路径靠 done 帧里的正式 id，不再每轮拉历史；只有缺 id（失败、没有 done 帧、空回复）时兜底拉一页
@@ -216,9 +217,16 @@ internal class ReplyStreamer(
         return kept != null
     }
 
+    /**
+     * 定点替换：只重建列表一次、只复制一次目标消息（整改清单 P1-12）。
+     * 吐字节拍约 25 次/秒，旧写法每拍都 `map` 全列表；没命中时直接返回，
+     * 连列表都不碰。语义与旧的 `map` 版完全一致（由 ReplyStreamerStreamTest 表征钉住）。
+     */
     fun updateByKey(key: String, transform: (ChatMessage) -> ChatMessage) {
         state.update { current ->
-            current.copy(messages = current.messages.map { if (it.key == key) transform(it) else it })
+            val i = current.messages.indexOfFirst { it.key == key }
+            if (i < 0) return@update current
+            current.copy(messages = current.messages.updatedAt(i) { transform(it) })
         }
     }
 
@@ -235,7 +243,17 @@ internal class ReplyStreamer(
 
     fun setDelivery(messageId: String, status: DeliveryStatus) {
         state.update { current ->
-            current.copy(messages = current.messages.map { if (it.id == messageId) it.copy(delivery = status) else it })
+            val i = current.messages.indexOfFirst { it.id == messageId }
+            // 没这条消息、或状态本来就是这样：零拷贝（发送状态每秒被检查多次，大多数时候没有变化）
+            if (i < 0 || current.messages[i].delivery == status) return@update current
+            current.copy(messages = current.messages.updatedAt(i) { it.copy(delivery = status) })
         }
+    }
+
+    /** 只复制列表本身、只在 [i] 处换掉一个元素（其余元素保持原实例）。 */
+    private inline fun List<ChatMessage>.updatedAt(i: Int, transform: (ChatMessage) -> ChatMessage): List<ChatMessage> {
+        val copy = this.toMutableList()
+        copy[i] = transform(copy[i])
+        return copy
     }
 }

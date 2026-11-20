@@ -17,6 +17,7 @@ internal class SessionActions(
     private val state: MutableStateFlow<ChatUiState>,
     private val scope: CoroutineScope,
     private val refresh: () -> Unit,
+    private val strings: ChatStrings,
     private val io: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
@@ -50,7 +51,7 @@ internal class SessionActions(
         scope.launch {
             val created = withContext(io) { repository.createSession(name) }
             if (created == null) {
-                state.update { it.copy(error = "创建失败：名称不能为空、不能与已有会话重名，或网络异常") }
+                state.update { it.copy(error = strings.sessionCreateFailed()) }
                 return@launch
             }
             repository.setCurrentSessionId(created.id)
@@ -64,7 +65,7 @@ internal class SessionActions(
         scope.launch {
             val ok = withContext(io) { repository.deleteSession(sessionId) }
             if (!ok) {
-                state.update { it.copy(error = "删除失败，请稍后重试") }
+                state.update { it.copy(error = strings.deleteFailed()) }
                 return@launch
             }
             refresh()
@@ -76,7 +77,7 @@ internal class SessionActions(
         scope.launch {
             val renamed = repository.renameSession(sessionId, name)
             if (renamed == null) {
-                state.update { it.copy(error = "重命名失败：名称不能为空，或网络异常") }
+                state.update { it.copy(error = strings.sessionRenameFailed()) }
                 return@launch
             }
             reloadSessions()
@@ -85,7 +86,8 @@ internal class SessionActions(
 
     /** 只刷新会话列表，不动消息。 */
     suspend fun reloadSessions() {
-        val sessions = withContext(io) { repository.sessions() }
+        // P3-21：sessions() 已是 suspend（实现内部切 IO），不用再手动 withContext
+        val sessions = repository.sessions()
         state.update { it.copy(sessions = sessions) }
     }
 }

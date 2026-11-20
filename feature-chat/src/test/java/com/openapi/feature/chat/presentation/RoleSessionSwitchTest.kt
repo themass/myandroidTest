@@ -33,7 +33,7 @@ class RoleSessionSwitchTest {
         val state = MutableStateFlow(ChatUiState(sessionId = current))
         val scope = TestScope(StandardTestDispatcher())
         var changed = 0
-        val actions = CharacterActions(repo, roles, state, scope, onSessionChanged = { changed++ })
+        val actions = CharacterActions(repo, roles, state, scope, FakeChatStrings(), onSessionChanged = { changed++ })
     }
 
     private val detective = SelectedRole("r-detective", "侦探", "🕵", 0xFF00FF00L)

@@ -6,7 +6,9 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
 import com.openapi.core.model.ChatLog;
+import com.openapi.core.model.ChatMessageHit;
 
+import java.util.Collections;
 import java.util.List;
 
 @Dao
@@ -68,4 +70,21 @@ public interface ChatLogDao {
 
     @Query("SELECT * FROM ChatLog WHERE chatId = :chatId LIMIT 1")
     ChatLog byChatId(String chatId);
+
+    /**
+     * 跨会话搜消息正文（整改清单 P2-15）。只搜纯文字行（msgType = 0）：
+     * 语音/图片/文件行的 content 是本机路径或元数据，搜出来没有意义（同 deleteSessionTextOnly 的理由）。
+     * 联 ChatSessionLog 带出会话名，结果才能显示「在哪段对话里」。
+     * preview 取正文开头一段就够列表用；最近命中排前（id 单调递增），有上限防止全表扫输出过长。
+     */
+    @Query("SELECT c.sessionId AS sessionId, s.name AS sessionName, substr(c.content, 1, 120) AS preview "
+            + "FROM ChatLog c JOIN ChatSessionLog s ON s.id = c.sessionId "
+            + "WHERE c.msgType = 0 AND c.content LIKE '%' || :pattern || '%' ESCAPE '\\' "
+            + "ORDER BY c.id DESC LIMIT :limit")
+    List<ChatMessageHit> searchContentPattern(String pattern, int limit);
+
+    default List<ChatMessageHit> searchContent(String query, int limit) {
+        if (query == null || query.trim().isEmpty()) return Collections.emptyList();
+        return searchContentPattern(LikeEscapes.escape(query), limit);
+    }
 }
