@@ -20,6 +20,7 @@
     <string name="chat_feedback_hint">Enter your feedback</string>
     <string name="chat_feedback_title">Feedback</string>
     <string name="chat_load_older">加载更早的消息</string>
+    <string name="chat_loading_history">正在加载历史</string>
     <string name="chat_load_failed_retry">重新加载</string>
     <string name="chat_loading_older">正在加载…</string>
     <string name="chat_location_soon">位置消息即将上线</string>

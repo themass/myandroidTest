@@ -209,7 +209,9 @@ fun ChatScreen(
                 emptyContent = {
                     // 读失败不能画成空会话：那和「历史被清空」没有区别。
                     when (val empty = emptyStateFor(state)) {
-                        EmptyState.Loading -> Unit
+                        // 读历史的那几百毫秒画骨架，不留纯空白（整改清单 P0-6.2）：
+                        // 空白页让人分不清「正在读」和「读出来就是空的」。
+                        EmptyState.Loading -> LoadingChat()
                         is EmptyState.Failed -> LoadFailedChat(message = empty.message, onRetry = onReload)
                         EmptyState.Blank -> EmptyChat(identity = identity, onSuggestion = onInputChange)
                     }
