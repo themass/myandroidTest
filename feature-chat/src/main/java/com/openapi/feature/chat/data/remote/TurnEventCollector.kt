@@ -84,6 +84,11 @@ internal class TurnEventCollector(
         emit: suspend (ChatStreamEvent) -> Unit,
         expectedTurnId: String?,
         assistantLocalId: String,
+        /**
+         * 服务端正式用户消息 id（submit 回执里的 message_id；重新生成没有新消息时为 null）。
+         * 带进 Done.userId，界面立刻能用它编辑/删除刚发出的用户气泡。
+         */
+        userMessageId: String?,
         persist: suspend (fullText: String) -> Unit,
     ) {
         val acc = StringBuilder()
@@ -120,7 +125,7 @@ internal class TurnEventCollector(
                             emit(
                                 ChatStreamEvent.Done(
                                     assistantId = ev.assistantMessageId.takeIf { it > 0 }?.toString(),
-                                    userId = null,
+                                    userId = userMessageId,
                                     fullText = acc.toString(),
                                 ),
                             )
@@ -131,7 +136,7 @@ internal class TurnEventCollector(
                             emit(
                                 ChatStreamEvent.Done(
                                     assistantId = ev.assistantMessageId.takeIf { it > 0 }?.toString(),
-                                    userId = null,
+                                    userId = userMessageId,
                                     fullText = acc.toString(),
                                 ),
                             )
@@ -169,6 +174,8 @@ internal class TurnEventCollector(
             // 让界面保留半截回复而不是整段消失（上层会再兜底拉一次历史）。
             if (acc.isNotEmpty()) {
                 persist(acc.toString())
+                // userId 在这里保持 null：上层靠「done 里两个 id 都没有」识别
+                // 「没等到 done 帧、半截收尾」并提示「回复没有完整收到」。
                 emit(ChatStreamEvent.Done(assistantId = null, userId = null, fullText = acc.toString()))
             } else {
                 emit(ChatStreamEvent.Error("没有收到回复，请重试"))

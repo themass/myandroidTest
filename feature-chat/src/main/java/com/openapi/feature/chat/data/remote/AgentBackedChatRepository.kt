@@ -147,7 +147,16 @@ class AgentBackedChatRepository(
                     },
                 )
             }
-            collectTurn(sid, receipt.turnId, assistantId, clientId, userText, persistUserMessage)
+            collectTurn(
+                sid,
+                receipt.turnId,
+                assistantId,
+                clientId,
+                userText,
+                persistUserMessage,
+                // 回执里的正式 id：带进 Done.userId，刚发出的气泡立刻可编辑/删除
+                userServerId = receipt.messageId.takeIf { it > 0 }?.toString(),
+            )
         } finally {
             guard.end()
         }
@@ -173,7 +182,7 @@ class AgentBackedChatRepository(
                 return@flow
             }
             remote.regenerate(sid, lastUser.id)
-            collectTurn(sid, null, assistantId, null, null, false)
+            collectTurn(sid, null, assistantId, null, null, false, userServerId = null)
         } finally {
             MigrationGuard.end()
         }
@@ -193,6 +202,7 @@ class AgentBackedChatRepository(
         clientMessageId: String?,
         userText: String?,
         persistUser: Boolean,
+        userServerId: String?,
     ) {
         TurnEventCollector(
             open = { lastEventId -> remote.events(sessionId, lastEventId) },
@@ -201,6 +211,7 @@ class AgentBackedChatRepository(
             emit = { emit(it) },
             expectedTurnId = expectedTurnId,
             assistantLocalId = assistantLocalId,
+            userMessageId = userServerId,
             persist = { fullText -> persistTurn(sessionId, clientMessageId, userText, persistUser, fullText) },
         )
     }

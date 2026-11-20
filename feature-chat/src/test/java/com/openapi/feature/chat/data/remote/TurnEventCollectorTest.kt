@@ -35,6 +35,8 @@ class TurnEventCollectorTest {
     private class Harness(
         waits: MutableList<Long> = mutableListOf(),
         isFatal: (Throwable) -> Boolean = { false },
+        /** submit 回执里的服务端用户消息 id；0 = 没有（重新生成）。 */
+        private val userServerId: Long = 0L,
         /** 每次 open 递增计数；返回这一轮要吐的流（可 throw）。放最后一个参数：尾部 lambda 字面量绑到它。 */
         private val streams: (attempt: Int, lastEventId: String?) -> Flow<AgentSseFrame>,
     ) {
@@ -58,6 +60,7 @@ class TurnEventCollectorTest {
             emit = { events += it },
             expectedTurnId = null,
             assistantLocalId = "a1",
+            userMessageId = userServerId.takeIf { it > 0 }?.toString(),
             persist = { persisted += it },
         )
 
@@ -165,6 +168,31 @@ class TurnEventCollectorTest {
         val e = h.events.single() as ChatStreamEvent.Error
         assertEquals("这条消息不符合内容规范", e.message)
         assertEquals("服务端明确报错就不该重连", 1, h.opens)
+    }
+
+    @Test
+    fun doneCarriesTheUserMessageIdFromSubmitSoEditingWorksAtOnce() = runTest {
+        // 编辑/删除用户气泡要用服务端正式 id。submit 回执里的 message_id 必须
+        // 一路带进 Done.userId，否则刚发完的气泡是本地 id，编辑会报「还没同步到服务端」，
+        // 直到重启 App 重新拉历史才能编辑。
+        val h = Harness(userServerId = 91L) { _, _ ->
+            flowOf(delta("t1", "你好"), done("t1"))
+        }
+        h.run()
+        val d = h.events.last() as ChatStreamEvent.Done
+        assertEquals("91", d.userId)
+        assertEquals("55", d.assistantId)
+    }
+
+    @Test
+    fun userMessageIdStaysNullOnRegenerate() = runTest {
+        // 重新生成没有新的用户消息（submit 回执 id 为 0），不能把 0 当成正式 id。
+        val h = Harness(userServerId = 0L) { _, _ ->
+            flowOf(delta("t1", "再说一遍"), done("t1"))
+        }
+        h.run()
+        val d = h.events.last() as ChatStreamEvent.Done
+        assertEquals(null, d.userId)
     }
 
     @Test
