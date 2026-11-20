@@ -211,7 +211,11 @@ fun HomeScreen() {
             ) {
                 stateHolder.SaveableStateProvider(current.name) {
                     when (current) {
-                        HomeTab.Chat -> ChatRoute(onMenuClick = openDrawer)
+                        HomeTab.Chat -> ChatRoute(
+                            onMenuClick = openDrawer,
+                            // 拍照解题在 :feature-photosolve：feature 之间不依赖，由 app 在这里接上入口（P3-22）
+                            onOpenPhotoSolve = { com.openapi.feature.photosolve.PhotoSolveActivity.start(context) },
+                        )
                         HomeTab.Companion -> CompanionRoute(onMenuClick = openDrawer)
                         HomeTab.Channels -> ChannelsHub()
                         HomeTab.AgentChat -> AgentChatEntry()

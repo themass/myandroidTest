@@ -58,6 +58,8 @@ import com.openapi.feature.chat.R
 fun ChatRoute(
     modifier: Modifier = Modifier,
     onMenuClick: (() -> Unit)? = null,
+    /** 「拍照解题」入口：目标页在 :feature-photosolve，feature 之间不许互相依赖，由上层注入（P3-22）。 */
+    onOpenPhotoSolve: () -> Unit,
     viewModel: ChatViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -127,11 +129,8 @@ fun ChatRoute(
             if (requireLogin(context)) filePicker.launch(arrayOf("*/*"))
         },
         ComposerAction("photo_solve", context.getString(R.string.chat_attach_photo_solve), Icons.Outlined.Calculate) {
-            // 拍照解题在 :feature-photosolve，这里用显式组件名启动，避免 feature 之间互相依赖。
-            // TODO: photosolve 拆成独立模块后改为直接调用其入口。
-            context.startActivity(
-                android.content.Intent().setClassName(context.packageName, "com.openapi.feature.photosolve.PhotoSolveActivity"),
-            )
+            // 以前用字符串类名 setClassName 启动，改包名/类名只会静默失败（整改清单 P3-22）。
+            onOpenPhotoSolve()
         },
         ComposerAction("video", context.getString(R.string.chat_attach_video), Icons.Outlined.Videocam) {
             toast(R.string.chat_video_soon)
