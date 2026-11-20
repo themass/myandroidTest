@@ -25,6 +25,9 @@ class ModuleGraphTest {
         "common" to 0,
         "mediaview" to 1, "speech" to 1, "subtitle" to 1, "imaging" to 1, "cast" to 1,
         "chatkit" to 1, "retromusic" to 1,
+        // 数字人原生引擎封装（Duix/Live2D/Tao）：只有 okhttp + coroutines，不 import 业务代码，
+        // 所以和 chatkit 同层，能被 :feature-companion 复用。
+        "dh-engines" to 1,
         "core" to 2,
         "app" to 4,
     )
@@ -34,7 +37,16 @@ class ModuleGraphTest {
         "subtitle" to "speech",
     )
 
-    private val packageRuleExempt = setOf("retromusic", "feature-companion")
+    private val packageRuleExempt = setOf("retromusic", "feature-companion", "dh-engines")
+
+    /**
+     * 包名与「模块名推出来的根包」不一致的模块：依赖使用检查要用它**真实**的根包，
+     * 否则会把「声明了但没用到」误报出来（:dh-engines 的代码在 com.openapi.ks.dh 下）。
+     */
+    private val rootPackageOverride = mapOf(
+        "retromusic" to "com.openapi.retromusic",
+        "dh-engines" to "com.openapi.ks.dh",
+    )
 
     /**
      * 正在搬迁中的目录：允许暂时保留旧包名，但**必须在搬完后删掉这里**。
@@ -138,7 +150,7 @@ class ModuleGraphTest {
             projectDependencies(module)
                 .filter { (conf, dep) -> !conf.startsWith("test") && dep in modules }
                 .forEach { (_, dep) ->
-                    val pkg = if (dep == "retromusic") "com.openapi.retromusic" else rootPackage(dep)
+                    val pkg = rootPackageOverride[dep] ?: rootPackage(dep)
                     if (!Regex("""(?<![\w.])""" + Regex.escape(pkg) + """\b""").containsMatchIn(text)) {
                         violations += ":$module 声明了 :$dep 但没有用到"
                     }
