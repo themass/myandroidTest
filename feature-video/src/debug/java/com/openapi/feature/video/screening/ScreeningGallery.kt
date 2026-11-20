@@ -1,7 +1,12 @@
 package com.openapi.feature.video.screening
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -79,15 +84,33 @@ internal fun ScreeningGallery(
     LaunchedEffect(covers, channelParam) { if (channelParam != null) covers.load() }
     LaunchedEffect(shots, selected) { if (selected?.imageListKey() != null) shots.load() }
 
+    // 三层之间是「进一层/退一层」，跟放映场主页共用同一套转场契约。
+    val motion = LocalScreeningMotion.current
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val slidePx = with(density) { motion.slideDistanceDp().dp.toPx() }
+    val (fadeEnter, fadeExit) = screenFade(motion)
+
     Box(Modifier.fillMaxSize().background(Ink)) {
-        if (selected == null) {
-            AlbumCovers(covers, coverState, onOpen = { album = it }, onExit = onExit)
-        } else {
-            AlbumContents(selected, shots, onBack = { album = null }, onOpen = { viewing = it })
+        AnimatedContent(
+            targetState = if (selected == null) 0 else 1,
+            transitionSpec = { screenSlide(motion, slidePx, targetState > initialState) },
+            label = "albumLevel",
+        ) { level ->
+            if (level == 0) {
+                AlbumCovers(covers, coverState, onOpen = { album = it }, onExit = onExit)
+            } else {
+                val book = selected ?: return@AnimatedContent
+                AlbumContents(book, shots, onBack = { album = null }, onOpen = { viewing = it })
+            }
         }
         val images = shots.items
-        if (viewing in images.indices) {
-            Lightbox(images, viewing) { viewing = it }
+        AnimatedVisibility(
+            visible = viewing in images.indices,
+            enter = fadeIn(tween(motion.enterDurationMs(), easing = EaseStandard)),
+            exit = fadeOut(tween(motion.exitDurationMs(), easing = EaseExit)),
+            label = "lightbox",
+        ) {
+            if (viewing in images.indices) Lightbox(images, viewing) { viewing = it }
         }
     }
 }
@@ -108,6 +131,7 @@ internal fun RemoteEntry.imageListKey(): String? = param ?: channelParam
 @Composable
 private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteEntry) -> Unit, onExit: () -> Unit) {
     val listState = state
+    val seen = remember { mutableSetOf<String>() }
     LaunchedEffect(listState, pager) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
             .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
@@ -141,8 +165,8 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 repeat(2) { column ->
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        shown.filterIndexed { index, _ -> index % 2 == column }.forEach { book ->
-                            Column(Modifier.clip(Tile).clickable { onOpen(book) }) {
+                        shown.filterIndexed { index, _ -> index % 2 == column }.forEachIndexed { index, book ->
+                            Column(Modifier.enterFeedItem(seen, book.key, index).pressable(Tile) { onOpen(book) }) {
                                 Box(Modifier.fillMaxWidth().aspectRatio(book.ratio.coerceIn(0.6f, 1.7f))) {
                                     EntryCover(book, Modifier.matchParentSize())
                                     Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x33141729), Ink))))
@@ -172,6 +196,7 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
 @Composable
 private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Unit, onOpen: (Int) -> Unit) {
     val state = rememberLazyListState()
+    val seen = remember { mutableSetOf<String>() }
     LaunchedEffect(state, pager) {
         snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
             .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 9) pager.loadMore() }
@@ -203,10 +228,12 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
         if (!pager.loading && shots.isEmpty()) item { Text("这一册还没有图片，返回换一册。", Modifier.padding(14.dp), color = Muted) }
         items(shots.chunked(3)) { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                row.forEach { shot ->
+                row.forEachIndexed { column, shot ->
                     val index = shots.indexOf(shot)
                     Box(
-                        Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(7.dp)).clickable { onOpen(index) },
+                        Modifier.weight(1f).aspectRatio(1f)
+                            .enterFeedItem(seen, shot.key, column)
+                            .pressable(RoundedCornerShape(7.dp)) { onOpen(index) },
                     ) {
                         EntryCover(shot, Modifier.matchParentSize())
                         if (shot.title.isNotBlank()) {
