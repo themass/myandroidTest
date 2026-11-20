@@ -32,12 +32,8 @@ import kotlinx.coroutines.withContext
 
 class ChatViewModel : ViewModel() {
 
-    private companion object {
-        /** 流式文字的释放节拍：约 25 次/秒，既顺滑又不会让 Markdown 重解析太频繁。 */
-        const val REVEAL_TICK_MS = 40L
-        /** 单个附件上传+识别的超时：超时按失败处理，气泡显示重试图标，不再一直转圈。 */
-        const val ATTACHMENT_TIMEOUT_MS = 120_000L
-    }
+    // 节拍与超时不在这里定义：真值在使用它们的 ReplyStreamer / AttachmentSender 里，
+    // 这里曾经抄了一份没人用的副本（整改清单 P3-18），改抄本不生效纯误导，删。
 
     private val repository = ChatDependencies.require()
     private val loadHistory = LoadHistoryUseCase(repository)
