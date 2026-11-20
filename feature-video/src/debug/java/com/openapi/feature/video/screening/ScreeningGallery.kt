@@ -128,10 +128,9 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
             Text("一册一个地方，\n翻到最后一张为止。", color = White, fontSize = 37.sp, lineHeight = 42.sp, fontWeight = FontWeight.Black)
             FeedError(pager.error, pager::reload)
             Spacer(Modifier.height(12.dp))
+            // 首屏加载只留扫光骨架一种信号，不再叠转圈（用户点过名）
             if (pager.loading && shown.isEmpty()) {
-                Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(Modifier.size(26.dp), strokeWidth = 2.dp)
-                }
+                ListSkeleton(Modifier.padding(top = 2.dp), rows = 2, rowHeight = 170.dp)
             }
         }
         if (!pager.loading && shown.isEmpty()) {
@@ -165,7 +164,7 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
                 }
             }
         }
-        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && shown.isEmpty()) }
     }
 }
 
@@ -194,10 +193,9 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
             }
             FeedError(pager.error, pager::reload)
             Heading("全部照片", if (pager.loading) "正在取数据…" else "${shots.size} 张")
+            // 同列表页：首屏等待只留扫光骨架，不叠第二个转圈
             if (pager.loading && shots.isEmpty()) {
-                Box(Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(Modifier.size(26.dp), strokeWidth = 2.dp)
-                }
+                ListSkeleton(rows = 2, rowHeight = 120.dp)
             }
         }
         if (!pager.loading && shots.isEmpty()) item { Text("这一册还没有图片，返回换一册。", Modifier.padding(14.dp), color = Muted) }

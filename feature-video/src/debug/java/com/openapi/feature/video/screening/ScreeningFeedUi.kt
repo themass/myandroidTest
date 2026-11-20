@@ -8,10 +8,13 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
@@ -140,15 +143,27 @@ internal class FeedPager(
  *
  * 原来一律拼「没取到服务端数据：<异常 toString>」，把服务端 500 也报成看着像网络问题，
  * 用户就会去查明明正常的网络（真机就撞上了）。错误类型是 NetError 的四个子类，分支直白。
+ *
+ * 注意网络层的形状：`awaitInfoList`/`awaitGet` 为了兼容旧同步调用，把 NetError 又包了一层
+ * `ExecutionException`（BaseServiceAwait.kt）。不先剥掉这层，下面的 when 永远落 else，
+ * 新文案形同虚设（真机截图里旧文案复活就是这个原因）。
  */
-internal fun friendlyFeedError(cause: Throwable): String = when (cause) {
-    is NetError.BusinessError ->
-        if (cause.errno > 0) "服务端返回错误（errno ${cause.errno}）：${cause.msg}"
-        else "服务端返回错误：${cause.msg}"
-    is NetError.ServerError -> "服务端没接住这个请求（HTTP ${cause.statusCode}）"
-    is NetError.TimeoutError -> "等服务端回应超时，网络可能很慢"
-    is NetError.NetworkError -> "没连上服务端，检查下网络再重试"
-    else -> "没取到服务端数据：${cause.message ?: "未知原因"}"
+internal fun friendlyFeedError(cause: Throwable): String {
+    var c = cause
+    while ((c is java.util.concurrent.ExecutionException || c is java.util.concurrent.CancellationException) &&
+        c.cause != null && c.cause !== c
+    ) {
+        c = c.cause!!
+    }
+    return when (c) {
+        is NetError.BusinessError ->
+            if (c.errno > 0) "服务端返回错误（errno ${c.errno}）：${c.msg}"
+            else "服务端返回错误：${c.msg}"
+        is NetError.ServerError -> "服务端没接住这个请求（HTTP ${c.statusCode}）"
+        is NetError.TimeoutError -> "等服务端回应超时，网络可能很慢"
+        is NetError.NetworkError -> "没连上服务端，检查下网络再重试"
+        else -> "没取到服务端数据：${c.message ?: "未知原因"}"
+    }
 }
 
 /**
@@ -210,6 +225,22 @@ internal fun RemoteCover(url: String?, modifier: Modifier = Modifier) {
     )
 }
 
+/**
+ * 列表加载骨架：几条扫光占位行，替代独立转圈。
+ *
+ * 用户反馈「2 个加载 loading，只要一个」：首屏转圈和列表骨架同屏各转各的，
+ * 屏幕上出现两个互相不认识的等待信号。全站加载只留扫光这一种语言
+ * （和 [ShimmerPlaceholder] 同一块光），行高比例接近真实条目，数据落地不跳版。
+ */
+@Composable
+internal fun ListSkeleton(modifier: Modifier = Modifier, rows: Int = 3, rowHeight: androidx.compose.ui.unit.Dp = 84.dp) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        repeat(rows) {
+            ShimmerPlaceholder(Modifier.fillMaxWidth().height(rowHeight))
+        }
+    }
+}
+
 /** 取数失败的横条：说清没取到，并给一个重试。绝不拿样例填这块位置。 */
 @Composable
 internal fun FeedError(error: String?, onRetry: () -> Unit, modifier: Modifier = Modifier) {
@@ -222,9 +253,15 @@ internal fun FeedError(error: String?, onRetry: () -> Unit, modifier: Modifier =
     }
 }
 
-/** 列表底部：转圈 + 到底提示。 */
+/** 列表底部：到底提示；翻页中的转圈只在屏上已有内容时出现。 */
 @Composable
-internal fun FeedEndRow(loading: Boolean, hasMore: Boolean, onLoadMore: () -> Unit, modifier: Modifier = Modifier) {
+internal fun FeedEndRow(
+    loading: Boolean, hasMore: Boolean, onLoadMore: () -> Unit,
+    /** 首屏加载中（列表还空着）：底部不再转圈，等待信号由列表位的扫光骨架统一表达。 */
+    firstPageLoading: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    if (loading && firstPageLoading) return
     Box(modifier.fillMaxWidth().padding(vertical = 14.dp), contentAlignment = Alignment.Center) {
         when {
             loading -> CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)

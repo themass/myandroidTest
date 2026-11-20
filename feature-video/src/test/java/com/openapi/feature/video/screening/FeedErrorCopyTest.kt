@@ -33,4 +33,20 @@ class FeedErrorCopyTest {
         val text = friendlyFeedError(NetError.NetworkError(java.io.IOException("no route")))
         assertTrue(text, text.contains("网络"))
     }
+
+    /**
+     * 真机回归：`awaitInfoList` 把 NetError 包在 ExecutionException 里再抛，
+     * 上一版 `friendlyFeedError` 直接 when(cause) 永远落 else，新文案形同虚设——
+     * 用户截图里旧文案「没取到服务端数据: …BusinessError: System error」复活就是这个原因。
+     */
+    @Test
+    fun `error wrapped in ExecutionException still gets friendly copy`() {
+        val wrapped = java.util.concurrent.ExecutionException(
+            NetError.BusinessError(10000, "System error，please try again"),
+        )
+        val text = friendlyFeedError(wrapped)
+        assertTrue(text, text.startsWith("服务端返回错误"))
+        assertTrue(text, text.contains("10000"))
+        assertTrue(text, !text.contains("网络"))
+    }
 }

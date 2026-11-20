@@ -242,14 +242,10 @@ private fun Channels(
                 val entry = hero
                 if (entry == null) {
                     // 空占位不再是一块死色板：加载中扫一层缓慢移动的光，
-                    // 表示「这块位置留着，内容在路上」；失败就停成静态底，不空带动画
+                    // 表示「这块位置留着，内容在路上」；失败就停成静态底，不空带动画。
+                    // 这里不再叠转圈——转圈和扫光说的是同一件事，屏上留一个就够（用户点过名）。
                     if (pager.loading) ShimmerPlaceholder(Modifier.matchParentSize())
                     else Box(Modifier.matchParentSize().background(Lift))
-                    if (pager.loading) {
-                        CircularProgressIndicator(
-                            Modifier.align(Alignment.Center).size(26.dp), strokeWidth = 2.dp, color = Mint,
-                        )
-                    }
                 } else {
                     Box(Modifier.matchParentSize()
                         .clickable {
@@ -320,7 +316,7 @@ private fun Channels(
                 }
             }
         }
-        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && pager.items.isEmpty()) }
     }
 }
 
@@ -398,10 +394,10 @@ private fun Library(
                 IconButton(onClick = { poster = !poster }) { Icon(if (poster) Icons.Default.ViewList else Icons.Default.GridView, if (poster) "切换列表视图" else "切换海报视图") }
             }
             FilterRow(listOf("全部", "未观看"), filter) { filter = it }
+            // 首屏加载：用和条目等高的扫光骨架占位，而不是再来一个转圈
+            //（用户点过名「2 个 loading 只要一个」：转圈和底部的转圈会同屏出现）
             if (pager.loading && pager.items.isEmpty()) {
-                Box(Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(Modifier.size(26.dp), strokeWidth = 2.dp)
-                }
+                ListSkeleton(Modifier.padding(top = 10.dp), rowHeight = 74.dp)
             }
         }
         if (!pager.loading && shown.isEmpty()) item { Text("这一页没有内容。切回「全部」或者返回上一个频道。", Modifier.padding(14.dp), color = Muted) }
@@ -411,7 +407,7 @@ private fun Library(
                 if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         } else items(shown, key = { it.key }) { entry -> EntryCard(entry, progress[entry.key] ?: 0L, false, Modifier.fillMaxWidth(), openEntry) }
-        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && pager.items.isEmpty()) }
     }
 }
 
