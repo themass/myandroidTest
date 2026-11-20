@@ -6,7 +6,8 @@ import com.openapi.core.config.Constants
  * 放映场的频道分类 + 「本地视频」用的随包样片清单。
  *
  * 服务端页面不从这里取数据：频道/片单/图集一律真接口，取不到就报空或报错。
- * 这里只剩两样真东西：FeedCategory（对应四个真接口）和随包样片（本地视频页播放的素材）。
+ * 这里只剩两样真东西：FeedCategory（对应三个真接口）和随包样片（本地视频页播放的素材）。
+ * 分类和旧频道页（LegacyChannelEntries）保持同口径：只有电影和夜色，「自定义」分类已下线。
  */
 internal enum class FeedCategory(
     val label: String,
@@ -16,7 +17,6 @@ internal enum class FeedCategory(
     ALL("全部", Constants.API_RECOMMEND_URL),
     MOVIE("电影", Constants.API_RECOMMEND_MOVIE_URL),
     NIGHT("夜色", Constants.API_RECOMMEND_NIGHT_URL),
-    CUSTOMER("自定义", Constants.API_RECOMMEND_CUSTOME_URL),
 }
 
 /** 样例片单：随包 assets 里的 12 秒样片；`channel` 为 null 时给全部。 */
