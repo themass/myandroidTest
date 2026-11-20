@@ -49,6 +49,11 @@ class LaunchActivity : LogActivity() {
         launchBinding.skipView.setOnClickListener { skip(it) }
         MobAgent.init(this)
         LoginTask.start(this)
+        // 剧本房 adb 验收带 script_case：跳过开屏倒计时/广告，立刻进主页，避免 hello 门禁超时。
+        if (!intent.getStringExtra(com.openapi.app.home.HomeActivity.EXTRA_SCRIPT_CASE).isNullOrBlank()) {
+            launch()
+            return
+        }
         countdownHandler.postDelayed(startMainRunnable, max.toLong())
         observeAdEvents()
         showAdview()
