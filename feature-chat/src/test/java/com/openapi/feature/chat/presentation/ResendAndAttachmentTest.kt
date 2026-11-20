@@ -143,6 +143,56 @@ class ResendAndAttachmentTest {
         assertTrue(h.state.value.sending.not())
     }
 
+    /**
+     * 整改清单 P1-11：附件发送失败后，草稿托盘和输入框文字必须回到输入栏，
+     * 用户才能「改一下再发」。气泡的重试保留，但只够原样重发，不够改。
+     * 此刻 onSend 已把托盘和输入清空，deliver 失败时才该把它们放回去。
+     */
+    @Test
+    fun failedAttachmentSendRestoresTheDraftTrayAndText() {
+        val h = SenderHarness()
+        val file = java.io.File.createTempFile("img", ".jpg")
+        file.deleteOnExit()
+        h.repo.uploadImageResult = null // 上传拿不到 upload_id → 失败
+        val message = imageMsg(images = listOf(ImageAttachment(path = file.absolutePath)))
+
+        runBlocking { h.sender.deliver(message, restoreDraftsOnFailure = true) }
+
+        assertEquals(DeliveryStatus.FAILED, h.repo.saved.single().delivery)
+        val restored = h.state.value.drafts.single()
+        assertEquals(MessageKind.IMAGE, restored.kind)
+        assertEquals(file.absolutePath, restored.staged.file.absolutePath)
+        assertEquals("看图", h.state.value.input)
+    }
+
+    /** 本机附件文件已经没了（没有字节可恢复）：不把空托盘硬塞回去，输入框也不动。 */
+    @Test
+    fun failedAttachmentSendRestoresNothingWhenTheLocalFilesAreGone() {
+        val h = SenderHarness()
+        val message = imageMsg(images = listOf(ImageAttachment(path = "/nonexistent/lost.jpg")))
+
+        runBlocking { h.sender.deliver(message, restoreDraftsOnFailure = true) }
+
+        assertTrue(h.state.value.drafts.isEmpty())
+        assertEquals("", h.state.value.input)
+    }
+
+    /** 失败后用户已经在输入框打了新字：草稿照常回来，但不拿旧文字盖掉他刚打的。 */
+    @Test
+    fun failedAttachmentSendDoesNotOverwriteWhatTheUserAlreadyRetyped() {
+        val h = SenderHarness()
+        val file = java.io.File.createTempFile("img", ".jpg")
+        file.deleteOnExit()
+        h.repo.uploadImageResult = null
+        val message = imageMsg(images = listOf(ImageAttachment(path = file.absolutePath)))
+        h.state.value = h.state.value.copy(input = "换成这句话")
+
+        runBlocking { h.sender.deliver(message, restoreDraftsOnFailure = true) }
+
+        assertEquals("换成这句话", h.state.value.input)
+        assertEquals(1, h.state.value.drafts.size)
+    }
+
     // ---------------------------------------------------------------- submitEdit
 
     private class EditHarness {

@@ -44,18 +44,18 @@ internal class AttachmentSender(
     }
 
     /** 附件发送也可以被「停止」打断：和流式回复一样显示生成中，停止后该消息标为可重试。 */
-    suspend fun deliver(message: ChatMessage) {
+    suspend fun deliver(message: ChatMessage, restoreDraftsOnFailure: Boolean = false) {
         inFlight += message.id
         state.update { it.copy(streaming = true) }
         try {
-            deliverBody(message)
+            deliverBody(message, restoreDraftsOnFailure)
         } finally {
             inFlight -= message.id
             state.update { it.copy(streaming = streamer.isReplyActive()) }
         }
     }
 
-    private suspend fun deliverBody(message: ChatMessage) {
+    private suspend fun deliverBody(message: ChatMessage, restoreDraftsOnFailure: Boolean) {
         streamer.setDelivery(message.id, DeliveryStatus.SENDING)
         val sessionId = repository.currentSessionId()
 
@@ -74,7 +74,7 @@ internal class AttachmentSender(
                     }
                 }
                 if (uploadId == null) {
-                    fail(message, sessionId)
+                    fail(message, sessionId, restoreDraftsOnFailure)
                     return
                 }
                 image to OutgoingAttachment(uploadId = uploadId, kind = MessageKind.IMAGE, name = file.name)
@@ -101,7 +101,7 @@ internal class AttachmentSender(
                 }
             }.getOrNull()
             if (reply == null) {
-                fail(message, sessionId)
+                fail(message, sessionId, restoreDraftsOnFailure)
                 return
             }
         }
@@ -110,12 +110,41 @@ internal class AttachmentSender(
     }
 
     /** 失败收尾：撤掉占位、标红、写回本地，行为与以前一致。 */
-    private suspend fun fail(message: ChatMessage, sessionId: Long) {
+    private suspend fun fail(message: ChatMessage, sessionId: Long, restoreDraftsOnFailure: Boolean) {
         val stopped = !kotlin.coroutines.coroutineContext[kotlinx.coroutines.Job]!!.isActive
         state.update {
             it.copy(sending = false, error = if (stopped) "已停止，消息未发出，可点重试" else "发送失败，请稍后重试")
         }
         streamer.setDelivery(message.id, DeliveryStatus.FAILED)
         persistDelivery(message, DeliveryStatus.FAILED)
+        if (restoreDraftsOnFailure) restoreDrafts(message)
+    }
+
+    /**
+     * 从输入栏发起的发送失败后，把附件和文字放回输入栏（整改清单 P1-11）：
+     * 气泡上的重试只能原样再发一次，用户要「改一下再发」就得靠这里。
+     * 只恢复本机还在的文件（没有字节什么都恢复不了）；输入框已有内容
+     * （用户已经在重打）时不盖掉它，只把附件放回托盘。
+     */
+    private fun restoreDrafts(message: ChatMessage) {
+        val staged = ArrayList<DraftAttachment>()
+        fun addOne(path: String, name: String, kind: MessageKind) {
+            val file = java.io.File(path)
+            if (!file.exists()) return
+            staged += DraftAttachment(
+                id = "draft-${System.nanoTime()}-${staged.size}",
+                kind = kind,
+                staged = StagedAttachment(file = file, displayName = name, sizeBytes = file.length()),
+            )
+        }
+        message.images.forEach { addOne(it.path, java.io.File(it.path).name, MessageKind.IMAGE) }
+        message.files.forEach { addOne(it.path, it.name, MessageKind.FILE) }
+        if (staged.isEmpty()) return
+        state.update { current ->
+            current.copy(
+                drafts = current.drafts + staged,
+                input = if (current.input.isEmpty()) message.text else current.input,
+            )
+        }
     }
 }
