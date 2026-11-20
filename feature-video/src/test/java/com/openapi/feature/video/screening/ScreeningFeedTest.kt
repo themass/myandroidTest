@@ -141,4 +141,45 @@ class ScreeningFeedTest {
         assertEquals("img_night", entry.galleryChannelParam())
         assertNull(remoteEntry(1L, 0, "视频", null, null, 0f, "video://play?id=1", false, 0)!!.galleryChannelParam())
     }
+
+    // ---- 真机回归：客户端调用口径必须和原页面一致（用户实机「网络问题」的根因）----
+
+    @Test
+    fun `外链卡认 http 和 https，其它 scheme 不算`() {
+        assertTrue(isWebAction("https://exex.j8olo.cc/page/shipin/15"))
+        assertTrue(isWebAction("http://a.example/x"))
+        assertFalse(isWebAction("videoList1://video/list?channel=movie_1"))
+        assertFalse(isWebAction("video://play?id=1"))
+        assertFalse(isWebAction(null))
+    }
+
+    @Test
+    fun `视频频道内页用 param：外链频道卡的真实标识在 param 里`() {
+        // 服务端真实频道行：actionUrl 是外链不带 channel=，param 才有值（探针实测 53 个频道全这样）
+        val entry = remoteEntry(1L, 0, "成人动漫", null, null, 1.2f,
+            "https://exex.j8olo.cc/page/shipin/15", false, dataType = 5, param = "se8成人动漫")!!
+        assertNull(entry.channelParam)
+        assertEquals("se8成人动漫", entry.videoChannelKey())
+        // param 没有时退回 actionUrl 解析值（videoList1:// 频道卡）
+        val inner = remoteEntry(2L, 0, "内部频道", null, null, 1f,
+            "videoList1://video/list?channel=movie_1", false, dataType = 5)!!
+        assertEquals("movie_1", inner.videoChannelKey())
+        // 两个都没有就没有 key：调用方不许拿 null/空串去发 items.json
+        assertNull(remoteEntry(3L, 0, "直链", null, null, 1f, "video://play?id=1", false, 0)!!.videoChannelKey())
+    }
+
+    @Test
+    fun `外链卡路由到 WEB，不进播放器也不发空 channel`() {
+        val web = remoteEntry(1L, 0, "成人动漫", null, null, 1.2f,
+            "https://exex.j8olo.cc/page/shipin/15", false, dataType = 5, param = "se8成人动漫")!!
+        assertEquals(FeedRoute.WEB, routeOf(web))
+        // 原页面里这类卡点下去是 WebView；放映场不许把它判给 CHANNEL/PLAY
+        assertEquals(FeedRoute.CHANNEL, routeOf(remoteEntry(2L, 0, "内部频道", null, null, 1f,
+            "videoList1://video/list?channel=movie_1", false, dataType = 5)!!))
+        // 直链 mp4 也是 https scheme：原路由表对 https 只有 WebView 一个去处，跟它对齐
+        assertEquals(FeedRoute.WEB, routeOf(remoteEntry(3L, 0, "直链视频", null, null, 1f,
+            "https://cdn.example/a.mp4", false, dataType = 2)!!))
+        assertEquals(FeedRoute.ALBUM, routeOf(remoteEntry(4L, 0, "册子", null, null, 1f,
+            "img://channel/list?channel=img_night", false, dataType = 6)!!))
+    }
 }

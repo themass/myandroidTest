@@ -66,6 +66,22 @@ internal fun schemeOf(actionUrl: String?): String? =
     actionUrl?.substringBefore("://", "")?.takeIf { it.isNotEmpty() && it != actionUrl }?.lowercase()
 
 /**
+ * actionUrl 是普通网页链接。原逻辑（`ConfigActionJump.configMap`）把 `http`/`https`
+ * 一律路由到 WebView；放映场以前没有这一分支，外链卡被塞进播放器或直接发空
+ * `channel=` 给 items.json（服务端查不到频道直接报错）。
+ */
+internal fun isWebAction(actionUrl: String?): Boolean =
+    schemeOf(actionUrl) == "http" || schemeOf(actionUrl) == "https"
+
+/**
+ * 视频频道内页取数用的 key。原页面 `VideoChannelListFragment.getUrl` 传的是 `vo.param`：
+ * 服务端真实频道行（如 `param='se8成人动漫'`）的 actionUrl 是外链、不带 `channel=`，
+ * 真正的频道标识只在 param 里。param 没有才退回 actionUrl 解析值（`videoList1://…?channel=`）。
+ */
+internal fun RemoteEntry.videoChannelKey(): String? =
+    param?.takeIf { it.isNotBlank() } ?: channelParam
+
+/**
  * 稳定 id：进度、收藏、弹幕分窗都要用它。
  * 服务端 id 最优先（换地址不变），其次 actionUrl（地址就是它的身份），最后退到序号。
  */

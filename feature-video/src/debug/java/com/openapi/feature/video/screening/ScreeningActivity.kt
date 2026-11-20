@@ -41,6 +41,8 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.openapi.core.config.Constants
+import com.openapi.core.event.ConfigActionEvent
+import com.openapi.core.event.CoreEvents
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
@@ -109,9 +111,14 @@ private fun ScreeningHome(activity: ScreeningActivity) {
             detail = entry.description,
             coverUrl = entry.imageUrl,
             coverAsset = entry.sampleCoverAsset(),
-            channelParam = entry.channelParam,
+            // 原页面 VideoChannelListFragment.getUrl 用的是 vo.param；外链频道卡没有它就没有内页
+            channelParam = entry.videoChannelKey()?.takeIf { !isWebAction(entry.actionUrl) },
             sample = sampleChannelFor(entry),
         )
+    }
+    /** 外链卡：交回原路由（`ConfigActionJump` → WebView），和旧首页点同一张卡的行为一致。 */
+    val openWeb: (RemoteEntry) -> Unit = { entry ->
+        CoreEvents.postConfigAction(ConfigActionEvent(activity, entry.actionUrl, entry.title, HashMap()))
     }
     val openGallery: (RemoteEntry?) -> Unit = { entry ->
         galleryChannel = entry?.galleryChannelParam()
@@ -136,7 +143,7 @@ private fun ScreeningHome(activity: ScreeningActivity) {
             }
             gallery -> ScreeningGallery(activity, store, galleryChannel) { gallery = false }
             else -> holder.SaveableStateProvider("channels") {
-                Channels(store, onChannel = openChannel, onPlay = openEntry, onOpenLocal = {
+                Channels(store, onChannel = openChannel, onPlay = openEntry, onWeb = openWeb, onOpenLocal = {
                     channelPage = ScreeningChannelPage(samples.title, samples.category, null, samples.cover, null, samples)
                 }, onGallery = openGallery)
             }
@@ -152,13 +159,6 @@ private fun progressKey(entryKey: String) = "position:$entryKey"
 
 private fun storedProgress(preferences: android.content.SharedPreferences, entryKey: String): Long =
     preferences.getLong(progressKey(entryKey), if (entryKey == sampleReelKey("ridge")) 4200L else 0L)
-
-/** 一个推荐位在页面上怎么响应：频道/图集入口进内页，其余直接播。 */
-private fun routeOf(entry: RemoteEntry): FeedRoute = when {
-    entry.isImageCard -> FeedRoute.ALBUM
-    entry.isGroupEntry -> FeedRoute.CHANNEL
-    else -> FeedRoute.PLAY
-}
 
 @Composable
 internal fun Cover(id: String, modifier: Modifier = Modifier) {
@@ -184,6 +184,7 @@ private fun Channels(
     store: ScreeningFeedStore,
     onChannel: (RemoteEntry) -> Unit,
     onPlay: (RemoteEntry) -> Unit,
+    onWeb: (RemoteEntry) -> Unit,
     onOpenLocal: () -> Unit,
     onGallery: (RemoteEntry?) -> Unit,
 ) {
@@ -235,6 +236,7 @@ private fun Channels(
                             FeedRoute.PLAY -> onPlay(entry)
                             FeedRoute.CHANNEL -> onChannel(entry)
                             FeedRoute.ALBUM -> onGallery(entry)
+                            FeedRoute.WEB -> onWeb(entry)
                         }
                     }) {
                     EntryCover(entry, Modifier.matchParentSize())
@@ -255,6 +257,7 @@ private fun Channels(
                                 FeedRoute.PLAY -> onPlay(entry)
                                 FeedRoute.CHANNEL -> onChannel(entry)
                                 FeedRoute.ALBUM -> onGallery(entry)
+                                FeedRoute.WEB -> onWeb(entry)
                             }
                         }, shape = RoundedCornerShape(9.dp)) {
                             Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(7.dp))
@@ -283,6 +286,7 @@ private fun Channels(
                                         FeedRoute.PLAY -> onPlay(entry)
                                         FeedRoute.CHANNEL -> onChannel(entry)
                                         FeedRoute.ALBUM -> onGallery(entry)
+                                        FeedRoute.WEB -> onWeb(entry)
                                     }
                                 }) {
                                 EntryCover(entry, Modifier.matchParentSize())

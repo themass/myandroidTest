@@ -19,15 +19,28 @@ internal class ScreeningChannelPage(
     val sample: Channel?,
 )
 
-/** 首页一张卡点下去该去哪。服务端推荐位三种都可能出现，页面按这个分流而不是猜。 */
-internal enum class FeedRoute { CHANNEL, ALBUM, PLAY }
+/** 首页一张卡点下去该去哪。服务端推荐位四种都可能出现，页面按这个分流而不是猜。 */
+internal enum class FeedRoute { CHANNEL, ALBUM, PLAY, WEB }
 
 /**
- * 这张卡是不是「点进去还有一页」的东西：图集卡，或者 actionUrl 里带了 `channel=` 的频道卡。
- * 剩下的（`video://`、直链 mp4）都当可以直接播。
+ * 这张卡是不是「点进去还有一页」的东西：图集卡，或者能定出频道 key 的卡。
+ * 外链卡（http/https）算入口——原逻辑把它路由到 WebView，不是在放映场里直接播。
+ * 剩下的（`video://`、直链 mp4）才当可以直接播。
  */
 internal val RemoteEntry.isGroupEntry: Boolean
-    get() = !channelParam.isNullOrEmpty() || sampleCoverAsset() != null || key.startsWith(SAMPLE_CHANNEL_KEY_PREFIX)
+    get() = !videoChannelKey().isNullOrEmpty() || isWebAction(actionUrl) ||
+        sampleCoverAsset() != null || key.startsWith(SAMPLE_CHANNEL_KEY_PREFIX)
+
+/**
+ * 一个推荐位在页面上怎么响应：图集/频道入口进内页，外链走原路由（WebView），其余直接播。
+ * 外链必须排在频道/播放之前——原逻辑（`ConfigActionJump`）对 http/https 只认 WebView。
+ */
+internal fun routeOf(entry: RemoteEntry): FeedRoute = when {
+    entry.isImageCard -> FeedRoute.ALBUM
+    isWebAction(entry.actionUrl) -> FeedRoute.WEB
+    entry.isGroupEntry -> FeedRoute.CHANNEL
+    else -> FeedRoute.PLAY
+}
 
 /** 样例频道卡的 key 前缀（见 `ScreeningSampleFeed`）。 */
 private const val SAMPLE_CHANNEL_KEY_PREFIX = "sample:channel:"
