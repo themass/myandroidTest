@@ -1,5 +1,6 @@
 package com.openapi.feature.video.screening
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -87,6 +88,7 @@ internal class FeedPager(
                 // 只补这一次，再失败就落到 error，不会无限打服务端。
                 // 翻页失败不补——屏上已有列表，保留它、说清失败就够了。
                 if (append) throw cause
+                Log.i(TAG, "首屏取数失败，${RETRY_BACKOFF_MS}ms 后自动重试: ${cause.message}")
                 delay(RETRY_BACKOFF_MS)
                 fetch(start)
             }
@@ -102,6 +104,7 @@ internal class FeedPager(
                 onFailure = { cause ->
                     // 首屏失败清干净，别让半截列表冒充数据；翻页失败保留已加载的部分
                     if (!append) { items.clear(); nextStart = 0; hasMore = false }
+                    Log.w(TAG, "取数最终失败(append=$append): ${cause.message}")
                     error = "没取到服务端数据：${cause.message ?: "网络问题"}"
                 },
             )
@@ -109,6 +112,7 @@ internal class FeedPager(
     }
 
     private companion object {
+        const val TAG = "FeedPager"
         const val RETRY_BACKOFF_MS = 800L
     }
 }
