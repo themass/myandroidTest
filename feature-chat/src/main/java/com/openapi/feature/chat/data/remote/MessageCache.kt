@@ -78,46 +78,6 @@ internal class MessageCache {
     }
 
     /**
-     * 把一轮对话写进本地缓存（离线副本）。用服务端正式 id 作为 chatId；
-     * 用户消息若是本地先写入的（临时 id），这里换成正式 id。空回复不缓存。
-     */
-    fun cacheTurn(
-        sessionId: Long,
-        clientUserId: String,
-        userText: String?,
-        serverUserId: Long,
-        reply: String,
-        serverAssistantId: Long,
-        localAssistantId: String,
-    ) {
-        if (sessionId <= 0) return
-        val now = System.currentTimeMillis()
-        if (userText != null && serverUserId > 0) {
-            val dao = AppDatabase.getInstance().chatLogDao()
-            // 本地先存的用户消息如果带语音或附件，只换成正式 id，内容保留；直接按文字重写会把语音弄丢
-            val local = dao.byChatId(clientUserId)?.toDomainOrNull()
-            dao.deleteByChatId(clientUserId)
-            val user = if (local != null && local.kind != MessageKind.TEXT) {
-                local.copy(id = serverUserId.toString(), text = userText.ifBlank { local.text }, delivery = DeliveryStatus.SENT)
-            } else {
-                ChatMessage(id = serverUserId.toString(), role = ChatRole.USER, text = userText, createdAtMillis = now)
-            }
-            persist(sessionId, user)
-        }
-        if (reply.isNotEmpty()) {
-            persist(
-                sessionId,
-                ChatMessage(
-                    id = if (serverAssistantId > 0) serverAssistantId.toString() else localAssistantId,
-                    role = ChatRole.ASSISTANT,
-                    text = reply,
-                    createdAtMillis = now,
-                ),
-            )
-        }
-    }
-
-    /**
      * 把服务端一页消息写进本地缓存，并返回合并后的消息列表。
      *
      * 服务端历史里只有文字。语音、图片、文件的本机信息（路径、时长、文件名）只在本地记录里，

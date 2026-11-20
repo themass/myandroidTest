@@ -17,6 +17,7 @@ import com.openapi.feature.chat.data.remote.ChatMessageVo
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 
 /**
@@ -25,17 +26,23 @@ import kotlinx.coroutines.withContext
  * - [ChatRemote]：远程调用的统一包装；
  * - [MessageCache]：本地聊天记录（离线副本、富内容、本地临时消息）；
  * - [SessionStore]：会话；[CharacterRemote]：角色；
- * - [ChatStreamClient]：流式回复；[AttachmentUploader]：附件；[SpeechRemote]：语音合成。
+ * - [AttachmentUploader]：附件；[SpeechRemote]：语音合成。
  *
  * 放在 app 而不是 features:chat，是因为它必须用到本应用的后端协议细节：
  * - 鉴权（UA 签名/devid/Token，见 BaseRequest 构造函数）——只用来拿一份跟其它接口一致的 header；
  * - 本地的 ChatLog 表。
  * 依赖方向依然是 features:chat ← app（由 ChatDependencies.install 注入）。
  *
- * 对话契约见 docs/agent-and-media-roadmap.md 第一节：现在打的是 `/chat/stream.json`，
- * 未来换成 Python agent-runtime 时改动的是协作类，这个类的接口不变。
+ * 流式回复不再在这里实现：运行时一律走 AgentBackedChatRepository 的 /v1 事件流
+ * （见其类注释），打旧端点 `/chat/stream.json` 的第二套 SSE 客户端已删除（P3-24）。
+ * 本类只剩 TTS、自定义人设和非图片附件这三处 /v1 还没有接口的委托。
  */
 class ChatRepositoryImpl(private val context: Context) : ChatRepository {
+
+    internal companion object {
+        /** 报错桩的文案：测试按它钉桩，别随手改字。 */
+        const val LEGACY_STREAM_DISABLED = "legacy 流式链路已停用，对话走 /v1"
+    }
 
     // 不能写 `BaseService().apply { setup(context) }`：apply 里 `context` 会解析成 BaseService 自己的
     // 公开字段（此时还是 null），等于 setup(null)，所有上传在构造请求时 NPE。用 also + it 明确指定。
@@ -44,7 +51,6 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
     private val cache = MessageCache()
     private val sessionStore = SessionStore(context, remote, baseService)
     private val characterStore = CharacterRemote(context, baseService, remote)
-    private val streamClient = ChatStreamClient(context, cache, sessionStore)
     private val attachments = AttachmentUploader(baseService)
     private val speech = SpeechRemote(context, remote)
 
@@ -78,6 +84,11 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
         return HistoryPage(cached, hasMore = false)
     }
 
+    /**
+     * 流式的两个方法只剩报错桩：运行时不会走到（对话页用的是 ChatDependencies 里的
+     * AgentBackedChatRepository），保留实现只是为了接口完整。返回 Error 而不是抛异常——
+     * 调用方对 Error 已有完整的 UI 兜底，抛出去会崩。见 LegacyStreamingStubTest。
+     */
     override fun sendMessageStream(
         sessionId: Long,
         userText: String,
@@ -86,20 +97,16 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
         persistUserMessage: Boolean,
         clientMessageId: String?,
         attachments: List<OutgoingAttachment>,
-    ): Flow<ChatStreamEvent> = streamClient.sendMessageStream(
-        sessionId = sessionId,
-        userText = userText,
-        characterId = characterId,
-        roleId = roleId,
-        persistUserMessage = persistUserMessage,
-        clientMessageId = clientMessageId,
-    )
+    ): Flow<ChatStreamEvent> = legacyStreamingDisabled()
 
     override fun regenerateStream(
         sessionId: Long,
         characterId: Int?,
         roleId: String?,
-    ): Flow<ChatStreamEvent> = streamClient.regenerateStream(sessionId, characterId, roleId)
+    ): Flow<ChatStreamEvent> = legacyStreamingDisabled()
+
+    private fun legacyStreamingDisabled(): Flow<ChatStreamEvent> =
+        flowOf(ChatStreamEvent.Error(LEGACY_STREAM_DISABLED))
 
     override suspend fun editMessage(sessionId: Long, messageId: String, text: String): Boolean {
         val id = messageId.toLongOrNull() ?: return false
