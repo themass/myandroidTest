@@ -80,6 +80,12 @@ interface ChatRepository {
     /** 只清本地缓存里该会话的消息（服务端已清空后调用）。 */
     suspend fun clearLocalMessages(sessionId: Long)
 
+    /**
+     * 服务端一键清空该会话的全部消息（`DELETE /sessions/{id}/messages`，整改清单 P1-9）。
+     * 返回 false 表示这条路径不可用（旧服务端没有该接口或调用失败），调用方应回退到逐条删除。
+     */
+    suspend fun clearHistory(sessionId: Long): Boolean
+
     /** 本地还没有被服务端历史覆盖的用户消息（附件、正在发送或失败的消息），用于冷启动时恢复。 */
     suspend fun localPendingMessages(sessionId: Long): List<ChatMessage>
 

@@ -286,6 +286,12 @@ class AgentBackedChatRepository(
         withContext(Dispatchers.IO) { local.clear(sessionId) }
     }
 
+    /** 服务端一键清空（companion-agent 的 `DELETE /sessions/{id}/messages`）。 */
+    override suspend fun clearHistory(sessionId: Long): Boolean {
+        if (sessionId <= 0) return false
+        return runCatching { withContext(Dispatchers.IO) { remote.clearHistory(sessionId) } }.isSuccess
+    }
+
     // ------------------------------------------------------------ 会话
 
     override fun sessions(): List<ChatSession> = local.cachedSessions()

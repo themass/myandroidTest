@@ -59,6 +59,13 @@ internal class FakeChatRepository : ChatRepository {
     }
     var editOk = true
     override suspend fun editMessage(sessionId: Long, messageId: String, text: String) = editOk
+    /** 一键清空是否可用；[clearHistoryCalls] 记录调用次数（整改清单 P1-9）。 */
+    var clearHistoryOk = false
+    var clearHistoryCalls = 0
+    override suspend fun clearHistory(sessionId: Long): Boolean {
+        clearHistoryCalls++
+        return clearHistoryOk
+    }
     override suspend fun clearLocalMessages(sessionId: Long) {
         clearedLocal++
     }
