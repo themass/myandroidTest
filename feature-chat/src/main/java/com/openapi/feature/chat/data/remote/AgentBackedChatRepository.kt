@@ -348,22 +348,11 @@ class AgentBackedChatRepository(
      * 服务端给 300 秒）。失败的那张保持空路径——下次刷新会再试，
      * 但不能让一张图拉不动就整页报错。
      */
-    private suspend fun hydrateImages(messages: List<ChatMessage>): List<ChatMessage> {
-        val ids = messages
-            .flatMap { m -> m.images.filter { it.source == ImageSource.REMOTE }.mapNotNull { it.uploadId } }
-            .distinct()
-        if (ids.isEmpty()) return messages
-        val urls = withContext(Dispatchers.IO) {
-            ids.associateWith { id -> runCatching { remote.attachmentUrl(id) }.getOrNull() }
+    private suspend fun hydrateImages(messages: List<ChatMessage>): List<ChatMessage> =
+        // IO 线程池：取签名 URL 是阻塞 HTTP，不能占主调度器。见 hydrateRemoteImages 的并发说明。
+        withContext(Dispatchers.IO) {
+            hydrateRemoteImages(messages) { id -> runCatching { remote.attachmentUrl(id) }.getOrNull() }
         }
-        return messages.map { m ->
-            if (m.images.none { it.source == ImageSource.REMOTE }) m
-            else m.copy(images = m.images.map { img ->
-                if (img.source != ImageSource.REMOTE) img
-                else img.copy(path = img.uploadId?.let { urls[it] }.orEmpty())
-            })
-        }
-    }
 
     override suspend fun editMessage(sessionId: Long, messageId: String, text: String): Boolean {
         val id = messageId.toLongOrNull() ?: return false
