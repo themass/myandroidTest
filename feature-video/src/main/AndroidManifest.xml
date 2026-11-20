@@ -3,9 +3,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application>
         <activity
-            android:name="com.openapi.feature.video.page.VideoActivity"
-        />
-        <activity
             android:name="com.openapi.feature.video.page.VideoShowActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
             android:theme="@style/AppTheme" />

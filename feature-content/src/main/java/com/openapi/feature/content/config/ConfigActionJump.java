@@ -51,6 +51,9 @@ public class ConfigActionJump {
         // 服务端电影卡仍下发 videoList1://…；以前只注册了 videoList，未知 scheme 被误报成「版本太低」
         configMap.put(Constants.VIDEOLIST_URL1, VIDEO_LIST_SHOW);
         configMap.put(Constants.TELEPLAY_URL, TeleplayActivity.class.getName());
+        // 服务端可下发 movie:// 走电影频道页；Constants.LOCAL_MOVIE_URL 早就定义了，
+        // 但路由一直没注册，点进来只会误报「版本太低」。
+        configMap.put(Constants.LOCAL_MOVIE_URL, "com.openapi.feature.content.video.MovieChannleActivity");
         configMap.put(Constants.LOCAL_CHAT, HOME);
         configMap.put(Constants.LOCAL_CHAT2, HOME);
         // 用户上传频道：进视频频道页，内部再按 actionUrl/param 分流
