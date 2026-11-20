@@ -27,19 +27,18 @@ class LegacyChannelEntries(app: Context) : ChannelEntries {
 
     private val service by lazy { BaseService().also { it.setup(app) } }
 
+    /** 分类只保留电影 + 夜色（2026-11 用户定的）；「自定义」分类的数据早已没人维护，删掉。夜色仍受地区开关控制。 */
     override fun categories(context: Context): List<ChannelCategory> = buildList {
         add(ChannelCategory(MOVIE, R.string.tab_movie))
         if (PreferenceUtils.getPrefBoolean(context, Constants.AREA_SWITCH, Constants.AREA_SWITCH_DEFAULT)) {
             add(ChannelCategory(NIGHT, R.string.tab_ng))
         }
-        add(ChannelCategory(CUSTOMER, R.string.tab_customer))
     }
 
     override suspend fun loadChannels(categoryId: String, start: Int): ChannelPage {
         val api = when (categoryId) {
             MOVIE -> Constants.API_RECOMMEND_MOVIE_URL
             NIGHT -> Constants.API_RECOMMEND_NIGHT_URL
-            CUSTOMER -> Constants.API_RECOMMEND_CUSTOME_URL
             else -> throw IllegalArgumentException("未知的频道分类：$categoryId")
         }
         val data = service.awaitInfoList(
@@ -91,7 +90,6 @@ class LegacyChannelEntries(app: Context) : ChannelEntries {
     private companion object {
         const val MOVIE = "movie"
         const val NIGHT = "night"
-        const val CUSTOMER = "customer"
         const val NET_TAG = "home_channels"
     }
 }
