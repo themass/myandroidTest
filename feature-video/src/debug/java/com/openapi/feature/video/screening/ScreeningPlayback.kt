@@ -49,6 +49,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStreamReader
+import java.io.StringReader
 
 /**
  * 一个可播放的东西。
@@ -77,6 +78,9 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val store = remember { context.getSharedPreferences("screening-preview", 0) }
+    val feedStore = remember { ScreeningFeedStore(context) }
+    // 服务端字幕只对服务端条目有意义：随包样片和手机上的文件没有对应的服务端记录
+    val serverVideoId = remember(source.key) { serverIdOf(source.key) }
     val id = source.key
     // 两套内核各占一格画面槽，换内核在播放中途完成，见 KernelHost
     val host = remember { KernelHost(context) }
@@ -115,6 +119,12 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     var demo by remember { mutableStateOf<ScreeningCaption?>(null) }
     var captionName by remember { mutableStateOf("") }
     var captionSource by remember { mutableIntStateOf(0) }
+    // 服务端字幕：列表（null = 还没成功取到）、已加载的那份、正在加载谁
+    var serverList by remember { mutableStateOf<List<SubtitleItem>?>(null) }
+    var serverLoading by remember { mutableStateOf(false) }
+    var serverCaption by remember { mutableStateOf<ScreeningCaption?>(null) }
+    var serverCaptionName by remember { mutableStateOf("") }
+    var serverBusy by remember { mutableStateOf<Long?>(null) }
     var offset by remember { mutableIntStateOf(0) }
     var info by remember { mutableStateOf("") }
     var speed by remember { mutableFloatStateOf(1f) }
@@ -218,11 +228,19 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
             }.getOrNull()
         }
     }
+    // 服务端字幕列表：打开「字幕」面板才取，一次会话取一遍就够；失败保持 null，面板里给重试
+    LaunchedEffect(panel, serverVideoId) {
+        if (panel != "字幕" || serverVideoId == null || serverList != null || serverLoading) return@LaunchedEffect
+        serverLoading = true
+        serverList = runCatching { withContext(Dispatchers.IO) { feedStore.subtitles(serverVideoId) } }.getOrNull()
+        serverLoading = false
+    }
     LaunchedEffect(host.failure) { host.failure?.let { error = it } }
     LaunchedEffect(fill) { host.setFill(fill) }
     val cue = when (captionSource) {
         1 -> demo?.at(position, offset).orEmpty()
         2 -> captions?.at(position, offset).orEmpty()
+        3 -> serverCaption?.at(position, offset).orEmpty()
         else -> ""
     }
     val seekBlock: @Composable () -> Unit = {
@@ -395,6 +413,53 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 when (current) {
                     "字幕" -> {
                         Setting("关闭字幕", "不影响播放和弹幕", captionSource == 0) { captionSource = 0 }
+                        // 服务端字幕：只有服务端条目才有对应记录，随包样片和本地文件不显示这一段
+                        serverVideoId?.let { videoId ->
+                            when {
+                                serverLoading -> Text("正在取字幕列表…", color = Muted, fontSize = 13.sp)
+                                serverList == null -> {
+                                    Text("服务端字幕还没取到。", color = Peach, fontSize = 13.sp)
+                                    TextButton(onClick = {
+                                        serverLoading = true
+                                        scope.launch {
+                                            serverList = runCatching { withContext(Dispatchers.IO) { feedStore.subtitles(videoId) } }.getOrNull()
+                                            serverLoading = false
+                                        }
+                                    }) { Text("重试") }
+                                }
+                                serverList!!.isEmpty() -> Text("这个视频服务端没有字幕。", color = Muted, fontSize = 13.sp)
+                                else -> serverList!!.forEach { item ->
+                                    val chosen = captionSource == 3 && serverCaptionName == item.title
+                                    Setting(
+                                        item.title,
+                                        (if (item.label.isNotEmpty()) item.label else "") +
+                                            if (serverBusy == item.id) "  加载中…" else "",
+                                        selected = chosen,
+                                    ) {
+                                        if (chosen) { captionSource = 3; return@Setting }
+                                        if (serverCaption != null && serverCaptionName == item.title) { captionSource = 3; return@Setting }
+                                        if (serverBusy != null) return@Setting
+                                        serverBusy = item.id
+                                        scope.launch {
+                                            val loaded = withContext(Dispatchers.IO) {
+                                                runCatching {
+                                                    val text = feedStore.subtitleContent(item.id)
+                                                    check(looksLikeSubtitle(text)) { "内容不像字幕" }
+                                                    ScreeningCaption(StringReader(text!!))
+                                                }
+                                            }
+                                            serverBusy = null
+                                            loaded.onSuccess {
+                                                serverCaption = it; serverCaptionName = item.title
+                                                captionSource = 3; offset = 0; info = "已加载：${item.title}"
+                                            }.onFailure {
+                                                info = "字幕加载失败：${it.message ?: "网络或服务端问题"}"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         Setting("导入本地字幕", "打开系统文件选择器，支持 SRT / WebVTT") {
                             // 同时允许 octet-stream：很多 srt 在系统库里没有注册成文本类型，只给 text/*
                             // 会让选择器把它们过滤掉；给 */* 又会让华为选择器停在「图片」分区

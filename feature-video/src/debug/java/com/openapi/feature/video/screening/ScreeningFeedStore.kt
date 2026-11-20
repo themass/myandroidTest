@@ -99,9 +99,52 @@ internal class ScreeningFeedStore(context: Context) {
         return Page(items, nextStart = if (more) raw.pageNum else null, hasMore = more, fromSample = false)
     }
 
+    /**
+     * 某个视频的服务端字幕列表。失败由调用方兜底展示，这里不吞：
+     * 字幕是锦上添花，拉不到要能让页面说清「没取到」而不是装作没有。
+     */
+    suspend fun subtitles(videoId: String): List<SubtitleItem> {
+        val raw: InfoListVo<SubtitleVo> = service.awaitInfoList(
+            Constants.getUrlWithParam(Constants.API_SUBTITLE_LIST_URL, videoId, 0), SubtitleVo::class.java, NET_TAG,
+        )
+        return raw.voList.orEmpty().filter { it.id > 0L }.map { vo ->
+            SubtitleItem(
+                id = vo.id,
+                title = vo.title?.takeIf { it.isNotBlank() } ?: "字幕 ${vo.id}",
+                langLabel = subtitleLangLabel(vo.lang),
+                formatLabel = subtitleFormat(vo.format, vo.title),
+                sizeLabel = subtitleSizeLabel(vo.size),
+            )
+        }
+    }
+
+    /** 整份字幕文本（SRT / VTT）。内容字段在 JSON 信封里，过现有解密链路。 */
+    suspend fun subtitleContent(subtitleId: Long): String? {
+        val fetched = service.awaitGet(
+            Constants.getUrlWithParam(Constants.API_SUBTITLE_CONTENT_URL, subtitleId),
+            SubtitleContentVo::class.java, NET_TAG,
+        )
+        return fetched.content
+    }
+
     private companion object {
         const val NET_TAG = "screening_feed"
     }
+}
+
+/** 服务端字幕列表项（Gson 直接映射，字段名即 JSON key）。 */
+internal class SubtitleVo {
+    @JvmField var id: Long = 0
+    @JvmField var title: String? = null
+    @JvmField var lang: String? = null
+    @JvmField var format: String? = null
+    @JvmField var size: Long = 0
+}
+
+/** 字幕内容接口的返回体。 */
+internal class SubtitleContentVo {
+    @JvmField var id: Long = 0
+    @JvmField var content: String? = null
 }
 
 /**

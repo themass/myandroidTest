@@ -173,6 +173,10 @@ public class Constants {
     public static final String API_VIDEO_CHANNEL_LIST_URL = "/video/channel/items.json?start=%s&limit=50&channel=%s&keyword=%s";
 
     public static final String API_VIDEO_ITEM_URL = "/video/item/url.json?id=%s";
+    /** 服务端字幕（放映场）：某个视频有哪些字幕。 */
+    public static final String API_SUBTITLE_LIST_URL = "/subtitle/list.json?id=%s&start=%s&limit=20";
+    /** 服务端字幕：整份字幕文本（JSON 信封下发，过现有 AES 解密链路）。 */
+    public static final String API_SUBTITLE_CONTENT_URL = "/subtitle/content.json?id=%s";
     public static final String API_TV_ITEM_URL = "/video/tv/item.json?start=%s&limit=50&channel=%s";
     public static final String API_TV_CHANNEL_URL = "/video/tv/channel.json?start=%s&limit=50&channel=%s&keyword=%s";
     public static final String API_VIDEO_USER_URL = "/video/user.json?channel=%s&keyword=%s&start=%s&limit=50";
