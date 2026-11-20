@@ -182,4 +182,29 @@ class ScreeningFeedTest {
         assertEquals(FeedRoute.ALBUM, routeOf(remoteEntry(4L, 0, "册子", null, null, 1f,
             "img://channel/list?channel=img_night", false, dataType = 6)!!))
     }
+
+    // ---- 夜色分类真机回归：video://config?channel= 是配置频道，不是可播条目 ----
+
+    @Test
+    fun `video 带 channel 参数的算配置频道，没有的不算`() {
+        assertTrue(isConfigAction("video://config?channel=hsex_all"))
+        // 播放直链不带 channel：还是直接播
+        assertFalse(isConfigAction("video://play?id=1"))
+        assertFalse(isConfigAction("video://config?channel="))
+        assertFalse(isConfigAction("https://ddys.io/movie?genre=other"))
+        assertFalse(isConfigAction(null))
+    }
+
+    @Test
+    fun `配置频道卡路由到 CONFIG：交回原路由，绝不在内页发取片单接口`() {
+        // 夜色分类实测全是这种卡（hsex_all 只是 channelType 列，items.json 查不到 → 10000）
+        val cfg = remoteEntry(1L, 0, "hsex最好的自拍", null, null, 1f,
+            "video://config?channel=hsex_all", false, dataType = 5)!!
+        assertEquals(FeedRoute.CONFIG, routeOf(cfg))
+        // 它是入口不是直播：isGroupEntry 必须为真，否则会被判给 PLAY
+        assertTrue(cfg.isGroupEntry)
+        // 图集判定优先：dataType=6 就算带 channel 也先进图集
+        assertEquals(FeedRoute.ALBUM, routeOf(remoteEntry(2L, 0, "册子", null, null, 1f,
+            "video://config?channel=x", false, dataType = 6)!!))
+    }
 }

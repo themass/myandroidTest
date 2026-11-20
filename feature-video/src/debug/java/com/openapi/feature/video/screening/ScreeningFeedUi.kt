@@ -85,8 +85,11 @@ internal class FeedPager(
                     error = null
                 },
                 onFailure = { cause ->
-                    // 首屏失败清干净，别让半截列表冒充数据；翻页失败保留已加载的部分
-                    if (!append) { items.clear(); nextStart = 0; hasMore = false }
+                    // 首屏失败清干净，别让半截列表冒充数据；翻页失败保留已加载的部分。
+                    // 首屏失败还要关掉 nextStart：列表空时「最后一个可见项」恒 ≥ size-4，
+                    // snapshotFlow 会一直再触发 loadMore，失败一次就自动重试几百次——
+                    // 只有「重试」按钮（reload 把 nextStart 复位）能再发起首屏。
+                    if (!append) { items.clear(); nextStart = null; hasMore = false }
                     error = "没取到服务端数据：${cause.message ?: "网络问题"}"
                 },
             )

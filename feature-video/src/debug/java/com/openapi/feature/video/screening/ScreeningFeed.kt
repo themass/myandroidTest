@@ -74,6 +74,18 @@ internal fun isWebAction(actionUrl: String?): Boolean =
     schemeOf(actionUrl) == "http" || schemeOf(actionUrl) == "https"
 
 /**
+ * 配置频道卡：`video://config?channel=hsex_all`（夜色分类全是这种）。
+ *
+ * 原逻辑把 `video://` 路由到 `VideoChannleActivity`，它先拿 `channel` 调
+ * `channel.json`（列子频道：18禁 / hsex.men），点子频道才用 `param` 调 items.json 取片单。
+ * 放映场以前把这种 channel 直接发给 items.json——`hsex_all` 只是 channelType 列、
+ * 不是 channel 列，服务端查不到行直接报 errno 10000（就是用户看到的「网络问题」）。
+ * 所以这类卡必须交回原路由，不在放映场内页里自己取数。
+ */
+internal fun isConfigAction(actionUrl: String?): Boolean =
+    schemeOf(actionUrl) == "video" && !channelParamOf(actionUrl).isNullOrEmpty()
+
+/**
  * 视频频道内页取数用的 key。原页面 `VideoChannelListFragment.getUrl` 传的是 `vo.param`：
  * 服务端真实频道行（如 `param='se8成人动漫'`）的 actionUrl 是外链、不带 `channel=`，
  * 真正的频道标识只在 param 里。param 没有才退回 actionUrl 解析值（`videoList1://…?channel=`）。

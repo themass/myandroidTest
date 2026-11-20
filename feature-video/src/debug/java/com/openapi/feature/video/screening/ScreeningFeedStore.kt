@@ -85,6 +85,13 @@ internal class ScreeningFeedStore(context: Context) {
                 param = vo.param,
             )
         }
+        // 排查「频道点进去取不到数」用：每张卡的原始字段和路由判定都打出来，
+        // 免得再靠猜。只在这个 debug 源码集里，release 包不会有。
+        items.forEach { e ->
+            android.util.Log.i(NET_TAG, "card url=$url title=${e.title} param=${e.param} " +
+                "channelParam=${e.channelParam} img=${e.isImageCard} " +
+                "route=${routeOf(e)} actionUrl=${e.actionUrl}")
+        }
         val more = raw?.hasMore == true
         return Page(items, nextStart = if (more) raw!!.pageNum else null, hasMore = more)
     }

@@ -19,25 +19,32 @@ internal class ScreeningChannelPage(
     val sample: Channel?,
 )
 
-/** 首页一张卡点下去该去哪。服务端推荐位四种都可能出现，页面按这个分流而不是猜。 */
-internal enum class FeedRoute { CHANNEL, ALBUM, PLAY, WEB }
+/**
+ * 首页一张卡点下去该去哪。服务端推荐位五种都可能出现，页面按这个分流而不是猜。
+ * WEB 和 CONFIG 都是「交回原路由 ConfigActionJump」，只是语义分开：
+ * WEB = http(s) 链接进 WebView，CONFIG = `video://config?channel=` 这类配置频道
+ * 进旧频道页（hsex_all 那批夜色卡；items.json 查不到这种 channelType，别拿它发请求）。
+ */
+internal enum class FeedRoute { CHANNEL, ALBUM, PLAY, WEB, CONFIG }
 
 /**
  * 这张卡是不是「点进去还有一页」的东西：图集卡，或者能定出频道 key 的卡。
- * 外链卡（http/https）算入口——原逻辑把它路由到 WebView，不是在放映场里直接播。
- * 剩下的（`video://`、直链 mp4）才当可以直接播。
+ * 外链卡（http/https）和配置频道卡（video://config）都算入口——原逻辑把它们
+ * 路由到 WebView / 旧频道页，不是在放映场里直接播，也不进放映场内页。
+ * 剩下的（直链 video://）才当可以直接播。
  */
 internal val RemoteEntry.isGroupEntry: Boolean
-    get() = !videoChannelKey().isNullOrEmpty() || isWebAction(actionUrl) ||
+    get() = !videoChannelKey().isNullOrEmpty() || isWebAction(actionUrl) || isConfigAction(actionUrl) ||
         sampleCoverAsset() != null || key.startsWith(SAMPLE_CHANNEL_KEY_PREFIX)
 
 /**
- * 一个推荐位在页面上怎么响应：图集/频道入口进内页，外链走原路由（WebView），其余直接播。
- * 外链必须排在频道/播放之前——原逻辑（`ConfigActionJump`）对 http/https 只认 WebView。
+ * 一个推荐位在页面上怎么响应：图集/真频道入口进内页，外链和配置频道走原路由，其余直接播。
+ * 外链和 CONFIG 必须排在频道/播放之前——原逻辑（`ConfigActionJump`）对它们没有别的去处。
  */
 internal fun routeOf(entry: RemoteEntry): FeedRoute = when {
     entry.isImageCard -> FeedRoute.ALBUM
     isWebAction(entry.actionUrl) -> FeedRoute.WEB
+    isConfigAction(entry.actionUrl) -> FeedRoute.CONFIG
     entry.isGroupEntry -> FeedRoute.CHANNEL
     else -> FeedRoute.PLAY
 }

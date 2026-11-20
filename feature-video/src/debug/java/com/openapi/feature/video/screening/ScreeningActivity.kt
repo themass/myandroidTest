@@ -116,7 +116,7 @@ private fun ScreeningHome(activity: ScreeningActivity) {
             sample = sampleChannelFor(entry),
         )
     }
-    /** 外链卡：交回原路由（`ConfigActionJump` → WebView），和旧首页点同一张卡的行为一致。 */
+    /** 外链/配置频道卡：交回原路由（`ConfigActionJump` 按 scheme 分流 WebView 或旧频道页）。 */
     val openWeb: (RemoteEntry) -> Unit = { entry ->
         CoreEvents.postConfigAction(ConfigActionEvent(activity, entry.actionUrl, entry.title, HashMap()))
     }
@@ -188,8 +188,11 @@ private fun Channels(
     onOpenLocal: () -> Unit,
     onGallery: (RemoteEntry?) -> Unit,
 ) {
-    var filter by rememberSaveable { mutableStateOf(FeedCategory.ALL.label) }
-    val category = FeedCategory.entries.firstOrNull { it.label == filter } ?: FeedCategory.ALL
+    // 分类跟旧频道页同口径：只有电影/夜色。「全部」（recommend.json）不是旧页面的分类，
+    // 下发的还是 items.json 查不到的老数据（hsex_all 那类），不再提供。
+    // 老装机存过「全部」：取不到就落回电影，高亮和取数用同一个 category，不会出现没选中的空档。
+    var savedFilter by rememberSaveable { mutableStateOf(FeedCategory.MOVIE.label) }
+    val category = FeedCategory.entries.firstOrNull { it.label == savedFilter } ?: FeedCategory.MOVIE
     val pagerScope = rememberCoroutineScope()
     // 换分类就是换接口：pager 跟着分类重建，进来先取真实数据；取不到就报错误给重试，没有样例兜底
     val pager = remember(category) { FeedPager(pagerScope, fetch = { start -> store.channels(category, start) }) }
@@ -237,6 +240,7 @@ private fun Channels(
                             FeedRoute.CHANNEL -> onChannel(entry)
                             FeedRoute.ALBUM -> onGallery(entry)
                             FeedRoute.WEB -> onWeb(entry)
+                            FeedRoute.CONFIG -> onWeb(entry)
                         }
                     }) {
                     EntryCover(entry, Modifier.matchParentSize())
@@ -258,6 +262,7 @@ private fun Channels(
                                 FeedRoute.CHANNEL -> onChannel(entry)
                                 FeedRoute.ALBUM -> onGallery(entry)
                                 FeedRoute.WEB -> onWeb(entry)
+                                FeedRoute.CONFIG -> onWeb(entry)
                             }
                         }, shape = RoundedCornerShape(9.dp)) {
                             Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(7.dp))
@@ -267,7 +272,7 @@ private fun Channels(
                 }
             }
             Heading("逛频道", if (pager.loading && pager.items.isEmpty()) "正在取数据…" else "${cards.size} 个频道")
-            FilterRow(FeedCategory.entries.map { it.label }, filter) { filter = it }
+            FilterRow(FeedCategory.entries.map { it.label }, category.label) { savedFilter = it }
             Spacer(Modifier.height(9.dp))
             if (pager.loading && pager.items.isEmpty()) {
                 Box(Modifier.fillMaxWidth().height(190.dp), contentAlignment = Alignment.Center) {
@@ -287,6 +292,7 @@ private fun Channels(
                                         FeedRoute.CHANNEL -> onChannel(entry)
                                         FeedRoute.ALBUM -> onGallery(entry)
                                         FeedRoute.WEB -> onWeb(entry)
+                                        FeedRoute.CONFIG -> onWeb(entry)
                                     }
                                 }) {
                                 EntryCover(entry, Modifier.matchParentSize())
