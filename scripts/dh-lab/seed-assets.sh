@@ -78,6 +78,21 @@ if echo " $ENGINES " | grep -q " duix "; then
   fetch Oliver.zip "https://github.com/duixcom/Duix.mobile/releases/download/v2.0.1/Oliver.zip"
   push_unpack duix gj_dh_res.zip "model/gj_dh_res"
   push_unpack duix Oliver.zip "model/Oliver"
+  # native 三件套（DuixNcnnLoader 按绝对路径 dlopen，见 DuixNcnnLoader.LOAD_ORDER）。
+  # 上游没有预编译包，来源是本地 Duix-Mobile 构建（布局记录见 commit c87262b8）：
+  #   ~/work/android/Duix-Mobile/duix-android/dh_aigc_android/duix-sdk/build/intermediates/
+  #     library_and_local_jars_jni/debug/copyDebugJniLibsProjectAndLocalJars/jni/arm64-v8a/
+  # 缺文件时引擎菜单会显示「Duix（native 库缺失）」（DuixRuntime.availability 的 REASON_NATIVE_MISSING）。
+  DUIX_JNI="$HOME/work/android/Duix-Mobile/duix-android/dh_aigc_android/duix-sdk/build/intermediates/library_and_local_jars_jni/debug/copyDebugJniLibsProjectAndLocalJars/jni/arm64-v8a"
+  if [ -f "$DUIX_JNI/libgjduix.so" ] && [ -f "$DUIX_JNI/libncnn.so" ] && [ -f "$DUIX_JNI/libonnxruntime.so" ]; then
+    stage="$DEVICE_TMP/duix-native"
+    "${ADB[@]}" shell "rm -rf '$stage' && mkdir -p '$stage'"
+    "${ADB[@]}" push "$DUIX_JNI/libgjduix.so" "$DUIX_JNI/libncnn.so" "$DUIX_JNI/libonnxruntime.so" "$stage/" >/dev/null
+    ra "mkdir -p $DATA/files/dh-engines/duix/native-libs/arm64-v8a && cp $stage/*.so $DATA/files/dh-engines/duix/native-libs/arm64-v8a/"
+    echo "== duix/native-libs/arm64-v8a 三件套已推送（libgjduix/libncnn/libonnxruntime）"
+  else
+    echo "!! 跳过 duix native：先构建 Duix-Mobile（产物在 $DUIX_JNI），否则引擎里 Duix 显示 native 库缺失"
+  fi
 fi
 
 if echo " $ENGINES " | grep -q " live2d "; then
