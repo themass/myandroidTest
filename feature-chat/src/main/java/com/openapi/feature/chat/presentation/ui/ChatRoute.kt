@@ -60,6 +60,11 @@ fun ChatRoute(
     onMenuClick: (() -> Unit)? = null,
     /** 「拍照解题」入口：目标页在 :feature-photosolve，feature 之间不许互相依赖，由上层注入（P3-22）。 */
     onOpenPhotoSolve: () -> Unit,
+    /**
+     * 语音通话入口（整改清单 P0-4）：通话栈在 :feature-companion，feature 之间不许
+     * 互相依赖（ModuleGraphTest「用路由」），由 app 注入——语义是「跳到陪伴页并直接进通话」。
+     */
+    onStartVoiceCall: () -> Unit,
     viewModel: ChatViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -139,7 +144,8 @@ fun ChatRoute(
             toast(R.string.chat_location_soon)
         },
         ComposerAction("phone", context.getString(R.string.chat_attach_phone), Icons.Outlined.Call) {
-            toast(R.string.talktome_unavailable)
+            // 以前只弹「暂不可用」；通话栈已在 :feature-companion 跑通，由上层跳陪伴页直接进通话（P0-4）
+            onStartVoiceCall()
         },
         ComposerAction("help", context.getString(R.string.chat_attach_help), Icons.AutoMirrored.Outlined.HelpOutline) {
             context.startActivity(
@@ -226,7 +232,7 @@ fun ChatRoute(
             onDeleteCharacter = viewModel::onDeleteCharacter,
             onRoleSelected = viewModel::onRoleSelected,
             onRolePickerVisibleChange = viewModel::onRolePickerVisibleChange,
-            onCallClick = { toast(R.string.chat_call_soon) },
+            onCallClick = onStartVoiceCall,
             onSessionsVisibleChange = viewModel::onSessionsVisibleChange,
             onSessionSelected = viewModel::onSessionSelected,
             onCreateSession = viewModel::onCreateSession,

@@ -13,7 +13,6 @@
     <string name="chat_batch_delete_body">The selected messages will be deleted from this conversation and cannot be recovered.</string>
     <string name="chat_batch_delete_title">Delete selected messages?</string>
     <string name="chat_call_desc">Voice call</string>
-    <string name="chat_call_soon">Voice calls are coming soon</string>
     <string name="chat_camera_rationale">Camera permission is needed to take photos to send to the AI</string>
     <string name="chat_camera_denied">Camera permission not granted, can\'t take a photo</string>
     <string name="chat_delete_message_body">This only removes it from the local chat history on this device. The copy on the server is unaffected.</string>
@@ -54,7 +53,6 @@
     <string name="session_menu_clear">Clear messages</string>
     <string name="session_menu_delete">Delete conversation</string>
     <string name="session_menu_more">More</string>
-    <string name="talktome_unavailable">Voice call is currently unavailable</string>
     <string name="ui_cancel">Cancel</string>
     <string name="ui_close">Close</string>
     <string name="ui_copied">Copied</string>

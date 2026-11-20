@@ -87,6 +87,13 @@ fun CompanionRoute(
     initialCharacterId: String = DEFAULT_CHARACTER_ID,
     /** 打开抽屉。由 HomeScreen 传入，与「对话」页一致。 */
     onMenuClick: (() -> Unit)? = null,
+    /**
+     * P0-4：聊天页的电话入口跳进陪伴页时置 true——进来就复用页内「进通话」的
+     * 同一套决策（含麦克风权限申请），处理后由 [onLaunchCallHandled] 复位，
+     * 避免下次回到本页再自动弹一次。
+     */
+    launchCallOnOpen: Boolean = false,
+    onLaunchCallHandled: () -> Unit = {},
 ) {
     val context = LocalContext.current.applicationContext
     val api = remember(context) {
@@ -140,6 +147,24 @@ fun CompanionRoute(
         }
     }
 
+    // 页内通话按钮与聊天页跳入共用这一个入口：权限决策只有一份（见 CallLaunch 的测试）。
+    val openCall: () -> Unit = {
+        launchCallWithMic(
+            hasMicPermission = hasMicPermission(context),
+            startCall = { chatViewModel.startCall(micAllowed = it) },
+            requestMic = {
+                pendingMicAction = PendingMicAction.START_CALL
+                micLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            },
+        )
+    }
+    LaunchedEffect(launchCallOnOpen) {
+        if (launchCallOnOpen) {
+            openCall()
+            onLaunchCallHandled()
+        }
+    }
+
     // 系统返回键也走二次确认：全屏通话里返回 = 挂断，误触的代价是一次断线。
     var backArmed by remember { mutableStateOf(false) }
     LaunchedEffect(backArmed) {
@@ -172,14 +197,7 @@ fun CompanionRoute(
                     viewModel = chatViewModel,
                     characterId = characterId,
                     modifier = Modifier.fillMaxWidth(),
-                    onOpenCall = {
-                        if (hasMicPermission(context)) {
-                            chatViewModel.startCall(micAllowed = true)
-                        } else {
-                            pendingMicAction = PendingMicAction.START_CALL
-                            micLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                        }
-                    },
+                    onOpenCall = openCall,
                     onOpenCharacters = { page = CompanionPage.CHARACTERS },
                     onOpenProfile = { page = CompanionPage.MEMORY },
                     onMenuClick = onMenuClick,

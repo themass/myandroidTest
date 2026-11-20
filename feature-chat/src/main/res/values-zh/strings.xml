@@ -12,7 +12,6 @@
     <string name="chat_batch_delete_body">所选消息会从对话中删除，无法恢复。</string>
     <string name="chat_batch_delete_title">删除所选消息？</string>
     <string name="chat_call_desc">语音通话</string>
-    <string name="chat_call_soon">语音通话即将上线</string>
     <string name="chat_camera_rationale">拍摄照片并发送需要使用相机权限</string>
     <string name="chat_camera_denied">未授予相机权限，无法拍照</string>
     <string name="chat_delete_message_body">只会从本机聊天记录中移除，服务器上的记录不受影响。</string>
@@ -53,7 +52,6 @@
     <string name="session_menu_clear">清空消息</string>
     <string name="session_menu_delete">删除会话</string>
     <string name="session_menu_more">更多</string>
-    <string name="talktome_unavailable">语音通话功能暂不可用</string>
     <string name="ui_cancel">取消</string>
     <string name="ui_close">关闭</string>
     <string name="ui_copied">已复制</string>

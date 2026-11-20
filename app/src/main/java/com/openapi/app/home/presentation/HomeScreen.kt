@@ -94,6 +94,9 @@ internal enum class HomeTab(@StringRes val label: Int, val icon: ImageVector) {
 @Composable
 fun HomeScreen() {
     var selected by rememberSaveable { mutableIntStateOf(HomeTab.Chat.ordinal) }
+    // P0-4：聊天页的电话入口 = 跳到陪伴页并直接进通话。这里是跨标签的一次性信号，
+    // CompanionRoute 消费后立即复位，回到本页不会重复弹通话。
+    var callLaunchPending by rememberSaveable { mutableStateOf(false) }
     // 「我的」：从侧边栏进入，从右边滑入的独立页面，可以右滑关闭
     var profilePageOpen by rememberSaveable { mutableStateOf(false) }
     val current = HomeTab.entries[selected]
@@ -215,8 +218,17 @@ fun HomeScreen() {
                             onMenuClick = openDrawer,
                             // 拍照解题在 :feature-photosolve：feature 之间不依赖，由 app 在这里接上入口（P3-22）
                             onOpenPhotoSolve = { com.openapi.feature.photosolve.PhotoSolveActivity.start(context) },
+                            // 语音通话在 :feature-companion：同样不建依赖边，跳陪伴标签并请求直接进通话（P0-4）
+                            onStartVoiceCall = {
+                                callLaunchPending = true
+                                selected = HomeTab.Companion.ordinal
+                            },
                         )
-                        HomeTab.Companion -> CompanionRoute(onMenuClick = openDrawer)
+                        HomeTab.Companion -> CompanionRoute(
+                            onMenuClick = openDrawer,
+                            launchCallOnOpen = callLaunchPending,
+                            onLaunchCallHandled = { callLaunchPending = false },
+                        )
                         HomeTab.Channels -> ChannelsHub()
                         HomeTab.AgentChat -> AgentChatEntry()
                         HomeTab.Profile -> Unit // 「我的」由右侧覆盖页显示
