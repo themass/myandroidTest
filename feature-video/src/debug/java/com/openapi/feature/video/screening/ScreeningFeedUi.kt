@@ -73,6 +73,10 @@ internal class FeedPager(
     fun loadMore() {
         val start = nextStart ?: return
         if (loading) return
+        // 首屏失败清场后列表是空的：这时「触底」不代表还有下一页，别再替首屏重复打接口。
+        // 少了这道闸，失败 → 空列表 → 触底判定恒真 → 再取 → loading 转圈改变布局 → 又触发判定，
+        // 会自己转起来无限拉。首屏只归 load()/reload() 管。
+        if (items.isEmpty() && start == 0) return
         request(start, append = true)
     }
 

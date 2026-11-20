@@ -136,7 +136,7 @@ private fun ScreeningHome(activity: ScreeningActivity) {
             }
             gallery -> ScreeningGallery(activity, store, galleryChannel) { gallery = false }
             else -> holder.SaveableStateProvider("channels") {
-                Channels(store, onChannel = openChannel, onPlay = openEntry, onOpenLocal = {
+                Channels(store, onBack = { activity.finish() }, onChannel = openChannel, onPlay = openEntry, onOpenLocal = {
                     channelPage = ScreeningChannelPage(samples.title, samples.category, null, samples.cover, null, samples)
                 }, onGallery = openGallery)
             }
@@ -182,6 +182,7 @@ internal fun EntryCover(entry: RemoteEntry, modifier: Modifier = Modifier) {
 @Composable
 private fun Channels(
     store: ScreeningFeedStore,
+    onBack: () -> Unit,
     onChannel: (RemoteEntry) -> Unit,
     onPlay: (RemoteEntry) -> Unit,
     onOpenLocal: () -> Unit,
@@ -204,6 +205,8 @@ private fun Channels(
         contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 24.dp)) {
         item {
             Row(Modifier.fillMaxWidth().height(64.dp), verticalAlignment = Alignment.CenterVertically) {
+                // 放映场是独立 Activity，系统返回之外得有个看得见的退出口
+                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") }
                 Icon(Icons.Default.PlayArrow, null, tint = Mint)
                 Text("放映场", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
                 Spacer(Modifier.weight(1f))
@@ -227,32 +230,44 @@ private fun Channels(
                 TextButton(onClick = { onGallery(null) }) { Text("图集", color = Muted, fontSize = 18.sp) }
             }
             FeedError(pager.error, pager::reload)
-            hero?.let { entry ->
-                Spacer(Modifier.height(13.dp))
-                Box(Modifier.fillMaxWidth().height(352.dp).clip(RoundedCornerShape(13.dp, 38.dp, 13.dp, 13.dp))
-                    .clickable {
-                        when (routeOf(entry)) {
-                            FeedRoute.PLAY -> onPlay(entry)
-                            FeedRoute.CHANNEL -> onChannel(entry)
-                            FeedRoute.ALBUM -> onGallery(entry)
-                        }
-                    }) {
-                    EntryCover(entry, Modifier.matchParentSize())
-                    Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x45202340), Ink))))
-                    Column(Modifier.align(Alignment.BottomStart).padding(23.dp)) {
-                        Text(if (entry.isGroupEntry) "频道推荐" else "正在热映", Modifier.background(Peach, RoundedCornerShape(5.dp))
-                            .padding(6.dp), color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(10.dp))
-                        Text(entry.title, color = White, fontSize = 44.sp, lineHeight = 44.sp, fontWeight = FontWeight.Black,
-                            maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        if (entry.description.isNotBlank()) {
-                            Spacer(Modifier.height(9.dp))
-                            Text(entry.description, color = White, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        }
-                        Spacer(Modifier.height(13.dp))
-                        Button(onClick = {
+            // 推荐位的高度是恒定的：没数据时占同一块高度，而不是整块不存在。
+            // 原来 hero 为 null 时这里高 0，数据一回来凭空插入 352dp，下面所有内容由
+            // 「紧贴 tab」被顶到「隔一整屏」——这就是切 tab / 首屏加载时的跳动闪屏。
+            Spacer(Modifier.height(13.dp))
+            Box(Modifier.fillMaxWidth().height(352.dp).clip(RoundedCornerShape(13.dp, 38.dp, 13.dp, 13.dp))) {
+                val entry = hero
+                if (entry == null) {
+                    Box(Modifier.matchParentSize().background(Lift))
+                    if (pager.loading) {
+                        CircularProgressIndicator(
+                            Modifier.align(Alignment.Center).size(26.dp), strokeWidth = 2.dp, color = Mint,
+                        )
+                    }
+                } else {
+                    Box(Modifier.matchParentSize()
+                        .clickable {
                             when (routeOf(entry)) {
                                 FeedRoute.PLAY -> onPlay(entry)
+                                FeedRoute.CHANNEL -> onChannel(entry)
+                                FeedRoute.ALBUM -> onGallery(entry)
+                            }
+                        }) {
+                        EntryCover(entry, Modifier.matchParentSize())
+                        Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x45202340), Ink))))
+                        Column(Modifier.align(Alignment.BottomStart).padding(23.dp)) {
+                            Text(if (entry.isGroupEntry) "频道推荐" else "正在热映", Modifier.background(Peach, RoundedCornerShape(5.dp))
+                                .padding(6.dp), color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(10.dp))
+                            Text(entry.title, color = White, fontSize = 44.sp, lineHeight = 44.sp, fontWeight = FontWeight.Black,
+                                maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            if (entry.description.isNotBlank()) {
+                                Spacer(Modifier.height(9.dp))
+                                Text(entry.description, color = White, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            }
+                            Spacer(Modifier.height(13.dp))
+                            Button(onClick = {
+                                when (routeOf(entry)) {
+                                    FeedRoute.PLAY -> onPlay(entry)
                                 FeedRoute.CHANNEL -> onChannel(entry)
                                 FeedRoute.ALBUM -> onGallery(entry)
                             }
@@ -262,15 +277,13 @@ private fun Channels(
                         }
                     }
                 }
+                }
             }
             Heading("逛频道", if (pager.loading && pager.items.isEmpty()) "正在取数据…" else "${cards.size} 个频道")
             FilterRow(FeedCategory.entries.map { it.label }, filter) { filter = it }
             Spacer(Modifier.height(9.dp))
-            if (pager.loading && pager.items.isEmpty()) {
-                Box(Modifier.fillMaxWidth().height(190.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(Modifier.size(26.dp), strokeWidth = 2.dp)
-                }
-            }
+            // 加载态只在上面的推荐位占位里转圈：这里再放一块 190dp 的转圈区，
+            // 数据一到它整块消失、网格顶上，等于第二次布局跳动。
         }
         if (cards.isNotEmpty()) item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

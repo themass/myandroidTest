@@ -428,6 +428,14 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 when (current) {
                     "字幕" -> {
                         Setting("关闭字幕", "不影响播放和弹幕", captionSource == 0) { captionSource = 0 }
+                        // 样式放最前：面板在弹窗里能滚的范围有限，样式是主功能不该藏在延时/导入后面
+                        Text("字幕样式", Modifier.padding(top = 8.dp), fontWeight = FontWeight.Bold)
+                        captionPresets.forEachIndexed { index, preset ->
+                            Setting(preset.title, preset.hint, presetIndex == index) {
+                                presetIndex = index
+                                store.edit().putInt("caption-style", index).apply()
+                            }
+                        }
                         // 服务端字幕：只有服务端条目才有对应记录，随包样片和本地文件不显示这一段
                         serverVideoId?.let { videoId ->
                             when {
@@ -496,14 +504,6 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                             TextButton({ offset = (offset + 500).coerceAtMost(60_000) }) { Text("+500 ms") }
                         }
                         Text("正值让字幕更晚出现。", color = Muted, fontSize = 12.sp)
-                        Spacer(Modifier.height(4.dp))
-                        Text("字幕样式", Modifier.padding(top = 8.dp), fontWeight = FontWeight.Bold)
-                        captionPresets.forEachIndexed { index, preset ->
-                            Setting(preset.title, preset.hint, presetIndex == index) {
-                                presetIndex = index
-                                store.edit().putInt("caption-style", index).apply()
-                            }
-                        }
                     }
                     "倍速" -> listOf(.5f, .75f, 1f, 1.25f, 1.5f, 2f).forEach { value ->
                         Setting("${value}×", if (value == 1f) "正常速度" else "", speed == value) {
