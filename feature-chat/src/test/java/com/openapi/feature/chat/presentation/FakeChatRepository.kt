@@ -46,11 +46,13 @@ internal class FakeChatRepository : ChatRepository {
         if (historyFails) throw java.io.IOException("offline")
         return if (beforeId == null) HistoryPage(history, hasMore = false) else HistoryPage(olderMessages, olderHasMore)
     }
+    /** 非 null 时 sendMessageStream 返回它：流式回复的表征测试在这里注入 Delta/Done 序列。 */
+    var streamFlow: Flow<ChatStreamEvent>? = null
     override fun sendMessageStream(
         sessionId: Long, userText: String, characterId: Int?, roleId: String?,
         persistUserMessage: Boolean, clientMessageId: String?,
         attachments: List<OutgoingAttachment>,
-    ): Flow<ChatStreamEvent> = emptyFlow()
+    ): Flow<ChatStreamEvent> = streamFlow ?: emptyFlow()
     /** regenerateStream 被调了几次：验证「带图消息的重跑走服务端，而不是整条重发」。 */
     var regenerateStreamCalls = 0
     override fun regenerateStream(sessionId: Long, characterId: Int?, roleId: String?): Flow<ChatStreamEvent> {
