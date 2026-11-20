@@ -29,6 +29,7 @@ internal class SendActions(
     private val streamer: ReplyStreamer,
     private val submitEdit: (String, String) -> Unit,
     private val startAttachmentSend: (ChatMessage) -> Unit,
+    private val strings: ChatStrings,
 ) {
 
     fun onSend() {
@@ -88,7 +89,7 @@ internal class SendActions(
             when (outcome) {
                 is StageOutcome.Staged -> composer.addDraft(kind, outcome.attachment)
                 is StageOutcome.Rejected -> state.update { it.copy(error = outcome.reason) }
-                StageOutcome.Failed -> state.update { it.copy(error = "读取附件失败，请重试") }
+                StageOutcome.Failed -> state.update { it.copy(error = strings.attachmentReadFailed()) }
             }
         }
     }
@@ -116,7 +117,7 @@ internal class SendActions(
                         }
                     }
                     is StageOutcome.Rejected -> state.update { it.copy(error = outcome.reason) }
-                    StageOutcome.Failed -> state.update { it.copy(error = "读取图片失败，请重试") }
+                    StageOutcome.Failed -> state.update { it.copy(error = strings.imageReadFailed()) }
                 }
             }
         }
@@ -143,7 +144,7 @@ internal class SendActions(
                     false
                 }
             }
-            if (!ok) state.update { it.copy(error = "编辑失败，已使用原图") }
+            if (!ok) state.update { it.copy(error = strings.imageEditFallback()) }
             // 编辑产生的临时文件用完即删
             withContext(Dispatchers.IO) { com.openapi.mediaview.edit.PhotoEditExporter.delete(edited) }
         }
@@ -161,7 +162,7 @@ internal class SendActions(
             val uri = runCatching { repository.synthesizeSpeech(message.id, message.text) }.getOrNull()
             state.update { it.copy(speakingMessageId = null) }
             if (uri == null) {
-                state.update { it.copy(error = "朗读失败，请稍后重试") }
+                state.update { it.copy(error = strings.speakFailed()) }
             } else {
                 AudioPlayer.play(message.id, uri)
             }

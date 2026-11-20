@@ -69,4 +69,29 @@
     <string name="ui_rename">Rename</string>
     <string name="ui_save">Save</string>
     <string name="ui_send">Send</string>
+
+    <!-- 错误提示文案（整改清单 P2-14b）：presentation 层经 ChatStrings 端口取用。
+         改动这里请同步 values-zh/，:app 的 ResourceChatStringsTest 钉住两侧一致。 -->
+    <string name="chat_load_older_failed">Couldn\'t load earlier messages, please try again later</string>
+    <string name="chat_stopped_no_reply">Stopped before the message was sent, tap retry</string>
+    <string name="chat_empty_reply">No reply came back, please try again</string>
+    <string name="chat_reply_failed">Reply failed, please try again</string>
+    <string name="chat_reply_truncated">The reply didn\'t come through complete, please try again</string>
+    <string name="chat_delete_failed">Delete failed, please try again later</string>
+    <string name="chat_read_messages_failed">Couldn\'t read the messages, please try again later</string>
+    <string name="chat_delete_part_failed">%1$d couldn\'t be deleted</string>
+    <string name="chat_delete_part_unsynced">%1$d aren\'t synced yet, try deleting them later</string>
+    <string name="chat_clear_failed">%1$d messages couldn\'t be cleared, please try again later</string>
+    <string name="chat_session_create_failed">Couldn\'t create the chat: the name is empty, duplicates an existing chat, or the network failed</string>
+    <string name="chat_session_rename_failed">Couldn\'t rename the chat: the name is empty or the network failed</string>
+    <string name="chat_attachment_read_failed">Couldn\'t read the attachment, please try again</string>
+    <string name="chat_image_read_failed">Couldn\'t read the image, please try again</string>
+    <string name="chat_image_edit_fallback">Editing failed, the original image was used</string>
+    <string name="chat_speak_failed">Couldn\'t play the voice, please try again later</string>
+    <string name="chat_role_switch_failed">Couldn\'t switch roles, please try again later</string>
+    <string name="chat_role_create_failed">Couldn\'t create the role, please try again later</string>
+    <string name="chat_role_update_failed">Couldn\'t update the role, please try again later</string>
+    <string name="chat_role_delete_failed">Couldn\'t delete the role, please try again later</string>
+    <string name="chat_file_too_large">File is over 20 MB and can\'t be sent</string>
+    <string name="chat_error_separator">", "</string>
 </resources>

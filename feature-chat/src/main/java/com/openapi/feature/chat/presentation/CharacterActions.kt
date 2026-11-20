@@ -26,6 +26,7 @@ internal class CharacterActions(
     private val roles: RolesRepository,
     private val state: MutableStateFlow<ChatUiState>,
     private val scope: CoroutineScope,
+    private val strings: ChatStrings,
     /** 当前会话换了：调用方据此重新加载这个会话的历史。 */
     private val onSessionChanged: () -> Unit = {},
 ) {
@@ -89,7 +90,7 @@ internal class CharacterActions(
         scope.launch {
             val created = runCatching { repository.createSessionFor(sessionName, roleId, characterId) }.getOrNull()
             if (created == null) {
-                state.update { it.copy(error = "切换角色失败，请稍后重试", rolePickerVisible = false) }
+                state.update { it.copy(error = strings.roleSwitchFailed(), rolePickerVisible = false) }
                 return@launch
             }
             enter(created.id, roleId, characterId, applySelection)
@@ -120,7 +121,7 @@ internal class CharacterActions(
         scope.launch {
             val created = runCatching { repository.createCharacter(title, content, null) }.getOrNull()
             if (created == null) {
-                state.update { it.copy(error = "创建角色失败，请稍后重试") }
+                state.update { it.copy(error = strings.roleCreateFailed()) }
                 return@launch
             }
             repository.setSelectedCharacterId(created.id)
@@ -140,7 +141,7 @@ internal class CharacterActions(
         scope.launch {
             val ok = runCatching { repository.updateCharacter(characterId, title, content, null) }.getOrDefault(false)
             if (!ok) {
-                state.update { it.copy(error = "更新角色失败，请稍后重试") }
+                state.update { it.copy(error = strings.roleUpdateFailed()) }
                 return@launch
             }
             state.update { s ->
@@ -157,7 +158,7 @@ internal class CharacterActions(
         scope.launch {
             val ok = runCatching { repository.deleteCharacter(characterId) }.getOrDefault(false)
             if (!ok) {
-                state.update { it.copy(error = "删除角色失败，请稍后重试") }
+                state.update { it.copy(error = strings.roleDeleteFailed()) }
                 return@launch
             }
             val wasSelected = state.value.selectedCharacterId == characterId

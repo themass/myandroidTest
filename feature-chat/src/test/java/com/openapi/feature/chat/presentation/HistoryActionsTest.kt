@@ -27,6 +27,7 @@ class HistoryActionsTest {
             state = state,
             scope = scope,
             isInFlight = { it in inFlight },
+            strings = FakeChatStrings(),
             io = StandardTestDispatcher(scope.testScheduler),
         )
     }

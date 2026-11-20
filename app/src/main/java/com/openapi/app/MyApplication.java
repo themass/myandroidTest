@@ -100,6 +100,9 @@ public class MyApplication extends MultiDexApplication {
                 new LocalChatStore(this),
                 legacyChat));
         ChatDependencies.INSTANCE.installLoginGate(new com.openapi.app.data.chat.LegacyLoginGate());
+        // 对话页错误提示的文案资源实现（整改清单 P2-14b）：应用级 Context，随进程存活
+        ChatDependencies.INSTANCE.installStrings(
+                new com.openapi.feature.chat.presentation.ResourceChatStrings(this));
         com.openapi.app.data.home.LegacyHomeEntries home = new com.openapi.app.data.home.LegacyHomeEntries(this);
         com.openapi.app.home.HomeDependencies.INSTANCE.install(home);
         com.openapi.feature.content.home.ChannelsDependencies.INSTANCE.install(home);

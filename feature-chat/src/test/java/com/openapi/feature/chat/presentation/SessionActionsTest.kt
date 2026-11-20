@@ -30,6 +30,7 @@ class SessionActionsTest {
             state = state,
             scope = scope,
             refresh = { refreshes++ },
+            strings = FakeChatStrings(),
             io = StandardTestDispatcher(scope.testScheduler),
         )
     }
@@ -169,6 +170,7 @@ class SessionActionsTest {
             scope = scope,
             // 模拟 ChatViewModel.refresh：快，且结束时推进 state.sessionId
             refresh = { state.update { it.copy(sessionId = repo.currentSessionId()) } },
+            strings = FakeChatStrings(),
             io = StandardTestDispatcher(scope.testScheduler),
         )
         actions.select(2L)
