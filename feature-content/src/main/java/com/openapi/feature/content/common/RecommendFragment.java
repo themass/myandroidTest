@@ -41,6 +41,16 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
     protected IndexRecommendAdapter adapter;
 
     public void addData(List<RecommendVo> data) {
+        // 服务端常下发相对 img/actionUrl，站点在 baseurl；先拼好再进列表，避免空白缩略图与「版本太低」误报
+        if (data != null) {
+            for (RecommendVo vo : data) {
+                if (vo == null) {
+                    continue;
+                }
+                vo.img = com.openapi.core.model.RecommendUrl.resolve(vo.baseurl, vo.img);
+                vo.actionUrl = com.openapi.core.model.RecommendUrl.resolve(vo.baseurl, vo.actionUrl);
+            }
+        }
         infoListVo.voList.addAll(data);
         initSort();
         sortData();
@@ -136,6 +146,9 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         Map<String, Object> param = new HashMap<>();
         param.put(CommonConstants.ADS_SHOW_CONFIG, vo.adsShow);
         param.put(CommonConstants.ADS_POP_SHOW_CONFIG, vo.adsPopShow);
+        if (vo.baseurl != null && !vo.baseurl.trim().isEmpty()) {
+            param.put("baseurl", vo.baseurl);
+        }
         com.openapi.core.event.CoreEvents.INSTANCE.postConfigAction(new ConfigActionEvent(getActivity(), vo.actionUrl, vo.title, param));
         MobAgent.onEventRecommondChannel(getActivity(), vo.title);
     }

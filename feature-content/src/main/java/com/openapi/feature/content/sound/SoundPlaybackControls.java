@@ -106,7 +106,7 @@ final class SoundPlaybackControls {
      */
     int pause() {
         Playback p = source.get();
-        if (!p.isPlaying()) {
+        if (p == null || !p.isPlaying()) {
             return -1;
         }
         p.pause();
@@ -114,8 +114,12 @@ final class SoundPlaybackControls {
         return p.getPosition();
     }
 
-    /** 播放指定曲目。空列表时提示；越界时钳位。 */
+    /** 播放指定曲目。空列表时提示；越界时钳位；服务未绑定时忽略。 */
     void play(int position) {
+        Playback p = source.get();
+        if (p == null) {
+            return;
+        }
         int count = host.itemCount();
         if (count <= 0) {
             host.showEmptyList();
@@ -131,7 +135,7 @@ final class SoundPlaybackControls {
             position = count - 1;
         }
         playIcon.showPlaying(true);
-        source.get().playPosi(position);
+        p.playPosi(position);
     }
 
     void next() {
@@ -167,9 +171,13 @@ final class SoundPlaybackControls {
         }
     }
 
-    /** 进度条拖动松手后跳转到指定位置。 */
+    /** 进度条拖动松手后跳转到指定位置；服务未绑定时忽略。 */
     void seekTo(int positionMs) {
-        source.get().seekTo(positionMs);
+        Playback p = source.get();
+        if (p == null) {
+            return;
+        }
+        p.seekTo(positionMs);
         playIcon.showPlaying(true);
     }
 

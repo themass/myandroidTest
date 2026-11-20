@@ -95,6 +95,12 @@ class SimpleAvatarRenderer : AvatarRenderer {
                 _spec.value?.files?.expressions?.get(command.name)?.let { _expressionFile.value = it }
             }
 
+            // 清除不经 spec 查找：立绘就是「没有表情」这件事本身，两条通道直接归 null。
+            is AvatarCommand.ClearEmotion -> {
+                _expressionRes.value = null
+                _expressionFile.value = null
+            }
+
             is AvatarCommand.Mouth -> {
                 if (_state.value != AvatarState.SPEAKING) return
                 // NaN / Infinity 会污染比较结果，直接丢；其余压到合法区间。
@@ -143,7 +149,7 @@ class SimpleAvatarRenderer : AvatarRenderer {
 
     private fun supports(command: AvatarCommand): Boolean = when (command) {
         is AvatarCommand.SetState -> AvatarCapability.STATE in capabilities
-        is AvatarCommand.Emotion -> AvatarCapability.EMOTION in capabilities
+        is AvatarCommand.Emotion, is AvatarCommand.ClearEmotion -> AvatarCapability.EMOTION in capabilities
         is AvatarCommand.Mouth -> AvatarCapability.MOUTH in capabilities
         is AvatarCommand.Gaze -> AvatarCapability.GAZE in capabilities
         is AvatarCommand.Gesture -> AvatarCapability.GESTURE in capabilities

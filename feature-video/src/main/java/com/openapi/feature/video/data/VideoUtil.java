@@ -79,4 +79,15 @@ public class VideoUtil {
         String ref = vo != null && StringUtils.hasText(vo.baseurl) ? vo.baseurl : (vo != null ? vo.actionUrl : "");
         return getVideoSourceHeader(url, ref);
     }
+
+    /** content:// / file:// / 绝对路径：本地源，不要走 ProxyCache。 */
+    public static boolean isLocalPlayUrl(String url) {
+        if (!StringUtils.hasText(url)) {
+            return false;
+        }
+        String u = url.trim();
+        return u.startsWith("content://")
+                || u.startsWith("file://")
+                || u.startsWith("/");
+    }
 }

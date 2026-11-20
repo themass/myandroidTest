@@ -17,6 +17,11 @@
             android:name="com.openapi.feature.video.page.VideoListShowActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
             android:theme="@style/AppTheme" />
+        <!-- 新播放页（实验实现），与 VideoShowActivityLazyUrl 并存，入口默认仍走旧页 -->
+        <activity
+            android:name="com.openapi.feature.video.prototype.NewVideoShowActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode|smallestScreenSize"
+            android:theme="@style/NewPlayerTheme" />
         <activity
             android:name="com.openapi.feature.video.local.LocalVideoActivity"
             android:exported="false"

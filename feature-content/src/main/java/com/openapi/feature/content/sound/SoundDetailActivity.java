@@ -109,7 +109,7 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
         filter.addAction(MUSIC_DURATION);
         filter.addAction(MUSIC_PREPAREING);
         filter.addAction(MUSIC_PREPARED);
-        registerReceiver(homeReceiver, filter);
+        ContextCompat.registerReceiver(this, homeReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
     private void syncUiFromService() {

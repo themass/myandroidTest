@@ -2,6 +2,8 @@ package com.openapi.ks.myapp.companion
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.openapi.ks.myapp.avatar.AvatarCommand
+import com.openapi.ks.myapp.avatar.AvatarEventMapper
 import com.openapi.ks.myapp.avatar.ProactiveKind
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -76,7 +78,7 @@ class CompanionViewModel(
     )
 
     /** 没有 [CompanionApi] 时直接连替身，用于预览与离线调试。 */
-    fun start(characterId: String) {
+    fun start(characterId: String, caseId: String? = null) {
         // 同一个角色：已经连上/正在重连/启动流程还在跑，都不能再建一个房间（会泄漏上一个 Room）。
         // 只有出错或空闲（启动流程已结束）才允许重试。
         if (this.characterId == characterId) {
@@ -89,7 +91,11 @@ class CompanionViewModel(
         startupJob?.cancel()
         startupJob = viewModelScope.launch {
             try {
-                val session = api?.createSession(characterId) ?: offlineSession(characterId)
+                val session = when {
+                    api == null -> offlineSession(characterId)
+                    caseId != null -> api.createScriptSession(characterId, caseId)
+                    else -> api.createSession(characterId)
+                }
                 adoptTransport(session)
                 restoreHistory(session)
                 // 先订阅、后连接：所有实现都成立（Fake 的事件流是冷流，先连就丢；
@@ -310,16 +316,37 @@ class CompanionViewModel(
     }
 
     fun onAvatarEvent(raw: String) {
-        val state = Regex("\"type\"\\s*:\\s*\"state\".*?\"state\"\\s*:\\s*\"([^\"]+)\"")
-            .find(raw)?.groupValues?.get(1)
-        val emotion = Regex("\"type\"\\s*:\\s*\"emotion\".*?\"emotion\"\\s*:\\s*\"([^\"]+)\"")
-            .find(raw)?.groupValues?.get(1)
-        _state.update {
-            it.copy(
-                avatarState = state ?: it.avatarState,
-                emotion = emotion ?: it.emotion,
-            )
+        // 协议解析只有一处（AvatarEventMapper）。这里曾自带一份 state/emotion 的
+        // 正则，与 mapper 各解各的，改协议时必漏一边——现在只翻译指令 → UI state 字段。
+        when (val command = AvatarEventMapper.mapJson(raw)) {
+            is AvatarCommand.SetState -> _state.update { it.copy(avatarState = command.state.name.lowercase()) }
+            is AvatarCommand.Emotion -> _state.update { it.copy(emotion = command.name) }
+            // 非表现类指令（嘴型等）与未识别事件都不进 UI state。
+            else -> Unit
         }
+        // gesture/gaze 还没有对应的 AvatarCommand（mapper 把它们归入 else），
+        // 正则暂时留在这里；接入 mapper 时连同 UI state 字段一起搬。
+        val gesture = Regex("\"type\"\\s*:\\s*\"gesture\".*?\"id\"\\s*:\\s*\"([^\"]+)\"")
+            .find(raw)?.groupValues?.get(1)
+        val gazeX = numberField(raw, "x").takeIf { "\"type\"\\s*:\\s*\"gaze\"".toRegex().containsMatchIn(raw) }
+        val gazeY = numberField(raw, "y").takeIf { gazeX != null }
+        if (gesture != null || (gazeX != null && gazeY != null)) {
+            _state.update {
+                it.copy(
+                    gesture = gesture ?: it.gesture,
+                    gestureSeq = if (gesture != null) it.gestureSeq + 1 else it.gestureSeq,
+                    gazeX = gazeX ?: it.gazeX,
+                    gazeY = gazeY ?: it.gazeY,
+                    gazeSeq = if (gazeX != null && gazeY != null) it.gazeSeq + 1 else it.gazeSeq,
+                )
+            }
+        }
+    }
+
+    private fun numberField(raw: String, name: String): Float? {
+        val text = Regex("\"$name\"\\s*:\\s*(-?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)")
+            .find(raw)?.groupValues?.get(1) ?: return null
+        return text.toFloatOrNull()
     }
 
     /**
@@ -329,6 +356,9 @@ class CompanionViewModel(
      * 塞进 UI state 会让整棵界面树按音频帧重组。形象层单独 collect 它。
      */
     val mouthLevel: StateFlow<Float> get() = transport.mouthLevel
+
+    /** 她的声音的真 PCM（16k 单声道），供 Duix / Tao 口型使用。 */
+    val remotePcm: kotlinx.coroutines.flow.Flow<ByteArray> get() = transport.remotePcm
 
     /** 用户自己的音量 0..1（本地麦克风采集轨）。驱动通话页底部波形。 */
     val selfLevel: StateFlow<Float> get() = transport.selfLevel
@@ -496,6 +526,12 @@ class CompanionViewModel(
                         it.copy(incomingCall = ProactiveKind.CALL)
                     }
 
+                    is CompanionEvent.ClearAvatarEmotion -> _state.update {
+                        // 降级进 L2（B3）：表情到 UI state 这一层收回 null，
+                        // 界面那一跳的 LaunchedEffect 会把它翻成 ClearEmotion 指令。
+                        it.copy(emotion = null)
+                    }
+
                     CompanionEvent.TurnDone -> _state.update { st ->
                         st.copy(messages = st.messages.map {
                             if (it.streaming) it.copy(streaming = false) else it
@@ -538,7 +574,11 @@ class CompanionViewModel(
     private fun appendToStreaming(delta: String) {
         _state.update { st ->
             val idx = st.messages.indexOfLast { it.streaming }
-            if (idx < 0) return@update st
+            if (idx < 0) {
+                // 语音通话里没人先发 send()，没有占位可追加。以前直接丢弃 →
+                // 字幕永远空，「字幕开关」看着没效果。第一个 delta 自己开一条流式回复。
+                return@update st.copy(messages = st.messages + newMessage(MessageRole.ASSISTANT, delta, streaming = true))
+            }
             st.copy(messages = st.messages.toMutableList().also {
                 it[idx] = it[idx].copy(text = it[idx].text + delta)
             })

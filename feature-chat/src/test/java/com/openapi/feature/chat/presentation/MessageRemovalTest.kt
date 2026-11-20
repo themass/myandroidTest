@@ -74,14 +74,33 @@ class MessageRemovalTest {
         assertEquals(1, h.reconciles)
     }
 
+    /** 服务端有一键清空接口时：一次调用清掉整个会话，不再分页拉 id 逐条删（整改清单 P1-9）。 */
     @Test
-    fun clearConversationRemovesEverythingAndClearsTheLocalCache() {
+    fun clearConversationUsesTheOneShotEndpointWhenTheRepositorySupportsIt() {
         val h = Harness(listOf(msg("10"), msg("11")))
         h.repo.history = listOf(msg("10"), msg("11"))
+        h.repo.clearHistoryOk = true
         h.removal.clearConversation()
         h.scope.advanceUntilIdle()
         assertTrue(h.state.value.messages.isEmpty())
         assertNull(h.state.value.error)
+        assertEquals(1, h.repo.clearHistoryCalls)
+        assertTrue("一键清空成功后不应再逐条删服务端消息", h.repo.deletedMessages.isEmpty())
+        assertEquals(1, h.repo.clearedLocal)
+    }
+
+    /** 旧服务端没有该接口（或调用失败）时：回退到原来的分页 + 逐条删除路径。 */
+    @Test
+    fun clearConversationFallsBackToPerMessageDeletesWithoutOneShotSupport() {
+        val h = Harness(listOf(msg("10"), msg("11")))
+        h.repo.history = listOf(msg("10"), msg("11"))
+        h.repo.clearHistoryOk = false
+        h.removal.clearConversation()
+        h.scope.advanceUntilIdle()
+        assertTrue(h.state.value.messages.isEmpty())
+        assertNull(h.state.value.error)
+        assertEquals(1, h.repo.clearHistoryCalls)
+        assertEquals(listOf("10", "11"), h.repo.deletedMessages)
         assertEquals(1, h.repo.clearedLocal)
     }
 

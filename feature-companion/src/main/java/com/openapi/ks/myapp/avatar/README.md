@@ -8,6 +8,7 @@
 ```kotlin
 AvatarCommand.SetState(AvatarState.IDLE | LISTENING | THINKING | SPEAKING)
 AvatarCommand.Emotion("joy")        // 名字由 AvatarSpec.expressions 解析
+AvatarCommand.ClearEmotion          // 收回立绘（agent 协议没有"清空表情"，客户端降级清场用）
 AvatarCommand.Mouth(openness)       // 0..1，来自播放音频的振幅
 AvatarCommand.Gaze(x, y)            // v1 不实现
 AvatarCommand.Gesture(id)           // v1 不实现

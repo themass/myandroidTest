@@ -110,7 +110,11 @@ class PlayService : Service() {
                 }
             }
         }
-        registerReceiver(myReceiver, IntentFilter(CTL_ACTION))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(myReceiver, IntentFilter(CTL_ACTION), Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(myReceiver, IntentFilter(CTL_ACTION))
+        }
 
         playModeBridge = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {

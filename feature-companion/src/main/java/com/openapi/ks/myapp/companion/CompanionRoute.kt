@@ -25,7 +25,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -48,13 +50,26 @@ import com.openapi.ks.myapp.avatar.BundledAvatars
 import com.openapi.ks.myapp.avatar.LayeredAvatar
 import com.openapi.ks.myapp.avatar.LayeredAvatarPack
 import com.openapi.ks.myapp.avatar.AvatarPortrait
+import com.openapi.ks.myapp.avatar.AvatarEventMapper
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.SimpleAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
+import com.openapi.ks.myapp.dh.DhEngineDownloadGate
+import com.openapi.ks.myapp.dh.DhEngineRegistry
+import com.openapi.ks.myapp.dh.DhEngineWatchdog
+import com.openapi.ks.myapp.dh.EngineClickAction
+import com.openapi.ks.myapp.dh.dhEngineLabel
+import com.openapi.ks.myapp.dh.DhLabBootstrap
+import com.openapi.ks.myapp.dh.DhLabGate
+import com.openapi.ks.myapp.dh.DhLabPreferences
+import com.openapi.ks.myapp.dh.DigitalHumanLabHost
+import com.openapi.ks.myapp.dh.dhEngineMenuRows
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 
 /** 陪伴界面里能去的页面。聊天是主页面，其余三个从顶部进入。 */
@@ -235,12 +250,14 @@ fun CompanionRoute(
         // 标题与字标要用她的真名，不能拿 characterId（如 linche）当人看。通话期间拉一次，
         // 失败就退回「陪伴」——名字拿不到不该挡住通话。
         var agentName by rememberSaveable(characterId) { mutableStateOf("陪伴") }
+        var voiceLabel by rememberSaveable(characterId) { mutableStateOf<String?>(null) }
         LaunchedEffect(characterId) {
-            val name = runCatching { api.character(characterId).summary.name }.getOrNull()
+            val summary = runCatching { api.character(characterId).summary }.getOrNull()
                 ?: runCatching {
-                    api.characters().items.firstOrNull { it.id == characterId }?.name
+                    api.characters().items.firstOrNull { it.id == characterId }
                 }.getOrNull()
-            if (!name.isNullOrBlank()) agentName = name
+            if (summary != null && summary.name.isNotBlank()) agentName = summary.name
+            voiceLabel = summary?.voiceLabel
         }
 
         // 形象包里装了立绘就出图，没有才用首字占位：素材没装时不能假装有图，
@@ -260,12 +277,49 @@ fun CompanionRoute(
             }
         }
 
+        // DH Lab 只决定右上角下拉里有没有「形象」段，不改默认画面。
+        // 默认（callStage == null）仍是原来的圆头像 / 分层立绘；选了引擎才换舞台。
+        DhLabBootstrap.ensureDefaults()
+        val labEnabled = remember(context) { DhLabGate.isEnabled(context) }
+        val dhPrefs = remember(context) { DhLabPreferences(context) }
+        var callStage by remember { mutableStateOf(dhPrefs.callStage) }
+        // 用户在菜单里再点已勾选的引擎 = 「解除熔断再试一次」。引擎 id 没变，Compose 不会重组，
+        // 所以用计数器重建 LabHost（key），让它重新读隔离状态。
+        var engineRetry by remember { mutableIntStateOf(0) }
+        val uiScope = rememberCoroutineScope()
+        // 重型引擎的素材没下好时，点菜单先下载；下载成功后**重查引擎可用性**再换舞台——
+        // 素材下齐但 native 缺失时不换（否则舞台上静默退回 Simple）。Simple / 原形象不受影响。
+        val engineGate = remember(context) {
+            val store = DhLabBootstrap.assetStore(context)
+            DhEngineDownloadGate(
+                availability = { id ->
+                    DhEngineRegistry.available(context).firstOrNull { it.id == id }?.available == true
+                },
+                ensure = { assets, onProgress -> store.ensure(assets, onProgress) },
+            )
+        }
+        // 下载/失败后 +1：菜单行（未下载 / native 库缺失 / 机型不足）跟着引擎状态刷新。
+        var engineMenuTick by remember { mutableIntStateOf(0) }
+        val engineMenu = remember(context, labEnabled, engineMenuTick) {
+            if (labEnabled) dhEngineMenuRows(DhEngineRegistry.available(context)) else null
+        }
+
         // 通话页用**会动的**形象，而不是单张立绘：这里是她被盯着看最久的地方，
         // 一张不眨眼、不说话的照片比不显示还糟。嘴型由远端音频振幅驱动，
         // 眨眼/呼吸由渲染器自己跑。素材缺失时退回单张立绘，再缺就退回字标。
         val callAvatarRenderer = remember { SimpleAvatarRenderer() }
         LaunchedEffect(avatarFiles) {
             avatarFiles?.let { callAvatarRenderer.bind(AvatarSpec(files = it)) }
+        }
+        // 状态与表情要喂给通话页的渲染器。没有这两跳，渲染器永远停在 IDLE，
+        // 而 Mouth 指令在非 SPEAKING 时被整条丢弃——头像的嘴根本不会动；
+        // 她的表情同理到不了脸上。chat 页同样的接线在 CompanionScreen。
+        LaunchedEffect(uiState.avatarState) {
+            AvatarEventMapper.mapState(uiState.avatarState)?.let(callAvatarRenderer::dispatch)
+        }
+        LaunchedEffect(uiState.emotion) {
+            // 与 chat 页同一跳：null → ClearEmotion，降级清场时表情真的下脸。
+            callAvatarRenderer.dispatch(AvatarEventMapper.emotionCommand(uiState.emotion))
         }
         DisposableEffect(callAvatarRenderer) {
             onDispose { callAvatarRenderer.release() }
@@ -345,6 +399,7 @@ fun CompanionRoute(
         CompanionCallScreen(
             state = CompanionCallState(
                 agentName = agentName,
+                voiceLabel = voiceLabel,
                 captions = transcript,
                 speakerCaptions = labeledCaptions,
                 elapsedSeconds = elapsedSeconds,
@@ -369,7 +424,10 @@ fun CompanionRoute(
             // 摄像头目前不支持；由按钮显示不可用状态，不注入点击回调。
             cameraAvailable = false,
             previewState = preview,
-            onPreviewAudio = audioPreview::toggle,
+            // 试听按钮只是调试工具：正式包不显示（onPreviewAudio == null 时整行不渲染）。
+            onPreviewAudio = if (
+                context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
+            ) audioPreview::toggle else null,
             waveOptions = waveOptions,
             onWaveOptionsChange = { next ->
                 waveOptions = next
@@ -391,15 +449,84 @@ fun CompanionRoute(
                 chatViewModel.send()
             },
             avatarContent = avatarSlot,
-            avatarStage = layeredPack?.let { pack ->
-                {
-                    LayeredAvatar(
-                        pack = pack,
-                        modifier = Modifier.fillMaxSize(),
-                        // 嘴型跟她的声音走；AI 试听时跟试听音频走，否则跟远端音频轨。
-                        mouthLevel = { aiMouthLevel() },
-                        onTapped = chatViewModel::onAvatarTapped,
-                    )
+            // 数字人引擎舞台 = 主角模式（人物铺满整块舞台）；「原来的形象」分层立绘
+            // 与圆形头像保持原有分栏布局不变。
+            characterHero = callStage != null,
+            engineMenu = engineMenu,
+            selectedEngine = callStage,
+            onEngineMenuClick = { row ->
+                when (engineGate.actionFor(row)) {
+                    EngineClickAction.UNAVAILABLE_REASON ->
+                        toast(context, row.detail ?: "这个形象现在不能用")
+                    EngineClickAction.SELECT -> {
+                        // 用户主动再选 = 解除上次崩溃留下的熔断（再崩会重新熔断）。
+                        row.id?.let { DhEngineWatchdog(context).clear(it) }
+                        engineRetry++
+                        callStage = row.id
+                        dhPrefs.callStage = row.id
+                    }
+                    EngineClickAction.NOT_READY_START_DOWNLOAD -> {
+                        val id = row.id
+                        if (id != null) {
+                            val name = dhEngineLabel(id)
+                            uiScope.launch {
+                                if (engineGate.isDownloading(id)) {
+                                    toast(context, "$name 正在下载…")
+                                    return@launch
+                                }
+                                toast(context, "正在下载 $name 素材…")
+                                // onProgress 在 IO 线程回调，v1 不展示进度，传空实现；只在下载结束后（主线程）切换。
+                                when (val outcome = engineGate.download(id) {}) {
+                                    DhEngineDownloadGate.Outcome.Success -> {
+                                        // 素材下好 ≠ 能用：native 缺失 / 模型不全时引擎自判仍不可用，
+                                        // 换舞台只会静默退回 Simple。重查，不可用就报原因、不换。
+                                        engineMenuTick++
+                                        val now = DhEngineRegistry.available(context)
+                                            .firstOrNull { it.id == id }
+                                        if (now?.available == true) {
+                                            DhEngineWatchdog(context).clear(id)
+                                            callStage = id
+                                            dhPrefs.callStage = id
+                                        } else {
+                                            toast(context, "$name 素材已下好，但${now?.reason ?: "现在还不能用"}")
+                                        }
+                                    }
+                                    DhEngineDownloadGate.Outcome.Busy ->
+                                        toast(context, "$name 正在下载…")
+                                    is DhEngineDownloadGate.Outcome.Failed -> {
+                                        engineMenuTick++
+                                        toast(context, "$name 下载失败：${outcome.reason}")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            // 只有下拉里点了某个引擎才换舞台；默认仍是原来的分层立绘。
+            avatarStage = when (val chosen = callStage) {
+                null -> layeredPack?.let { pack ->
+                    {
+                        LayeredAvatar(
+                            pack = pack,
+                            modifier = Modifier.fillMaxSize(),
+                            mouthLevel = { aiMouthLevel() },
+                            onTapped = chatViewModel::onAvatarTapped,
+                        )
+                    }
+                }
+                else -> {
+                    {
+                        key(engineRetry) {
+                        DigitalHumanLabHost(
+                            spec = avatarFiles?.let { AvatarSpec(files = it) },
+                            mouthLevel = chatViewModel.mouthLevel,
+                            remotePcm = chatViewModel.remotePcm,
+                            modifier = Modifier.fillMaxSize(),
+                            engineId = chosen,
+                        )
+                        }
+                    }
                 }
             },
         )

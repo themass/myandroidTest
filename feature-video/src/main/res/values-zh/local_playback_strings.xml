@@ -1,0 +1,13 @@
+<resources>
+    <string name="local_subtitle_title">字幕</string>
+    <string name="local_subtitle_import">导入 UTF-8 SRT / VTT</string>
+    <string name="local_subtitle_loaded">已加载本地字幕</string>
+    <string name="local_subtitle_invalid">无法读取此 UTF-8 SRT / VTT 文件</string>
+    <string name="local_subtitle_hide">关闭字幕</string>
+    <string name="local_subtitle_show">显示已导入字幕</string>
+    <string name="local_subtitle_delay">字幕延时：%1$+d ms</string>
+    <string name="local_subtitle_delay_hint">正值让字幕晚一点显示。</string>
+    <string name="local_tools_speed">倍速</string>
+    <string name="local_tools_favorite">收藏</string>
+    <string name="local_tools_cast">电视投屏</string>
+</resources>

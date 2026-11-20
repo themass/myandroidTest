@@ -142,17 +142,35 @@ fun CompanionScreen(
     }
 
     LaunchedEffect(state.avatarState) {
-        AvatarEventMapper.mapJson("""{"type":"state","state":"${state.avatarState}"}""")
-            ?.let(renderer::dispatch)
+        AvatarEventMapper.mapState(state.avatarState)?.let(renderer::dispatch)
     }
     LaunchedEffect(state.emotion) {
-        state.emotion?.let { renderer.dispatch(AvatarCommand.Emotion(it)) }
+        // emotionCommand 对 null 回 ClearEmotion：降级清场后这张表情图要真的下脸，
+        // 而不是 mapEmotion 的「null 就什么都不做」。
+        renderer.dispatch(AvatarEventMapper.emotionCommand(state.emotion))
+    }
+    LaunchedEffect(state.gestureSeq) {
+        if (state.gestureSeq == 0L) return@LaunchedEffect
+        state.gesture?.let { renderer.dispatch(AvatarCommand.Gesture(it)) }
+    }
+    LaunchedEffect(state.gazeSeq) {
+        if (state.gazeSeq == 0L) return@LaunchedEffect
+        val x = state.gazeX ?: return@LaunchedEffect
+        val y = state.gazeY ?: return@LaunchedEffect
+        renderer.dispatch(AvatarCommand.Gaze(x, y))
     }
 
     // 新消息到达时滚到底。用消息条数与最后一条文本做 key：流式追加时也要跟。
+    // 首批历史（从没滚过）用无动画 jump：否则先画在第 0 条再 animate，用户会看到「停在第一条」。
+    var pinnedOnce by remember { mutableStateOf(false) }
     LaunchedEffect(state.messages.size, state.messages.lastOrNull()?.text) {
-        if (state.messages.isNotEmpty()) {
-            listState.animateScrollToItem(state.messages.lastIndex)
+        if (state.messages.isEmpty()) return@LaunchedEffect
+        val index = state.messages.lastIndex
+        if (!pinnedOnce) {
+            listState.scrollToItem(index)
+            pinnedOnce = true
+        } else {
+            listState.animateScrollToItem(index)
         }
     }
 

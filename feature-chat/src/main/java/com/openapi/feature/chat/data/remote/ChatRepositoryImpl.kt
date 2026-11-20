@@ -116,6 +116,9 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
         withContext(Dispatchers.IO) { cache.clearLocal(sessionId) }
     }
 
+    /** 旧 Java 服务端没有「清空会话消息」接口，清空走 MessageRemoval 的逐条删除回退路径。 */
+    override suspend fun clearHistory(sessionId: Long): Boolean = false
+
     override suspend fun deleteMessage(sessionId: Long, messageId: String): Boolean {
         val id = messageId.toLongOrNull() ?: return false
         if (sessionId <= 0) return false

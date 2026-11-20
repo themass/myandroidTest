@@ -1,0 +1,39 @@
+<resources>
+    <string name="np_back">Back</string>
+    <string name="np_lock">Lock controls</string>
+    <string name="np_unlock">Unlock</string>
+    <string name="np_rewind">Rewind 10s</string>
+    <string name="np_forward">Forward 10s</string>
+    <string name="np_lock_short">Lock</string>
+    <string name="np_play">Play</string>
+    <string name="np_pause">Pause</string>
+    <string name="np_fullscreen">Fullscreen</string>
+    <string name="np_exit_fullscreen">Exit fullscreen</string>
+
+    <string name="np_subtitles">Subtitles</string>
+    <string name="np_speed">Speed %1$s</string>
+    <string name="np_danmaku">Danmaku</string>
+    <string name="np_more">More</string>
+    <string name="np_favorite">Favorite</string>
+    <string name="np_cast">Cast to TV</string>
+
+    <string name="np_subtitle_panel_title">Subtitles · local first</string>
+    <string name="np_subtitle_off">Off</string>
+    <string name="np_subtitle_off_hint">Keep playing</string>
+    <string name="np_subtitle_embedded">Embedded track</string>
+    <string name="np_subtitle_embedded_hint">Only tracks the current engine exposes</string>
+    <string name="np_subtitle_local">Local file</string>
+    <string name="np_subtitle_local_hint">Import UTF-8 SRT / WebVTT</string>
+    <string name="np_subtitle_loaded">Subtitle loaded: %1$s</string>
+    <string name="np_subtitle_failed">Could not read this SRT / WebVTT file</string>
+    <string name="np_subtitle_clear">Remove imported subtitle</string>
+    <string name="np_subtitle_delay">Delay %1$s</string>
+    <string name="np_subtitle_delay_hint">+500 ms shows subtitles half a second later</string>
+    <string name="np_subtitle_delay_reset">Reset</string>
+    <string name="np_subtitle_none_selected">No embedded track available</string>
+
+    <string name="np_speed_panel_title">Playback speed</string>
+    <string name="np_danmaku_on">Danmaku on · local demo</string>
+    <string name="np_danmaku_off">Danmaku off</string>
+    <string name="np_more_local">Local file: source, decoder and picture-in-picture live here</string>
+</resources>

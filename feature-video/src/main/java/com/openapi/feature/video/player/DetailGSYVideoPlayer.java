@@ -100,6 +100,48 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
     }
 
     /**
+     * 对齐 GSYBaseActivityDetail#initVideo：进入页就建 OrientationUtils，
+     * 否则横竖屏切换时 Activity 转发拿不到实例，退出全屏也无法 backToProtVideo。
+     */
+    public void ensureOrientationUtils(Activity act) {
+        if (act == null || !mNeedOrientationUtils) {
+            return;
+        }
+        if (mOrientationUtils == null) {
+            mOrientationUtils = new OrientationUtils(act, this, getOrientationOption());
+            mOrientationUtils.setEnable(false);
+            mOrientationUtils.setRotateWithSystem(isRotateWithSystem());
+            mOrientationUtils.setOnlyRotateLand(isOnlyRotateLand());
+        }
+    }
+
+    /** 开始播放后允许跟随重力（与 GSY onPrepared 行为一致）。 */
+    public void enableOrientationAfterPrepared() {
+        if (mOrientationUtils != null) {
+            mOrientationUtils.setEnable(true);
+        }
+    }
+
+    public void setOrientationPaused(boolean paused) {
+        if (mOrientationUtils != null) {
+            mOrientationUtils.setIsPause(paused);
+        }
+    }
+
+    public void backToPortraitIfNeeded() {
+        if (mOrientationUtils != null) {
+            mOrientationUtils.backToProtVideo();
+        }
+    }
+
+    public void releaseOrientationUtils() {
+        if (mOrientationUtils != null) {
+            mOrientationUtils.releaseListener();
+            mOrientationUtils = null;
+        }
+    }
+
+    /**
      * 在播放器右上角显示 Google Cast 投屏按钮（需系统已安装 Google Play 服务）。
      * 与 {@link com.openapi.feature.video.cast.GoogleCastSessionController} 配合使用。
      */
@@ -112,8 +154,10 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         super.init(context);
         setStartAfterPrepared(false);
         setShowDragProgressTextOnSeekBar(true);
+        // 挂在播放器上，全屏窗口克隆时工具条一起走；默认 GONE，由 Activity 接线后再显示
         myFavoriteView = new MyFavoriteView(context);
         myFavoriteView.setId(R.id.my_favoriteview);
+        myFavoriteView.setVisibility(View.GONE);
         FrameLayout.LayoutParams favLp = new FrameLayout.LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         favLp.gravity = Gravity.END | Gravity.BOTTOM;
@@ -212,6 +256,7 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
     @Override
     protected void clearFullscreenLayout() {
         mFullAnimEnd = true;
+        backToPortraitIfNeeded();
         super.clearFullscreenLayout();
     }
 
@@ -261,16 +306,9 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         if (act == null) {
             return;
         }
-        if (mNeedOrientationUtils) {
-            if (mOrientationUtils == null) {
-                mOrientationUtils = new OrientationUtils(act, this, getOrientationOption());
-                mOrientationUtils.setEnable(false);
-                mOrientationUtils.setRotateWithSystem(isRotateWithSystem());
-                mOrientationUtils.setOnlyRotateLand(isOnlyRotateLand());
-            }
-            if (mOrientationUtils.getIsLand() != 1) {
-                mOrientationUtils.resolveByClick();
-            }
+        ensureOrientationUtils(act);
+        if (mOrientationUtils != null && mOrientationUtils.getIsLand() != 1) {
+            mOrientationUtils.resolveByClick();
         }
         startWindowFullscreen(act, isFullHideActionBar(), isFullHideStatusBar());
     }

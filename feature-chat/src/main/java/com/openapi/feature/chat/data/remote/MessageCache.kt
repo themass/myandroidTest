@@ -23,8 +23,11 @@ internal class MessageCache {
     private companion object {
         /** 本地临时消息的 id 前缀：这些消息只存在本地，服务端历史里没有。 */
         const val LOCAL_ID_PREFIX = "local-"
-        /** 聊天记录只保留最近这么多条，沿用旧逻辑。 */
-        const val CHAT_LOG_KEEP = 30L
+        /**
+         * 每个会话各自保留最近这么多条纯文字缓存（清理按 sessionId 分组，见 ChatLogDao.trimToLatest）。
+         * 以前是 30 条全局共享，切几个会话后每个会话断网时就只剩几行（整改清单 P1-7）。
+         */
+        const val CHAT_LOG_KEEP = 100L
         /** 单线程清理队列：所有实例共享，保证清理串行执行。 */
         val trimExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     }

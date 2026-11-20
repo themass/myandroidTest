@@ -362,4 +362,33 @@ class SpeechSchedulerTest {
     fun `缺 speech_id 的 seg 作废`() {
         assertNull(SpeechTimeline.parseSeg(JSONObject().put("idx", 0).put("est_ms", 100)))
     }
+
+    @Test
+    fun `dur_ms 优先于 est_ms 累加时间线`() {
+        // P3：有 dur_ms 用它，没有就退回 est_ms。第二段起点必须反映第一段的实测时长。
+        val tl = SpeechTimeline("sp_7f3a")
+        val args0 = segArgs(0, 1000).put("dur_ms", 700)
+        val args1 = segArgs(1, 1000) // 无 dur_ms
+        val (_, s0) = SpeechTimeline.parseSeg(args0)!!
+        val (_, s1) = SpeechTimeline.parseSeg(args1)!!
+        assertEquals(700L, s0.durMs)
+        assertEquals(700L, s0.effectiveMs)
+        assertNull(s1.durMs)
+        assertEquals(1000L, s1.effectiveMs)
+        check(tl.append(s0))
+        check(tl.append(s1))
+        tl.startNow(t0)
+        assertEquals(t0, tl.startOf(0))
+        assertEquals(t0 + 700, tl.startOf(1))
+        assertEquals(t0 + 700, tl.endOf(0))
+        assertEquals(t0 + 1700, tl.endOf(1))
+    }
+
+    @Test
+    fun `负的 dur_ms 被忽略仍保留 est_ms`() {
+        val args = segArgs(0, 500).put("dur_ms", -1)
+        val (_, seg) = SpeechTimeline.parseSeg(args)!!
+        assertNull(seg.durMs)
+        assertEquals(500L, seg.effectiveMs)
+    }
 }

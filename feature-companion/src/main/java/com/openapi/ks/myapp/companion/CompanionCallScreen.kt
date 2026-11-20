@@ -13,6 +13,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -56,6 +57,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.openapi.ks.myapp.dh.DhEngineMenuRow
+import com.openapi.ks.myapp.dh.menuLabel
 import androidx.compose.runtime.State
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -165,6 +168,8 @@ data class CallCaption(val text: String, val speaker: String, val streaming: Boo
 @Immutable
 data class CompanionCallState(
     val agentName: String = "",
+    /** 她的声音的人话名字，顶栏名字下面的小标签；null 时不显示。 */
+    val voiceLabel: String? = null,
     val captions: List<String> = emptyList(),
     val speakerCaptions: List<CallCaption> = emptyList(),
     val elapsedSeconds: Long = 0L,
@@ -255,6 +260,47 @@ private const val RIPPLE_CYCLE_MS = 7000
 /** 字幕淡入淡出时长。 */
 private const val CAPTION_FADE_MS = 260
 
+/**
+ * 语音舞台的三种布局。纯数据 + [voiceStageMode] / [voiceStageHeightForMode] 两个纯函数，
+ * 单独放在 JVM 测试里钉住（CompanionCallStageLayoutTest），布局改动必须先过它们。
+ */
+enum class VoiceStageMode {
+    /** 无形象插槽：圆形头像 + 呼吸环，形象区高度 min(宽, 高×0.44)。原有布局。 */
+    Classic,
+
+    /** 有形象插槽但非主角模式（原来的形象分层立绘）：形象区占高 60%，下方字幕列。原有布局。 */
+    Stacked,
+
+    /** 数字人引擎舞台（Simple/Live2D/Duix/Tao）：形象铺满整块舞台，字幕叠在底部。 */
+    CharacterHero,
+}
+
+fun voiceStageMode(hasAvatarStage: Boolean, characterHero: Boolean): VoiceStageMode = when {
+    // 没有形象插槽就没有"主角"可铺——圆形头像布局不受 characterHero 影响。
+    !hasAvatarStage -> VoiceStageMode.Classic
+    characterHero -> VoiceStageMode.CharacterHero
+    else -> VoiceStageMode.Stacked
+}
+
+fun voiceStageHeightForMode(mode: VoiceStageMode, maxWidth: Float, maxHeight: Float): Float = when (mode) {
+    // 主角模式不裁高度：人物整块拿到舞台，唇形、手势、全身才看得见。
+    VoiceStageMode.CharacterHero -> maxHeight
+    VoiceStageMode.Stacked -> maxHeight * 0.60f
+    VoiceStageMode.Classic -> minOf(maxWidth, maxHeight * 0.44f)
+}
+
+
+/**
+ * 主角模式铺满整屏：形象在最底层，顶栏与操作条以浮层压在它上面（各带一层渐变遮罩保证对比度）。
+ * 其余两种布局保持原有「顶栏 / 舞台 / 操作条」纵向排布。
+ */
+fun voiceStageIsFullBleed(mode: VoiceStageMode): Boolean = mode == VoiceStageMode.CharacterHero
+
+/** 浮动操作条占高（56dp 按钮 + 标签 + 上下边距）。主角模式的字幕与波形要坐在它上方。 */
+const val HERO_CONTROL_BAR_DP = 108f
+
+/** 顶部遮罩高度：盖住状态行与名字，让亮色立绘上的白字仍可读。 */
+const val HERO_TOP_SCRIM_DP = 112f
 
 /** 波形条数。奇数是为了让中间一根正好落在中心线上。 */
 private const val WAVE_BAR_COUNT = 23
@@ -304,6 +350,19 @@ fun CompanionCallScreen(
     onWaveOptionsChange: ((WaveOptions) -> Unit)? = null,
     previewState: CallAudioPreviewState = CallAudioPreviewState(),
     onPreviewAudio: ((String) -> Unit)? = null,
+    /**
+     * 形象舞台是否走**主角模式**：true 时 [avatarStage] 铺满整块舞台（数字人引擎
+     * Simple/Live2D/Duix/Tao——人物是页面主体，唇形手势要看得清），字幕改为底部叠层。
+     * false（默认，含「原来的形象」分层立绘与圆形头像）时保持原有分栏布局不变。
+     */
+    characterHero: Boolean = false,
+    /**
+     * 右上角下拉里的形象引擎。null 时菜单和原来一样，只有波形样式。
+     * 点不可切换的一项不改舞台，只回调原因。
+     */
+    engineMenu: List<DhEngineMenuRow>? = null,
+    selectedEngine: com.openapi.ks.myapp.dh.DhEngineId? = null,
+    onEngineMenuClick: ((DhEngineMenuRow) -> Unit)? = null,
 ) {
     val reducedMotion = rememberReducedMotion()
 
@@ -344,9 +403,147 @@ fun CompanionCallScreen(
     val selfBands = rememberUpdatedState(if (state.isMuted) FloatArray(0) else state.selfBands)
 
     var composerOpen by rememberSaveable { mutableStateOf(false) }
+    // 主角模式右侧收纳盒：展开状态与字幕显隐（旋转后保留；默认字幕显示）。
+    var drawerOpen by rememberSaveable { mutableStateOf(false) }
+    var captionsVisible by rememberSaveable { mutableStateOf(true) }
+
+    // 主角模式：形象铺满整屏做最底层，顶栏与操作条以浮层压在上面（各带渐变遮罩）；
+    // 其余布局保持原有「顶栏 / 舞台 / 操作条」纵向排布。摄像头开着时仍走视频舞台。
+    val fullBleed = !state.cameraActive && avatarStage != null &&
+        voiceStageIsFullBleed(voiceStageMode(hasAvatarStage = true, characterHero = characterHero))
+
+    val header: @Composable () -> Unit = if (fullBleed) {
+        {
+            HeroCallHeader(
+                agentName = state.agentName,
+                voiceLabel = callVoiceChipText(state.voiceLabel),
+                connection = state.connection,
+                elapsedSeconds = state.elapsedSeconds,
+                isMuted = state.isMuted,
+                statusHint = state.statusHint,
+                waveOptions = waveOptions,
+                onWaveOptionsChange = onWaveOptionsChange,
+                engineMenu = engineMenu,
+                selectedEngine = selectedEngine,
+                onEngineMenuClick = onEngineMenuClick,
+                // 试听按钮搬到右侧收纳盒（HeroSideDrawer），菜单里不再重复。
+                previewState = previewState,
+                onPreviewAudio = null,
+            )
+        }
+    } else {
+        {
+        CallHeader(
+            agentName = state.agentName,
+            voiceLabel = callVoiceChipText(state.voiceLabel),
+            connection = state.connection,
+            elapsedSeconds = state.elapsedSeconds,
+            isMuted = state.isMuted,
+            statusHint = state.statusHint,
+            waveOptions = waveOptions,
+            onWaveOptionsChange = onWaveOptionsChange,
+            engineMenu = engineMenu,
+            selectedEngine = selectedEngine,
+            onEngineMenuClick = onEngineMenuClick,
+        )
+        if (onPreviewAudio != null) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                androidx.compose.material3.TextButton(onClick = { onPreviewAudio("user") }) {
+                    Text(if (previewState.speaker == "user") "■ 停止用户试听" else "▶ 用户试听", color = CallColors.TextPrimary)
+                }
+                androidx.compose.material3.TextButton(onClick = { onPreviewAudio("ai") }) {
+                    Text(if (previewState.speaker == "ai") "■ 停止 AI 试听" else "▶ AI 试听", color = CallColors.TextPrimary)
+                }
+            }
+            if (previewState.speaker != null || previewState.error != null) {
+                Text(
+                    text = previewState.error ?: if (previewState.preparing) "正在生成本地语音…" else "本地试听 · 已暂停真实麦克风与远端播放",
+                    color = CallColors.TextSecondary, fontSize = 11.sp,
+                )
+            }
+        }
+        }
+    }
+    val controls: @Composable () -> Unit = {
+        CallControlBar(
+            isMuted = state.isMuted,
+            cameraActive = state.cameraActive,
+            cameraAvailable = cameraAvailable,
+            composerOpen = composerOpen,
+            onToggleMute = onToggleMute,
+            onToggleCamera = onToggleCamera,
+            onOpenComposer = { composerOpen = true },
+            onHangUp = onHangUp,
+        )
+    }
+    val voiceStage: @Composable () -> Unit = {
+        VoiceStage(
+            state = state,
+            ringLevel = ringLevel,
+            waveLevel = waveLevel,
+            selfBands = selfBands,
+            waveOptions = waveOptions,
+            phase = phase,
+            centerEffect = waveOptions.center,
+            avatarContent = avatarContent,
+            avatarStage = avatarStage,
+            characterHero = characterHero,
+            reducedMotion = reducedMotion,
+            captionsVisible = captionsVisible,
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
 
     CallBackdrop(level = ringLevel, modifier = modifier.fillMaxSize()) {
-        Column(
+        if (fullBleed) {
+            // 背景铺满全屏，内容让开状态栏/导航栏；浮层坐在形象之上。
+            Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars)) {
+                voiceStage()
+                HeroSideDrawer(
+                    expanded = drawerOpen,
+                    onToggleExpanded = { drawerOpen = !drawerOpen },
+                    rows = heroDrawerRows(
+                        previewAvailable = onPreviewAudio != null,
+                        previewSpeaker = previewState.speaker,
+                        captionsVisible = captionsVisible,
+                    ),
+                    onRowClick = { action ->
+                        when (action) {
+                            DrawerAction.LISTEN_USER -> onPreviewAudio?.invoke("user")
+                            DrawerAction.LISTEN_AI -> onPreviewAudio?.invoke("ai")
+                            DrawerAction.TOGGLE_CAPTIONS -> captionsVisible = !captionsVisible
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                )
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .drawBehind {
+                            // 遮罩高度固定，不跟顶栏高度走：顶栏压紧后比渐变短，
+                            // 不固定的话渐变会在半透明处被截断，露出一条横边。
+                            drawRect(
+                                Brush.verticalGradient(
+                                    0f to CallColors.CaptionScrim,
+                                    1f to Color.Transparent,
+                                    endY = HERO_TOP_SCRIM_DP.dp.toPx(),
+                                ),
+                                size = androidx.compose.ui.geometry.Size(size.width, HERO_TOP_SCRIM_DP.dp.toPx()),
+                            )
+                        }
+                        .padding(horizontal = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) { header() }
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) { controls() }
+            }
+        } else Column(
             modifier = Modifier
                 .fillMaxSize()
                 // 背景铺满全屏，但内容要让开状态栏/导航栏。用 padding 而不是
@@ -355,32 +552,7 @@ fun CompanionCallScreen(
                 .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            CallHeader(
-                agentName = state.agentName,
-                connection = state.connection,
-                elapsedSeconds = state.elapsedSeconds,
-                isMuted = state.isMuted,
-                statusHint = state.statusHint,
-                waveOptions = waveOptions,
-                onWaveOptionsChange = onWaveOptionsChange,
-            )
-
-            if (onPreviewAudio != null) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                    androidx.compose.material3.TextButton(onClick = { onPreviewAudio("user") }) {
-                        Text(if (previewState.speaker == "user") "■ 停止用户试听" else "▶ 用户试听", color = CallColors.TextPrimary)
-                    }
-                    androidx.compose.material3.TextButton(onClick = { onPreviewAudio("ai") }) {
-                        Text(if (previewState.speaker == "ai") "■ 停止 AI 试听" else "▶ AI 试听", color = CallColors.TextPrimary)
-                    }
-                }
-                if (previewState.speaker != null || previewState.error != null) {
-                    Text(
-                        text = previewState.error ?: if (previewState.preparing) "正在生成本地语音…" else "本地试听 · 已暂停真实麦克风与远端播放",
-                        color = CallColors.TextSecondary, fontSize = 11.sp,
-                    )
-                }
-            }
+            header()
 
             Box(
                 modifier = Modifier
@@ -395,32 +567,11 @@ fun CompanionCallScreen(
                         modifier = Modifier.fillMaxSize(),
                     )
                 } else {
-                    VoiceStage(
-                        state = state,
-                        ringLevel = ringLevel,
-                        waveLevel = waveLevel,
-                        selfBands = selfBands,
-                        waveOptions = waveOptions,
-                        phase = phase,
-                        centerEffect = waveOptions.center,
-                        avatarContent = avatarContent,
-                        avatarStage = avatarStage,
-                        reducedMotion = reducedMotion,
-                        modifier = Modifier.fillMaxSize(),
-                    )
+                    voiceStage()
                 }
             }
 
-            CallControlBar(
-                isMuted = state.isMuted,
-                cameraActive = state.cameraActive,
-                cameraAvailable = cameraAvailable,
-                composerOpen = composerOpen,
-                onToggleMute = onToggleMute,
-                onToggleCamera = onToggleCamera,
-                onOpenComposer = { composerOpen = true },
-                onHangUp = onHangUp,
-            )
+            controls()
         }
 
         // 文字输入浮层：盖在整页之上，带自己的 IME 避让。
@@ -513,12 +664,16 @@ private fun CallBackdrop(
 @Composable
 private fun CallHeader(
     agentName: String,
+    voiceLabel: String? = null,
     connection: CallConnection,
     elapsedSeconds: Long,
     isMuted: Boolean,
     statusHint: String?,
     waveOptions: WaveOptions = WaveOptions(),
     onWaveOptionsChange: ((WaveOptions) -> Unit)? = null,
+    engineMenu: List<DhEngineMenuRow>? = null,
+    selectedEngine: com.openapi.ks.myapp.dh.DhEngineId? = null,
+    onEngineMenuClick: ((DhEngineMenuRow) -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -543,11 +698,32 @@ private fun CallHeader(
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
             )
-            if (onWaveOptionsChange != null) {
-                WaveStyleMenu(options = waveOptions, onChange = onWaveOptionsChange)
+            if (onWaveOptionsChange != null || engineMenu != null) {
+                WaveStyleMenu(
+                    options = waveOptions,
+                    onChange = onWaveOptionsChange,
+                    engineMenu = engineMenu,
+                    selectedEngine = selectedEngine,
+                    onEngineMenuClick = onEngineMenuClick,
+                )
             } else {
                 Spacer(Modifier.size(40.dp))
             }
+        }
+        if (voiceLabel != null) {
+            // 声音跟形象走：名字下面一枚小标签，告诉用户现在听到的是谁的声音。
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "声音 · $voiceLabel",
+                color = CallColors.TextSecondary,
+                fontSize = 11.sp,
+                maxLines = 1,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(CallColors.Glass)
+                    .border(1.dp, CallColors.GlassBorder, RoundedCornerShape(50))
+                    .padding(horizontal = 10.dp, vertical = 3.dp),
+            )
         }
         Spacer(Modifier.height(6.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -595,6 +771,100 @@ private fun CallHeader(
     }
 }
 
+/** 主角模式顶栏的副信息：「声音 · X」与「已静音」。都没有时返回 null。 */
+internal fun heroHeaderMeta(voiceLabel: String?, isMuted: Boolean): String? {
+    val parts = buildList {
+        if (voiceLabel != null) add("声音 · $voiceLabel")
+        if (isMuted) add("已静音")
+    }
+    return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
+}
+
+/**
+ * 主角模式（形象铺满）的顶栏：左对齐的「名字 / 状态点 + 时长 + 副信息」两行，右侧一个菜单钮。
+ *
+ * 旧顶栏名字居中、状态一行、声音标签一行、调试按钮一行，叠起来占掉头部上方 ~170dp，
+ * 把形象的头顶空间吃光。这里压成两行（约 56dp），调试试听收进菜单。
+ * 原来的形象 / 圆形头像仍用 [CallHeader]，布局不变。
+ */
+@Composable
+private fun HeroCallHeader(
+    agentName: String,
+    voiceLabel: String?,
+    connection: CallConnection,
+    elapsedSeconds: Long,
+    isMuted: Boolean,
+    statusHint: String?,
+    waveOptions: WaveOptions,
+    onWaveOptionsChange: ((WaveOptions) -> Unit)?,
+    engineMenu: List<DhEngineMenuRow>?,
+    selectedEngine: com.openapi.ks.myapp.dh.DhEngineId?,
+    onEngineMenuClick: ((DhEngineMenuRow) -> Unit)?,
+    previewState: CallAudioPreviewState,
+    onPreviewAudio: ((String) -> Unit)?,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, bottom = 12.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = agentName.ifBlank { "她" },
+                color = CallColors.TextPrimary,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.height(2.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val dotColor = when {
+                    connection == CallConnection.CONNECTED && !isMuted -> CallColors.Violet
+                    connection == CallConnection.RECONNECTING -> CallColors.Amber
+                    isMuted -> CallColors.Slate
+                    else -> CallColors.TextSecondary
+                }
+                Box(Modifier.size(6.dp).clip(CircleShape).background(dotColor))
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = statusHint ?: statusText(connection, elapsedSeconds),
+                    color = when (connection) {
+                        CallConnection.RECONNECTING -> CallColors.Amber
+                        CallConnection.ENDED -> Color(0xFFFF9297)
+                        CallConnection.CONNECTED -> CallColors.TextPrimary.copy(alpha = 0.85f)
+                        CallConnection.CONNECTING -> CallColors.TextPrimary
+                    },
+                    fontSize = 13.sp,
+                    maxLines = 1,
+                )
+                val meta = heroHeaderMeta(voiceLabel, isMuted)
+                if (meta != null) {
+                    Text(
+                        text = "  ·  $meta",
+                        color = CallColors.TextSecondary,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+        if (onWaveOptionsChange != null || engineMenu != null || onPreviewAudio != null) {
+            WaveStyleMenu(
+                options = waveOptions,
+                onChange = onWaveOptionsChange,
+                engineMenu = engineMenu,
+                selectedEngine = selectedEngine,
+                onEngineMenuClick = onEngineMenuClick,
+                previewState = previewState,
+                onPreviewAudio = onPreviewAudio,
+            )
+        }
+    }
+}
+
 /**
  * 样式切换菜单，分两段：
  * - 底部「你的声音」：叠浪（默认，WaveInApp 移植）/ 竖条 / 柔和曲线，加粒子开关；
@@ -602,7 +872,15 @@ private fun CallHeader(
  * 粒子是最耗电的一项，低端机可以单独关掉。
  */
 @Composable
-private fun WaveStyleMenu(options: WaveOptions, onChange: (WaveOptions) -> Unit) {
+private fun WaveStyleMenu(
+    options: WaveOptions,
+    onChange: ((WaveOptions) -> Unit)?,
+    engineMenu: List<DhEngineMenuRow>? = null,
+    selectedEngine: com.openapi.ks.myapp.dh.DhEngineId? = null,
+    onEngineMenuClick: ((DhEngineMenuRow) -> Unit)? = null,
+    previewState: CallAudioPreviewState = CallAudioPreviewState(),
+    onPreviewAudio: ((String) -> Unit)? = null,
+) {
     var open by remember { mutableStateOf(false) }
     Box {
         // 玻璃底板 + 描边 + 亮色图标：深色背景上只有一个灰色小图标时，用户根本发现不了入口。
@@ -621,6 +899,30 @@ private fun WaveStyleMenu(options: WaveOptions, onChange: (WaveOptions) -> Unit)
             )
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            if (engineMenu != null && onEngineMenuClick != null) {
+                MenuSectionLabel("形象")
+                engineMenu.forEach { row ->
+                    DropdownMenuItem(
+                        text = { Text(row.menuLabel(selected = row.id == selectedEngine)) },
+                        onClick = {
+                            open = false
+                            onEngineMenuClick(row)
+                        },
+                    )
+                }
+            }
+            if (onPreviewAudio != null) {
+                MenuSectionLabel("调试 · 本地试听")
+                DropdownMenuItem(
+                    text = { Text(if (previewState.speaker == "user") "■ 停止用户试听" else "▶ 用户试听") },
+                    onClick = { open = false; onPreviewAudio("user") },
+                )
+                DropdownMenuItem(
+                    text = { Text(if (previewState.speaker == "ai") "■ 停止 AI 试听" else "▶ AI 试听") },
+                    onClick = { open = false; onPreviewAudio("ai") },
+                )
+            }
+            if (onChange == null) return@DropdownMenu
             MenuSectionLabel("底部 · 你的声音")
             BottomWaveStyle.entries.forEach { style ->
                 val label = when (style) {
@@ -707,77 +1009,135 @@ private fun VoiceStage(
     centerEffect: CenterEffect,
     avatarContent: (@Composable () -> Unit)?,
     avatarStage: (@Composable () -> Unit)?,
+    characterHero: Boolean,
     reducedMotion: Boolean,
     modifier: Modifier = Modifier,
+    captionsVisible: Boolean = true,
 ) {
     BoxWithConstraints(modifier = modifier) {
-        // 头像区与字幕区各有确定边界；长回复只滚动，不再反向压扁头像。
-        // 有全身形象时舞台更高：她是这一页的主体，要能看清、能点到；字幕让出空间但仍可滚动。
-        val stageHeight = if (avatarStage != null) maxHeight * 0.60f else minOf(maxWidth, maxHeight * 0.44f)
-        WaveformBars(
-            level = waveLevel,
-            bands = selfBands,
-            phase = phase,
-            isMuted = state.isMuted,
-            isSpeaking = false,
-            reducedMotion = reducedMotion,
-            style = waveOptions.bottom,
-            particles = waveOptions.particles,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(150.dp)
-                .graphicsLayer { alpha = 0.90f }
-                .blur(1.2.dp),
-        )
-        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                modifier = Modifier.fillMaxWidth().height(stageHeight),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (centerEffect == CenterEffect.Ring) {
-                    BreathingRing(
-                        level = ringLevel,
-                        isMuted = state.isMuted,
-                        isSpeaking = state.isAgentSpeaking,
-                        reducedMotion = reducedMotion,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                } else {
-                    CenterEffectCanvas(
-                        effect = centerEffect,
-                        level = ringLevel,
-                        phase = phase,
-                        isMuted = state.isMuted,
-                        isSpeaking = state.isAgentSpeaking,
-                        reducedMotion = reducedMotion,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-                if (avatarStage != null) {
-                    // 形象舞台：不裁圆、不缩放，让她完整地站在声场前面；触摸由形象自己处理。
-                    Box(Modifier.fillMaxSize().padding(top = 4.dp), contentAlignment = Alignment.Center) {
-                        avatarStage()
-                    }
-                } else {
-                    AvatarCircle(
-                        name = state.agentName,
-                        emoji = state.avatarEmoji,
-                        level = ringLevel,
-                        isMuted = state.isMuted,
-                        slot = avatarContent,
-                    )
-                }
-            }
-            CaptionStack(
-                captions = state.captions,
-                speakerCaptions = state.speakerCaptions,
-                streaming = state.isAgentSpeaking,
-                modifier = Modifier
+        // 布局模式（纯函数 + JVM 测试钉住，见 CompanionCallStageLayoutTest）：
+        // - Classic/Stacked 是原有分栏：形象区有确定高度，字幕列在它下面。
+        // - CharacterHero 是数字人引擎舞台：形象拿到整块舞台高度（唇形、手势、全身
+        //   是这一页存在的理由），字幕与声效改为底部叠层。
+        val mode = voiceStageMode(hasAvatarStage = avatarStage != null, characterHero = characterHero)
+        // 纯函数只吃 px 以外的纯数值方便 JVM 测试钉住，这里用 Dp.value（密度无关的 dp 数值）再转回 Dp。
+        val stageHeight = voiceStageHeightForMode(mode, maxWidth.value, maxHeight.value).dp
+        val hero = mode == VoiceStageMode.CharacterHero
+
+        // 波形和声场两条分支共用，抽成局部 composable。align 这类作用域修饰符由调用方
+        // 传入（BoxScope 作用域修饰符跨嵌套 Box 复用会在运行时抛 scope 不匹配）。
+        val waveform: @Composable (Modifier) -> Unit = { mod ->
+            WaveformBars(
+                level = waveLevel,
+                bands = selfBands,
+                phase = phase,
+                isMuted = state.isMuted,
+                isSpeaking = false,
+                reducedMotion = reducedMotion,
+                style = waveOptions.bottom,
+                particles = waveOptions.particles,
+                modifier = mod
                     .fillMaxWidth()
-                    .weight(1f)
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                    .height(150.dp)
+                    .graphicsLayer { alpha = 0.90f }
+                    .blur(1.2.dp),
             )
+        }
+
+        val soundField = @Composable {
+            if (centerEffect == CenterEffect.Ring) {
+                BreathingRing(
+                    level = ringLevel,
+                    isMuted = state.isMuted,
+                    isSpeaking = state.isAgentSpeaking,
+                    reducedMotion = reducedMotion,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                CenterEffectCanvas(
+                    effect = centerEffect,
+                    level = ringLevel,
+                    phase = phase,
+                    isMuted = state.isMuted,
+                    isSpeaking = state.isAgentSpeaking,
+                    reducedMotion = reducedMotion,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
+
+        if (hero) {
+            Box(Modifier.fillMaxSize()) {
+                // 声场画在形象身后：Simple（透明背景）能透出呼吸环，GL 引擎自然盖住它。
+                soundField()
+                // 主角：不裁圆、不缩放、不给字幕让位，让她完整地占满舞台；触摸由形象自己处理。
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    checkNotNull(avatarStage).invoke()
+                }
+                // 底部渐变遮罩：立绘下摆和波形条可能很亮，字幕压在人物身上也要读得出。
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height((240f + HERO_CONTROL_BAR_DP).dp)
+                        .drawBehind {
+                            drawRect(
+                                Brush.verticalGradient(
+                                    0f to Color.Transparent,
+                                    0.55f to CallColors.CaptionScrim,
+                                    1f to CallColors.CaptionScrim,
+                                ),
+                            )
+                        },
+                ) {
+                    waveform(Modifier.align(Alignment.BottomCenter).padding(bottom = HERO_CONTROL_BAR_DP.dp))
+                }
+                // 字幕叠层：坐在波形上方，上限两行滚动；不再从人物身上切走一栏。
+                if (captionsVisible) CaptionStack(
+                    captions = state.captions,
+                    speakerCaptions = state.speakerCaptions,
+                    streaming = state.isAgentSpeaking,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .heightIn(max = 150.dp)
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = (HERO_CONTROL_BAR_DP + 110f).dp),
+                )
+            }
+        } else {
+            waveform(Modifier.align(Alignment.BottomCenter))
+            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(stageHeight),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    soundField()
+                    if (avatarStage != null) {
+                        // 形象舞台（原来的形象分层立绘）：不裁圆、不缩放，原有布局不变。
+                        Box(Modifier.fillMaxSize().padding(top = 4.dp), contentAlignment = Alignment.Center) {
+                            avatarStage()
+                        }
+                    } else {
+                        AvatarCircle(
+                            name = state.agentName,
+                            emoji = state.avatarEmoji,
+                            level = ringLevel,
+                            isMuted = state.isMuted,
+                            slot = avatarContent,
+                        )
+                    }
+                }
+                CaptionStack(
+                    captions = state.captions,
+                    speakerCaptions = state.speakerCaptions,
+                    streaming = state.isAgentSpeaking,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = 8.dp, vertical = 12.dp),
+                )
+            }
         }
     }
 }
@@ -1003,6 +1363,9 @@ private fun AvatarCircle(
  * 跟随策略：默认贴住底部（新的在心里，用户看的是最新一句）；用户自己往上翻时暂停跟随，
  * 翻回底部再恢复。只用 [LazyListState.isScrollInProgress] 判断，不需要额外的拖拽手势。
  */
+/** 一次滚动取很大的值：列表到底会自己截断，等价于贴内容底（同 ChatMessageList）。 */
+private const val CAPTION_BOTTOM_SCROLL = 100_000f
+
 @Composable
 private fun CaptionStack(
     captions: List<String>,
@@ -1031,10 +1394,16 @@ private fun CaptionStack(
     var followTail by remember { mutableStateOf(true) }
     // 我们自己触发的滚动不算「用户往上翻」，否则每次跟随都会被自己关掉。
     var autoScrolling by remember { mutableStateOf(false) }
+    // 首帧 LazyColumn 默认停在第 0 条，此时 canScrollForward=true。
+    // 若在「尚未出现过用户拖动」时就用它关掉 followTail，贴底滚动永远不会跑，
+    // 用户一进通话页就停在最早一句——这正是线上现象。只在用户真的拖过一次后再评估。
+    var userDragged by remember { mutableStateOf(false) }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrollInProgress }.collect { scrolling ->
-            if (!scrolling && !autoScrolling) {
+            if (scrolling && !autoScrolling) {
+                userDragged = true
+            } else if (!scrolling && userDragged && !autoScrolling) {
                 // 拖动结束时判断停在哪儿：还能往下滚说明用户停在历史里，就暂停跟随。
                 followTail = !listState.canScrollForward
             }
@@ -1045,7 +1414,14 @@ private fun CaptionStack(
         if (!followTail) return@LaunchedEffect
         autoScrolling = true
         try {
-            listState.animateScrollToItem(visible.lastIndex)
+            // scrollToItem 只保证最后一条的顶部可见；长回复超出视口时仍会停在该条开头。
+            // 再 scrollBy 一个大值，列表会在真实底部截断——与 ChatMessageList 同套路。
+            if (!userDragged) {
+                listState.scrollToItem(visible.lastIndex)
+            } else {
+                listState.animateScrollToItem(visible.lastIndex)
+            }
+            listState.scrollBy(CAPTION_BOTTOM_SCROLL)
         } finally {
             autoScrolling = false
         }

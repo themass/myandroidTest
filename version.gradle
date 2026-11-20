@@ -11,4 +11,7 @@ ext {
 
     // CameraX ≥1.4.2：libimage_processing_util_jni.so 支持 16KB 页大小（Play 要求）
     cameraXVersion = '1.4.2'
+
+    // ChatWaifu Live2D 模块 build.gradle 引用；dh.lab.native include 时需要
+    kotlin_ktx = '1.17.0'
 }

@@ -38,6 +38,9 @@ class SpeechRegistry<P>(
         private set
     var cuesDropped: Int = 0
         private set
+    /** 因超过 `max_late_ms` 主动丢弃的次数（§12.3 late_ratio 分子）。 */
+    var cuesExpired: Int = 0
+        private set
     /** `speech.seg` 被拒（坏参数、段号不连续、时间线已结束或作废）的次数。 */
     var segRejected: Int = 0
         private set
@@ -202,7 +205,7 @@ class SpeechRegistry<P>(
     fun sweep(now: Long): Sweep<P> {
         if (pending.isEmpty()) return Sweep(emptyList(), emptyList())
 
-        val apply = ArrayList<ScheduledCue<P>>()
+        val apply = ArrayList<AppliedCue<P>>()
         val drop = ArrayList<Decision.Drop<P>>()
         val iterator = pending.iterator()
 
@@ -220,7 +223,7 @@ class SpeechRegistry<P>(
             val decision = Scheduler.decide(entry.cue, tl, now, entry.receivedAt)
             when (decision) {
                 is Decision.Now -> {
-                    apply.add(entry.cue)
+                    apply.add(AppliedCue(decision.cue, decision.lateMs))
                     iterator.remove()
                 }
                 is Decision.Later -> Unit       // 还没到点，留着
@@ -240,6 +243,7 @@ class SpeechRegistry<P>(
 
         cuesApplied += apply.size
         cuesDropped += drop.size
+        cuesExpired += drop.count { it.reason == Decision.Reason.EXPIRED }
         return Sweep(apply, drop)
     }
 
@@ -281,8 +285,11 @@ class SpeechRegistry<P>(
         }
     }
 
+    /** 到点可执行的一条 cue，带上判定时算出的迟到量（P4 late_ratio / 健康上报）。 */
+    data class AppliedCue<P>(val cue: ScheduledCue<P>, val lateMs: Long)
+
     /** 执行结果，见 [sweep]。 */
-    data class Sweep<P>(val apply: List<ScheduledCue<P>>, val dropped: List<Decision.Drop<P>>)
+    data class Sweep<P>(val apply: List<AppliedCue<P>>, val dropped: List<Decision.Drop<P>>)
 
     // -------------------------------------------------------------- 维护
 
