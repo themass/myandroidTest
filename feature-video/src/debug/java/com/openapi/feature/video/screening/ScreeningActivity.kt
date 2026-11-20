@@ -241,7 +241,10 @@ private fun Channels(
             Box(Modifier.fillMaxWidth().height(352.dp).clip(RoundedCornerShape(13.dp, 38.dp, 13.dp, 13.dp))) {
                 val entry = hero
                 if (entry == null) {
-                    Box(Modifier.matchParentSize().background(Lift))
+                    // 空占位不再是一块死色板：加载中扫一层缓慢移动的光，
+                    // 表示「这块位置留着，内容在路上」；失败就停成静态底，不空带动画
+                    if (pager.loading) ShimmerPlaceholder(Modifier.matchParentSize())
+                    else Box(Modifier.matchParentSize().background(Lift))
                     if (pager.loading) {
                         CircularProgressIndicator(
                             Modifier.align(Alignment.Center).size(26.dp), strokeWidth = 2.dp, color = Mint,
