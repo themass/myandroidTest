@@ -24,8 +24,9 @@ import kotlin.math.roundToInt
  * 裁剪必须在镜像之后（裁剪框归一化于显示画幅）、在按位图尺寸工作的其它步骤之前；
  * 调整与滤镜是两步独立处理（滤镜走 [LutApply] 的逐像素三线性插值，不是 ColorMatrix），顺序固定为先调整后滤镜。
  *
- * 同一个函数既用于**导出**（长边 4096），也用于**编辑时的预览**（长边更小），
- * 所以界面看到的和保存出来的完全一致。
+ * 同一条管线既用于**导出**（长边 4096，走 [renderStrict]），也用于**编辑时的预览**（长边更小，
+ * 走 [render]），所以界面看到的和保存出来的完全一致。两个入口只差**失败怎么办**：
+ * 预览必须有图可显示，所以退回原图；导出退回原图就是数据损失，只能报失败。
  */
 object PhotoRenderer {
 
@@ -35,29 +36,55 @@ object PhotoRenderer {
     const val MAX_OUTPUT_LONG_EDGE = 4096
 
     /**
+     * 渲染 + 兜底：失败（OOM 等）返回 [source] 引用。
+     *
+     * 这个兜底**只属于预览**：界面必须有东西可显示，宁可让用户看到原图，也不要一片黑或闪退。
+     * 导出路径**不许**用它——[renderStrict] 才是导出该走的（回退原图等于把用户裁过、
+     * 加过滤镜的那张图悄悄换成原图，而界面上一个字都不会提）。
+     *
      * @param source 原图（不会被回收）
      * @param edits 操作列表
      * @param maxLongEdge 输出长边上限，默认 [MAX_OUTPUT_LONG_EDGE]；编辑时传屏幕尺寸减少开销
      * @param lutProvider 按滤镜 id 取表；返回 null 表示这张表取不到（资产缺失 / 文件坏了），
      *   该滤镜被静默跳过，图停在 Adjust 之后的状态。默认永不提供表，所以不传它的调用点行为不变。
-     * @return 渲染后的新位图；失败（OOM 等）返回原图引用
+     * @return 渲染后的新位图；失败返回 [source] 引用
      */
     fun render(
         source: Bitmap,
         edits: PhotoEdits,
         maxLongEdge: Int = MAX_OUTPUT_LONG_EDGE,
         lutProvider: (String) -> Lut3D? = { null },
-    ): Bitmap {
+    ): Bitmap = renderStrict(source, edits, maxLongEdge, lutProvider) ?: source
+
+    /**
+     * 渲染，失败返回 null——**绝不回退源图**。导出用这个。
+     *
+     * 导出必须和「用户看到的那张图」严格一致：静默退回原图会让用户以为裁过、加过滤镜，
+     * 覆盖存的却是原图，是拿不回来的数据损失。所以这里把失败如实报出去，
+     * 由宿主决定怎么提示（见 `PhotoEditExporter.export` 与 ChatRoute 的失败提示）。
+     *
+     * 「失败」= 管线内部抛 OOM / RuntimeException；不是「输出恰好等于原图」那种引用比较——
+     * 没编辑过（[PhotoEdits.ops] 为空）本来就该原样返回 [source]，那是成功。
+     *
+     * @param lutProvider 语义同 [render]
+     * @return 渲染后的新位图；什么都没改时是 [source]；失败返回 null
+     */
+    internal fun renderStrict(
+        source: Bitmap,
+        edits: PhotoEdits,
+        maxLongEdge: Int = MAX_OUTPUT_LONG_EDGE,
+        lutProvider: (String) -> Lut3D? = { null },
+    ): Bitmap? {
         // 旋转/镜像也要渲染：它们在预览里同样要可见
         if (edits.ops.isEmpty()) return source
         return try {
             drawOps(renderBase(source, edits, maxLongEdge, lutProvider), edits)
         } catch (e: OutOfMemoryError) {
-            Log.e(TAG, "render out of memory, falling back to source", e)
-            source
+            Log.e(TAG, "render out of memory", e)
+            null
         } catch (e: RuntimeException) {
-            Log.e(TAG, "render failed, falling back to source", e)
-            source
+            Log.e(TAG, "render failed", e)
+            null
         }
     }
 

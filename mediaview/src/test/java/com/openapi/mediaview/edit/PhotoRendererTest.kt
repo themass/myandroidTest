@@ -6,6 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -443,6 +444,65 @@ class PhotoRendererTest {
         assertEquals(Color.WHITE, mutablePxBefore)
         assertNotEquals(Color.WHITE, drawn.getPixel(100, 50))
         assertEquals("可变底图也不能被就地画", mutablePxBefore, mutableBase.getPixel(100, 50))
+    }
+
+    // ---- renderStrict：导出路径的失败语义（回退只许留在 render）----
+
+    /** 必然抛异常的滤镜取表：渲染管线里唯一一处「按 id 现取外部数据」，是最省事的注入点。 */
+    private fun boomProvider(error: Throwable): (String) -> Lut3D? = { throw error }
+
+    /**
+     * 导出不能沿用 [PhotoRenderer.render] 的兜底：静默退回原图 = 用户以为裁过、加过滤镜，
+     * 落盘的却是原图。所以 renderStrict 的失败信号是 null，而不是原图引用。
+     */
+    @Test
+    fun renderStrictReportsFailureAsNullInsteadOfTheSourceReference() {
+        val source = immutableSource()
+        val e = edits(source).push(EditOp.Filter("boom", 100))
+        val provider = boomProvider(IllegalStateException("表读不出来"))
+
+        assertNull("渲染失败必须报 null，不能把原图当成品交出去", PhotoRenderer.renderStrict(source, e, lutProvider = provider))
+
+        // 对照：预览路径同一个输入照旧退回原图（兜底只留在 render，预览必须有图）
+        assertSame(source, PhotoRenderer.render(source, e, lutProvider = provider))
+    }
+
+    /** OOM 也算失败（报 null），不是往外抛——导出调用方据此提示用户，而不是让 App 挂掉。 */
+    @Test
+    fun renderStrictTurnsOutOfMemoryIntoNullToo() {
+        val source = immutableSource()
+        val e = edits(source).push(EditOp.Filter("boom", 100))
+        val provider = boomProvider(OutOfMemoryError("fake：模拟整图分配失败"))
+
+        assertNull(PhotoRenderer.renderStrict(source, e, lutProvider = provider))
+        assertSame(source, PhotoRenderer.render(source, e, lutProvider = provider))
+    }
+
+    /** 成功路径必须和整链 [PhotoRenderer.render] 出同一张图：拆出 strict 版本不能改变链序。 */
+    @Test
+    fun renderStrictOnSuccessIsTheSamePictureAsRender() {
+        val source = gradient(80, 40)
+        val e = passthroughEdits(source.width, source.height)
+            .push(EditOp.Filter("test", 100))
+            .push(strokeAcross())
+
+        val strict = PhotoRenderer.renderStrict(source, e) { liftBlackLut() }
+        assertNotNull("这张输入本不该失败", strict)
+        assertNotSame("成功时必须是新位图，不能把原图交出去", source, strict)
+        assertNull(
+            "renderStrict 与 render 的输出必须逐像素一致",
+            firstDifference(strict!!, PhotoRenderer.render(source, e) { liftBlackLut() }),
+        )
+        // 反证：这条链真的改过像素（否则「逐像素一致」在两张原图之间也成立）
+        assertNotNull(firstDifference(strict, source))
+    }
+
+    /** 没编辑过不是失败：identity edits 下 renderStrict 原样返回源图（导出据此照样落盘）。 */
+    @Test
+    fun renderStrictTreatsNoEditsAsSuccess() {
+        val source = immutableSource()
+
+        assertSame(source, PhotoRenderer.renderStrict(source, edits(source)))
     }
 
     /** 输出位图上 [fromX, toX) 这段里「接近纯白」的像素数。 */
