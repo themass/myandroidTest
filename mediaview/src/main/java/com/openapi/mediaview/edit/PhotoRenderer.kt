@@ -19,8 +19,9 @@ import kotlin.math.roundToInt
  * 把 [PhotoEdits] 重放到一张位图上，得到最终图片。纯 CPU 实现，不依赖 OpenCV/GPU，
  * 保证 :mediaview 不带原生库（它要能被别的项目直接复用）。
  *
- * 顺序：旋转/镜像 → 颜色调整 → 滤镜 → 缩放 → 涂鸦/文字/马赛克（后三者共用一套「原图坐标 → 画布坐标」的映射）。
+ * 顺序：旋转/镜像 → 裁剪 → 颜色调整 → 滤镜 → 缩放 → 涂鸦/文字/马赛克（后三者共用一套「原图坐标 → 画布坐标」的映射）。
  * 标注必须在旋转之后画，否则用户转一下图，之前画的字就横过来了；
+ * 裁剪必须在镜像之后（裁剪框归一化于显示画幅）、在按位图尺寸工作的其它步骤之前；
  * 调整与滤镜是两步独立处理（滤镜走 [LutApply] 的逐像素三线性插值，不是 ColorMatrix），顺序固定为先调整后滤镜。
  *
  * 同一个函数既用于**导出**（长边 4096），也用于**编辑时的预览**（长边更小），
@@ -68,7 +69,11 @@ object PhotoRenderer {
     ): Bitmap {
         val rotated = rotate(source, edits.quarterTurns)
         val mirrored = if (edits.isFlipped) mirror(rotated) else rotated
-        val adjusted = applyAdjust(mirrored, edits.adjust)
+        // 裁剪紧跟镜像：窗口归一化于「旋转 + 镜像后的显示画幅」，所以必须在两者之后、
+        // 在按位图尺寸工作的其它步骤之前切。切完之后画布坐标系就是裁剪帧，
+        // 出界的标注由 [EditCoords.toDisplayNorm] 给出 0..1 之外的值、被画布边界自然截断。
+        val cropped = applyCrop(mirrored, edits)
+        val adjusted = applyAdjust(cropped, edits.adjust)
         val filtered = applyFilter(adjusted, source, edits.filter, lutProvider)
         val scaled = downscaleIfNeeded(filtered, maxLongEdge)
 
@@ -105,6 +110,23 @@ object PhotoRenderer {
     private fun mirror(source: Bitmap): Bitmap {
         val matrix = android.graphics.Matrix().apply { preScale(-1f, 1f) }
         return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
+    }
+
+    /**
+     * 按 [EditOp.Crop] 的窗口切一刀。窗口归一化于传入位图（已旋转、已镜像）的画幅，
+     * 所以这里只是「归一化 × 位图尺寸 + 四舍五入」。
+     *
+     * 尺寸与 [PhotoEdits.displayWidth] / [displayHeight] 用同一个四舍五入口径（各自独立 round），
+     * 保证预览布局和实际像素对得上。满幅窗口直接原样返回，不浪费一次拷贝。
+     */
+    private fun applyCrop(source: Bitmap, edits: PhotoEdits): Bitmap {
+        val crop = edits.crop ?: return source
+        val x = (crop.left * source.width).roundToInt().coerceIn(0, source.width - 1)
+        val y = (crop.top * source.height).roundToInt().coerceIn(0, source.height - 1)
+        // 右/下边界是开区间，取整后至少留 1 像素，否则 createBitmap 会抛异常
+        val w = ((crop.right - crop.left) * source.width).roundToInt().coerceIn(1, source.width - x)
+        val h = ((crop.bottom - crop.top) * source.height).roundToInt().coerceIn(1, source.height - y)
+        return Bitmap.createBitmap(source, x, y, w, h)
     }
 
     private fun downscaleIfNeeded(source: Bitmap, maxLongEdge: Int): Bitmap {

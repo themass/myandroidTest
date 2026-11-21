@@ -269,4 +269,77 @@ class PhotoRendererTest {
         assertEquals(Color.green(px), Color.blue(px))
         assertTrue("只 Adjust 时应停在 34（±2），实际 ${Color.red(adjustOnly.getPixel(5, 5))}", Color.red(adjustOnly.getPixel(5, 5)) in 32..36)
     }
+
+    // ---- 裁剪 ----
+
+    /** 400×200 渐变图裁中心 50%：输出尺寸由窗口精确决定，四角必须等于源上对应的那四个点。 */
+    @Test
+    fun cropOfHalfTheFrameOutputsTheWindowWithSourcePixelsAtItsCorners() {
+        val source = gradient(400, 200)
+        val out = PhotoRenderer.render(source, PhotoEdits(400, 200).setCrop(EditOp.Crop(0.25f, 0.25f, 0.75f, 0.75f)))
+
+        assertNotSame(source, out)
+        assertEquals(200, out.width)
+        assertEquals(100, out.height)
+        // 窗口 [0.25,0.75] → 源上 x 100..299、y 50..149
+        listOf(0 to 100, 199 to 299).forEach { (outX, srcX) ->
+            listOf(0 to 50, 99 to 149).forEach { (outY, srcY) ->
+                val got = out.getPixel(outX, outY)
+                val want = source.getPixel(srcX, srcY)
+                assertEquals("($outX,$outY) vs 源 ($srcX,$srcY) R", Color.red(want).toDouble(), Color.red(got).toDouble(), 2.0)
+                assertEquals("($outX,$outY) vs 源 ($srcX,$srcY) G", Color.green(want).toDouble(), Color.green(got).toDouble(), 2.0)
+                assertEquals("($outX,$outY) vs 源 ($srcX,$srcY) B", Color.blue(want).toDouble(), Color.blue(got).toDouble(), 2.0)
+            }
+        }
+    }
+
+    /**
+     * 出界标注靠渲染 clip，而不是改数据：x=0.5 处一条竖白线，裁左半（窗口右边界正好压在线中心），
+     * 笔迹的左半边被截掉 → 输出的左半区一个白像素都没有，右半区有。
+     */
+    @Test
+    fun annotationCrossingTheCropEdgeIsClippedInsteadOfRewritten() {
+        val source = gradient(400, 200)
+        val line = EditOp.Stroke(
+            points = listOf(androidx.compose.ui.geometry.Offset(0.5f, 0.1f), androidx.compose.ui.geometry.Offset(0.5f, 0.9f)),
+            colorArgb = 0xFFFFFFFFL,
+            widthRatio = 0.1f,
+        )
+        val cropped = PhotoRenderer.render(source, PhotoEdits(400, 200).push(line).setCrop(EditOp.Crop(0f, 0f, 0.5f, 1f)))
+
+        assertNotSame(source, cropped)
+        assertEquals(200, cropped.width)
+        assertEquals(200, cropped.height)
+        assertEquals("窗口外的半条笔迹不该被画进来", 0, countWhite(cropped, 0, cropped.width / 2))
+        assertTrue("窗口内的半条笔迹必须还在", countWhite(cropped, cropped.width / 2, cropped.width) > 0)
+    }
+
+    /** 撤销裁剪：标注数据一直都在（迁移过一次就回不来了），所以左半区的白线必须原样复现。 */
+    @Test
+    fun undoingTheCropBringsTheClippedAnnotationBack() {
+        val source = gradient(400, 200)
+        val line = EditOp.Stroke(
+            points = listOf(androidx.compose.ui.geometry.Offset(0.5f, 0.1f), androidx.compose.ui.geometry.Offset(0.5f, 0.9f)),
+            colorArgb = 0xFFFFFFFFL,
+            widthRatio = 0.1f,
+        )
+        val withCrop = PhotoEdits(400, 200).push(line).setCrop(EditOp.Crop(0f, 0f, 0.5f, 1f))
+        val withoutCrop = withCrop.undo()
+        assertNull(withoutCrop.crop)
+        assertEquals(1, withoutCrop.ops.size) // 笔迹还在
+
+        val out = PhotoRenderer.render(source, withoutCrop)
+        assertEquals(400, out.width)
+        assertTrue("撤销裁剪后线的全宽都回来了", countWhite(out, 0, out.width / 2) > 0)
+    }
+
+    /** 输出位图上 [fromX, toX) 这段里「接近纯白」的像素数。 */
+    private fun countWhite(b: Bitmap, fromX: Int, toX: Int): Int {
+        var n = 0
+        for (x in fromX until toX) for (y in 0 until b.height) {
+            val p = b.getPixel(x, y)
+            if (Color.red(p) > 200 && Color.green(p) > 200 && Color.blue(p) > 200) n++
+        }
+        return n
+    }
 }
