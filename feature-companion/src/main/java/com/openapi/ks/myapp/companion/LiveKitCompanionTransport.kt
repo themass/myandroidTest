@@ -1,7 +1,11 @@
 package com.openapi.ks.myapp.companion
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
+import android.os.Build
 import android.os.SystemClock
 import com.openapi.ks.myapp.avatar.ProactiveKind
 import com.openapi.ks.myapp.companion.protocol.BargeInGate
@@ -109,6 +113,32 @@ class LiveKitCompanionTransport(
     /** §12.3：本地降级阶梯。假时钟可测；这里只喂传感器并在 apply 闸门用。 */
     private val degrade = DegradeController()
 
+    /**
+     * P4 验收注入口（§12.3「每一档都能手动触发」）：
+     * `adb shell am broadcast -a com.openapi.ks.chat.action.DEBUG_DEGRADE_LEVEL --ei level 2`
+     * （level = -1 解除强制，回自动判定）。debug 构建才注册——release 里留这个广播
+     * 等于把「形象冻结」开关交给任何能发广播的应用。见 DegradeDebugInjectTest。
+     */
+    private var debugDegradeReceiver: BroadcastReceiver? = null
+
+    private fun registerDegradeDebugInject() {
+        if (!isDebugBuild) return
+        val filter = IntentFilter("com.openapi.ks.chat.action.DEBUG_DEGRADE_LEVEL")
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val level = intent?.getIntExtra("level", -2) ?: return
+                degrade.forceLevel = if (level < 0) null else level
+                logWarn("attempt=$activeAttemptId event=degrade_force level=${degrade.forceLevel}")
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            appContext.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            appContext.registerReceiver(receiver, filter)
+        }
+        debugDegradeReceiver = receiver
+    }
+
     /** L1 表情抽样序号：每条到闸的 emotion +1，`seq % 2 == 0` 才放行。 */
     private var emotionEmitSeq = 0
 
@@ -186,6 +216,7 @@ class LiveKitCompanionTransport(
         _lastConnectionError.value = null
         val newRoom = LiveKit.create(appContext)
         room = newRoom
+        registerDegradeDebugInject()
         // 新连接就是新 epoch（§5.1）：沿用上一次的 epoch，对端会把我从 0 开始的 seq
         // 当成回退丢掉。identity 用来判 dst 是不是指我，现在还不知道，等连上再看。
         val protocolLink = CompanionProtocolLink(identity = null)
@@ -573,6 +604,8 @@ class LiveKitCompanionTransport(
     }
 
     override suspend fun disconnect() {
+        debugDegradeReceiver?.let { runCatching { appContext.unregisterReceiver(it) } }
+        debugDegradeReceiver = null
         detachMouthSink()
         detachSelfSink()
         _mouthLevel.value = 0f
