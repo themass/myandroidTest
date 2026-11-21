@@ -61,6 +61,7 @@ import coil.compose.AsyncImage
 import com.openapi.chatkit.R
 import com.openapi.chatkit.media.ImageViewer
 import com.openapi.chatkit.media.imageModel
+import com.openapi.chatkit.model.ImageLayout
 import com.openapi.chatkit.model.ImageLoadState
 import com.openapi.chatkit.model.ImageVisualStatus
 import com.openapi.chatkit.model.MessagePart
@@ -73,6 +74,33 @@ import com.openapi.mediaview.rememberStatefulImageModel
 import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.theme.ChatKit
 import java.util.Locale
+
+/** 图片块最终采用的排布方式，由 [imageArrangement] 从「张数 + 策略」算出来。 */
+internal enum class ImageArrangement {
+    /** 单张按原图比例显示（旧的 168×200 气泡缩略图）。 */
+    SingleFit,
+
+    /** 收纳盒（mediaview 的 MediaStack）。 */
+    Stack,
+
+    /** 横向轮播（mediaview 的 MediaCarousel）。 */
+    Carousel,
+}
+
+/**
+ * 「张数 + 策略 → 排布方式」的决策表，[ImageGrid] 与测试都以此为准（纯 Kotlin，不碰 Compose）。
+ *
+ * [ImageLayout.Stack] 一律进收纳盒，不看张数（1 张也是收纳盒顶卡）；
+ * [ImageLayout.Auto] 保留旧的按张数分支：1 张按比例、2–4 张收纳盒、5 张及以上轮播。
+ */
+internal fun imageArrangement(count: Int, layout: ImageLayout): ImageArrangement = when (layout) {
+    ImageLayout.Stack -> ImageArrangement.Stack
+    ImageLayout.Auto -> when {
+        count <= 1 -> ImageArrangement.SingleFit
+        count <= 4 -> ImageArrangement.Stack
+        else -> ImageArrangement.Carousel
+    }
+}
 
 /** 气泡形状：四角同一圆角（豆包式，不做「尾巴」）。 */
 @Composable
@@ -170,8 +198,10 @@ private val SINGLE_IMAGE_MAX_HEIGHT = 200.dp
 private val SINGLE_IMAGE_MIN = 96.dp
 
 /**
- * 图片块。单张按原图比例显示；多张排成方格（2、4 张两列，其余三列），最多 9 张，
- * 超出的数量盖在第 9 张上。点击任意一张打开全屏查看器（组件自己管理查看器状态）。
+ * 图片块。用哪种排布由 [layout] 和张数一起决定（见 [imageArrangement]）：默认 [ImageLayout.Stack]
+ * 一律走收纳盒（mediaview 的 MediaStack，一张也是收纳盒的顶卡）；[ImageLayout.Auto] 保留旧的
+ * 按张数分支（单张按原图比例显示，2–4 张收纳盒，5 张及以上横向轮播）。
+ * 点击任意一张打开全屏查看器（组件自己管理查看器状态）。
  *
  * 加载失败不再是一块无出路的底色（整改清单 P1-10）：失败的图显示「图片加载失败，点击重试」
  * 占位，整块可点击重试；重试期间显示进度样式。每台设备的换源能力不同：组件先做本地强制重载
@@ -184,6 +214,8 @@ fun ImageGrid(
     maxWidth: Dp,
     /** 长按某一张图：传它的来源（本地路径或地址）。 */
     onLongPress: (String) -> Unit,
+    /** 排布策略；默认一律收纳盒，和陪伴端图片消息同一套样式。 */
+    layout: ImageLayout = ImageLayout.Stack,
     modifier: Modifier = Modifier,
     /** 点击了加载失败的那张图（下标）。组件已做本地重载；调用方若能重新换源就换源。 */
     onRetryImage: (Int) -> Unit = {},
@@ -207,81 +239,90 @@ fun ImageGrid(
         onRetryImage(index)
     }
 
-    if (sources.size == 1) {
-        val state by states[0]
-        val failed = state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying
-        val stateful = rememberStatefulImageModel(imageModel(sources[0]), state.attempt)
-        val model: Any? = if (failed && state.status != ImageVisualStatus.Retrying) {
-            null // 失败且未点重试：不发请求，避免每次重组都重烧一次必失败的加载
-        } else {
-            stateful
-        }
-        Box(
-            modifier = modifier
-                .sizeIn(
-                    minWidth = SINGLE_IMAGE_MIN,
-                    minHeight = SINGLE_IMAGE_MIN,
-                    maxWidth = minOf(maxWidth, SINGLE_IMAGE_MAX_WIDTH),
-                    maxHeight = SINGLE_IMAGE_MAX_HEIGHT,
+    val arrangement = imageArrangement(sources.size, layout)
+    when (arrangement) {
+        ImageArrangement.SingleFit -> {
+            val state by states[0]
+            val failed = state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying
+            val stateful = rememberStatefulImageModel(imageModel(sources[0]), state.attempt)
+            val model: Any? = if (failed && state.status != ImageVisualStatus.Retrying) {
+                null // 失败且未点重试：不发请求，避免每次重组都重烧一次必失败的加载
+            } else {
+                stateful
+            }
+            Box(
+                modifier = modifier
+                    .sizeIn(
+                        minWidth = SINGLE_IMAGE_MIN,
+                        minHeight = SINGLE_IMAGE_MIN,
+                        maxWidth = minOf(maxWidth, SINGLE_IMAGE_MAX_WIDTH),
+                        maxHeight = SINGLE_IMAGE_MAX_HEIGHT,
+                    )
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(placeholder)
+                    .combinedClickable(
+                        onClick = {
+                            if (state.status == ImageVisualStatus.Failed) retry(0) else viewerStart = 0
+                        },
+                        onLongClick = { onLongPress(sources[0]) },
+                    ),
+            ) {
+                AsyncImage(
+                    model = model,
+                    // 气泡里的图片不是纯装饰：读屏要报得出这里有一张图（整改清单 P2-16）
+                    contentDescription = stringResource(R.string.chatkit_image),
+                    contentScale = ContentScale.Fit,
+                    onSuccess = { update(0) { it.onLoaded() } },
+                    onError = { update(0) { it.onFailed() } },
+                    modifier = Modifier.fillMaxSize(),
                 )
-                .clip(RoundedCornerShape(12.dp))
-                .background(placeholder)
-                .combinedClickable(
-                    onClick = {
-                        if (state.status == ImageVisualStatus.Failed) retry(0) else viewerStart = 0
-                    },
-                    onLongClick = { onLongPress(sources[0]) },
-                ),
-        ) {
-            AsyncImage(
-                model = model,
-                // 气泡里的图片不是纯装饰：读屏要报得出这里有一张图（整改清单 P2-16）
-                contentDescription = stringResource(R.string.chatkit_image),
-                contentScale = ContentScale.Fit,
-                onSuccess = { update(0) { it.onLoaded() } },
-                onError = { update(0) { it.onFailed() } },
-                modifier = Modifier.fillMaxSize(),
-            )
-            if (state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying) {
-                MediaLoadFailedOverlay(
-                    retrying = state.status == ImageVisualStatus.Retrying,
-                    compact = true, // 气泡缩略图最大 168×200dp，用紧凑版图标和文字
-                )
+                if (state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying) {
+                    MediaLoadFailedOverlay(
+                        retrying = state.status == ImageVisualStatus.Retrying,
+                        compact = true, // 气泡缩略图最大 168×200dp，用紧凑版图标和文字
+                    )
+                }
             }
         }
-    } else {
-        // 多图：2–4 张用堆叠卡片，5 张及以上用横向轮播（通用媒体组件 :mediaview）
-        val items = sources.mapIndexed { index, source ->
-            val state by states[index]
-            MediaItem(
-                model = imageModel(source),
-                failed = state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying,
-                retrying = state.status == ImageVisualStatus.Retrying,
-                attempt = state.attempt,
-            )
-        }
-        val onTap: (Int) -> Unit = { index -> viewerStart = index }
-        val onLong: (Int) -> Unit = { index -> onLongPress(sources[index]) }
-        val theme = if (androidx.compose.foundation.isSystemInDarkTheme()) MediaTheme.Dark else MediaTheme.Light
-        Box(modifier) {
-            if (sources.size <= 4) {
-                MediaStack(
-                    items = items,
-                    theme = theme,
-                    onClick = onTap,
-                    onLongClick = onLong,
-                    onRetry = ::retry,
-                    onItemError = { index -> update(index) { it.onFailed() } },
+        else -> {
+            // 收纳盒 / 轮播（通用媒体组件 :mediaview）：张数决定用哪个的时机已经收进
+            // imageArrangement，这里只按算出来的结果分发
+            // 气泡里的图片不是纯装饰：收纳盒路径也要报得出这里有一张图（整改清单 P2-16，
+            // 和上面 SingleFit 分支的 AsyncImage 同一处约定——默认样式换成收纳盒后别把它丢了）。
+            // 提到循环外取：mapIndexed 的 lambda 不是 @Composable，stringResource 不能在里头调。
+            val imageDescription = stringResource(R.string.chatkit_image)
+            val items = sources.mapIndexed { index, source ->
+                val state by states[index]
+                MediaItem(
+                    model = imageModel(source),
+                    contentDescription = imageDescription,
+                    failed = state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying,
+                    retrying = state.status == ImageVisualStatus.Retrying,
+                    attempt = state.attempt,
                 )
-            } else {
-                MediaCarousel(
-                    items = items,
-                    theme = theme,
-                    onClick = onTap,
-                    onLongClick = onLong,
-                    onRetry = ::retry,
-                    onItemError = { index -> update(index) { it.onFailed() } },
-                )
+            }
+            val onTap: (Int) -> Unit = { index -> viewerStart = index }
+            val onLong: (Int) -> Unit = { index -> onLongPress(sources[index]) }
+            val theme = if (androidx.compose.foundation.isSystemInDarkTheme()) MediaTheme.Dark else MediaTheme.Light
+            Box(modifier) {
+                when (arrangement) {
+                    ImageArrangement.Carousel -> MediaCarousel(
+                        items = items,
+                        theme = theme,
+                        onClick = onTap,
+                        onLongClick = onLong,
+                        onRetry = ::retry,
+                        onItemError = { index -> update(index) { it.onFailed() } },
+                    )
+                    else -> MediaStack(
+                        items = items,
+                        theme = theme,
+                        onClick = onTap,
+                        onLongClick = onLong,
+                        onRetry = ::retry,
+                        onItemError = { index -> update(index) { it.onFailed() } },
+                    )
+                }
             }
         }
     }
