@@ -446,7 +446,7 @@ class PhotoRendererTest {
         assertEquals("可变底图也不能被就地画", mutablePxBefore, mutableBase.getPixel(100, 50))
     }
 
-    // ---- renderStrict：导出路径的失败语义（回退只许留在 render）----
+    // ---- renderStrict / guardRender：失败语义（回退只剩 guardRender 一台机器）----
 
     /** 必然抛异常的滤镜取表：渲染管线里唯一一处「按 id 现取外部数据」，是最省事的注入点。 */
     private fun boomProvider(error: Throwable): (String) -> Lut3D? = { throw error }
@@ -503,6 +503,38 @@ class PhotoRendererTest {
         val source = immutableSource()
 
         assertSame(source, PhotoRenderer.renderStrict(source, edits(source)))
+    }
+
+    // ---- guardRender：唯一的兜底机器（评审 Important 1）----
+
+    /**
+     * 兜底必须只有**一台**机器：预览的两条路径（[PhotoRenderer.render] 与 PhotoEditor 的
+     * renderPreview）都从它过，所以它的语义要直接钉住——否则「两处逐字一致」只能靠人读 diff 守，
+     * 而漂移恰好会发生在「坏回退 = 黑预览」的那个位置。
+     *
+     * 失败用真管线形状（[renderBase] + [boomProvider]），不是随手 throw：吞掉的必须真的是
+     * 这条链会抛的那两类异常。
+     */
+    @Test
+    fun guardRenderIsTheSingleFallbackMachineForBothFailureKinds() {
+        val source = immutableSource()
+        val e = edits(source).push(EditOp.Filter("boom", 100))
+        val failing = { error: Throwable ->
+            { PhotoRenderer.renderBase(source, e, lutProvider = boomProvider(error)) }
+        }
+
+        assertNull(
+            "RuntimeException 必须被吞成 null",
+            PhotoRenderer.guardRender("test", failing(IllegalStateException("表读不出来"))),
+        )
+        assertNull(
+            "OOM 同样吞成 null（而不是往外抛，那会杀掉编辑器）",
+            PhotoRenderer.guardRender("test", failing(OutOfMemoryError("fake"))),
+        )
+
+        // 成功路径：原样交出结果，不吞、不包装
+        val ok = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888)
+        assertSame(ok, PhotoRenderer.guardRender("test") { ok })
     }
 
     /** 输出位图上 [fromX, toX) 这段里「接近纯白」的像素数。 */

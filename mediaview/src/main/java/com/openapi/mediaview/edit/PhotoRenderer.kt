@@ -42,6 +42,9 @@ object PhotoRenderer {
      * 导出路径**不许**用它——[renderStrict] 才是导出该走的（回退原图等于把用户裁过、
      * 加过滤镜的那张图悄悄换成原图，而界面上一个字都不会提）。
      *
+     * 注意生产预览走的是 PhotoEditor 里带底图缓存的 renderPreview（同样经 [guardRender]），
+     * 不是这里——本函数是给「不需要缓存的那一层」用的，所以它只是 [renderStrict] 加一次回退。
+     *
      * @param source 原图（不会被回收）
      * @param edits 操作列表
      * @param maxLongEdge 输出长边上限，默认 [MAX_OUTPUT_LONG_EDGE]；编辑时传屏幕尺寸减少开销
@@ -55,6 +58,28 @@ object PhotoRenderer {
         maxLongEdge: Int = MAX_OUTPUT_LONG_EDGE,
         lutProvider: (String) -> Lut3D? = { null },
     ): Bitmap = renderStrict(source, edits, maxLongEdge, lutProvider) ?: source
+
+    /**
+     * 全仓**唯一**一处「把渲染的失败吞掉」的机器：OOM / RuntimeException 都在这里变成 null。
+     *
+     * 之所以要单独抽出来，而不是让每个预览入口自带一对 catch：预览有两条路径
+     * （走缓存的 renderPreview 和不走缓存的 [render]），它们对「失败」的反应必须完全相同
+     * （吞掉、记一次日志、换回源图），而手抄两份 catch 的漂移恰好会发生在
+     * 「坏回退 = 黑预览」这种最难发现的位置。导出侧**不许**用它——[renderStrict] 要的是
+     * 如实报失败，不是兜底。
+     *
+     * @param tag 日志归属（调用方标识自己，方便看出是哪条路径失败的）
+     * @return [block] 的结果；[block] 抛 OOM / RuntimeException 时返回 null
+     */
+    internal fun guardRender(tag: String, block: () -> Bitmap): Bitmap? = try {
+        block()
+    } catch (e: OutOfMemoryError) {
+        Log.e(tag, "render out of memory", e)
+        null
+    } catch (e: RuntimeException) {
+        Log.e(tag, "render failed", e)
+        null
+    }
 
     /**
      * 渲染，失败返回 null——**绝不回退源图**。导出用这个。
@@ -77,15 +102,7 @@ object PhotoRenderer {
     ): Bitmap? {
         // 旋转/镜像也要渲染：它们在预览里同样要可见
         if (edits.ops.isEmpty()) return source
-        return try {
-            drawOps(renderBase(source, edits, maxLongEdge, lutProvider), edits)
-        } catch (e: OutOfMemoryError) {
-            Log.e(TAG, "render out of memory", e)
-            null
-        } catch (e: RuntimeException) {
-            Log.e(TAG, "render failed", e)
-            null
-        }
+        return guardRender(TAG) { drawOps(renderBase(source, edits, maxLongEdge, lutProvider), edits) }
     }
 
     /**
@@ -98,7 +115,8 @@ object PhotoRenderer {
      * 返回的位图可能仍是 [source]（什么都没改过时），也可能是不可变的（解码出来的原图 /
      * `createBitmap` 的只读结果）——要往上画东西别直接用 [Canvas]，走 [drawOps]。
      *
-     * 失败时**不兜底**（OOM / RuntimeException 直接抛出），回退语义集中在 [render]，
+     * 失败时**不兜底**（OOM / RuntimeException 直接抛出），怎么处理失败归调用方那层的
+     * [guardRender]（预览）或 [renderStrict]（导出），
      * 免得缓存命中路径和未命中路径给出两种不同的降级行为。
      *
      * @param lutProvider 语义同 [render]
