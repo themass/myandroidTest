@@ -287,10 +287,15 @@ fun ImageGrid(
         else -> {
             // 收纳盒 / 轮播（通用媒体组件 :mediaview）：张数决定用哪个的时机已经收进
             // imageArrangement，这里只按算出来的结果分发
+            // 气泡里的图片不是纯装饰：收纳盒路径也要报得出这里有一张图（整改清单 P2-16，
+            // 和上面 SingleFit 分支的 AsyncImage 同一处约定——默认样式换成收纳盒后别把它丢了）。
+            // 提到循环外取：mapIndexed 的 lambda 不是 @Composable，stringResource 不能在里头调。
+            val imageDescription = stringResource(R.string.chatkit_image)
             val items = sources.mapIndexed { index, source ->
                 val state by states[index]
                 MediaItem(
                     model = imageModel(source),
+                    contentDescription = imageDescription,
                     failed = state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying,
                     retrying = state.status == ImageVisualStatus.Retrying,
                     attempt = state.attempt,
