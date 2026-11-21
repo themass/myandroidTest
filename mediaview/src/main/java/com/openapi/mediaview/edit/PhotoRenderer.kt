@@ -19,8 +19,9 @@ import kotlin.math.roundToInt
  * 把 [PhotoEdits] 重放到一张位图上，得到最终图片。纯 CPU 实现，不依赖 OpenCV/GPU，
  * 保证 :mediaview 不带原生库（它要能被别的项目直接复用）。
  *
- * 顺序：旋转/镜像 → 颜色调整 → 涂鸦/文字/马赛克（后三者共用一套「原图坐标 → 画布坐标」的映射）。
- * 标注必须在旋转之后画，否则用户转一下图，之前画的字就横过来了。
+ * 顺序：旋转/镜像 → 颜色调整 → 滤镜 → 缩放 → 涂鸦/文字/马赛克（后三者共用一套「原图坐标 → 画布坐标」的映射）。
+ * 标注必须在旋转之后画，否则用户转一下图，之前画的字就横过来了；
+ * 调整与滤镜是两步独立处理（滤镜走 [LutApply] 的逐像素三线性插值，不是 ColorMatrix），顺序固定为先调整后滤镜。
  *
  * 同一个函数既用于**导出**（长边 4096），也用于**编辑时的预览**（长边更小），
  * 所以界面看到的和保存出来的完全一致。
@@ -36,13 +37,20 @@ object PhotoRenderer {
      * @param source 原图（不会被回收）
      * @param edits 操作列表
      * @param maxLongEdge 输出长边上限，默认 [MAX_OUTPUT_LONG_EDGE]；编辑时传屏幕尺寸减少开销
+     * @param lutProvider 按滤镜 id 取表；返回 null 表示这张表取不到（资产缺失 / 文件坏了），
+     *   该滤镜被静默跳过，图停在 Adjust 之后的状态。默认永不提供表，所以不传它的调用点行为不变。
      * @return 渲染后的新位图；失败（OOM 等）返回原图引用
      */
-    fun render(source: Bitmap, edits: PhotoEdits, maxLongEdge: Int = MAX_OUTPUT_LONG_EDGE): Bitmap {
+    fun render(
+        source: Bitmap,
+        edits: PhotoEdits,
+        maxLongEdge: Int = MAX_OUTPUT_LONG_EDGE,
+        lutProvider: (String) -> Lut3D? = { null },
+    ): Bitmap {
         // 旋转/镜像也要渲染：它们在预览里同样要可见
         if (edits.ops.isEmpty()) return source
         return try {
-            renderInternal(source, edits, maxLongEdge)
+            renderInternal(source, edits, maxLongEdge, lutProvider)
         } catch (e: OutOfMemoryError) {
             Log.e(TAG, "render out of memory, falling back to source", e)
             source
@@ -52,11 +60,17 @@ object PhotoRenderer {
         }
     }
 
-    private fun renderInternal(source: Bitmap, edits: PhotoEdits, maxLongEdge: Int): Bitmap {
+    private fun renderInternal(
+        source: Bitmap,
+        edits: PhotoEdits,
+        maxLongEdge: Int,
+        lutProvider: (String) -> Lut3D?,
+    ): Bitmap {
         val rotated = rotate(source, edits.quarterTurns)
         val mirrored = if (edits.isFlipped) mirror(rotated) else rotated
         val adjusted = applyAdjust(mirrored, edits.adjust)
-        val scaled = downscaleIfNeeded(adjusted, maxLongEdge)
+        val filtered = applyFilter(adjusted, source, edits.filter, lutProvider)
+        val scaled = downscaleIfNeeded(filtered, maxLongEdge)
 
         // 标注和马赛克都要往位图上写，而上面几步在没有旋转/调整时会把原图直接返回（不可变）。
         // 这里保证拿到的是一张可变位图，否则 Canvas(bitmap) 会抛 IllegalStateException。
@@ -74,7 +88,7 @@ object PhotoRenderer {
                 is EditOp.Stroke -> drawStroke(canvas, op, w, h, edits, paint)
                 is EditOp.Text -> drawText(canvas, op, w, h, edits, paint)
                 is EditOp.Mosaic -> drawMosaic(canvasTarget, op, w, h, edits)
-                else -> Unit // 旋转/镜像/调整已在上面一次性处理
+                else -> Unit // 旋转/镜像/调整/滤镜已在上面一次性处理
             }
         }
         return canvasTarget
@@ -143,6 +157,29 @@ object PhotoRenderer {
         )
         contrast.preConcat(sat)
         return contrast
+    }
+
+    // ---- 滤镜 ----
+
+    /**
+     * 按 [edit] 取表并套表。取不到表（provider 返回 null）就静默跳过，图停在 Adjust 之后。
+     *
+     * [LutApply.apply] 是**就地且不可叠加**的：同一个位图连跑两遍等于把表套两遍。
+     * 而 [applyAdjust] 在 Adjust 是恒等式时返回的 [source] 就是调用方的原图（甚至不可变），
+     * 所以只有拿到「上面几步新造出来的位图」（[sourceBitmap] !== [source]）才允许就地改，
+     * 否则先 copy 一张可变副本再套。
+     */
+    private fun applyFilter(
+        sourceBitmap: Bitmap,
+        source: Bitmap,
+        edit: EditOp.Filter?,
+        lutProvider: (String) -> Lut3D?,
+    ): Bitmap {
+        if (edit == null) return sourceBitmap
+        val lut = lutProvider(edit.id) ?: return sourceBitmap
+        val target = if (sourceBitmap !== source && sourceBitmap.isMutable) sourceBitmap
+        else sourceBitmap.copy(Bitmap.Config.ARGB_8888, true)
+        return LutApply.apply(target, lut, edit.intensity)
     }
 
     // ---- 坐标映射（纯函数在 EditCoords，便于单测）----

@@ -5,6 +5,9 @@ import android.graphics.Color
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -163,5 +166,107 @@ class PhotoRendererTest {
                 )
             }
         }
+    }
+
+    // ---- 滤镜 ----
+
+    /** 渲染器测试共用的「抬黑」表（和 [Lut3DTest] 同一批夹具）。 */
+    private fun liftBlackLut(): Lut3D = CubeLut.parse(grayCube(16, ::liftBlack))!!
+
+    /**
+     * 只有 [EditOp.Rotate]` (0)` 这一条空操作：让 [PhotoRenderer.render] 走进完整管线
+     * （否则 ops 为空会直接返回原图引用，比较就没有意义），同时保证输出 = 输入像素。
+     */
+    private fun passthroughEdits(w: Int, h: Int) = PhotoEdits(w, h).push(EditOp.Rotate(0))
+
+    private fun gradient(w: Int = 40, h: Int = 20): Bitmap {
+        val mutable = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        for (x in 0 until w) for (y in 0 until h) {
+            val v = x * 255 / (w - 1)
+            mutable.setPixel(x, y, Color.rgb(v, (v / 2).coerceAtMost(255), 255 - v))
+        }
+        return mutable.copy(Bitmap.Config.ARGB_8888, false)
+    }
+
+    /** 两张位图尺寸与逐像素是否完全一致；不一致时返回第一处差异的描述。 */
+    private fun firstDifference(a: Bitmap, b: Bitmap): String? {
+        if (a.width != b.width || a.height != b.height) return "尺寸 ${a.width}x${a.height} vs ${b.width}x${b.height}"
+        for (x in 0 until a.width) for (y in 0 until a.height) {
+            if (a.getPixel(x, y) != b.getPixel(x, y)) return "($x,$y): ${a.getPixel(x, y)} vs ${b.getPixel(x, y)}"
+        }
+        return null
+    }
+
+    @Test
+    fun filterBrightensBlackPixelsInsteadOfFallingBackToSource() {
+        val source = Bitmap.createBitmap(20, 10, Bitmap.Config.ARGB_8888)
+            .apply { eraseColor(Color.BLACK) }
+            .copy(Bitmap.Config.ARGB_8888, false)
+        val edits = PhotoEdits(source.width, source.height).push(EditOp.Filter("test", 100))
+
+        val out = PhotoRenderer.render(source, edits) { liftBlackLut() }
+
+        // 渲染失败时 render 会退回原图引用；这里必须是渲染出来的新位图
+        assertNotSame(source, out)
+        val px = out.getPixel(5, 5)
+        // 抬黑表把 0 抬到 0.2：0.2 × 255 = 51
+        assertTrue("纯黑应被抬到 51 附近，实际 $px", Color.red(px) in 49..53)
+        assertEquals("灰阶表不该偏色", Color.red(px), Color.green(px))
+        assertEquals(Color.green(px), Color.blue(px))
+        assertEquals("alpha 必须原样保留", 255, Color.alpha(px))
+    }
+
+    @Test
+    fun zeroIntensityIsPixelIdenticalToNoFilter() {
+        val source = gradient()
+        val withFilter = PhotoRenderer.render(source, passthroughEdits(source.width, source.height).push(EditOp.Filter("test", 0))) { liftBlackLut() }
+        val withoutFilter = PhotoRenderer.render(source, passthroughEdits(source.width, source.height)) { liftBlackLut() }
+
+        assertNotSame(withoutFilter, withFilter)
+        assertNull("强度 0 必须和没套滤镜逐像素一致", firstDifference(withFilter, withoutFilter))
+    }
+
+    @Test
+    fun providerReturningNullSkipsFilterAndKeepsPostAdjustState() {
+        val source = gradient()
+        val missing = PhotoRenderer.render(source, passthroughEdits(source.width, source.height).push(EditOp.Filter("missing", 100))) { null }
+        val withoutFilter = PhotoRenderer.render(source, passthroughEdits(source.width, source.height)) { liftBlackLut() }
+        val applied = PhotoRenderer.render(source, passthroughEdits(source.width, source.height).push(EditOp.Filter("test", 100))) { liftBlackLut() }
+
+        assertNull("缺滤镜资产就当作没滤镜", firstDifference(missing, withoutFilter))
+        // 反证：同一张表在强度 100 下确实会改变这张图（否则上一条断言是空的）
+        assertNotNull("渐变图上套抬黑表本应有像素变化", firstDifference(applied, withoutFilter))
+    }
+
+    /**
+     * Adjust 与 Filter 同时存在时必须是「先 Adjust 再 Filter」。
+     *
+     * 手算（灰阶源值 74）：
+     * - Adjust(brightness=-50) → 平移量 -50×0.8 = -40 → 74 − 40 = 34（正好落在 16³ 表的格点 2 上，
+     *   因为格点间距是 255/15 = 17，所以插值就是格点值本身）
+     * - 抬黑表格点 2：liftBlack(2/15) = 2/15 + 0.2×(1 − 2/3)² = 7/45 → 7/45×255 = 39.67 → 40
+     *
+     * 顺序反了会得到不同的值：先套表 74 落在恒等段 → 74，再 Adjust → 34。
+     */
+    @Test
+    fun adjustAndFilterComposeAdjustFirst() {
+        val w = 20; val h = 10
+        val source = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            .apply { eraseColor(Color.rgb(74, 74, 74)) }
+            .copy(Bitmap.Config.ARGB_8888, false)
+        val adjust = EditOp.Adjust(brightness = -50, contrast = 0, saturation = 0)
+
+        val out = PhotoRenderer.render(
+            source,
+            PhotoEdits(w, h).push(adjust).push(EditOp.Filter("test", 100)),
+        ) { liftBlackLut() }
+        // 反证用：只 Adjust 不套表（=34），说明滤镜确实参与了、且不是在 Adjust 之前跑的
+        val adjustOnly = PhotoRenderer.render(source, PhotoEdits(w, h).push(adjust)) { liftBlackLut() }
+
+        val px = out.getPixel(5, 5)
+        assertTrue("Adjust→Filter 的合成结果应为 40（±2），实际 $px", Color.red(px) in 38..42)
+        assertEquals("不该偏色", Color.red(px), Color.green(px))
+        assertEquals(Color.green(px), Color.blue(px))
+        assertTrue("只 Adjust 时应停在 34（±2），实际 ${Color.red(adjustOnly.getPixel(5, 5))}", Color.red(adjustOnly.getPixel(5, 5)) in 32..36)
     }
 }
