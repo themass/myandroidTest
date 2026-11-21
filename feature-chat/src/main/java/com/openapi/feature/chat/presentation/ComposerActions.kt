@@ -40,6 +40,18 @@ internal class ComposerActions(private val state: MutableStateFlow<ChatUiState>)
     fun removeDraft(id: String) {
         state.update { it.copy(drafts = it.drafts.filterNot { d -> d.id == id }) }
     }
+
+    /**
+     * 放进待发送位置（P2-13）。单值而不是列表：一条消息只带一个坐标，
+     * 再点一次「位置」就是换掉上一个（微信同款行为），不堆积。
+     */
+    fun setLocationDraft(location: com.openapi.feature.chat.domain.model.GeoLocation) {
+        state.update { it.copy(locationDraft = location) }
+    }
+
+    fun removeLocationDraft() {
+        state.update { it.copy(locationDraft = null) }
+    }
 }
 
 /** 点赞、点踩：两者互斥。 */

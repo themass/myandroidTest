@@ -26,6 +26,26 @@ sealed interface MessagePart {
     /** 一个文件。 */
     data class File(val path: String, val name: String, val sizeBytes: Long) : MessagePart
 
+    /**
+     * 一个视频。[thumbnailPath] 只有发送侧有（发之前从本机文件抽的首帧，服务端不产缩略图），
+     * 历史侧通常是空串；两者都空时卡片退化成「文件名 + 时长」。
+     * [path] 是本机文件路径（没有为空串），[uploadId] 是服务端对象 id——点开播放时由调用方
+     * 决定用哪个来源，组件不碰网络也不碰文件。
+     */
+    data class Video(
+        val name: String,
+        val durationSeconds: Int,
+        val thumbnailPath: String = "",
+        val path: String = "",
+        val uploadId: String? = null,
+    ) : MessagePart
+
+    /**
+     * 一个位置。只有坐标和可选精度（米）——组件不画地图，「在地图打开」按钮只把回调
+     * 交给调用方（geo: intent 由业务侧决定，组件库里没有也不需要 Android intent）。
+     */
+    data class Location(val latitude: Double, val longitude: Double, val accuracyMeters: Int?) : MessagePart
+
     /** 语音。[playing] 由调用方根据播放器状态填入，组件据此显示声波动画。 */
     /** 语音消息。[transcript] 为 null 或空白表示没有识别出文字；[transcribing] 为 true 表示还在识别中。 */
     data class Voice(
@@ -77,6 +97,10 @@ sealed interface MessageAction {
     /** 长按菜单「多选」：进入多选，并选中这条消息。 */
     data object Select : MessageAction
     data class OpenFile(val file: MessagePart.File) : MessageAction
+    /** 点击视频卡片要播放。[video] 原样带回，播放地址（本机文件或签名 URL）由调用方解析。 */
+    data class OpenVideo(val video: MessagePart.Video) : MessageAction
+    /** 点击位置气泡的「在地图打开」。 */
+    data class OpenLocation(val location: MessagePart.Location) : MessageAction
     /**
      * 点击了加载失败的那张图（整改清单 P1-10）。[index] 是它在消息里的下标。
      * 组件已经自己做了「强制重新加载」；调用方若还能重新换取远程地址（签名 URL），

@@ -56,9 +56,9 @@ class ChatViewModel : ViewModel() {
     private val attachments = AttachmentSender(
         repository, _uiState, streamer,
         // 图文消息：图片已经传完，文字和图片引用一起进同一个回合——只回一次话。
-        streamWithAttachments = { text, messageId, persistUser, files ->
+        streamWithAttachments = { text, messageId, persistUser, files, location ->
             streamReply(text, userMessageId = messageId, persistUser = persistUser, syncAfter = false,
-                attachments = files)
+                attachments = files, location = location)
         },
     )
     private val resend = ResendActions(
@@ -186,7 +186,8 @@ class ChatViewModel : ViewModel() {
         syncAfter: Boolean = true,
         replaceKey: String? = null,
         attachments: List<OutgoingAttachment> = emptyList(),
-    ) = streamer.stream(text, userMessageId, persistUser, regenerate, syncAfter, replaceKey, attachments)
+        location: com.openapi.feature.chat.domain.model.GeoLocation? = null,
+    ) = streamer.stream(text, userMessageId, persistUser, regenerate, syncAfter, replaceKey, attachments, location)
 
     private fun updateByKey(key: String, transform: (ChatMessage) -> ChatMessage) = streamer.updateByKey(key, transform)
 
@@ -308,6 +309,25 @@ class ChatViewModel : ViewModel() {
 
 
     fun onRemoveDraft(id: String) = composer.removeDraft(id)
+
+    /** 取掉输入栏上的待发送位置 chip。 */
+    fun onRemoveLocationDraft() = composer.removeLocationDraft()
+
+    /**
+     * 「位置」按钮取到一次粗定位后进这里（P2-13）。坐标先留在状态里，发送时才随消息发出；
+     * 再点一次位置 = 换掉上一个位置。
+     *
+     * 参数刻意用散开的原始值而不是 `LocationFixer.Fix`：那是 internal 类型，
+     * public 方法不能把它暴露到模块外。
+     */
+    fun onLocationFixReady(latitude: Double, longitude: Double, accuracyMeters: Int?) =
+        composer.setLocationDraft(
+            com.openapi.feature.chat.domain.model.GeoLocation(
+                latitude = latitude,
+                longitude = longitude,
+                accuracyMeters = accuracyMeters,
+            ),
+        )
 
 
     /**

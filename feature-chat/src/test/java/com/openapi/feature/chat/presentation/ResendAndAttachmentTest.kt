@@ -93,9 +93,15 @@ class ResendAndAttachmentTest {
             strings = FakeChatStrings(),
         )
         var sentAttachments: List<OutgoingAttachment>? = null
+        var sentLocation: com.openapi.feature.chat.domain.model.GeoLocation? = null
+        var streamCalls = 0
         val sender = AttachmentSender(
             repo, state, streamer,
-            streamWithAttachments = { _, _, _, attachments -> sentAttachments = attachments },
+            streamWithAttachments = { _, _, _, attachments, location ->
+                streamCalls++
+                sentAttachments = attachments
+                sentLocation = location
+            },
         )
     }
 
@@ -303,5 +309,150 @@ class ResendAndAttachmentTest {
         assertEquals(listOf("42"), h.state.value.messages.map { it.id })
         assertEquals("改过的字", h.state.value.messages.single().text)
         assertEquals(1, h.repo.regenerateStreamCalls)
+    }
+    // ---------------------------------------------------------------- 视频 / 位置（P2-13）
+
+    private fun videoMsg(
+        videos: List<com.openapi.feature.chat.domain.model.VideoAttachment>,
+        text: String = "",
+        location: com.openapi.feature.chat.domain.model.GeoLocation? = null,
+    ) = ChatMessage(
+        id = "20", role = ChatRole.USER, text = text, createdAtMillis = 100L,
+        kind = if (location != null) MessageKind.LOCATION else MessageKind.VIDEO,
+        videos = videos, location = location,
+    )
+
+    @Test
+    fun videoWithFileOnDiskReuploadsAndCarriesDuration() {
+        val h = SenderHarness()
+        val file = java.io.File.createTempFile("clip", ".mp4")
+        file.deleteOnExit()
+        h.repo.uploadVideoResult = "vid-id"
+        val message = videoMsg(
+            listOf(com.openapi.feature.chat.domain.model.VideoAttachment(
+                path = file.absolutePath, name = "clip.mp4", durationSeconds = 42, uploadId = "stale",
+            )),
+        )
+
+        runBlocking { h.sender.deliver(message) }
+
+        // 本机有字节 → 重新上传（与图片同一规矩）；duration_s 随附件引用发出
+        assertEquals(1, h.repo.uploadVideoCalls.size)
+        val sent = h.sentAttachments?.single()
+        assertEquals("vid-id", sent?.uploadId)
+        assertEquals(MessageKind.VIDEO, sent?.kind)
+        assertEquals(42, sent?.durationSeconds)
+        val saved = h.repo.saved.single()
+        assertEquals("vid-id", saved.videos.single().uploadId)
+        assertEquals(DeliveryStatus.SENT, saved.delivery)
+    }
+
+    @Test
+    fun videoZeroDurationOmitsDurationSeconds() {
+        val h = SenderHarness()
+        val file = java.io.File.createTempFile("clip", ".mp4")
+        file.deleteOnExit()
+        val message = videoMsg(
+            listOf(com.openapi.feature.chat.domain.model.VideoAttachment(path = file.absolutePath, name = "clip.mp4")),
+        )
+
+        runBlocking { h.sender.deliver(message) }
+
+        // 0 = 没读到时长：不带这个字段而不是声称 0 秒
+        assertEquals(null, h.sentAttachments?.single()?.durationSeconds)
+    }
+
+    @Test
+    fun videoWithoutFileReusesStoredUploadId() {
+        val h = SenderHarness()
+        val message = videoMsg(
+            listOf(com.openapi.feature.chat.domain.model.VideoAttachment(
+                path = "/nonexistent/lost.mp4", name = "lost.mp4", uploadId = "stored-vid",
+            )),
+        )
+
+        runBlocking { h.sender.deliver(message) }
+
+        assertEquals(0, h.repo.uploadVideoCalls.size)
+        assertEquals("stored-vid", h.sentAttachments?.single()?.uploadId)
+        assertEquals(DeliveryStatus.SENT, h.repo.saved.single().delivery)
+    }
+
+    @Test
+    fun videoUploadFailureMarksFailedWithoutAnyRelayFallback() {
+        val h = SenderHarness()
+        val file = java.io.File.createTempFile("clip", ".mp4")
+        file.deleteOnExit()
+        h.repo.uploadVideoResult = null // 直传挂了：视频没有中转降级，只能整条失败
+        val message = videoMsg(
+            listOf(com.openapi.feature.chat.domain.model.VideoAttachment(path = file.absolutePath, name = "clip.mp4")),
+        )
+
+        runBlocking { h.sender.deliver(message) }
+
+        // 没有任何一条附件引用发出去（不走 sendAttachment 中转，也不空手发消息）
+        assertEquals(null, h.sentAttachments)
+        assertEquals(0, h.streamCalls)
+        assertEquals(DeliveryStatus.FAILED, h.repo.saved.single().delivery)
+    }
+
+    @Test
+    fun locationOnlyMessageStreamsOneTurnWithoutAttachments() {
+        val h = SenderHarness()
+        val location = com.openapi.feature.chat.domain.model.GeoLocation(31.23, 121.47, 120)
+        val message = videoMsg(emptyList(), text = "", location = location)
+
+        runBlocking { h.sender.deliver(message) }
+
+        // 只有位置也是完整一条消息：一个回合、零附件、坐标原样带过去
+        assertEquals(1, h.streamCalls)
+        assertEquals(emptyList<OutgoingAttachment>(), h.sentAttachments)
+        assertEquals(location, h.sentLocation)
+        assertEquals(DeliveryStatus.SENT, h.repo.saved.single().delivery)
+    }
+
+    @Test
+    fun failedVideoSendRestoresVideoDraftWithMetadata() {
+        val h = SenderHarness()
+        val file = java.io.File.createTempFile("clip", ".mp4")
+        file.deleteOnExit()
+        h.repo.uploadVideoResult = null
+        val message = videoMsg(
+            listOf(com.openapi.feature.chat.domain.model.VideoAttachment(
+                path = file.absolutePath, name = "clip.mp4", durationSeconds = 42,
+                thumbnailPath = file.absolutePath,
+            )),
+        )
+
+        runBlocking { h.sender.deliver(message, restoreDraftsOnFailure = true) }
+
+        val restored = h.state.value.drafts.single()
+        assertEquals(MessageKind.VIDEO, restored.kind)
+        assertEquals(42, restored.staged.durationSeconds)
+        assertEquals(file.absolutePath, restored.staged.thumbnailPath)
+    }
+
+    /** 失败的位置消息重发：坐标在气泡里就有，不需要任何字节，走同一条附件通道。 */
+    @Test
+    fun retryRoutesLocationOnlyMessageToAttachmentSender() {
+        val messages = listOf(
+            videoMsg(emptyList(), location = com.openapi.feature.chat.domain.model.GeoLocation(31.0, 121.0)),
+        )
+        val h = RegenerateHarness(messages)
+        h.resend.retry("20")
+        h.scope.advanceUntilIdle()
+        assertEquals(1, h.attachmentStarts)
+    }
+
+    /** 失败的视频消息重发同样要进附件通道（以前只有图片/文件会进，视频会被当成文字发送）。 */
+    @Test
+    fun retryRoutesVideoMessageToAttachmentSender() {
+        val messages = listOf(
+            videoMsg(listOf(com.openapi.feature.chat.domain.model.VideoAttachment(path = "/tmp/a.mp4", name = "a.mp4"))),
+        )
+        val h = RegenerateHarness(messages)
+        h.resend.retry("20")
+        h.scope.advanceUntilIdle()
+        assertEquals(1, h.attachmentStarts)
     }
 }

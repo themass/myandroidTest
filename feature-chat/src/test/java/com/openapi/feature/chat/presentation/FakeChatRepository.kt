@@ -48,11 +48,19 @@ internal class FakeChatRepository : ChatRepository {
     }
     /** 非 null 时 sendMessageStream 返回它：流式回复的表征测试在这里注入 Delta/Done 序列。 */
     var streamFlow: Flow<ChatStreamEvent>? = null
+    /** 最近一次 sendMessageStream 带的位置（P2-13）；null = 没带。 */
+    var sentLocation: com.openapi.feature.chat.domain.model.GeoLocation? = null
+    val sentLocations = mutableListOf<com.openapi.feature.chat.domain.model.GeoLocation?>()
     override fun sendMessageStream(
         sessionId: Long, userText: String, characterId: Int?, roleId: String?,
         persistUserMessage: Boolean, clientMessageId: String?,
         attachments: List<OutgoingAttachment>,
-    ): Flow<ChatStreamEvent> = streamFlow ?: emptyFlow()
+        location: com.openapi.feature.chat.domain.model.GeoLocation?,
+    ): Flow<ChatStreamEvent> {
+        sentLocation = location
+        sentLocations += location
+        return streamFlow ?: emptyFlow()
+    }
     /** regenerateStream 被调了几次：验证「带图消息的重跑走服务端，而不是整条重发」。 */
     var regenerateStreamCalls = 0
     override fun regenerateStream(sessionId: Long, characterId: Int?, roleId: String?): Flow<ChatStreamEvent> {
@@ -102,6 +110,13 @@ internal class FakeChatRepository : ChatRepository {
         uploadImageCalls += localFile
         if (uploadImageHangs) kotlinx.coroutines.suspendCancellableCoroutine<Nothing> { }
         return uploadImageResult
+    }
+    /** 视频上传（P2-13）：默认成功返回 id；记录每次调用的文件。 */
+    var uploadVideoResult: String? = "upload-video-1"
+    val uploadVideoCalls = mutableListOf<java.io.File>()
+    override suspend fun uploadVideo(localFile: java.io.File, fileName: String): String? {
+        uploadVideoCalls += localFile
+        return uploadVideoResult
     }
     /** 重签通道（整改清单 P1-10）：非 null 时 refreshImageUrl 返回它；记录每个 id 的调用次数。 */
     var refreshImageUrlResult: String? = null

@@ -24,7 +24,11 @@ internal class ResendActions(
         val snapshot = state.value
         val message = snapshot.messages.firstOrNull { it.id == messageId } ?: return
         if (snapshot.sending || message.role != ChatRole.USER) return
-        if (message.images.isNotEmpty() || message.files.isNotEmpty()) {
+        // 视频走同一条附件通道；位置没有附件但同样是「一条消息一个回合」的富内容，
+        // 由 AttachmentSender 直接把这个回合发出（它认 message.location）。
+        if (message.images.isNotEmpty() || message.files.isNotEmpty() ||
+            message.videos.isNotEmpty() || message.location != null
+        ) {
             startAttachments(message)
         } else if (message.text.isNotBlank()) {
             streamer.stream(message.text, userMessageId = message.id, persistUser = false)

@@ -102,6 +102,7 @@ class AgentBackedChatRepository(
         persistUserMessage: Boolean,
         clientMessageId: String?,
         attachments: List<OutgoingAttachment>,
+        location: com.openapi.feature.chat.domain.model.GeoLocation?,
     ): Flow<ChatStreamEvent> = flow {
         val guard = MigrationGuard
         val sid = resolveSessionId(sessionId, roleId, characterId)
@@ -128,8 +129,9 @@ class AgentBackedChatRepository(
                     )
                 }
             }
+            val locationJson = location?.let { buildAgentLocationJson(it.latitude, it.longitude, it.accuracyMeters) }
             val receipt = if (attachments.isEmpty()) {
-                remote.submit(sid, userText, clientId)
+                remote.submit(sid, userText, clientId, locationJson)
             } else {
                 // 文字和附件一起提交：服务端把它们存成同一条消息、跑同一个回合，
                 // 模型因此只回一次话。分成两轮会让同一句话得到两条回复。
@@ -141,7 +143,11 @@ class AgentBackedChatRepository(
                         JSONObject().put("upload_id", it.uploadId)
                             .put("kind", it.kind.name.lowercase())
                             .put("name", it.name)
+                            // duration_s 只有视频带（服务端契约：可选 int 0..86400）；
+                            // 图片/文件不带这个 key，零时长也不写（没有可信值就别声称）
+                            .apply { it.durationSeconds?.let { d -> put("duration_s", d) } }
                     },
+                    location = locationJson,
                 )
             }
             collectTurn(
@@ -365,6 +371,10 @@ class AgentBackedChatRepository(
      */
     override suspend fun uploadImage(localFile: File, fileName: String): String? =
         attachments.uploadImage(localFile)
+
+    /** 视频只走直传（scene `chat-video`），没有中转降级；规则与失败语义见接口注释与 [AttachmentApi.uploadVideo]。 */
+    override suspend fun uploadVideo(localFile: File, fileName: String): String? =
+        attachments.uploadVideo(localFile)
 
     /**
      * 重新换取一个签名 URL（整改清单 P1-10）。和历史整页换 URL 走同一条

@@ -66,6 +66,8 @@ internal class ReplyStreamer(
         replaceKey: String? = null,
         /** 与 text 同属这一条用户消息的附件（已上传）。空表示纯文字。 */
         attachments: List<OutgoingAttachment> = emptyList(),
+        /** 位置消息的坐标（P2-13）；与服务端的顶层 `location` 字段一一对应。 */
+        location: com.openapi.feature.chat.domain.model.GeoLocation? = null,
     ) {
         val snapshot = state.value
         // 本轮是否会新建会话（请求时还没有当前会话）：结束后要同步会话列表
@@ -116,6 +118,7 @@ internal class ReplyStreamer(
                         persistUser,
                         clientMessageId = userMessageId,
                         attachments = attachments,
+                        location = location,
                     )
                 }
                 events.collect { event ->

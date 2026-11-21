@@ -24,8 +24,12 @@
     <string name="chat_loading_history">Loading history</string>
     <string name="chat_load_failed_retry">Reload</string>
     <string name="chat_loading_older">Loading…</string>
-    <string name="chat_location_soon">Location messages are coming soon</string>
+    <string name="chat_location_rationale">Sending a location message needs location permission</string>
+    <string name="chat_location_denied">Location permission not granted, can\'t attach a location</string>
+    <string name="chat_location_failed">Couldn\'t get your location, check GPS and try again</string>
     <string name="chat_open_file_failed">Can\'t open this file</string>
+    <string name="chat_open_map_failed">No map app available to open this location</string>
+    <string name="chat_video_play_failed">Can\'t play this video, tap to retry later</string>
     <string name="chat_role_name">Role name</string>
     <string name="chat_role_persona">Persona description (used as the prompt for the conversation)</string>
     <string name="chat_session_name_hint">Name this conversation</string>
@@ -39,7 +43,8 @@
     <string name="chat_suggest_example">Give me an example to get started</string>
     <string name="chat_suggest_help">What can you help me with?</string>
     <string name="chat_suggest_intro">Introduce yourself first</string>
-    <string name="chat_video_soon">Video messages are coming soon</string>
+    <string name="chat_video_not_mp4">Only MP4 videos can be sent</string>
+    <string name="chat_video_too_large">Video is over 25 MB and can\'t be sent</string>
     <string name="chat_voice_rationale">Microphone permission is needed to send voice messages</string>
     <string name="chat_voice_denied">Microphone permission not granted, can\'t record</string>
     <string name="chat_voice_style_bar">Voice style C: recording bar</string>

@@ -26,6 +26,16 @@ object Permissions {
     @JvmField
     val LOCATION: PermissionRequest = location()
 
+    /**
+     * 粗定位（位置消息，P2-13）。
+     *
+     * 与 [LOCATION] 的区别是刻意的：位置气泡只需要「城市街区级」的坐标 + 精度标注，
+     * FINE 是敏感权限（上架审查要单独交代用途），拿它换几度精度不值。
+     * 新增权限时别顺手把 FINE 也加回来。
+     */
+    @JvmField
+    val COARSE_LOCATION: PermissionRequest = coarseLocation()
+
     /** 发通知（下载进度、推送）。Android 13 以下不需要，返回空列表。 */
     @JvmField
     val NOTIFICATIONS: PermissionRequest = notifications()
@@ -45,6 +55,11 @@ object Permissions {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
         ),
+        rationale,
+    )
+
+    fun coarseLocation(rationale: String = "发送位置消息需要定位权限") = PermissionRequest(
+        arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
         rationale,
     )
 

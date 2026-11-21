@@ -58,6 +58,12 @@ import com.openapi.feature.chat.roles.domain.SelectedRole
 import com.openapi.feature.chat.roles.presentation.RoleAvatar
 
 /**
+ * 位置草稿 chip 在托盘里的固定 id。它不是 DraftAttachment（状态里位置是单值字段），
+ * 移除时 ChatRoute 按这个 id 翻给 onRemoveLocationDraft。
+ */
+const val LOCATION_DRAFT_ID = "draft-location"
+
+/**
  * 对话页的组装层：角色头部 + 消息列表 + 输入栏 + 业务弹窗。
  *
  * 消息和输入的 UI 全部来自组件库 `:chatkit`；这里只做三件事：
@@ -113,18 +119,41 @@ fun ChatScreen(
         ChatItemMapper.map(state.messages, playback, state.speakingMessageId, state.likedIds, state.dislikedIds)
     }
     val byId = remember(state.messages) { state.messages.associateBy { it.id } }
-    val composerState = remember(state.input, state.drafts, state.sending, state.streaming, state.recording, state.transcribing, state.partialText, state.editingMessageId, state.voiceDraft) {
+    // stringResource 不能在 remember 的计算块里调用（@DisallowComposableCalls），先取出来
+    val locationChipName = stringResource(R.string.chat_attach_location)
+    val composerState = remember(state.input, state.drafts, state.locationDraft, state.sending, state.streaming, state.recording, state.transcribing, state.partialText, state.editingMessageId, state.voiceDraft) {
         ComposerState(
             text = state.input,
             editing = state.editingMessageId != null,
             voiceDraftText = state.voiceDraft?.text,
-            drafts = state.drafts.map { draft ->
-                DraftItem(
-                    id = draft.id,
-                    type = if (draft.kind == MessageKind.IMAGE) DraftType.Image else DraftType.File,
-                    source = draft.staged.file.absolutePath,
-                    name = draft.staged.displayName,
-                )
+            drafts = buildList {
+                state.drafts.mapTo(this) { draft ->
+                    DraftItem(
+                        id = draft.id,
+                        type = when (draft.kind) {
+                            MessageKind.IMAGE -> DraftType.Image
+                            MessageKind.VIDEO -> DraftType.Video
+                            else -> DraftType.File
+                        },
+                        // 视频草稿的缩略图（没有为空串，托盘退化成 MP4 徽标）
+                        source = draft.staged.thumbnailPath ?: draft.staged.file.absolutePath,
+                        name = draft.staged.displayName,
+                        durationSeconds = draft.staged.durationSeconds,
+                    )
+                }
+                // 位置 chip 排在附件后面；移除走 onRemoveDraft 同一个口——
+                // 特殊 id 由 ChatRoute 翻给 onRemoveLocationDraft
+                state.locationDraft?.let { loc ->
+                    add(
+                        DraftItem(
+                            id = LOCATION_DRAFT_ID,
+                            type = DraftType.Location,
+                            source = "",
+                            name = locationChipName,
+                            locationLabel = String.format(java.util.Locale.US, "%.5f, %.5f", loc.latitude, loc.longitude),
+                        ),
+                    )
+                }
             },
             sending = state.sending,
             generating = state.streaming,

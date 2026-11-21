@@ -30,6 +30,7 @@ class SendMessageUseCase(private val repository: ChatRepository) {
         persistUserMessage: Boolean = true,
         clientMessageId: String? = null,
         attachments: List<com.openapi.feature.chat.domain.model.OutgoingAttachment> = emptyList(),
+        location: com.openapi.feature.chat.domain.model.GeoLocation? = null,
     ): Flow<ChatStreamEvent> =
         repository.sendMessageStream(
             sessionId = repository.currentSessionId(),
@@ -39,5 +40,6 @@ class SendMessageUseCase(private val repository: ChatRepository) {
             persistUserMessage = persistUserMessage,
             clientMessageId = clientMessageId,
             attachments = attachments,
+            location = location,
         )
 }

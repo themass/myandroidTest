@@ -96,4 +96,62 @@ class SendActionsTest {
         assertEquals("u1", state.value.editingMessageId)
         assertTrue("编辑态和附件草稿不能共存", state.value.drafts.isEmpty())
     }
+
+    // ---------------------------------------------------------------- 位置 / 视频草稿（P2-13）
+
+    private fun videoDraft(id: String) = DraftAttachment(
+        id = id, kind = MessageKind.VIDEO,
+        staged = StagedAttachment(
+            file = java.io.File("/tmp/$id.mp4"), displayName = "$id.mp4", sizeBytes = 2L,
+            durationSeconds = 42, thumbnailPath = "/tmp/${id}_thumb.jpg",
+        ),
+    )
+
+    /** 只有位置（没打字、没附件）也必须能发：位置本身就是内容。 */
+    @Test
+    fun locationDraftAloneIsSendableAndBecomesLocationMessage() {
+        val location = com.openapi.feature.chat.domain.model.GeoLocation(31.23, 121.47, 120)
+        val h = Harness(ChatUiState(locationDraft = location))
+        assertTrue(h.state.value.canSend)
+
+        h.send.onSend()
+        h.scope.advanceUntilIdle()
+
+        assertEquals(1, h.attachmentSends.size)
+        val message = h.attachmentSends.single()
+        assertEquals(MessageKind.LOCATION, message.kind)
+        assertEquals(location, message.location)
+        // 发出去之后草稿必须清空，否则下一条消息会再带一次同一个位置
+        assertEquals(null, h.state.value.locationDraft)
+    }
+
+    @Test
+    fun videoDraftBecomesVideoMessageWithMetadata() {
+        val h = Harness(ChatUiState(drafts = listOf(videoDraft("v1"))))
+        h.send.onSend()
+        h.scope.advanceUntilIdle()
+
+        val message = h.attachmentSends.single()
+        assertEquals(MessageKind.VIDEO, message.kind)
+        val video = message.videos.single()
+        assertEquals("/tmp/v1.mp4", video.path)
+        assertEquals("v1.mp4", video.name)
+        assertEquals(42, video.durationSeconds)
+        assertEquals("/tmp/v1_thumb.jpg", video.thumbnailPath)
+    }
+
+    /** 位置 + 视频混发：一条消息、kind 以位置为主（与服务端字段各存各的对应）。 */
+    @Test
+    fun locationPlusVideoStaysOneMessageKindLocation() {
+        val location = com.openapi.feature.chat.domain.model.GeoLocation(31.0, 121.0)
+        val h = Harness(ChatUiState(drafts = listOf(videoDraft("v1")), locationDraft = location))
+        h.send.onSend()
+        h.scope.advanceUntilIdle()
+
+        val message = h.attachmentSends.single()
+        assertEquals(1, h.attachmentSends.size)
+        assertEquals(MessageKind.LOCATION, message.kind)
+        assertEquals(1, message.videos.size)
+        assertEquals(location, message.location)
+    }
 }

@@ -131,6 +131,20 @@ class LocalChatStore @JvmOverloads constructor(
             } else {
                 message.images
             }
+            // 视频与图片同一套规矩：文件还在就播本地文件（首帧缩略图也只有本地行有），
+            // 文件被系统清了才退回服务端对象（播放 URL 点开时现取）
+            val keepLocalVideos = mine.videos.isNotEmpty() && mine.videos.size == message.videos.size &&
+                mine.videos.all { java.io.File(it.path).exists() }
+            val videos = if (keepLocalVideos) {
+                mine.videos.mapIndexed { i, v ->
+                    v.copy(uploadId = message.videos[i].uploadId ?: v.uploadId)
+                }
+            } else {
+                message.videos
+            }
+            // 位置：服务端历史带回的就是权威坐标，但本地行才有「这条到底带没带精度」的信息；
+            // 两边都有时以服务端为准，服务端没带回（旧服务端）就留着本行的
+            val location = message.location ?: mine.location
             toSave.add(
                 toLog(
                     sessionId,
@@ -141,9 +155,13 @@ class LocalChatStore @JvmOverloads constructor(
                         kind = when {
                             mine.kind != MessageKind.TEXT -> mine.kind
                             images.isNotEmpty() -> MessageKind.IMAGE
+                            videos.isNotEmpty() -> MessageKind.VIDEO
+                            location != null -> MessageKind.LOCATION
                             else -> MessageKind.TEXT
                         },
                         images = images,
+                        videos = videos,
+                        location = location,
                         delivery = com.openapi.feature.chat.domain.model.DeliveryStatus.SENT,
                         clientMessageId = null,
                     ),
