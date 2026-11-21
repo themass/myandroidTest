@@ -1,6 +1,7 @@
 package com.openapi.mediaview.edit
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -67,6 +69,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -127,6 +130,11 @@ fun PhotoEditor(
     var moving by remember { mutableStateOf<Moving?>(null) }
     // 滑杆拖动期间的「起点快照」：松手时一次性记成一步撤销
     var liveBase by remember { mutableStateOf<PhotoEdits?>(null) }
+    // 有滑杆正在被拖：底图降到 640 长边（松手回 1280）。和 liveBase 一起置位/复位，
+    // 但它是独立状态——降档只影响渲染边长，不该混进「撤销锚点」的语义里。
+    var sliderActive by remember { mutableStateOf(false) }
+    // 按住「原图」对比：临时把滤镜从**预览底图**里摘掉，不碰 edits 的历史（松手还原）
+    var comparing by remember { mutableStateOf(false) }
     var textDialog by remember { mutableStateOf<TextDialog?>(null) }
 
     // 选中的下标可能因撤销/删除而失效，用的时候校验
@@ -136,13 +144,26 @@ fun PhotoEditor(
     // 预览用缩小的图：渲染快，且标注坐标是归一化的，与原图等价
     val previewSource = remember(bitmap) { makePreviewSource(bitmap) }
 
-    // 拖动某条标注时，底图先不画它（改用上层实时叠加），拖完再一次性提交
+    // 滤镜表：同一个 id 只 parse 一次（LutAssets 内部记忆化），所以这里只为稳定 lambda 身份。
+    val context = LocalContext.current
+    val lutProvider = remember(context) { LutAssets.provider(context) }
+    // 底图缓存**必须是会话级实例**（RenderBaseCache 的 KDoc 写死了原因：identityHashCode 会被
+    // GC 后复用，跨会话共享就可能把上一张照片的底图当成本张的返回）。remember(bitmap) 正好
+    // 和编辑会话同生共死：退出编辑（组件销毁）就整体作废。
+    val baseCache = remember(bitmap) { RenderBaseCache() }
+
+    // 拖动某条标注时，底图先不画它（改用上层实时叠加），拖完再一次性提交。
+    // 「对比」期间再摘掉 Filter——注意必须在**按 index 丢掉拖动那条之后**再 filter，
+    // 否则丢掉一个 Filter 会让后面所有标注的下标整体前移，选中的就不是拖的那条了。
     val moveIndex = moving?.index
-    val baseOps = remember(edits.ops, moveIndex) {
-        if (moveIndex == null) edits.ops else edits.ops.filterIndexed { i, _ -> i != moveIndex }
+    val baseOps = remember(edits.ops, moveIndex, comparing) {
+        val kept = if (moveIndex == null) edits.ops else edits.ops.filterIndexed { i, _ -> i != moveIndex }
+        if (comparing) kept.filterNot { it is EditOp.Filter } else kept
     }
-    val rendered = remember(previewSource, baseOps, edits.sourceWidth) {
-        PhotoRenderer.render(previewSource, edits.withOpsUnrecorded(baseOps), PREVIEW_LONG_EDGE)
+    // 拖动滑杆时降档：滤镜是整图三线性插值，1280 那一档在拖动手势里最容易被肉眼看成掉帧
+    val previewLongEdge = if (sliderActive) PREVIEW_SLIDER_LONG_EDGE else PREVIEW_LONG_EDGE
+    val rendered = remember(previewSource, baseOps, previewLongEdge, lutProvider) {
+        renderPreview(previewSource, baseOps, previewLongEdge, baseCache, lutProvider)
     }
 
     Surface(modifier = modifier.fillMaxSize(), color = Color.Black) {
@@ -157,6 +178,21 @@ fun PhotoEditor(
             )
 
             val cropping = tool == EditorTool.Crop
+
+            // 面板随时可能被换掉（选中某条标注抢面板、切工具、进裁剪），而滑杆可能正拖在半路：
+            // 那种情况下 onValueChangeFinished 永远不会来。不清这几个标志，预览就一直卡在 640 降档、
+            // 「原图」按住状态回不来，下一次滑杆还会拿过期的撤销锚点。
+            // 顺序与下面真正决定面板的 when 一致：裁剪 → 选中 → 工具
+            val panelSlot = when {
+                cropping -> "crop"
+                selectedIndex != null -> "selected-$selectedIndex"
+                else -> "tool-$tool"
+            }
+            LaunchedEffect(panelSlot) {
+                liveBase = null
+                sliderActive = false
+                comparing = false
+            }
 
             // 裁剪的控件在预览区**外面**（面板槽），但它得用**同一个**视口矩形做归一化，
             // 所以 fit 在这里公布出去，舞台层和控件层读的是同一个值——不是各算一遍。
@@ -333,13 +369,46 @@ fun PhotoEditor(
                     adjust = edits.adjust,
                     onChange = { adj ->
                         val base = liveBase ?: edits.also { liveBase = it }
+                        // 调整参数在预处理指纹里，每一步都会让底图缓存 miss 并重跑预处理，
+                        // 所以它和滤镜滑杆一样要降档（见 PREVIEW_SLIDER_LONG_EDGE）
+                        sliderActive = true
                         val next = base.ops.filterNot { it is EditOp.Adjust } + (if (adj.isIdentity) emptyList() else listOf(adj))
                         edits = base.withOpsUnrecorded(next)
                     },
                     onFinished = {
                         liveBase?.let { base -> edits = base.withOps(edits.ops) }
                         liveBase = null
+                        sliderActive = false
                     },
+                    onClose = { tool = EditorTool.None },
+                )
+                tool == EditorTool.Filter -> FilterPanel(
+                    filter = edits.filter,
+                    source = previewSource,
+                    lutProvider = lutProvider,
+                    onPickPreset = { id ->
+                        // 再点已选中的那一格 = 移除（回到无滤镜）；换一格 = 替换（面板互斥，全列表至多一条）
+                        edits = if (edits.filter?.id == id) edits.setFilter(null)
+                        else edits.setFilter(id, FILTER_PRESET_INTENSITY)
+                    },
+                    onIntensityChange = { v ->
+                        // 拖动过程中只改预览（不记历史），并降档到底图 640
+                        val base = liveBase ?: edits.also { liveBase = it }
+                        sliderActive = true
+                        val i = base.ops.indexOfLast { it is EditOp.Filter }
+                        val current = base.ops.getOrNull(i) as? EditOp.Filter
+                        if (current != null) {
+                            edits = base.withOpsUnrecorded(base.ops.toMutableList().also { it[i] = current.copy(intensity = v) })
+                        }
+                    },
+                    onIntensityDone = {
+                        // 以拖动前的快照为底一次提交：恰一步撤销，回到拖动之前的强度
+                        liveBase?.let { base -> edits = base.withOps(edits.ops) }
+                        liveBase = null
+                        sliderActive = false
+                    },
+                    // 按住=临时把滤镜从预览底图里摘掉（只影响 baseOps，不进 ops、不进历史）
+                    onCompare = { down -> comparing = down },
                     onClose = { tool = EditorTool.None },
                 )
                 tool == EditorTool.Draw -> StylePanel(
@@ -408,7 +477,7 @@ fun PhotoEditor(
 // ---------------------------------------------------------------------------
 
 /** [Crop] 是「模式」而不是「样式」：进去之后整块预览区归裁剪层，见 [CropMode]。 */
-private enum class EditorTool { None, Draw, Text, Mosaic, Adjust, Crop }
+private enum class EditorTool { None, Draw, Text, Mosaic, Adjust, Filter, Crop }
 
 private data class Moving(val index: Int, val original: EditOp, val start: Offset, val current: EditOp)
 
@@ -428,12 +497,62 @@ private val TEXT_RANGE = 0.025f..0.12f
 /** 编辑时用的预览图长边。够清晰、渲染快（马赛克/调整每次都要重放）。 */
 private const val PREVIEW_LONG_EDGE = 1280
 
+/**
+ * 滑杆拖动期间的底图长边。
+ *
+ * 拖强度/亮度滑杆时每帧都要重跑预处理，而滤镜是整图逐像素三线性插值——1280 那一档
+ * 在连续手势里最容易被肉眼读成「卡」。降到 640 像素量级约省 4 倍插值，松手立刻回 1280 重渲一帧，
+ * 用户看到的是「拖动时略糊、松手变清」，这比「拖动时掉帧」划算。
+ */
+private const val PREVIEW_SLIDER_LONG_EDGE = 640
+
 private fun EditOp.isAnnotation(): Boolean = this is EditOp.Stroke || this is EditOp.Text || this is EditOp.Mosaic
 
-private fun makePreviewSource(source: Bitmap): Bitmap {
-    val longEdge = max(source.width, source.height)
-    if (longEdge <= PREVIEW_LONG_EDGE) return source
-    val ratio = PREVIEW_LONG_EDGE.toFloat() / longEdge
+/**
+ * 预览 = 底图（带缓存）+ 标注。
+ *
+ * 命中缓存时**只跳过预处理**，标注照样走 [PhotoRenderer.drawOps]（它在副本上画，
+ * 不会污染缓存里那一帧）——绝不允许把缓存的底图直接当结果画出去，那样标注会整层消失。
+ *
+ * 无预处理 ops 时缓存恒 miss 是预期（指纹里没有标注），不是 bug，别为它加特例。
+ *
+ * **兜底半径必须罩住整条链路（renderBase *和* drawOps），而且只有一个 catch。**
+ * 这里不能直接调 [PhotoRenderer.render]（那会丢掉底图缓存），但回退语义要和它逐字一致：
+ * drawOps 每次都全幅 `copy()` 一份再叠马赛克的 block 位图，正是低端机拖滑杆时最可能 OOM 的分配，
+ * 让它漏出去就是把这个异常打进 composition、直接杀掉编辑器。**别再把它拆回「只包 renderBase」**，
+ * 也不要在这里再复制第二对 catch——预览有图可显示，唯一合理的失败方式就是退回源图。
+ */
+private fun renderPreview(
+    source: Bitmap,
+    ops: List<EditOp>,
+    maxLongEdge: Int,
+    cache: RenderBaseCache,
+    lutProvider: (String) -> Lut3D?,
+): Bitmap {
+    // 完全没编辑时直接返回源图：和 PhotoRenderer.render 的旧快捷路径一致。
+    // 少了这一句，空白编辑会话的每帧预览都会白白拷一次整幅位图（drawOps 恒复制）。
+    if (ops.isEmpty()) return source
+    return try {
+        // 只为拿一个「不带标注」的会话算指纹；PhotoEdits 是 data class，构造很便宜
+        val probe = PhotoEdits.of(source.width, source.height).withOpsUnrecorded(ops)
+        val base = cache.get(source, probe, maxLongEdge)
+            ?: PhotoRenderer.renderBase(source, probe, maxLongEdge, lutProvider)
+                .also { cache.put(source, probe, maxLongEdge, it) }
+        PhotoRenderer.drawOps(base, probe)
+    } catch (e: OutOfMemoryError) {
+        Log.e("PhotoEditor", "preview render out of memory, falling back to source", e)
+        source
+    } catch (e: RuntimeException) {
+        Log.e("PhotoEditor", "preview render failed, falling back to source", e)
+        source
+    }
+}
+
+/** 等比缩到长边 [longEdge]；本来就不超过就原样返回（不白拷一份）。 */
+internal fun scaleToLongEdge(source: Bitmap, longEdge: Int): Bitmap {
+    val srcLongEdge = max(source.width, source.height)
+    if (srcLongEdge <= longEdge) return source
+    val ratio = longEdge.toFloat() / srcLongEdge
     return Bitmap.createScaledBitmap(
         source,
         (source.width * ratio).roundToInt().coerceAtLeast(1),
@@ -442,9 +561,21 @@ private fun makePreviewSource(source: Bitmap): Bitmap {
     )
 }
 
-/** 选中框只依赖尺寸/旋转，取一份不带标注的会话即可，避免把整个历史传来传去。 */
-private fun editsWithoutOps(edits: PhotoEdits): PhotoEdits =
-    edits.withOpsUnrecorded(edits.ops.filter { it is EditOp.Rotate || it == EditOp.FlipHorizontal })
+private fun makePreviewSource(source: Bitmap): Bitmap = scaleToLongEdge(source, PREVIEW_LONG_EDGE)
+
+/**
+ * 选中框只依赖画幅（旋转 / 镜像 / 裁剪），取一份不带标注的会话即可，避免把整个历史传来传去。
+ *
+ * **Crop 必须保留**：[EditHitTest.selectionBounds] 的分母是 `displayWidth/Height`，
+ * 而它已经计入裁剪窗口。少了 Crop 就会拿整幅的尺寸去解释裁剪帧里的坐标，
+ * 于是裁剪之后选中框整体错位、缩放不对。
+ *
+ * 滤镜/调整也丢掉：它们只改像素，不改几何。
+ */
+internal fun editsWithoutOps(edits: PhotoEdits): PhotoEdits =
+    edits.withOpsUnrecorded(
+        edits.ops.filter { it is EditOp.Rotate || it == EditOp.FlipHorizontal || it is EditOp.Crop },
+    )
 
 private fun EditOp.withColor(argb: Long): EditOp = when (this) {
     is EditOp.Stroke -> copy(colorArgb = argb)
@@ -588,20 +719,24 @@ private fun ToolBar(
     onFlip: () -> Unit,
     onSelect: (EditorTool) -> Unit,
 ) {
+    // 每项 weight(1f) 等分，而不是 SpaceEvenly：8 项在 360dp 宽的机器上是 8×48dp=384dp，
+    // SpaceEvenly 只会在算出负间距后退成 0 间距，于是最后一项被挤出可视区（点不到也看不见）。
+    // 等分保证任何宽度下八项都在，宽屏上的观感与原来的 SpaceEvenly 同节奏。
     Row(
         modifier = Modifier.fillMaxWidth().background(Color(0xFF111111)).padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ToolItem(Icons.Filled.Rotate90DegreesCcw, R.string.mediaview_edit_rotate, false, enabled = rotateEnabled, onClick = onRotate)
-        ToolItem(Icons.Filled.Flip, R.string.mediaview_edit_flip, false, enabled = flipEnabled, onClick = onFlip)
+        val slot = Modifier.weight(1f)
+        ToolItem(slot, Icons.Filled.Rotate90DegreesCcw, R.string.mediaview_edit_rotate, false, enabled = rotateEnabled, onClick = onRotate)
+        ToolItem(slot, Icons.Filled.Flip, R.string.mediaview_edit_flip, false, enabled = flipEnabled, onClick = onFlip)
         if (allowCrop) {
-            ToolItem(Icons.Filled.Crop, R.string.mediaview_edit_crop, tool == EditorTool.Crop) { onSelect(EditorTool.Crop) }
+            ToolItem(slot, Icons.Filled.Crop, R.string.mediaview_edit_crop, tool == EditorTool.Crop) { onSelect(EditorTool.Crop) }
         }
-        ToolItem(Icons.Filled.Brush, R.string.mediaview_edit_draw, tool == EditorTool.Draw) { onSelect(EditorTool.Draw) }
-        ToolItem(Icons.Filled.TextFields, R.string.mediaview_edit_text, tool == EditorTool.Text) { onSelect(EditorTool.Text) }
-        ToolItem(Icons.Filled.BlurOn, R.string.mediaview_edit_mosaic, tool == EditorTool.Mosaic) { onSelect(EditorTool.Mosaic) }
-        ToolItem(Icons.Filled.Tune, R.string.mediaview_edit_adjust, tool == EditorTool.Adjust) { onSelect(EditorTool.Adjust) }
+        ToolItem(slot, Icons.Filled.Brush, R.string.mediaview_edit_draw, tool == EditorTool.Draw) { onSelect(EditorTool.Draw) }
+        ToolItem(slot, Icons.Filled.TextFields, R.string.mediaview_edit_text, tool == EditorTool.Text) { onSelect(EditorTool.Text) }
+        ToolItem(slot, Icons.Filled.BlurOn, R.string.mediaview_edit_mosaic, tool == EditorTool.Mosaic) { onSelect(EditorTool.Mosaic) }
+        ToolItem(slot, Icons.Filled.AutoFixHigh, R.string.mediaview_edit_filter, tool == EditorTool.Filter) { onSelect(EditorTool.Filter) }
+        ToolItem(slot, Icons.Filled.Tune, R.string.mediaview_edit_adjust, tool == EditorTool.Adjust) { onSelect(EditorTool.Adjust) }
     }
 }
 
@@ -611,6 +746,7 @@ private fun ToolBar(
  */
 @Composable
 private fun ToolItem(
+    modifier: Modifier,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: Int,
     active: Boolean,
@@ -622,7 +758,7 @@ private fun ToolItem(
         active -> Color(0xFFFFCC00)
         else -> Color.White
     }
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         IconButton(onClick = onClick, enabled = enabled) { Icon(icon, stringResource(label), tint = tint) }
         Text(stringResource(label), color = tint, style = MaterialTheme.typography.labelSmall)
     }

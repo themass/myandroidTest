@@ -229,6 +229,27 @@ data class PhotoEdits(
         }
     }
 
+    /**
+     * 选滤镜，全列表**至多一条**（面板互斥，见设计裁量 7；渲染只认最后一条，位置无实现含义）：
+     * - 已有 Filter → [replaceAt] 原位替换（占一步撤销，回到上一个滤镜/强度）；
+     * - 没有 → [push]；
+     * - [filter] 为 null → 移除那条记录（可撤销回来）。
+     *
+     * 与 [setCrop] 同构。滑杆**拖动过程中不要用它**（那会每一下都记一步历史），
+     * 拖动走 [withOpsUnrecorded]、松手再回到这里提交一次。
+     */
+    fun setFilter(filter: EditOp.Filter?): PhotoEdits {
+        val index = ops.indexOfLast { it is EditOp.Filter }
+        return when {
+            filter == null -> if (index < 0) this else removeAt(index)
+            index >= 0 -> replaceAt(index, filter)
+            else -> push(filter)
+        }
+    }
+
+    /** [setFilter] 的面板入口：选一个预设、强度拉满。 */
+    fun setFilter(id: String, intensity: Int): PhotoEdits = setFilter(EditOp.Filter(id, intensity))
+
     companion object {
         fun of(width: Int, height: Int): PhotoEdits = PhotoEdits(width, height)
     }
