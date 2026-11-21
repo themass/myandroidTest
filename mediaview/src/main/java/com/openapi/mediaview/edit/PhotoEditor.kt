@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flip
@@ -100,11 +101,14 @@ fun PhotoEditor(
     onCancel: () -> Unit,
     onDone: (PhotoEdits) -> Unit,
     modifier: Modifier = Modifier,
-    @Suppress("UNUSED_PARAMETER") allowCrop: Boolean = true, // 保留参数以兼容旧调用；裁剪目前不在编辑器里
+    /** false 时工具条里不出现「裁剪」入口（宿主有些场景不允许改画幅，比如已经裁过）。 */
+    allowCrop: Boolean = true,
 ) {
     var edits by remember(bitmap) { mutableStateOf(PhotoEdits.of(bitmap.width, bitmap.height)) }
     var tool by remember { mutableStateOf(EditorTool.None) }
     var selected by remember { mutableStateOf<Int?>(null) }
+    // 裁剪比例的选择跨进出保留（选框本身每次进入都重铺，见 CropMode）
+    var cropAspect by remember { mutableStateOf(CropAspect.Free) }
 
     // 新画的下一笔默认样式（选中某条标注后，面板改的是那条标注自己的样式）
     var brushColor by remember { mutableStateOf(PALETTE[0]) }
@@ -149,7 +153,11 @@ fun PhotoEditor(
                 onDone = { onDone(edits) },
             )
 
+            val cropping = tool == EditorTool.Crop
+
             BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                // rendered 已经是裁剪后的位图（PhotoRenderer.applyCrop），所以 fit 自动就是
+                // 「当前画幅」在容器里的位置：裁完之后预览自己变小、黑边自己出现，这里不用特判。
                 val fit = fitRect(rendered.width, rendered.height, constraints.maxWidth.toFloat(), constraints.maxHeight.toFloat())
                 val imageBitmap = remember(rendered) { rendered.asImageBitmap() }
                 val textMeasurer = rememberTextMeasurer()
@@ -162,98 +170,119 @@ fun PhotoEditor(
                     modifier = Modifier.fillMaxSize(),
                 )
 
-                // 点按：选中 / 取消选中 / 添加文字。与下面的拖动是两个独立的手势层。
-                // 点击不会被拖动层消耗（拖动要先越过 touch slop 才会接管）。
-                Canvas(
-                    Modifier
-                        .fillMaxSize()
-                        .pointerInput(tool, fit) {
-                            detectTapGestures { p ->
-                                val display = toDisplayNorm(p, fit) ?: return@detectTapGestures
-                                val hit = EditHitTest.findOpAt(edits, display)
-                                when {
-                                    hit != null -> selected = hit
-                                    tool == EditorTool.Text -> {
-                                        // 锚点是文字块左上角：点哪里，文字就出现在哪里
-                                        val src = EditCoords.toSourceNorm(display, edits)
-                                        textDialog = TextDialog(index = null, value = "", at = src)
-                                        selected = null
+                // 裁剪模式下标注的点选/拖动/实时叠加整层让位：那块手势区会把把手的拖拽吃掉。
+                if (!cropping) {
+                    // 点按：选中 / 取消选中 / 添加文字。与下面的拖动是两个独立的手势层。
+                    // 点击不会被拖动层消耗（拖动要先越过 touch slop 才会接管）。
+                    Canvas(
+                        Modifier
+                            .fillMaxSize()
+                            .pointerInput(tool, fit) {
+                                detectTapGestures { p ->
+                                    val display = toDisplayNorm(p, fit) ?: return@detectTapGestures
+                                    val hit = EditHitTest.findOpAt(edits, display)
+                                    when {
+                                        hit != null -> selected = hit
+                                        tool == EditorTool.Text -> {
+                                            // 锚点是文字块左上角：点哪里，文字就出现在哪里
+                                            val src = EditCoords.toSourceNorm(display, edits)
+                                            textDialog = TextDialog(index = null, value = "", at = src)
+                                            selected = null
+                                        }
+                                        else -> selected = null
                                     }
-                                    else -> selected = null
                                 }
                             }
-                        }
-                        .pointerInput(tool, fit) {
-                            detectDragGestures(
-                                onDragStart = { p ->
-                                    val display = toDisplayNorm(p, fit, clamp = true) ?: return@detectDragGestures
-                                    val src = EditCoords.toSourceNorm(display, edits)
-                                    when (tool) {
-                                        EditorTool.Draw, EditorTool.Mosaic -> {
-                                            selected = null
-                                            drawing = listOf(src)
-                                        }
-                                        else -> {
-                                            // 其它工具下按住已有的文字/涂鸦就拖动它（马赛克依赖底图，不支持拖动）
-                                            val hit = EditHitTest.findOpAt(edits, display)
-                                            val op = hit?.let { edits.ops[it] }
-                                            if (hit != null && (op is EditOp.Text || op is EditOp.Stroke)) {
-                                                selected = hit
-                                                moving = Moving(hit, op, src, op)
+                            .pointerInput(tool, fit) {
+                                detectDragGestures(
+                                    onDragStart = { p ->
+                                        val display = toDisplayNorm(p, fit, clamp = true) ?: return@detectDragGestures
+                                        val src = EditCoords.toSourceNorm(display, edits)
+                                        when (tool) {
+                                            EditorTool.Draw, EditorTool.Mosaic -> {
+                                                selected = null
+                                                drawing = listOf(src)
+                                            }
+                                            else -> {
+                                                // 其它工具下按住已有的文字/涂鸦就拖动它（马赛克依赖底图，不支持拖动）
+                                                val hit = EditHitTest.findOpAt(edits, display)
+                                                val op = hit?.let { edits.ops[it] }
+                                                if (hit != null && (op is EditOp.Text || op is EditOp.Stroke)) {
+                                                    selected = hit
+                                                    moving = Moving(hit, op, src, op)
+                                                }
                                             }
                                         }
-                                    }
-                                },
-                                onDrag = { change, _ ->
-                                    change.consume()
-                                    val display = toDisplayNorm(change.position, fit, clamp = true) ?: return@detectDragGestures
-                                    val src = EditCoords.toSourceNorm(display, edits)
-                                    val m = moving
-                                    if (m != null) {
-                                        moving = m.copy(current = m.original.translated(src.x - m.start.x, src.y - m.start.y))
-                                    } else if (drawing.isNotEmpty()) {
-                                        drawing = drawing + src
-                                    }
-                                },
-                                onDragEnd = {
-                                    val m = moving
-                                    if (m != null) {
-                                        edits = edits.replaceAt(m.index, m.current)
-                                        moving = null
-                                    } else if (drawing.size >= 2) {
-                                        val op: EditOp = when (tool) {
-                                            EditorTool.Mosaic -> EditOp.Mosaic(drawing, mosaicWidth)
-                                            else -> EditOp.Stroke(drawing, brushColor.toArgb().toLong(), brushWidth)
+                                    },
+                                    onDrag = { change, _ ->
+                                        change.consume()
+                                        val display = toDisplayNorm(change.position, fit, clamp = true) ?: return@detectDragGestures
+                                        val src = EditCoords.toSourceNorm(display, edits)
+                                        val m = moving
+                                        if (m != null) {
+                                            moving = m.copy(current = m.original.translated(src.x - m.start.x, src.y - m.start.y))
+                                        } else if (drawing.isNotEmpty()) {
+                                            drawing = drawing + src
                                         }
-                                        edits = edits.push(op)
-                                    }
-                                    drawing = emptyList()
-                                },
-                                onDragCancel = { moving = null; drawing = emptyList() },
-                            )
-                        },
-                ) {
-                    // 正在拖动的那一条：实时叠加
-                    moving?.let { drawLiveOp(it.current, edits, fit, textMeasurer, density) }
-                    // 正在画的一笔
-                    if (drawing.size >= 2) {
-                        val live = if (tool == EditorTool.Mosaic) {
-                            EditOp.Mosaic(drawing, mosaicWidth)
-                        } else {
-                            EditOp.Stroke(drawing, brushColor.toArgb().toLong(), brushWidth)
+                                    },
+                                    onDragEnd = {
+                                        val m = moving
+                                        if (m != null) {
+                                            edits = edits.replaceAt(m.index, m.current)
+                                            moving = null
+                                        } else if (drawing.size >= 2) {
+                                            val op: EditOp = when (tool) {
+                                                EditorTool.Mosaic -> EditOp.Mosaic(drawing, mosaicWidth)
+                                                else -> EditOp.Stroke(drawing, brushColor.toArgb().toLong(), brushWidth)
+                                            }
+                                            edits = edits.push(op)
+                                        }
+                                        drawing = emptyList()
+                                    },
+                                    onDragCancel = { moving = null; drawing = emptyList() },
+                                )
+                            },
+                    ) {
+                        // 正在拖动的那一条：实时叠加
+                        moving?.let { drawLiveOp(it.current, edits, fit, textMeasurer, density) }
+                        // 正在画的一笔
+                        if (drawing.size >= 2) {
+                            val live = if (tool == EditorTool.Mosaic) {
+                                EditOp.Mosaic(drawing, mosaicWidth)
+                            } else {
+                                EditOp.Stroke(drawing, brushColor.toArgb().toLong(), brushWidth)
+                            }
+                            drawLiveOp(live, edits, fit, textMeasurer, density)
                         }
-                        drawLiveOp(live, edits, fit, textMeasurer, density)
+                        // 选中框
+                        val box = (moving?.current ?: selectedOp)?.let { EditHitTest.selectionBounds(it, editsWithoutOps(edits)) }
+                        if (box != null) drawSelectionBox(box, fit)
                     }
-                    // 选中框
-                    val box = (moving?.current ?: selectedOp)?.let { EditHitTest.selectionBounds(it, editsWithoutOps(edits)) }
-                    if (box != null) drawSelectionBox(box, fit)
+                }
+
+                if (cropping) {
+                    // 视口 = 当前画幅（fit 已含裁剪窗口），所以裁剪框只在图内拖动
+                    CropMode(
+                        viewport = fit,
+                        aspect = cropAspect,
+                        onAspectChange = { cropAspect = it },
+                        onConfirm = { sel ->
+                            // 已有 Crop 时视口就是那个窗口，选框要先合成回全幅显示空间，
+                            // setCrop 才有「替换旧裁剪」的语义（见 CropGeometry.composedCrop）。
+                            edits = edits.setCrop(CropGeometry.composedCrop(EditCoords.cropWindow(edits), sel))
+                            tool = EditorTool.None
+                        },
+                        onCancel = { tool = EditorTool.None },
+                    )
                 }
             }
 
-            // 面板：选中了标注 → 编辑那条；否则按当前工具给默认样式
+            // 面板：选中了标注 → 编辑那条；否则按当前工具给默认样式。
+            // 裁剪模式下整块让位（CropMode 自带比例预设与确认/取消），否则两个面板叠在一起。
             val index = selectedIndex
             val op = selectedOp
             when {
+                cropping -> Unit
                 op != null -> SelectionPanel(
                     op = op,
                     onDelete = { edits = edits.removeAt(index); selected = null },
@@ -307,6 +336,11 @@ fun PhotoEditor(
 
             ToolBar(
                 tool = tool,
+                allowCrop = allowCrop,
+                // 裁后禁旋转：Crop 归一化于「旋转之后」的画幅，再旋转就得重算窗口，
+                // 那是另一个复杂度的事（设计裁定：先把入口灰掉，不给用户造一个错的窗口）。
+                rotateEnabled = edits.crop == null,
+                flipEnabled = edits.crop == null,
                 onRotate = { edits = edits.rotateClockwise(); selected = null },
                 onFlip = { edits = edits.flipHorizontal(); selected = null },
                 onSelect = { t -> tool = if (tool == t) EditorTool.None else t; selected = null },
@@ -344,7 +378,8 @@ fun PhotoEditor(
 // 状态与常量
 // ---------------------------------------------------------------------------
 
-private enum class EditorTool { None, Draw, Text, Mosaic, Adjust }
+/** [Crop] 是「模式」而不是「样式」：进去之后整块预览区归裁剪层，见 [CropMode]。 */
+private enum class EditorTool { None, Draw, Text, Mosaic, Adjust, Crop }
 
 private data class Moving(val index: Int, val original: EditOp, val start: Offset, val current: EditOp)
 
@@ -517,6 +552,9 @@ private fun BarIcon(icon: androidx.compose.ui.graphics.vector.ImageVector, label
 @Composable
 private fun ToolBar(
     tool: EditorTool,
+    allowCrop: Boolean,
+    rotateEnabled: Boolean,
+    flipEnabled: Boolean,
     onRotate: () -> Unit,
     onFlip: () -> Unit,
     onSelect: (EditorTool) -> Unit,
@@ -526,8 +564,11 @@ private fun ToolBar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ToolItem(Icons.Filled.Rotate90DegreesCcw, R.string.mediaview_edit_rotate, false, onRotate)
-        ToolItem(Icons.Filled.Flip, R.string.mediaview_edit_flip, false, onFlip)
+        ToolItem(Icons.Filled.Rotate90DegreesCcw, R.string.mediaview_edit_rotate, false, enabled = rotateEnabled, onClick = onRotate)
+        ToolItem(Icons.Filled.Flip, R.string.mediaview_edit_flip, false, enabled = flipEnabled, onClick = onFlip)
+        if (allowCrop) {
+            ToolItem(Icons.Filled.Crop, R.string.mediaview_edit_crop, tool == EditorTool.Crop) { onSelect(EditorTool.Crop) }
+        }
         ToolItem(Icons.Filled.Brush, R.string.mediaview_edit_draw, tool == EditorTool.Draw) { onSelect(EditorTool.Draw) }
         ToolItem(Icons.Filled.TextFields, R.string.mediaview_edit_text, tool == EditorTool.Text) { onSelect(EditorTool.Text) }
         ToolItem(Icons.Filled.BlurOn, R.string.mediaview_edit_mosaic, tool == EditorTool.Mosaic) { onSelect(EditorTool.Mosaic) }
@@ -535,11 +576,25 @@ private fun ToolBar(
     }
 }
 
+/**
+ * 一个工具入口。[enabled] = false 时置灰且点不动（IconButton 自己吞掉点击）——
+ * 用的是 Material 自己的 enabled 视觉，不另造一套「看起来不能点」的样式。
+ */
 @Composable
-private fun ToolItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: Int, active: Boolean, onClick: () -> Unit) {
-    val tint = if (active) Color(0xFFFFCC00) else Color.White
+private fun ToolItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: Int,
+    active: Boolean,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    val tint = when {
+        !enabled -> Color.Gray
+        active -> Color(0xFFFFCC00)
+        else -> Color.White
+    }
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        IconButton(onClick = onClick) { Icon(icon, stringResource(label), tint = tint) }
+        IconButton(onClick = onClick, enabled = enabled) { Icon(icon, stringResource(label), tint = tint) }
         Text(stringResource(label), color = tint, style = MaterialTheme.typography.labelSmall)
     }
 }
