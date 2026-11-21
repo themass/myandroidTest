@@ -51,5 +51,11 @@ dependencies {
 
     // 纯 Kotlin/Java 逻辑的单测（存储目录统计等）
     testImplementation 'junit:junit:4.13.2'
+    // media/MediaUploader 的用例要真起一个本地 HTTP 服务，也要真的 org.json
+    // （JVM 单测里的 org.json 是 stub；与 :app、:feature-chat、:feature-companion 同款）。
+    // 版本跟 libs.okhttp（5.0.0）：4.x 的 mockwebserver 编译自 okhttp4 的 okhttp3.internal.*，
+    // 和 5.x 同时在 classpath 上会 NoClassDefFoundError: okhttp3/internal/Util。
+    testImplementation 'com.squareup.okhttp3:mockwebserver:5.0.0'
+    testImplementation 'org.robolectric:robolectric:4.17'
 
 }
