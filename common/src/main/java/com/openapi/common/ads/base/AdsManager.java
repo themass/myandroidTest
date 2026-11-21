@@ -46,6 +46,11 @@ public class AdsManager {
     }
 
     public void init(Context context) {
+        // debug 构建（测试机/开发机/CI）不初始化广告 SDK：见 AdsGate 与 AdsGateTest。
+        if (!AdsGate.enabled()) {
+            LogUtil.i("AdsManager init skipped (debug build)");
+            return;
+        }
         LogUtil.i("AdsManager initok");
         AdviewAdsManager.init(context);
         AdmobAdsManager.init(context);
@@ -84,10 +89,12 @@ public class AdsManager {
     }
 
     public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey) {
+        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         bannerDescMap.get(AdsContext.AdsFrom.ADMOB).bannerAds(context, group, categrey.key, mHandle);
     }
 
     public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey, AdsContext.AdsFrom from) {
+        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         bannerDescMap.get(from).bannerAds(context, group, categrey.key, mHandle);
     }
 
@@ -96,6 +103,7 @@ public class AdsManager {
     }
 
     public void showSplashAds(AdsContext.AdsFrom from, FragmentActivity context, RelativeLayout group, RelativeLayout skipView) {
+        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         splashMap.get(from).launchAds(context, group, skipView, mHandle);
     }
 
@@ -105,6 +113,7 @@ public class AdsManager {
 
 
     public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score, AdsContext.AdsFrom from, int count) {
+        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         interstitialMap.get(from).interstitialAds(context, mHandle, categrey.key, score, count);
     }
 
@@ -113,10 +122,12 @@ public class AdsManager {
     }
 
     public void showNative(Context context, NativeAdsReadyListener listener, AdsContext.Categrey categrey) {
+        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         nativeMap.get(AdsContext.AdsFrom.ADVIEW).showNative(context, mHandle, listener, categrey.key);
     }
 
     public void reqVideo(Context context) {
+        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         videoMap.get(AdsContext.AdsFrom.ADVIEW).reqVideo(context, mHandle);
     }
 

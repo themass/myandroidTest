@@ -55,6 +55,8 @@ public class MyApplication extends MultiDexApplication {
     public void onCreate() {
         super.onCreate();
         isDebug = SystemUtils.isApkDebugable(this);
+        // 广告总开关随构建类型就位：AdsManager 的所有入口按它放行（debug = 不加载不展示）。
+        com.openapi.common.ads.base.AdsGate.setDebugBuild(isDebug);
         LogUtil.e("isDebug=" + isDebug);
         instance = this;
         // 网络层的业务配置（域名、请求头名、登录失效处理）在启动时注入，commonutil 不再写死
