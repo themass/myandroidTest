@@ -515,6 +515,12 @@ private fun EditOp.isAnnotation(): Boolean = this is EditOp.Stroke || this is Ed
  * 不会污染缓存里那一帧）——绝不允许把缓存的底图直接当结果画出去，那样标注会整层消失。
  *
  * 无预处理 ops 时缓存恒 miss 是预期（指纹里没有标注），不是 bug，别为它加特例。
+ *
+ * **兜底半径必须罩住整条链路（renderBase *和* drawOps），而且只有一个 catch。**
+ * 这里不能直接调 [PhotoRenderer.render]（那会丢掉底图缓存），但回退语义要和它逐字一致：
+ * drawOps 每次都全幅 `copy()` 一份再叠马赛克的 block 位图，正是低端机拖滑杆时最可能 OOM 的分配，
+ * 让它漏出去就是把这个异常打进 composition、直接杀掉编辑器。**别再把它拆回「只包 renderBase」**，
+ * 也不要在这里再复制第二对 catch——预览有图可显示，唯一合理的失败方式就是退回源图。
  */
 private fun renderPreview(
     source: Bitmap,
@@ -526,22 +532,20 @@ private fun renderPreview(
     // 完全没编辑时直接返回源图：和 PhotoRenderer.render 的旧快捷路径一致。
     // 少了这一句，空白编辑会话的每帧预览都会白白拷一次整幅位图（drawOps 恒复制）。
     if (ops.isEmpty()) return source
-    // 只为拿一个「不带标注」的会话算指纹；PhotoEdits 是 data class，构造很便宜
-    val probe = PhotoEdits.of(source.width, source.height).withOpsUnrecorded(ops)
-    val hit = cache.get(source, probe, maxLongEdge)
-    if (hit != null) return PhotoRenderer.drawOps(hit, probe)
-    val base = try {
-        PhotoRenderer.renderBase(source, probe, maxLongEdge, lutProvider)
+    return try {
+        // 只为拿一个「不带标注」的会话算指纹；PhotoEdits 是 data class，构造很便宜
+        val probe = PhotoEdits.of(source.width, source.height).withOpsUnrecorded(ops)
+        val base = cache.get(source, probe, maxLongEdge)
+            ?: PhotoRenderer.renderBase(source, probe, maxLongEdge, lutProvider)
+                .also { cache.put(source, probe, maxLongEdge, it) }
+        PhotoRenderer.drawOps(base, probe)
     } catch (e: OutOfMemoryError) {
-        // 兜底语义与 PhotoRenderer.render 一致：预览必须有图，宁可退回原图
-        Log.e("PhotoEditor", "preview renderBase out of memory", e)
-        return source
+        Log.e("PhotoEditor", "preview render out of memory, falling back to source", e)
+        source
     } catch (e: RuntimeException) {
-        Log.e("PhotoEditor", "preview renderBase failed", e)
-        return source
+        Log.e("PhotoEditor", "preview render failed, falling back to source", e)
+        source
     }
-    cache.put(source, probe, maxLongEdge, base)
-    return PhotoRenderer.drawOps(base, probe)
 }
 
 /** 等比缩到长边 [longEdge]；本来就不超过就原样返回（不白拷一份）。 */
