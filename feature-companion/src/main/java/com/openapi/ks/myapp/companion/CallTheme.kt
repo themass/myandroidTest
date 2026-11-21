@@ -101,18 +101,6 @@ fun customCallTheme(hueDegrees: Float): CallTheme {
 }
 
 /**
- * 「背景」菜单里自定义入口的文案：选中时打勾并显示当前色相，没选时是「自定义…」。
- * 色相丢失（兜底路径）时显示兜底色相，不显示 0°。
- */
-fun customThemeMenuLabel(theme: CallTheme): String =
-    if (theme.id == CallTheme.CUSTOM_ID) {
-        val hue = theme.hueDegrees ?: CallTheme.DEFAULT_CUSTOM_HUE
-        "✓ 自定义（${hue.toInt()}°）"
-    } else {
-        "　 自定义…"
-    }
-
-/**
  * 色环取色：把触点 (x, y) 换算成色相角（度，顺时针，右=0° 下=90°）。
  * 屏幕坐标 y 向下，所以直接用 atan2(dy, dx) 就是「顺时针为正」，映射到 0..360。
  */

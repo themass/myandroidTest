@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /** 收纳盒里一行的动作。 */
-internal enum class DrawerAction { LISTEN_USER, LISTEN_AI, TOGGLE_CAPTIONS }
+internal enum class DrawerAction { LISTEN_USER, LISTEN_AI, TOGGLE_CAPTIONS, THEME }
 
 internal data class DrawerRow(val action: DrawerAction, val label: String, val active: Boolean)
 
@@ -36,17 +36,26 @@ internal data class DrawerRow(val action: DrawerAction, val label: String, val a
  * 收纳盒里有哪些行（纯函数，JVM 测试钉住）。
  * - 试听两行只在调试包出现（[previewAvailable]），竖放，正在放的那行变「■ 停止」。
  * - 字幕开关始终在：「字幕 · 开 / 关」。
+ * - 背景调色在字幕下面：「背景 · 深海 / 自定义 248°」，点开调色弹窗。
  */
 internal fun heroDrawerRows(
     previewAvailable: Boolean,
     previewSpeaker: String?,
     captionsVisible: Boolean,
+    theme: CallTheme,
 ): List<DrawerRow> = buildList {
     if (previewAvailable) {
         add(DrawerRow(DrawerAction.LISTEN_USER, if (previewSpeaker == "user") "■ 停止用户试听" else "▶ 用户试听", previewSpeaker == "user"))
         add(DrawerRow(DrawerAction.LISTEN_AI, if (previewSpeaker == "ai") "■ 停止 AI 试听" else "▶ AI 试听", previewSpeaker == "ai"))
     }
     add(DrawerRow(DrawerAction.TOGGLE_CAPTIONS, if (captionsVisible) "字幕 · 开" else "字幕 · 关", captionsVisible))
+    val themeLabel = if (theme.id == CallTheme.CUSTOM_ID) {
+        val hue = theme.hueDegrees ?: CallTheme.DEFAULT_CUSTOM_HUE
+        "背景 · 自定义 ${hue.toInt()}°"
+    } else {
+        "背景 · ${theme.uiName}"
+    }
+    add(DrawerRow(DrawerAction.THEME, themeLabel, theme.id == CallTheme.CUSTOM_ID))
 }
 
 /**
@@ -111,7 +120,8 @@ internal fun HeroSideDrawer(
     }
 }
 
-private val IntrinsicHeightDp = 160.dp
+// 4 行（试听×2 + 字幕 + 背景）时每行约 34dp + 8dp 间距 + 20dp 内边距；留到 200 不裁行。
+private val IntrinsicHeightDp = 200.dp
 private val HANDLE_BG = Color(0x990B1122)
 private val PANEL_BG = Color(0xCC0B1122)
 private val PANEL_BORDER = Color(0x33FFFFFF)
