@@ -12,6 +12,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
@@ -55,8 +58,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.openapi.ks.myapp.dh.DhEngineMenuRow
 import com.openapi.ks.myapp.dh.menuLabel
 import androidx.compose.runtime.State
@@ -904,6 +913,7 @@ private fun WaveStyleMenu(
     onThemeChange: ((CallTheme) -> Unit)? = null,
 ) {
     var open by remember { mutableStateOf(false) }
+    var themePickerOpen by remember { mutableStateOf(false) }
     Box {
         // 玻璃底板 + 描边 + 亮色图标：深色背景上只有一个灰色小图标时，用户根本发现不了入口。
         IconButton(
@@ -955,6 +965,13 @@ private fun WaveStyleMenu(
                         },
                     )
                 }
+                DropdownMenuItem(
+                    text = { Text(customThemeMenuLabel(theme)) },
+                    onClick = {
+                        open = false
+                        themePickerOpen = true
+                    },
+                )
             }
             if (onChange == null) return@DropdownMenu
             MenuSectionLabel("底部 · 你的声音")
@@ -995,6 +1012,130 @@ private fun WaveStyleMenu(
                         onChange(options.copy(center = effect))
                     },
                 )
+            }
+        }
+        if (themePickerOpen && onThemeChange != null) {
+            CallThemePickerDialog(
+                theme = theme,
+                onThemeChange = onThemeChange,
+                onDismiss = { themePickerOpen = false },
+            )
+        }
+    }
+}
+
+/** 色环渐变：色相 0°红 → 60°黄 → 120°绿 → 180°青 → 240°蓝 → 300°品红 → 回红。 */
+private val HueRingStops = listOf(0f, 60f, 120f, 180f, 240f, 300f, 360f)
+    .map { Color.hsv(it, 1f, 1f) }
+
+/**
+ * 自定义背景调色弹窗：一整个色相环，手指按住/拖动选色，页面背景实时跟着变。
+ *
+ * 只暴露「色相」这一个旋钮——暗部三段渐变、光晕强度由 [customCallTheme] 钉死
+ * （对着深海/暖夜的观感调好的参数），不让用户去调调不好的东西。拖动过程每改一档
+ * 就直接走 [onThemeChange]（路由那边会顺手存盘），所以即使进程被杀也不会丢；
+ * 「取消」则把打开弹窗那一刻的主题原样还回去。
+ */
+@Composable
+private fun CallThemePickerDialog(
+    theme: CallTheme,
+    onThemeChange: (CallTheme) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val originalTheme = remember { theme }
+    var hue by remember { mutableFloatStateOf(theme.hueDegrees ?: CallTheme.DEFAULT_CUSTOM_HUE) }
+    fun pick(h: Float) {
+        hue = h
+        onThemeChange(customCallTheme(h))
+    }
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(28.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .background(Color(0xF2101731))
+                .border(1.dp, CallColors.GlassBorder, RoundedCornerShape(22.dp))
+                .padding(start = 22.dp, end = 22.dp, top = 20.dp, bottom = 12.dp),
+        ) {
+            Text("背景颜色", color = CallColors.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                "按住色环拖动选色相，背景实时预览",
+                color = CallColors.TextSecondary,
+                fontSize = 12.sp,
+            )
+            Box(contentAlignment = Alignment.Center) {
+                Canvas(
+                    modifier = Modifier
+                        .size(256.dp)
+                        .semantics { contentDescription = "色相色环" }
+                        .pointerInput(Unit) {
+                            awaitEachGesture {
+                                val down = awaitFirstDown(requireUnconsumed = false)
+                                fun applyAt(pos: Offset) {
+                                    pick(hueFromPoint(pos.x, pos.y, size.width / 2f, size.height / 2f))
+                                }
+                                applyAt(down.position)
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val change = event.changes.firstOrNull() ?: break
+                                    if (!change.pressed) break
+                                    applyAt(change.position)
+                                    change.consume()
+                                }
+                            }
+                        },
+                ) {
+                    val stroke = 30.dp.toPx()
+                    val radius = (size.minDimension - stroke) / 2f
+                    drawCircle(
+                        brush = Brush.sweepGradient(HueRingStops),
+                        style = Stroke(width = stroke),
+                        radius = radius,
+                    )
+                    // 游标：白圈 + 当前色心，压在色环上，位置 = 当前色相角。
+                    val rad = hue * (PI / 180f).toFloat()
+                    val knob = Offset(
+                        center.x + cos(rad) * radius,
+                        center.y + sin(rad) * radius,
+                    )
+                    drawCircle(color = Color.White, radius = stroke * 0.60f, center = knob)
+                    drawCircle(color = Color.hsv(hue, 1f, 1f), radius = stroke * 0.45f, center = knob)
+                    // 内圈一层薄薄的当前主题预览，让「这个色相=什么氛围」在环里就能看见。
+                    val preview = customCallTheme(hue)
+                    drawCircle(brush = Brush.verticalGradient(listOf(preview.top, preview.bottom)), radius = radius - stroke * 0.9f)
+                }
+                Text(
+                    text = "${hue.toInt()}°",
+                    color = CallColors.TextPrimary,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(onClick = { pick(CallTheme.DEFAULT_CUSTOM_HUE) }) {
+                    Text("默认紫", color = CallColors.TextSecondary, fontSize = 13.sp)
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                TextButton(
+                    onClick = {
+                        onThemeChange(originalTheme)
+                        onDismiss()
+                    },
+                ) {
+                    Text("取消", color = CallColors.TextSecondary, fontSize = 14.sp)
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("完成", color = CallColors.Violet, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                }
             }
         }
     }
