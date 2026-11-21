@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -195,6 +196,81 @@ class PhotoEditsTest {
         val committed = base.withOps(live.ops)
         assertEquals(0.03f, (committed.ops[0] as EditOp.Stroke).widthRatio, 1e-6f)
         assertEquals(0.01f, (committed.undo().ops[0] as EditOp.Stroke).widthRatio, 1e-6f)
+    }
+
+    // ---- 裁剪 ----
+
+    @Test
+    fun cropIsNullWhenNoCropOp() {
+        assertNull(edits().crop)
+        assertNull(edits().push(stroke()).rotateClockwise().crop)
+    }
+
+    @Test
+    fun setCropNeverStacksMoreThanOneCropOp() {
+        val e = edits()
+            .setCrop(EditOp.Crop(0.1f, 0.1f, 0.9f, 0.9f))
+            .push(stroke())
+            .setCrop(EditOp.Crop(0f, 0.2f, 0.5f, 0.8f))
+            .push(text())
+            .setCrop(EditOp.Crop(0.3f, 0f, 1f, 1f))
+        assertEquals("全列表至多一条 Crop", 1, e.ops.count { it is EditOp.Crop })
+        assertEquals(EditOp.Crop(0.3f, 0f, 1f, 1f), e.crop)
+        assertEquals(3, e.ops.size) // 3 次 setCrop 只占 1 条裁剪记录 + 2 条标注
+    }
+
+    @Test
+    fun replacingCropIsOneUndoStepBackToThePreviousWindow() {
+        val first = EditOp.Crop(0.1f, 0.1f, 0.9f, 0.9f)
+        val second = EditOp.Crop(0.25f, 0.25f, 0.75f, 0.75f)
+        val e = edits().setCrop(first).setCrop(second)
+        assertEquals(second, e.crop)
+        assertEquals(first, e.undo().crop)
+        assertEquals(second, e.undo().redo().crop)
+    }
+
+    @Test
+    fun setCropNullRemovesTheCropOpAndIsUndoable() {
+        val crop = EditOp.Crop(0.1f, 0.1f, 0.9f, 0.9f)
+        val s = stroke()
+        val e = edits().push(s).setCrop(crop)
+        assertEquals(2, e.ops.size)
+        val cleared = e.setCrop(null)
+        assertNull(cleared.crop)
+        assertEquals(listOf<EditOp>(s), cleared.ops)
+        assertEquals(crop, cleared.undo().crop)
+        // 没有 Crop 时移除是空操作：不产生一步历史
+        val noCrop = edits().push(s)
+        assertEquals(noCrop, noCrop.setCrop(null))
+    }
+
+    @Test
+    fun setCropWithIdenticalWindowDoesNotCreateHistory() {
+        val crop = EditOp.Crop(0.1f, 0.1f, 0.9f, 0.9f)
+        val e = edits().setCrop(crop)
+        assertEquals(e.undoStack.size, e.setCrop(crop).undoStack.size)
+    }
+
+    @Test
+    fun displaySizeCountsCropWindow() {
+        val crop = EditOp.Crop(0.1f, 0.1f, 0.9f, 0.9f)
+        // 1000×2000，未旋转，窗口宽高 0.8 → 800×1600
+        assertEquals(800, edits().setCrop(crop).displayWidth)
+        assertEquals(1600, edits().setCrop(crop).displayHeight)
+        // 顺时针 90°：先宽高互换（2000×1000）再乘窗口 → 1600×800
+        val quarter = edits().rotateClockwise().setCrop(crop)
+        assertEquals(1600, quarter.displayWidth)
+        assertEquals(800, quarter.displayHeight)
+        // 满幅窗口与不裁剪一致
+        assertEquals(1000, edits().setCrop(EditOp.Crop(0f, 0f, 1f, 1f)).displayWidth)
+        assertEquals(1000, edits().displayWidth)
+    }
+
+    @Test
+    fun cropRejectsAnEmptyOrOutOfBoundsWindow() {
+        assertThrows(IllegalArgumentException::class.java) { EditOp.Crop(0.5f, 0.1f, 0.5f, 0.9f) }
+        assertThrows(IllegalArgumentException::class.java) { EditOp.Crop(0.1f, 0.1f, 1.2f, 0.9f) }
+        assertThrows(IllegalArgumentException::class.java) { EditOp.Crop(-0.1f, 0f, 0.5f, 1f) }
     }
 
     // ---- 坐标映射 ----

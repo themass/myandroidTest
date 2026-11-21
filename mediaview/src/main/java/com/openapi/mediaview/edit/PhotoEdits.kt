@@ -2,6 +2,7 @@ package com.openapi.mediaview.edit
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.geometry.Offset
+import kotlin.math.roundToInt
 
 /**
  * 图片编辑器的纯数据模型。不含 Android Bitmap，也不含绘制代码，
@@ -35,6 +36,25 @@ sealed interface EditOp {
      * 数据模型不碰文件、也不碰 Bitmap。
      */
     data class Filter(val id: String, val intensity: Int) : EditOp
+
+    /**
+     * 裁剪框。**归一化于「旋转 + 镜像之后」的显示画幅**，不是原图：
+     * 用户拖的就是屏幕上看到的画面，所以它天然活在显示空间里。
+     *
+     * 这跟标注（[Stroke] / [Text] / [Mosaic]）的约定不同——那些永远归一化于**原始未变换**的位图。
+     * 两个空间之间唯一的换算在 [EditCoords]，别处不许再写一遍。
+     *
+     * 裁剪**不改写任何标注数据**：窗口外的笔迹靠渲染截断（画布边界就是裁剪帧），
+     * 撤销裁剪后它们原样回来。这也是撤销能保持简单的前提——没有数据迁移就没有迁移失败。
+     */
+    data class Crop(val left: Float, val top: Float, val right: Float, val bottom: Float) : EditOp {
+        init {
+            require(left in 0f..1f && right in 0f..1f && top in 0f..1f && bottom in 0f..1f) {
+                "裁剪框必须落在 0..1 之内：$this"
+            }
+            require(left < right && top < bottom) { "裁剪框不能是空的：$this" }
+        }
+    }
 
     /**
      * 一次自由涂鸦：一段连续的折线。[widthRatio] 相对图片短边的比例，保证不同分辨率下手感一致。
@@ -167,9 +187,17 @@ data class PhotoEdits(
      */
     fun flipHorizontalOnScreen(): PhotoEdits = flipHorizontal()
 
-    /** 当前旋转后的显示尺寸（旋转 90/270 时宽高互换）。 */
-    val displayWidth: Int get() = if (quarterTurns % 2 == 1) sourceHeight else sourceWidth
-    val displayHeight: Int get() = if (quarterTurns % 2 == 1) sourceWidth else sourceHeight
+    /**
+     * 当前旋转 + 镜像后的显示画幅尺寸，**已计入裁剪窗口**（旋转 90/270 时宽高互换）。
+     *
+     * 这是全局的「显示帧有多大」唯一口径：预览布局、点选像素换算、选中框都从这里取，
+     * 所以裁剪之后它们自动跟着变，不需要各自再乘一次窗口。
+     */
+    val displayWidth: Int get() = ((if (quarterTurns % 2 == 1) sourceHeight else sourceWidth) * cropWindowWidthFraction).roundToInt()
+    val displayHeight: Int get() = ((if (quarterTurns % 2 == 1) sourceWidth else sourceHeight) * cropWindowHeightFraction).roundToInt()
+
+    private val cropWindowWidthFraction: Float get() = crop?.let { it.right - it.left } ?: 1f
+    private val cropWindowHeightFraction: Float get() = crop?.let { it.bottom - it.top } ?: 1f
 
     val quarterTurns: Int get() = (ops.lastOrNull { it is EditOp.Rotate } as? EditOp.Rotate)?.quarterTurns ?: 0
 
@@ -180,6 +208,26 @@ data class PhotoEdits(
 
     /** 当前生效的滤镜（ops 里最后一条；一条都没有就是 null = 不套表）。 */
     val filter: EditOp.Filter? get() = ops.lastOrNull { it is EditOp.Filter } as? EditOp.Filter
+
+    /** 当前的裁剪框（ops 里最后一条；一条都没有就是 null = 不裁剪）。全列表至多一条，由 [setCrop] 保证。 */
+    val crop: EditOp.Crop? get() = ops.lastOrNull { it is EditOp.Crop } as? EditOp.Crop
+
+    /**
+     * 设置裁剪框，全列表**至多一条**：
+     * - 已有 Crop → [replaceAt] 原位替换（占一步撤销，回到上一个窗口）；
+     * - 没有 → [push]；
+     * - [crop] 为 null → 移除那条记录（可撤销回来）。
+     *
+     * 内容没变时 [commit] 不产生历史，所以重复提交同一窗口不会堆积。
+     */
+    fun setCrop(crop: EditOp.Crop?): PhotoEdits {
+        val index = ops.indexOfLast { it is EditOp.Crop }
+        return when {
+            crop == null -> if (index < 0) this else removeAt(index)
+            index >= 0 -> replaceAt(index, crop)
+            else -> push(crop)
+        }
+    }
 
     companion object {
         fun of(width: Int, height: Int): PhotoEdits = PhotoEdits(width, height)
