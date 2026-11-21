@@ -44,6 +44,8 @@ interface ChatRepository {
      *   为 null 时由实现生成新的 id。
      * @param attachments 已上传的附件引用。**与 text 一起在同一个回合里发出**——
      *   拆成「附件一轮 + 文字一轮」会让同一句话得到两条回复，消息在界面上也失真。
+     * @param location 位置消息的坐标（P2-13）。服务端据此把这条存成 kind=="location"；
+     *   text/attachments/location 三者全空的发送会被服务端 422 拒掉，所以调用方要保证至少有一个。
      */
     fun sendMessageStream(
         sessionId: Long,
@@ -53,6 +55,7 @@ interface ChatRepository {
         persistUserMessage: Boolean = true,
         clientMessageId: String? = null,
         attachments: List<OutgoingAttachment> = emptyList(),
+        location: com.openapi.feature.chat.domain.model.GeoLocation? = null,
     ): Flow<ChatStreamEvent>
 
     /**
@@ -124,6 +127,16 @@ interface ChatRepository {
      * @return 失败（网络、未登录、服务端拒绝等）返回 null
      */
     suspend fun uploadImage(localFile: java.io.File, fileName: String): String?
+
+    /**
+     * 上传一个视频，返回 `upload_id`（scene `chat-video`，P2-13）。语义与 [uploadImage] 相同：
+     * 只把字节放进存储，回合由 [sendMessageStream] 带着 id 发起。
+     *
+     * **视频没有中转降级通道**（中转上传会把字节按图片归一化，MP4 进去必坏），
+     * 失败就是失败——返回 null，调用方提示重试，绝不能静默换通道。
+     * 大小/类型预检在实现里做（[com.openapi.feature.chat.domain.model.VideoRules]），超限不发起网络请求。
+     */
+    suspend fun uploadVideo(localFile: java.io.File, fileName: String): String? = null
 
     /**
      * 为已上传的对象重新换取一个可渲染地址（整改清单 P1-10：历史图片签名 URL 过期 /

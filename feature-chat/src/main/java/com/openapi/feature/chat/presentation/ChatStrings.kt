@@ -35,4 +35,10 @@ interface ChatStrings {
     fun roleCreateFailed(): String
     fun roleUpdateFailed(): String
     fun roleDeleteFailed(): String
+    /** 视频超过 25 MiB（P2-13；上限在执行前就拦，文案里不重复报数字——数字与规则同源，见 VideoRules）。 */
+    fun videoTooLarge(): String
+    /** 选了非 MP4 的视频。 */
+    fun videoNotMp4(): String
+    /** 单次粗定位没拿到结果（超时、GPS 关、无服务）。 */
+    fun locationFailed(): String
 }

@@ -7,6 +7,7 @@ import com.openapi.common.image.ImageUtils
 import com.openapi.feature.chat.R
 import com.openapi.common.image.ImageCompressor
 import com.openapi.feature.chat.domain.model.MessageKind
+import com.openapi.feature.chat.domain.model.VideoRules
 import java.io.File
 
 /** 已经落到应用私有目录、可以直接上传的附件。 */
@@ -14,6 +15,10 @@ data class StagedAttachment(
     val file: File,
     val displayName: String,
     val sizeBytes: Long,
+    /** 视频时长（秒），暂存时从本地文件读出；图片/文件恒为 0。 */
+    val durationSeconds: Int = 0,
+    /** 视频首帧缩略图的本地路径（发送侧气泡显示用）；读不出来为 null。 */
+    val thumbnailPath: String? = null,
 )
 
 /** 附件落盘的结果：成功、因超限被拒（带给用户看的原因）、读取失败。 */
@@ -38,12 +43,17 @@ object AttachmentStager {
     /** 文件体积上限（原始大小）。 */
     const val MAX_FILE_BYTES = 20L * 1024 * 1024
 
-    fun stage(context: Context, kind: MessageKind, uri: Uri): StageOutcome {
+    fun stage(context: Context, kind: MessageKind, uri: Uri): StageOutcome =
+        stage(context, kind, uri, AndroidVideoMeta)
+
+    /** 可注入 [meta] 的重载：视频时长/首帧在 JVM 测试里读不了真编码器，换假的进来跑全流程。 */
+    internal fun stage(context: Context, kind: MessageKind, uri: Uri, meta: VideoMetaSource): StageOutcome {
         val dir = File(context.filesDir, DIR).apply { mkdirs() }
         val stamp = System.currentTimeMillis()
         return when (kind) {
             MessageKind.IMAGE -> stageImage(context, uri, dir, stamp)
             MessageKind.FILE -> stageFile(context, uri, dir, stamp)
+            MessageKind.VIDEO -> stageVideo(context, uri, dir, stamp, meta)
             else -> StageOutcome.Failed
         }
     }
@@ -55,6 +65,54 @@ object AttachmentStager {
         val file = File(dir, "img_$stamp.jpg")
         file.writeBytes(result.bytes)
         return StageOutcome.Staged(StagedAttachment(file = file, displayName = file.name, sizeBytes = file.length()))
+    }
+
+    /**
+     * 视频暂存：复制到私有目录，原样保存（不做任何转码——服务端不转码，端上转一遍只会更慢更糊）。
+     *
+     * 规则与 [com.openapi.feature.chat.domain.model.VideoRules] 完全一致，且在**复制之前**就拦：
+     * 25 MiB 的文件复制一半再丢掉，浪费的是用户存储和 IO。选择器给出的显示名可能没有扩展名
+     * （部分文件管理器），这时按 content type 兜底判 mp4。
+     */
+    private fun stageVideo(context: Context, uri: Uri, dir: File, stamp: Long, meta: VideoMetaSource): StageOutcome {
+        val (name, size) = displayNameAndSize(context, uri)
+        val displayName = name?.takeIf { it.isNotBlank() } ?: "video_$stamp.mp4"
+        val declaredMp4 = VideoRules.isMp4(displayName) ||
+            context.contentResolver.getType(uri) == "video/mp4"
+        if (!declaredMp4) {
+            return StageOutcome.Rejected(context.getString(R.string.chat_video_not_mp4))
+        }
+        if (size != null && size > VideoRules.MAX_VIDEO_BYTES) {
+            return StageOutcome.Rejected(context.getString(R.string.chat_video_too_large))
+        }
+        val safeName = displayName.replace(Regex("[\\\\/:*?\"<>|]"), "_")
+        val file = File(dir, "vid_${stamp}_$safeName")
+        val copied = context.contentResolver.openInputStream(uri)?.use { input ->
+            file.outputStream().use { input.copyTo(it) }
+            true
+        } ?: false
+        if (!copied) {
+            file.delete()
+            return StageOutcome.Failed
+        }
+        // 大小未知时复制后按实际大小判断（与 stageFile 同款兜底）
+        if (file.length() > VideoRules.MAX_VIDEO_BYTES) {
+            file.delete()
+            return StageOutcome.Rejected(context.getString(R.string.chat_video_too_large))
+        }
+        // 时长与首帧读失败都不拦发送：时长只是显示用，读不出来就不显示；
+        // 缩略图读不出来气泡退化成文件名卡片。为显示功能拒发一条真视频是本末倒置。
+        val duration = meta.durationSeconds(file)
+        val thumb = meta.firstFrameThumbnail(file, File(dir, "vid_${stamp}_thumb.jpg"))
+        return StageOutcome.Staged(
+            StagedAttachment(
+                file = file,
+                displayName = safeName,
+                sizeBytes = file.length(),
+                durationSeconds = duration,
+                thumbnailPath = thumb,
+            ),
+        )
     }
 
     private fun stageFile(context: Context, uri: Uri, dir: File, stamp: Long): StageOutcome {

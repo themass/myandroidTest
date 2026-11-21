@@ -23,8 +23,12 @@
     <string name="chat_loading_history">正在加载历史</string>
     <string name="chat_load_failed_retry">重新加载</string>
     <string name="chat_loading_older">正在加载…</string>
-    <string name="chat_location_soon">位置消息即将上线</string>
+    <string name="chat_location_rationale">发送位置消息需要定位权限</string>
+    <string name="chat_location_denied">未授予定位权限，无法发送位置</string>
+    <string name="chat_location_failed">没能获取到位置，请确认定位已开启后重试</string>
     <string name="chat_open_file_failed">无法打开此文件</string>
+    <string name="chat_open_map_failed">没有可用的地图应用来打开这个位置</string>
+    <string name="chat_video_play_failed">无法播放这个视频，请稍后重试</string>
     <string name="chat_role_name">角色名称</string>
     <string name="chat_role_persona">人设描述（会作为对话的提示词）</string>
     <string name="chat_session_name_hint">给这个对话起个名字</string>
@@ -38,7 +42,8 @@
     <string name="chat_suggest_example">给我一个上手的例子</string>
     <string name="chat_suggest_help">你能帮我做些什么？</string>
     <string name="chat_suggest_intro">先介绍一下你自己</string>
-    <string name="chat_video_soon">视频消息即将上线</string>
+    <string name="chat_video_not_mp4">只能发送 MP4 格式的视频</string>
+    <string name="chat_video_too_large">视频超过 25 MB，无法发送</string>
     <string name="chat_voice_rationale">发送语音消息需要使用麦克风</string>
     <string name="chat_voice_denied">未授予麦克风权限，无法录音</string>
     <string name="chat_voice_style_bar">语音样式 C：录音条 + 声波</string>

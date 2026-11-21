@@ -26,4 +26,7 @@ internal class FakeChatStrings : ChatStrings {
     override fun roleCreateFailed() = "S:roleCreateFailed"
     override fun roleUpdateFailed() = "S:roleUpdateFailed"
     override fun roleDeleteFailed() = "S:roleDeleteFailed"
+    override fun videoTooLarge() = "S:videoTooLarge"
+    override fun videoNotMp4() = "S:videoNotMp4"
+    override fun locationFailed() = "S:locationFailed"
 }

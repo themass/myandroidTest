@@ -32,4 +32,7 @@ class ResourceChatStrings(private val context: Context) : ChatStrings {
     override fun roleCreateFailed() = context.getString(R.string.chat_role_create_failed)
     override fun roleUpdateFailed() = context.getString(R.string.chat_role_update_failed)
     override fun roleDeleteFailed() = context.getString(R.string.chat_role_delete_failed)
+    override fun videoTooLarge() = context.getString(R.string.chat_video_too_large)
+    override fun videoNotMp4() = context.getString(R.string.chat_video_not_mp4)
+    override fun locationFailed() = context.getString(R.string.chat_location_failed)
 }

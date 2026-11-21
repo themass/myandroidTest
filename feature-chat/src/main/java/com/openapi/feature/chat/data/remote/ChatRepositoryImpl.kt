@@ -97,6 +97,7 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
         persistUserMessage: Boolean,
         clientMessageId: String?,
         attachments: List<OutgoingAttachment>,
+        location: com.openapi.feature.chat.domain.model.GeoLocation?,
     ): Flow<ChatStreamEvent> = legacyStreamingDisabled()
 
     override fun regenerateStream(

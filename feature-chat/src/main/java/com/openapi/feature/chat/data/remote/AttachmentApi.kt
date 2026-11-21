@@ -1,6 +1,7 @@
 package com.openapi.feature.chat.data.remote
 
 import com.openapi.common.util.log.LogUtil
+import com.openapi.feature.chat.domain.model.VideoRules
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -44,6 +45,28 @@ internal class AttachmentApi(private val remote: AgentChatRemote) {
     /** 只走中转 `/v1/uploads` 的上传（sendAttachment 的历史路径，与直传白名单无关）。 */
     suspend fun uploadRelayed(localFile: File): String =
         withContext(Dispatchers.IO) { remote.upload(localFile, mimeOf(localFile)) }
+
+    /**
+     * 上传一个视频，返回 upload_id；任何一步失败返回 null（界面提示重试）。
+     *
+     * **视频没有降级通道**：中转 `/v1/uploads` 会把字节强制转码成 JPEG（服务端图片归一化管线），
+     * 视频的完整 MP4 打进去必坏——所以签发或 PUT 失败只能报错，绝不能像图片那样掉回中转。
+     * 大小与类型在**签发之前**拦（[videoPreflightReject]）：25 MiB 的视频传一半才被服务端
+     * 踢回来，白花的是用户的流量。
+     */
+    suspend fun uploadVideo(localFile: File): String? =
+        runCatching {
+            withContext(Dispatchers.IO) {
+                if (VideoRules.preflightReject(localFile.name, localFile.length()) != null) return@withContext null
+                val (uploadId, putUrl) = remote.signUpload(SCENE_CHAT_VIDEO, "video/mp4", localFile.length())
+                remote.putToPresigned(putUrl, localFile, "video/mp4")
+                uploadId
+            }
+        }.getOrNull()
+
+    private companion object {
+        const val SCENE_CHAT_VIDEO = "chat-video"
+    }
 
     /** 按扩展名给 Content-Type；服务端只认 jpeg/png/webp/heic，其他一律按 jpeg 试。 */
     private fun mimeOf(file: File): String = when (file.extension.lowercase()) {

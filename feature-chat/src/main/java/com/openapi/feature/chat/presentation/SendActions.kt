@@ -43,25 +43,45 @@ internal class SendActions(
             submitEdit(editingId, text)
             return
         }
-        state.update { it.copy(input = "", drafts = emptyList(), editingMessageId = null) }
-        if (drafts.isEmpty()) {
+        val location = snapshot.locationDraft
+        state.update { it.copy(input = "", drafts = emptyList(), editingMessageId = null, locationDraft = null) }
+        if (drafts.isEmpty() && location == null) {
             sendText(text)
             return
         }
-        // 附件和文字组成一条消息：界面上一个气泡，保存一条记录
+        // 附件、位置与文字组成一条消息：界面上一个气泡，保存一条记录
         val now = System.currentTimeMillis()
         val images = drafts.filter { it.kind == MessageKind.IMAGE }
             .map { ImageAttachment(path = it.staged.file.absolutePath) }
         val files = drafts.filter { it.kind == MessageKind.FILE }
             .map { FileAttachment(path = it.staged.file.absolutePath, name = it.staged.displayName, sizeBytes = it.staged.sizeBytes) }
+        val videos = drafts.filter { it.kind == MessageKind.VIDEO }
+            .map {
+                com.openapi.feature.chat.domain.model.VideoAttachment(
+                    path = it.staged.file.absolutePath,
+                    name = it.staged.displayName,
+                    sizeBytes = it.staged.sizeBytes,
+                    durationSeconds = it.staged.durationSeconds,
+                    thumbnailPath = it.staged.thumbnailPath,
+                )
+            }
         val message = ChatMessage(
             id = "local-user-$now",
             role = ChatRole.USER,
             text = text,
             createdAtMillis = now,
-            kind = if (images.isNotEmpty()) MessageKind.IMAGE else MessageKind.FILE,
+            // 富类型只有一个能进 kind（一条消息一个气泡）；混发时服务端按字段各存各的，
+            // kind 决定的是本地缓存行的类型，取「最先要看内容」的那个：位置 > 图片 > 视频 > 文件。
+            kind = when {
+                location != null -> MessageKind.LOCATION
+                images.isNotEmpty() -> MessageKind.IMAGE
+                videos.isNotEmpty() -> MessageKind.VIDEO
+                else -> MessageKind.FILE
+            },
             images = images,
             files = files,
+            videos = videos,
+            location = location,
             delivery = DeliveryStatus.SENDING,
         )
         state.update { it.copy(messages = it.messages + message) }

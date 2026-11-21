@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,6 +44,7 @@ import coil.compose.AsyncImage
 import com.openapi.chatkit.R
 import com.openapi.chatkit.media.imageModel
 import com.openapi.chatkit.message.parts.FileBadge
+import com.openapi.chatkit.message.parts.formatDuration
 import com.openapi.chatkit.model.ComposerAction
 import com.openapi.chatkit.model.DraftItem
 import com.openapi.chatkit.model.DraftType
@@ -83,6 +85,66 @@ fun DraftTray(drafts: List<DraftItem>, onRemove: (String) -> Unit, modifier: Mod
                         Spacer(Modifier.width(8.dp))
                         Text(
                             draft.name,
+                            fontSize = ChatKit.typography.caption,
+                            color = colors.bubbleText,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    DraftType.Video -> Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(colors.surfaceVariant),
+                    ) {
+                        if (draft.source.isNotBlank()) {
+                            AsyncImage(
+                                model = imageModel(draft.source),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        } else {
+                            // FileBadge 不吃 modifier：用一层 Box 把它摆到正中
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                FileBadge(extension = "MP4", size = 36.dp)
+                            }
+                        }
+                        if (draft.durationSeconds > 0) {
+                            // 时长角标压在缩略图右下角；没读到时长（0）就不显示假数字
+                            Text(
+                                formatDuration(draft.durationSeconds),
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(3.dp)
+                                    .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(4.dp))
+                                    .padding(horizontal = 4.dp, vertical = 1.dp),
+                            )
+                        }
+                    }
+                    DraftType.Location -> Row(
+                        modifier = Modifier
+                            .height(64.dp)
+                            .widthIn(max = 200.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(colors.surfaceVariant)
+                            .padding(horizontal = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Icons.Outlined.LocationOn,
+                            contentDescription = null,
+                            tint = colors.accent,
+                            modifier = Modifier.size(24.dp),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            draft.locationLabel ?: draft.name,
                             fontSize = ChatKit.typography.caption,
                             color = colors.bubbleText,
                             maxLines = 2,

@@ -57,4 +57,8 @@
     <string name="chatkit_att_copy_path">Copy path</string>
     <string name="chatkit_path_app">Path in app</string>
     <string name="chatkit_path_saved">Saved to</string>
+    <string name="chatkit_video">Video</string>
+    <string name="chatkit_location">Location</string>
+    <string name="chatkit_location_accuracy">Accuracy ±%1$d m</string>
+    <string name="chatkit_open_in_map">Open in map</string>
 </resources>

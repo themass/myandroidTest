@@ -11,6 +11,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -374,4 +376,169 @@ internal fun formatFileSize(bytes: Long): String = when {
     bytes < 1024 -> "$bytes B"
     bytes < 1024 * 1024 -> String.format(Locale.US, "%.1f KB", bytes / 1024.0)
     else -> String.format(Locale.US, "%.1f MB", bytes / (1024.0 * 1024.0))
+}
+
+/**
+ * 视频卡片：有缩略图显示缩略图（右下角时长角标 + 中央播放键），没有就退化成
+ * 「MP4 徽标 + 文件名 + 时长」。点击把 [MessageAction.OpenVideo] 交给调用方——
+ * 播放用的是本机文件还是现签的 URL、用什么播放器，都是业务侧的事，组件不碰。
+ */
+@Composable
+fun VideoCard(
+    video: MessagePart.Video,
+    onClick: () -> Unit,
+    onLongPress: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = ChatKit.colors
+    val hasThumb = video.thumbnailPath.isNotBlank()
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.divider),
+        modifier = modifier
+            .widthIn(min = 200.dp, max = 260.dp)
+            .combinedClickable(onClick = onClick, onLongClick = onLongPress),
+    ) {
+        Column {
+            if (hasThumb) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 160.dp)
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                        .background(colors.surfaceVariant),
+                ) {
+                    AsyncImage(
+                        model = imageModel(video.thumbnailPath),
+                        contentDescription = stringResource(R.string.chatkit_video),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    // 中央播放键：静态图标即可，点击热区是整个卡片
+                    Box(
+                        Modifier
+                            .align(Alignment.Center)
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color.Black.copy(alpha = 0.45f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            Icons.Filled.PlayArrow,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                    if (video.durationSeconds > 0) {
+                        Text(
+                            formatDuration(video.durationSeconds),
+                            color = Color.White,
+                            fontSize = 11.sp,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(6.dp)
+                                .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 5.dp, vertical = 2.dp),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    video.name,
+                    color = colors.bubbleText,
+                    fontSize = ChatKit.typography.secondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(start = 12.dp, end = 12.dp),
+                )
+                Spacer(Modifier.height(10.dp))
+            } else {
+                // 历史侧/缩略图缺失：退化成与文件卡片同款的行卡
+                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            video.name,
+                            color = colors.bubbleText,
+                            fontSize = ChatKit.typography.secondary,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            if (video.durationSeconds > 0) formatDuration(video.durationSeconds) else "",
+                            color = colors.secondaryText,
+                            fontSize = ChatKit.typography.caption,
+                        )
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    FileBadge(extension = "MP4")
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 位置气泡：坐标两行数字 + 精度标注 + 「在地图打开」。
+ * 组件不画地图也不解地址——按钮点击把回调交给调用方（geo: intent 在业务侧），
+ * 所以这里连 Android context 能力都不需要，纯 Compose 就能渲染。
+ */
+@Composable
+fun LocationBubble(
+    sender: Sender,
+    location: MessagePart.Location,
+    onOpenMap: () -> Unit,
+    onLongPress: () -> Unit,
+    modifier: Modifier = Modifier,
+    /** 读屏动作，与文字气泡同一套（挂在可点击的气泡节点上）。 */
+    screenReaderActions: List<CustomAccessibilityAction> = emptyList(),
+) {
+    val colors = ChatKit.colors
+    TextBubble(
+        sender = sender,
+        onLongPress = onLongPress,
+        modifier = modifier.widthIn(min = 220.dp),
+        screenReaderActions = screenReaderActions,
+    ) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Outlined.LocationOn,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    stringResource(R.string.chatkit_location),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = ChatKit.typography.body,
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                String.format(Locale.US, "%.5f, %.5f", location.latitude, location.longitude),
+                fontSize = ChatKit.typography.secondary,
+            )
+            location.accuracyMeters?.let { meters ->
+                Text(
+                    stringResource(R.string.chatkit_location_accuracy, meters),
+                    color = colors.secondaryText,
+                    fontSize = ChatKit.typography.caption,
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            // 用文本按钮而不是 Button：气泡里的次要操作，颜色跟随气泡 contentColor
+            Text(
+                stringResource(R.string.chatkit_open_in_map),
+                color = ChatKit.colors.accent,
+                fontSize = ChatKit.typography.secondary,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable(onClick = onOpenMap)
+                    .padding(vertical = 2.dp),
+            )
+        }
+    }
 }
