@@ -4,13 +4,12 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -22,9 +21,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -236,19 +233,136 @@ private val CROP_HANDLE_ARM = 14.dp
 private const val CROP_HANDLE_SLOP_DP = 24
 
 /**
- * 裁剪模式的覆盖层：外遮罩（四块半透明）、三分线、四角把手、比例预设、确认/取消。
+ * 裁剪模式的**舞台层**：外遮罩（四块半透明）、当前画幅轮廓、三分线、四角把手，
+ * 以及四角把手的拖拽手势。铺满整块预览区，这一层上面不放任何别的控件。
  *
- * 它盖在预览之上，自己**不改 edits**：确认时把视口内的归一化选框交给 [onConfirm]，
- * 由 [PhotoEditor] 合成成 [EditOp.Crop]（[CropGeometry.composedCrop]）。
+ * 它盖在预览之上，自己**不改 edits**：选框以视口像素交给宿主，宿主确认时经
+ * [CropGeometry.composedCrop] 合成成 [EditOp.Crop]。
+ *
+ * **为什么比例预设和确认/取消不在这一层里**（评审 Important 1）：Box 里后声明的子项先吃到
+ * 命中。原先那两行就在本层这个 Box 内，于是它们的高度带内永远轮不到 [detectDragGestures]；
+ * 而初始的 Free 框正好铺满视口，上下边与那两行齐平——右下把手几乎压在确认按钮上、
+ * 左下压在取消上、左上压在「自由」预设上，拖底角变成「确认/取消裁剪」而不是缩放。
+ * 现在控件挪到预览区**之外**（[CropControls]）：两边不共享一个像素，而不是去抢同一块。
+ *
+ * 挪出去还顺便保住了坐标系：本层的矩形与视口同在预览区坐标里，归一化的分母始终是
+ * **完整显示帧**（0..1 = 全帧），没有内缩矩形、没有新增换算。
  *
  * @param viewport 图片（= 当前画幅）在本层里的像素矩形。所有夹取都相对它，
  *   归一化也以它为基准——不然选框会跟实际画面错位（预览是 Fit 摆放的，四周可能有黑边）。
- * @param aspect 当前比例。选择权在宿主（[PhotoEditor]）手里，好让它在退出后记住这次的选择；
- *   换比例时选框按新比例重排。
- * @param onConfirm 收到视口归一化选框（0..1）
+ * @param aspect 当前比例（选择权在宿主，见 [CropControls]）；换比例时选框按新比例重铺。
+ * @param selection 当前选框（预览区像素矩形）。由宿主持有，因为 [CropControls] 的确认按钮
+ *   也要读它；[Rect.Zero] 表示还没铺过。
  */
 @Composable
 fun CropMode(
+    viewport: Rect,
+    aspect: CropAspect,
+    selection: Rect,
+    onSelectionChange: (Rect) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val slopPx = with(LocalDensity.current) { CROP_HANDLE_SLOP_DP.dp.toPx() }
+    val minSide = CropGeometry.minCropSide(viewport.width, viewport.height)
+    // 选框现在是宿主传进来的普通参数：pointerInput 的闭包在整次拖拽里只有一份，
+    // 直接读参数就会停在按下那一刻的值（每步都从旧框重算 → 框抖回原处、拖不动）。
+    // rememberUpdatedState 让闭包每次都读到最新值。
+    val currentSelection by rememberUpdatedState(selection)
+
+    // 拿到尺寸、或尺寸/比例变了，就按当前比例重铺居中奖。
+    // 写在 LaunchedEffect 而不是组合期：组合期回写宿主的 state 会一直重组下去。
+    // 换比例时丢掉手调的框是刻意的：保锚点重算很容易在边界上算出一个贴边的框，
+    // 而「点了比例、框变成该比例的最大居中奖」是用户一看就懂的行为。
+    LaunchedEffect(viewport, aspect) {
+        if (viewport.width > 0f && viewport.height > 0f) {
+            onSelectionChange(CropGeometry.fitAspectRect(aspect, viewport.width, viewport.height))
+        }
+    }
+
+    Canvas(
+        modifier
+            .fillMaxSize()
+            .background(Color(0xB3000000))
+            .pointerInput(viewport, minSide, slopPx, aspect) {
+                var grabbed: CropHandle? = null
+                detectDragGestures(
+                    onDragStart = { p -> grabbed = hitHandle(currentSelection, p, slopPx) },
+                    onDrag = { change, _ ->
+                        val h = grabbed ?: return@detectDragGestures
+                        change.consume()
+                        onSelectionChange(
+                            CropGeometry.resizeForHandle(
+                                rect = currentSelection,
+                                handle = h,
+                                touch = change.position,
+                                frame = viewport,
+                                minSide = minSide,
+                                aspect = aspect,
+                            ),
+                        )
+                    },
+                    onDragEnd = { grabbed = null },
+                    onDragCancel = { grabbed = null },
+                )
+            },
+    ) {
+        val r = selection
+        val whole = Size(size.width, size.height)
+        if (r.width > 0f && r.height > 0f) {
+            // 外遮罩：选框四周各一块（比整屏半透明再挖洞省一次 saveLayer）
+            if (r.left > 0f) drawRect(CROP_MASK, Offset.Zero, Size(r.left, whole.height))
+            if (r.right < whole.width) drawRect(CROP_MASK, Offset(r.right, 0f), Size(whole.width - r.right, whole.height))
+            if (r.top > 0f) drawRect(CROP_MASK, Offset(r.left, 0f), Size(r.width, r.top))
+            if (r.bottom < whole.height) drawRect(CROP_MASK, Offset(r.left, r.bottom), Size(r.width, whole.height - r.bottom))
+
+            // 当前画幅的轮廓（黑边里的部分也要看得见边界）
+            if (viewport.width > 0f) {
+                drawRect(
+                    CROP_FRAME_LINE.copy(alpha = 0.35f), Offset(viewport.left, viewport.top), Size(viewport.width, viewport.height),
+                    style = Stroke(width = 1f.dp.toPx()),
+                )
+            }
+            drawRect(
+                CROP_FRAME_LINE, Offset(r.left, r.top), Size(r.width, r.height),
+                style = Stroke(width = 2f.dp.toPx()),
+            )
+            // 三分线
+            val grid = 1f.dp.toPx()
+            for (i in 1..2) {
+                val x = r.left + r.width * i / 3f
+                val y = r.top + r.height * i / 3f
+                drawLine(CROP_GRID, Offset(x, r.top), Offset(x, r.bottom), strokeWidth = grid)
+                drawLine(CROP_GRID, Offset(r.left, y), Offset(r.right, y), strokeWidth = grid)
+            }
+            // 角把手：从角点往框内伸的两条短边
+            val arm = CROP_HANDLE_ARM.toPx()
+            val thick = 3f.dp.toPx()
+            val corners = listOf(
+                Offset(r.left, r.top) to listOf(Offset(arm, 0f), Offset(0f, arm)),
+                Offset(r.right, r.top) to listOf(Offset(-arm, 0f), Offset(0f, arm)),
+                Offset(r.left, r.bottom) to listOf(Offset(arm, 0f), Offset(0f, -arm)),
+                Offset(r.right, r.bottom) to listOf(Offset(-arm, 0f), Offset(0f, -arm)),
+            )
+            corners.forEach { (corner, arms) ->
+                arms.forEach { drawLine(CROP_FRAME_LINE, corner, corner + it, strokeWidth = thick) }
+            }
+        }
+    }
+}
+
+/**
+ * 裁剪模式的控件行：比例预设 + 取消/提示/确认。
+ *
+ * 宿主把它放在预览区**之外**（编辑器里占的是原来标注面板那个槽位），于是它和 [CropMode]
+ * 的手势层不共享一个像素；塞进同一个 Box 就会吃掉把手的命中，见 [CropMode] 的注释。
+ *
+ * @param selection 舞台层当前的选框（[viewport] 所在坐标系的像素矩形）
+ * @param viewport 与 [CropMode] 同一个视口矩形；确认时用它把选框归一化成分母为全帧的 0..1
+ * @param onConfirm 收到视口归一化选框（0..1）
+ */
+@Composable
+fun CropControls(
+    selection: Rect,
     viewport: Rect,
     aspect: CropAspect,
     onAspectChange: (CropAspect) -> Unit,
@@ -256,97 +370,10 @@ fun CropMode(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // 只有选框活在这里：比例是宿主的（它要在退出后记住这次选择），选框是本层的临时几何。
-    var rect by remember { mutableStateOf(Rect.Zero) }
-    val slopPx = with(LocalDensity.current) { CROP_HANDLE_SLOP_DP.dp.toPx() }
-    val minSide = CropGeometry.minCropSide(viewport.width, viewport.height)
-
-    // 拿到尺寸、或尺寸/比例变了，就按当前比例重铺居中奖。
-    // 写在 LaunchedEffect 而不是组合期：组合期写自己的 mutableStateOf 会一直重组下去。
-    // 换比例时丢掉手调的框是刻意的：保锚点重算很容易在边界上算出一个贴边的框，
-    // 而「点了比例、框变成居中的最大框」是用户一看就懂的行为。
-    LaunchedEffect(viewport, aspect) {
-        if (viewport.width > 0f && viewport.height > 0f) {
-            rect = CropGeometry.fitAspectRect(aspect, viewport.width, viewport.height)
-        }
-    }
-
-    Box(modifier = modifier.fillMaxSize().background(Color(0xB3000000))) {
-        // 拖拽 + 遮罩 + 框线 + 网格 + 把手
-        Canvas(
-            Modifier
-                .fillMaxSize()
-                .pointerInput(viewport, minSide, slopPx, aspect) {
-                    var grabbed: CropHandle? = null
-                    detectDragGestures(
-                        onDragStart = { p -> grabbed = hitHandle(rect, p, slopPx) },
-                        onDrag = { change, _ ->
-                            val h = grabbed ?: return@detectDragGestures
-                            change.consume()
-                            rect = CropGeometry.resizeForHandle(
-                                rect = rect,
-                                handle = h,
-                                touch = change.position,
-                                frame = viewport,
-                                minSide = minSide,
-                                aspect = aspect,
-                            )
-                        },
-                        onDragEnd = { grabbed = null },
-                        onDragCancel = { grabbed = null },
-                    )
-                },
-        ) {
-            val r = rect
-            val whole = Size(size.width, size.height)
-            if (r.width > 0f && r.height > 0f) {
-                // 外遮罩：选框四周各一块（比整屏半透明再挖洞省一次 saveLayer）
-                if (r.left > 0f) drawRect(CROP_MASK, Offset.Zero, Size(r.left, whole.height))
-                if (r.right < whole.width) drawRect(CROP_MASK, Offset(r.right, 0f), Size(whole.width - r.right, whole.height))
-                if (r.top > 0f) drawRect(CROP_MASK, Offset(r.left, 0f), Size(r.width, r.top))
-                if (r.bottom < whole.height) drawRect(CROP_MASK, Offset(r.left, r.bottom), Size(r.width, whole.height - r.bottom))
-
-                // 当前画幅的轮廓（黑边里的部分也要看得见边界）
-                if (viewport.width > 0f) {
-                    drawRect(
-                        CROP_FRAME_LINE.copy(alpha = 0.35f), viewport.topLeft, Size(viewport.width, viewport.height),
-                        style = Stroke(width = 1f.dp.toPx()),
-                    )
-                }
-                drawRect(
-                    CROP_FRAME_LINE, r.topLeft, Size(r.width, r.height),
-                    style = Stroke(width = 2f.dp.toPx()),
-                )
-                // 三分线
-                val grid = 1f.dp.toPx()
-                for (i in 1..2) {
-                    val x = r.left + r.width * i / 3f
-                    val y = r.top + r.height * i / 3f
-                    drawLine(CROP_GRID, Offset(x, r.top), Offset(x, r.bottom), strokeWidth = grid)
-                    drawLine(CROP_GRID, Offset(r.left, y), Offset(r.right, y), strokeWidth = grid)
-                }
-                // 角把手：从角点往框内伸的两条短边
-                val arm = CROP_HANDLE_ARM.toPx()
-                val thick = 3f.dp.toPx()
-                val corners = listOf(
-                    Offset(r.left, r.top) to listOf(Offset(arm, 0f), Offset(0f, arm)),
-                    Offset(r.right, r.top) to listOf(Offset(-arm, 0f), Offset(0f, arm)),
-                    Offset(r.left, r.bottom) to listOf(Offset(arm, 0f), Offset(0f, -arm)),
-                    Offset(r.right, r.bottom) to listOf(Offset(-arm, 0f), Offset(0f, -arm)),
-                )
-                corners.forEach { (corner, arms) ->
-                    arms.forEach { drawLine(CROP_FRAME_LINE, corner, corner + it, strokeWidth = thick) }
-                }
-            }
-        }
-
-        // 顶部：比例预设
+    Column(modifier.fillMaxWidth().background(Color(0xFF111111))) {
+        // 比例预设
         Row(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .background(CROP_MASK, RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp))
-                .padding(horizontal = 8.dp, vertical = 2.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -361,13 +388,9 @@ fun CropMode(
                 }
             }
         }
-
-        // 底部：取消 / 确认
+        // 取消 / 提示 / 确认
         Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -380,8 +403,10 @@ fun CropMode(
                 style = MaterialTheme.typography.labelSmall,
             )
             IconButton(onClick = {
-                onConfirm(CropGeometry.normalizeSelection(rect, viewport))
-            }) {
+                onConfirm(CropGeometry.normalizeSelection(selection, viewport))
+            }, enabled = viewport.width > 0f && viewport.height > 0f) {
+                // 视口还没量出来（首帧）时归一化的分母是 0，确认会当成「整幅都留」写一条无意义的
+                // Crop，所以直接不让点。
                 Icon(Icons.Filled.Check, stringResource(R.string.mediaview_edit_crop_done), tint = Color.White, modifier = Modifier.size(28.dp))
             }
         }

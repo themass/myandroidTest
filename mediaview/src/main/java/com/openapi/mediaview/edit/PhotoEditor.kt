@@ -45,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -107,8 +108,10 @@ fun PhotoEditor(
     var edits by remember(bitmap) { mutableStateOf(PhotoEdits.of(bitmap.width, bitmap.height)) }
     var tool by remember { mutableStateOf(EditorTool.None) }
     var selected by remember { mutableStateOf<Int?>(null) }
-    // 裁剪比例的选择跨进出保留（选框本身每次进入都重铺，见 CropMode）
+    // 裁剪比例的选择跨进出保留（选框本身按视口/比例重铺，见 CropMode）
     var cropAspect by remember { mutableStateOf(CropAspect.Free) }
+    // 裁剪选框（预览区像素）：舞台层写、控件层读，所以只能放在两者之上
+    var cropSelection by remember { mutableStateOf(Rect.Zero) }
 
     // 新画的下一笔默认样式（选中某条标注后，面板改的是那条标注自己的样式）
     var brushColor by remember { mutableStateOf(PALETTE[0]) }
@@ -155,10 +158,16 @@ fun PhotoEditor(
 
             val cropping = tool == EditorTool.Crop
 
+            // 裁剪的控件在预览区**外面**（面板槽），但它得用**同一个**视口矩形做归一化，
+            // 所以 fit 在这里公布出去，舞台层和控件层读的是同一个值——不是各算一遍。
+            // 归一化的分母因此始终是完整显示帧（0..1 = 全帧），没有第二种坐标系。
+            var cropViewport by remember { mutableStateOf(Rect.Zero) }
+
             BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
                 // rendered 已经是裁剪后的位图（PhotoRenderer.applyCrop），所以 fit 自动就是
                 // 「当前画幅」在容器里的位置：裁完之后预览自己变小、黑边自己出现，这里不用特判。
                 val fit = fitRect(rendered.width, rendered.height, constraints.maxWidth.toFloat(), constraints.maxHeight.toFloat())
+                LaunchedEffect(fit) { cropViewport = fit }
                 val imageBitmap = remember(rendered) { rendered.asImageBitmap() }
                 val textMeasurer = rememberTextMeasurer()
                 val density = androidx.compose.ui.platform.LocalDensity.current
@@ -261,9 +270,28 @@ fun PhotoEditor(
                 }
 
                 if (cropping) {
-                    // 视口 = 当前画幅（fit 已含裁剪窗口），所以裁剪框只在图内拖动
+                    // 这一层是**纯舞台**：比例预设与确认/取消在它之外（下面的面板槽），
+                    // 否则那些控件会吃掉角把手的命中（见 CropMode 的注释）。
+                    // 视口用公布出去的 cropViewport 而不是这里的 fit：两层必须永远拿到同一个值，
+                    // 否则裁剪中途预览尺寸变了（TopBar 撤销还活着）就会有一帧用错分母。
                     CropMode(
-                        viewport = fit,
+                        viewport = cropViewport,
+                        aspect = cropAspect,
+                        selection = cropSelection,
+                        onSelectionChange = { cropSelection = it },
+                    )
+                }
+            }
+
+            // 面板：裁剪模式 → 裁剪控件（预设 + 确认/取消，见 CropControls）；
+            // 选中了标注 → 编辑那条；否则按当前工具给默认样式。
+            val index = selectedIndex
+            val op = selectedOp
+            when {
+                cropping -> {
+                    CropControls(
+                        selection = cropSelection,
+                        viewport = cropViewport,
                         aspect = cropAspect,
                         onAspectChange = { cropAspect = it },
                         onConfirm = { sel ->
@@ -271,18 +299,19 @@ fun PhotoEditor(
                             // setCrop 才有「替换旧裁剪」的语义（见 CropGeometry.composedCrop）。
                             edits = edits.setCrop(CropGeometry.composedCrop(EditCoords.cropWindow(edits), sel))
                             tool = EditorTool.None
+                            cropSelection = Rect.Zero
                         },
-                        onCancel = { tool = EditorTool.None },
+                        onCancel = {
+                            tool = EditorTool.None
+                            // 选框 hoist 到宿主之后，「下次进裁剪模式要重新铺一屏」这件事
+                            // 不能只靠 LaunchedEffect(viewport, aspect)：取消不改 edits，
+                            // 视口和比例都没变，就不会重铺，上次的框会莫名其妙留着。
+                            // 确认路径也一样清：视口**通常**会因裁剪而变（从而自己重铺），
+                            // 但那只是巧合（正方形画面裁掉一半，fit 可能一模一样），不该依赖巧合。
+                            cropSelection = Rect.Zero
+                        },
                     )
                 }
-            }
-
-            // 面板：选中了标注 → 编辑那条；否则按当前工具给默认样式。
-            // 裁剪模式下整块让位（CropMode 自带比例预设与确认/取消），否则两个面板叠在一起。
-            val index = selectedIndex
-            val op = selectedOp
-            when {
-                cropping -> Unit
                 op != null -> SelectionPanel(
                     op = op,
                     onDelete = { edits = edits.removeAt(index); selected = null },

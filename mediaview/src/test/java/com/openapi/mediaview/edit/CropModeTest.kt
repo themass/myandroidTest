@@ -185,6 +185,50 @@ class CropModeTest {
 
     // ---- 选框 → Crop，以及与既有裁剪窗口的合成 ----
 
+    /**
+     * 视口 = [PhotoEditor] 的 `fitRect`，即图片在预览区里 Fit 之后的矩形：**通常不在原点**
+     * （竖图左右有黑边、横图上下有黑边）。舞台层与控件层用的是同一个值，
+     * 所以归一化的分母是「视口自身」而不是「整块预览区」——这里钉住：
+     * 视口的四条边正好对应 0/1，选框贴满视口 = 全帧保留。
+     */
+    @Test
+    fun normalizeSelectionUsesTheViewportItselfAsItsFrame() {
+        val viewport = Rect(60f, 0f, 340f, 200f) // 竖图：预览区里左右各留黑边
+        // 贴满视口 → 0..1 全帧
+        val all = CropGeometry.normalizeSelection(viewport, viewport)
+        assertEquals(0f, all.left, 1e-5f)
+        assertEquals(0f, all.top, 1e-5f)
+        assertEquals(1f, all.right, 1e-5f)
+        assertEquals(1f, all.bottom, 1e-5f)
+        // 视口左上半 → 0..0.5
+        val half = CropGeometry.normalizeSelection(Rect(60f, 0f, 200f, 100f), viewport)
+        assertEquals(0f, half.left, 1e-5f)
+        assertEquals(0.5f, half.right, 1e-5f)
+        assertEquals(0.5f, half.bottom, 1e-5f)
+    }
+
+    /**
+     * 上面那条一路走到数据模型：视口不在原点时，选框贴视口边 = 归一化 0/1，
+     * 合成出来的窗口**就等于旧窗口本身**（不缩不漏）——也就是「确认一个满框」
+     * 不会悄悄改动已有的裁剪。
+     */
+    @Test
+    fun fullViewportSelectionOfAnOffsetViewportComposesToTheSameWindow() {
+        val previous = EditOp.Crop(0.2f, 0.1f, 0.8f, 0.9f)
+        val base = build(previous, turns = 1, flipped = true)
+        val viewport = Rect(60f, 0f, 340f, 200f)
+        val composed = CropGeometry.composedCrop(
+            EditCoords.cropWindow(base),
+            CropGeometry.normalizeSelection(viewport, viewport),
+        )
+        // 浮点：0.2f + 1f×0.6f 未必逐位等于 0.8f，所以按分量比，不按 data class 相等
+        assertRect(
+            Rect(previous.left, previous.top, previous.right, previous.bottom),
+            Rect(composed.left, composed.top, composed.right, composed.bottom),
+            1e-6f,
+        )
+    }
+
     @Test
     fun selectionInPixelsBecomesANormalizedCropOfTheViewport() {
         val norm = CropGeometry.normalizeSelection(Rect(100f, 0f, 300f, 200f), Rect(0f, 0f, 400f, 200f))
