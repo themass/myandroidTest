@@ -48,7 +48,8 @@ object CubeLut {
             val line = rawLine.trim()
             if (line.isEmpty() || line.startsWith("#")) continue
 
-            val space = line.indexOf(' ').let { if (it < 0) line.length else it }
+            // 关键字和它后面的值之间可能是空格也可能是制表符
+            val space = WHITESPACE.find(line)?.range?.first ?: line.length
             val keyword = line.substring(0, space)
             val rest = line.substring(space).trim()
 
@@ -75,9 +76,12 @@ object CubeLut {
                     // 真实文件里数字之间可能是连续空格或制表符对齐，所以按空白串切
                     val parts = line.split(WHITESPACE)
                     if (parts.size != 3) return null
+                    // 表尺寸已知，多出来的数值直接判坏，不让缓冲继续长下去
+                    val expected = size * size * size * 3
+                    if (count + 3 > expected) return null
                     for (p in parts) {
                         val v = p.toFloatOrNull() ?: return null
-                        if (count == values.size) values = values.copyOf(values.size * 2)
+                        if (count == values.size) values = values.copyOf(minOf(values.size * 2, expected))
                         values[count++] = v
                     }
                 }
@@ -112,6 +116,9 @@ object LutApply {
     /**
      * **就地**修改 [target]（必须可变；解码出来的位图通常不可变，先 `copy(config, true)`），并返回它本身。
      * 不新建位图：预览每拖一下强度滑杆都要跑一遍，多分配一张大图代价太大。
+     *
+     * 就地改**不可叠加**：同一个 target 连跑两次等于把表套了两遍（第二次是在已经套过表的像素上再套），
+     * 结果和跑一次不一样。所以调用方每次都要从干净的副本起，不要在已套过表的位图上重复调用。
      *
      * @param intensity 0..100，越界会被夹到边界
      */
