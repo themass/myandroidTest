@@ -33,4 +33,5 @@ fun dhEngineLabel(id: DhEngineId): String = when (id) {
     DhEngineId.LIVE2D -> "Live2D"
     DhEngineId.DUIX -> "Duix"
     DhEngineId.TAO_AVATAR -> "Tao"
+    DhEngineId.VRM -> "VRM (实验)"
 }

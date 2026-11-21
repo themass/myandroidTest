@@ -52,6 +52,7 @@ object DhLabBootstrap {
             DhEngineRegistry.register(DhEngineId.DUIX) { DuixDigitalHumanEngine() }
             DhEngineRegistry.register(DhEngineId.LIVE2D) { Live2dDigitalHumanEngine() }
             DhEngineRegistry.register(DhEngineId.TAO_AVATAR) { TaoDigitalHumanEngine() }
+            DhEngineRegistry.register(DhEngineId.VRM) { VrmDigitalHumanEngine() }
             done = true
         }
     }
