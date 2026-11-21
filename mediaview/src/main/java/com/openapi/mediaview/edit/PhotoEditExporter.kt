@@ -57,24 +57,47 @@ object PhotoEditExporter {
     /**
      * 渲染 [edits] 并写入缓存目录。
      *
-     * @return 写好的文件对应的 `file://` Uri；失败返回 null
+     * 走 [PhotoRenderer.renderStrict]（失败返回 null），**不走** [PhotoRenderer.render]：
+     * 后者失败时退回原图引用，那是预览要的语义。导出照抄就成了数据损失——用户裁过、
+     * 加过滤镜，落盘并覆盖暂存的却是原图，界面上还没有任何提示。所以这里失败就返回 null，
+     * 并且**一个文件都不写**（宁可让宿主提示「编辑失败，已使用原图」，也不留一张假装成功的图）。
+     *
+     * 导出是一次性全分辨率路径，不复用预览的 [RenderBaseCache]（每会话一实例，缓存的是降档帧）。
+     *
+     * @param assets 滤镜 `.cube` 的来源；滤镜在降采样之前跑，所以导出用的是全分辨率像素
+     * @return 写好的文件对应的 `file://` Uri；渲染或写盘失败返回 null
      */
     fun export(
         source: Bitmap,
         edits: PhotoEdits,
         cacheDir: File,
+        assets: android.content.res.AssetManager,
     ): Uri? = try {
-        val rendered = PhotoRenderer.render(source, edits)
-        val scaled = scaleForUpload(rendered)
-        val dir = File(cacheDir, DIR).apply { mkdirs() }
-        val hasAlpha = scaled.hasAlpha()
-        val file = File(dir, "edited_${System.currentTimeMillis()}.${if (hasAlpha) "png" else "jpg"}")
-        FileOutputStream(file).use { out ->
-            val format = if (hasAlpha) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
-            scaled.compress(format, if (hasAlpha) 100 else JPEG_QUALITY, out)
+        // renderStrict 返回 null = 渲染失败。这里不能兜底成源图（那正是本函数要消灭的语义），
+        // 也不用 ?.let 之外的写法绕回来：失败就一路 null 到调用方。
+        PhotoRenderer.renderStrict(source, edits, lutProvider = LutAssets.provider(assets))?.let { rendered ->
+            val scaled = scaleForUpload(rendered)
+            val dir = File(cacheDir, DIR).apply { mkdirs() }
+            val hasAlpha = scaled.hasAlpha()
+            val file = File(dir, "edited_${System.currentTimeMillis()}.${if (hasAlpha) "png" else "jpg"}")
+            val compressed = FileOutputStream(file).use { out ->
+                val format = if (hasAlpha) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
+                scaled.compress(format, if (hasAlpha) 100 else JPEG_QUALITY, out)
+            }
+            // 只回收**本函数自己造的**位图。identity edits 时 renderStrict 原样返回调用方的
+            // source，而 ChatRoute 的预览还在用它（pendingEdit = null 只是发信号，真正卸载要等
+            // 一次重组，导出却先在 IO 线程跑完）——回收它，下一次绘制就是
+            // 「Canvas: trying to use a recycled bitmap」。source 的命由调用方定，这里一律不碰。
+            // （可达：decode 的采样只保证长边 < 4096，4000px 的照片就是整幅解出来 > MAX_LONG_EDGE，
+            // 于是 scaleForUpload 必然另造一张 → scaled ≠ rendered。）
+            if (scaled !== rendered && rendered !== source && !rendered.isRecycled) rendered.recycle()
+            // 编码器失败时 compress 只是返回 false，不抛：留下的是一张半截文件 + 一个能打开的 Uri，
+            // 下游（覆盖暂存 → 发送）看不出任何异常。和「静默回退原图」是同一种假成功，一并拒掉。
+            if (compressed) Uri.fromFile(file) else {
+                file.delete()
+                null
+            }
         }
-        if (scaled !== rendered && !rendered.isRecycled) rendered.recycle()
-        Uri.fromFile(file)
     } catch (e: Exception) {
         null
     }

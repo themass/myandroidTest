@@ -299,10 +299,17 @@ fun ChatRoute(
                         scope.launch {
                             val exported = withContext(kotlinx.coroutines.Dispatchers.IO) {
                                 com.openapi.mediaview.edit.PhotoEditExporter.export(
-                                    editing.second, edits, context.cacheDir,
+                                    editing.second, edits, context.cacheDir, context.assets,
                                 )
                             }
-                            if (exported != null) viewModel.onReplaceDraftImage(target, exported, context)
+                            // 导出失败（渲染或写盘）时**不覆盖暂存**：草稿里还是原图，
+                            // 用户至少能发出未编辑的版本。这里必须说清楚，否则就是
+                            // 「以为裁过了」——和静默回退原图是同一种数据损失，只是换了个位置。
+                            if (exported == null) {
+                                toast(R.string.chat_image_edit_fallback)
+                            } else {
+                                viewModel.onReplaceDraftImage(target, exported, context)
+                            }
                         }
                         pendingEdit = null
                     },

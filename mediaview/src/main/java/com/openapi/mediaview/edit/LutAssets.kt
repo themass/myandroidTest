@@ -41,8 +41,13 @@ object LutAssets {
     }
 
     /** 宿主用的形式：绑定到 Context 的 assets，签名正是渲染管线要的 `(String) -> Lut3D?`。 */
-    fun provider(context: Context): (String) -> Lut3D? {
-        val assets = context.applicationContext.assets
-        return { id -> get(assets, id) }
-    }
+    fun provider(context: Context): (String) -> Lut3D? = provider(context.applicationContext.assets)
+
+    /**
+     * 只有 [AssetManager] 时的形式（导出路径拿不到 Context，只有 assets）。
+     *
+     * 与 [provider]`(Context)` 共用同一份记忆化——它们是同一批表的同一个进程级缓存，
+     * 分开记等于让导出再付一次 parse 的钱。
+     */
+    fun provider(assets: AssetManager): (String) -> Lut3D? = { id -> get(assets, id) }
 }
