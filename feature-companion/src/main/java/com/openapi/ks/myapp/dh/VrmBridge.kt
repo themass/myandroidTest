@@ -46,6 +46,13 @@ object VrmBridge {
     fun lookFromDrag(x: Float, y: Float): VrmSceneCommand.Look =
         VrmSceneCommand.Look(x.coerceIn(-1f, 1f), y.coerceIn(-1f, 1f))
 
+    /**
+     * 发进场景页的完整 JS 调用。JSON 线格式用单引号 JS 字面量包住，
+     * `\` 与 `'` 按 JS 规则转义（正常 encode 产物里没有，防御注入）。
+     */
+    fun jsCall(command: VrmSceneCommand): String =
+        "window.vrmCommand('" + encode(command).replace("\\", "\\\\").replace("'", "\\'") + "')"
+
     fun encode(command: VrmSceneCommand): String = when (command) {
         is VrmSceneCommand.Expression -> """{"type":"expression","name":"${command.name}"}"""
         is VrmSceneCommand.Mouth -> """{"type":"mouth","openness":${command.openness}}"""

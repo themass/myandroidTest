@@ -247,6 +247,7 @@ fun DigitalHumanLabHost(
                                 DhEngineId.DUIX -> "Duix 无画面（缺模型或未编入）"
                                 DhEngineId.LIVE2D -> "Live2D 无画面（未编入）"
                                 DhEngineId.TAO_AVATAR -> "Tao 无画面（机型/未编入）"
+                                DhEngineId.VRM -> "VRM 无画面（未下载模型）"
                                 else -> "引擎无画面"
                             },
                             color = Color.White.copy(alpha = 0.6f),
@@ -260,7 +261,8 @@ fun DigitalHumanLabHost(
         // 事件顺序：缩放/拖动层在 Initial pass 先看手指（双指、放大拖拽被它吃掉），
         // 剩下的单点轻触由这层在 Main pass 认成 tap——捏合时多点按下不会误判成点击。
         // 长按同一层认领：抬手前被认成长按的就不是轻触，tap 与长按天然互斥。
-        if (engine.id != DhEngineId.SIMPLE) {
+        // VRM 例外：WebView 自己吃触摸（页面内单指拖动 = 视线跟随），这层会把它整个吃掉。
+        if (engine.id != DhEngineId.SIMPLE && engine.id != DhEngineId.VRM) {
             Box(
                 Modifier
                     .matchParentSize()

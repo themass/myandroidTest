@@ -60,4 +60,22 @@ class VrmBridgeTest {
             VrmBridge.encode(VrmSceneCommand.Look(0.5f, -0.25f)),
         )
     }
+
+    @Test
+    fun js_call_wraps_json_in_a_js_single_quoted_string() {
+        assertEquals(
+            "window.vrmCommand('{\"type\":\"expression\",\"name\":\"happy\"}')",
+            VrmBridge.jsCall(VrmSceneCommand.Expression("happy")),
+        )
+    }
+
+    @Test
+    fun js_call_escapes_backslash_and_single_quote() {
+        // encode 正常产物里没有这两个字符；钉的是注入防线（引号必须被转义，
+        // 否则页面侧 window.vrmCommand 收到的是被截断的 JS）。
+        assertEquals(
+            "window.vrmCommand('{\"type\":\"expression\",\"name\":\"\\\'x\"}')",
+            VrmBridge.jsCall(VrmSceneCommand.Expression("'x")),
+        )
+    }
 }

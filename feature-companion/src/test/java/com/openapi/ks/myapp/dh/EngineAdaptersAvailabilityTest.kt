@@ -26,6 +26,25 @@ class EngineAdaptersAvailabilityTest {
     }
 
     @Test
+    fun vrm_with_seeded_model_file_reports_available() {
+        // dev 播种路径（seed-assets.sh）：模型文件 + 完成标记都在 cache 里 → 引擎必须报可用。
+        val store = DhLabBootstrap.assetStore(context)
+        val spec = com.openapi.ks.dh.AssetManifest.assetsFor(com.openapi.ks.dh.EngineAssets.VRM).first()
+        val root = store.cacheRoot(com.openapi.ks.dh.EngineAssets.VRM)
+        val dest = java.io.File(root, spec.relativePath)
+        dest.parentFile!!.mkdirs()
+        dest.writeText("fake vrm")
+        val marker = java.io.File(root, com.openapi.ks.dh.AssetStore.markerRelativePath(spec))
+        marker.parentFile!!.mkdirs()
+        marker.createNewFile()
+
+        val row = DhEngineRegistry.available(context).first { it.id == DhEngineId.VRM }
+        org.junit.Assert.assertTrue("seeded model must make VRM available: " + row.reason, row.available)
+        org.junit.Assert.assertNull(row.reason)
+        org.junit.Assert.assertFalse(row.needsDownload)
+    }
+
+    @Test
     fun vrm_without_cache_is_unavailable_with_download_reason_and_menu_still_switches() {
         val row = DhEngineRegistry.available(context).first { it.id == DhEngineId.VRM }
         assertFalse(row.available)
