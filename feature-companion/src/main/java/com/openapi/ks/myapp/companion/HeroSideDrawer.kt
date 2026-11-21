@@ -127,8 +127,9 @@ internal fun HeroSideDrawer(
     }
 }
 
-// 4 行（试听×2 + 字幕 + 背景）时每行约 34dp + 8dp 间距 + 20dp 内边距；留到 200 不裁行。
-private val IntrinsicHeightDp = 200.dp
+// 5 行（试听×2 + 字幕 + 背景 + 声音）时每行约 34dp + 8dp 间距 + 20dp 内边距；
+// 声音行是第 5 行加进来的，200 会把行尾裁掉，留到 248。
+private val IntrinsicHeightDp = 248.dp
 private val HANDLE_BG = Color(0x990B1122)
 private val PANEL_BG = Color(0xCC0B1122)
 private val PANEL_BORDER = Color(0x33FFFFFF)
