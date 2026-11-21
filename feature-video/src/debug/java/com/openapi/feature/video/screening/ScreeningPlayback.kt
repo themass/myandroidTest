@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.openapi.feature.video.screening.kernel.Kernel
 import com.openapi.feature.video.screening.kernel.KernelHost
 import com.openapi.cast.DlnaDevice
 import com.openapi.cast.DlnaDiscoveryCallback
@@ -293,6 +292,8 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
         }
     }
     // iconOnly：影院态底部只要图标走带（设计稿），文字让给画面；信息态保留图标+文字在 Lift 卡上。
+    // 两处按用户点名改动：字幕开着时再点一下=直接关掉（之前必须钻进面板，看着像没反应）；
+    // 内核不再上工具台——换内核只在后台按失败自动兜底，不再暴露给用户手动切。
     val toolsRow: @Composable (Boolean) -> Unit = { iconOnly ->
         Row(
             Modifier.fillMaxWidth()
@@ -302,18 +303,18 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
             listOf(
                 "字幕" to Icons.Default.Subtitles,
                 (if (speed == 1f) "倍速" else "${speed}×") to Icons.Default.Speed,
-                (if (host.switching) "换内核…" else "内核 · ${host.kernel.title}") to Icons.Default.Memory,
                 "弹幕" to Icons.Default.ChatBubbleOutline,
                 "更多" to Icons.Default.MoreHoriz,
             ).forEachIndexed { index, (name, picture) ->
                 Column(
                     Modifier.weight(1f).heightIn(min = if (iconOnly) 40.dp else 51.dp).clip(Tile).clickable {
-                        info = ""; panel = if (index == 1) "倍速" else name.substringBefore(" ·")
+                        if (index == 0 && captionSource != 0) { captionSource = 0; info = "字幕已关闭" }
+                        else { info = ""; panel = if (index == 1) "倍速" else name }
                     },
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Icon(picture, name, Modifier.size(18.dp), tint = if (index == 0 && captionSource != 0 || index == 3 && danmaku || index == 2) Mint else White)
+                    Icon(picture, name, Modifier.size(18.dp), tint = if (index == 0 && captionSource != 0 || index == 2 && danmaku) Mint else White)
                     if (!iconOnly) Text(name, fontSize = 11.sp, maxLines = 1)
                 }
             }
@@ -332,6 +333,185 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 Icon(Icons.Default.Cast, null, Modifier.size(17.dp)); Text(" 电视投屏")
             }
         }
+    }
+    val panelBody: @Composable (String) -> Unit = { current ->
+        Text(current, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(6.dp))
+        when (current) {
+            "字幕" -> {
+                Setting("关闭字幕", "不影响播放和弹幕", captionSource == 0) { captionSource = 0 }
+                        // 样式放最前：面板在弹窗里能滚的范围有限，样式是主功能不该藏在延时/导入后面
+                        Text("字幕样式", Modifier.padding(top = 8.dp), fontWeight = FontWeight.Bold)
+                        captionPresets.forEachIndexed { index, preset ->
+                            Setting(preset.title, preset.hint, presetIndex == index) {
+                                presetIndex = index
+                                store.edit().putInt("caption-style", index).apply()
+                            }
+                        }
+                        // 服务端字幕：只有服务端条目才有对应记录，随包样片和本地文件不显示这一段
+                        serverVideoId?.let { videoId ->
+                            when {
+                                serverLoading -> Text("正在取字幕列表…", color = Muted, fontSize = 13.sp)
+                                serverList == null -> {
+                                    Text("服务端字幕还没取到。", color = Peach, fontSize = 13.sp)
+                                    TextButton(onClick = {
+                                        serverLoading = true
+                                        scope.launch {
+                                            serverList = runCatching { withContext(Dispatchers.IO) { feedStore.subtitles(videoId) } }.getOrNull()
+                                            serverLoading = false
+                                        }
+                                    }) { Text("重试") }
+                                }
+                                serverList!!.isEmpty() -> Text("这个视频服务端没有字幕。", color = Muted, fontSize = 13.sp)
+                                else -> serverList!!.forEach { item ->
+                                    val chosen = captionSource == 3 && serverCaptionName == item.title
+                                    Setting(
+                                        item.title,
+                                        (if (item.label.isNotEmpty()) item.label else "") +
+                                            if (serverBusy == item.id) "  加载中…" else "",
+                                        selected = chosen,
+                                    ) {
+                                        if (chosen) { captionSource = 3; return@Setting }
+                                        if (serverCaption != null && serverCaptionName == item.title) { captionSource = 3; return@Setting }
+                                        if (serverBusy != null) return@Setting
+                                        serverBusy = item.id
+                                        scope.launch {
+                                            val loaded = withContext(Dispatchers.IO) {
+                                                runCatching {
+                                                    val text = feedStore.subtitleContent(item.id)
+                                                    check(looksLikeSubtitle(text)) { "内容不像字幕" }
+                                                    ScreeningCaption(StringReader(text!!))
+                                                }
+                                            }
+                                            serverBusy = null
+                                            loaded.onSuccess {
+                                                serverCaption = it; serverCaptionName = item.title
+                                                captionSource = 3; offset = 0; info = "已加载：${item.title}"
+                                            }.onFailure {
+                                                info = "字幕加载失败：${it.message ?: "网络或服务端问题"}"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Setting("导入本地字幕", "打开系统文件选择器，支持 SRT / WebVTT") {
+                            // 同时允许 octet-stream：很多 srt 在系统库里没有注册成文本类型，只给 text/*
+                            // 会让选择器把它们过滤掉；给 */* 又会让华为选择器停在「图片」分区
+                            picker.launch(
+                                arrayOf(
+                                    "text/*",
+                                    "application/x-subrip",
+                                    "application/x-subtitle-vtt",
+                                    "application/octet-stream",
+                                ),
+                            )
+                        }
+                        if (captions != null) Setting("已导入的字幕", captionName, captionSource == 2) { captionSource = 2 }
+                        if (source.asset != null) Setting("使用演示字幕", "随包的 WebVTT，第 1 秒开始逐句出现", captionSource == 1) { captionSource = 1 }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("字幕延时", Modifier.weight(1f))
+                            TextButton({ offset = (offset - 500).coerceAtLeast(-60_000) }) { Text("−500 ms") }
+                            Text("${if (offset > 0) "+" else ""}$offset ms", color = Mint)
+                            TextButton({ offset = (offset + 500).coerceAtMost(60_000) }) { Text("+500 ms") }
+                        }
+                        Text("正值让字幕更晚出现。", color = Muted, fontSize = 12.sp)
+                    }
+                    // 倍速：2.5×/3.0× 是用户点名的两档（追剧快进常用位）
+                    "倍速" -> listOf(.5f, .75f, 1f, 1.25f, 1.5f, 2f, 2.5f, 3f).forEach { value ->
+                        Setting("${value}×", if (value == 1f) "正常速度" else "", speed == value) {
+                            speed = value; host.setSpeed(value); panel = null
+                        }
+                    }
+                    "弹幕" -> {
+                        Setting("关闭弹幕", "立即清屏，不影响字幕和播放", !danmaku) { danmaku = false }
+                        // 来源切换：两个来源实现同一个 TimedCommentSource，渲染和车道调度完全共用
+                        Setting("本地样例弹幕", "随包内置，无需网络", danmaku && danmakuSource == DANMAKU_SAMPLE) {
+                            danmakuSource = DANMAKU_SAMPLE; danmaku = true
+                        }
+                        Setting("服务端弹幕", "链路演示：分窗拉取、发送回显、重试、撤回（假服务端，接口与真服务端一致）", danmaku && danmakuSource == DANMAKU_SERVER) {
+                            danmakuSource = DANMAKU_SERVER; danmaku = true
+                        }
+                        Setting("在线弹幕", "真 HTTP 收发：分窗分页拉取、幂等发送、撤回（服务端未就绪时显示错误，可切回本地）", danmaku && danmakuSource == DANMAKU_ONLINE) {
+                            danmakuSource = DANMAKU_ONLINE; danmaku = true
+                        }
+                        if (danmaku) {
+                            OutlinedTextField(
+                                value = danmakuDraft,
+                                onValueChange = { danmakuDraft = it.take(40) },
+                                placeholder = { Text("发一条弹幕，贴在 ${time(host.positionNow())}") },
+                                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                                singleLine = true,
+                            )
+                            danmakuState.outgoing.lastOrNull()?.let { mine ->
+                                val label = when (mine.state) {
+                                    SendState.Sending -> "发送中"
+                                    SendState.Sent -> "已发送"
+                                    SendState.Failed -> "发送失败：${mine.error ?: "未知原因"}"
+                                    SendState.Retracted -> "已撤回"
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("「${mine.text}」 $label", color = if (mine.state == SendState.Failed) Peach else Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                                    if (mine.state == SendState.Failed) TextButton(onClick = { scope.launch { feed.retry(mine.clientMessageId) } }) { Text("重试") }
+                                    if (mine.state == SendState.Sent) TextButton(onClick = { scope.launch { feed.retract(mine.clientMessageId) } }) { Text("撤回") }
+                                }
+                            }
+                            TextButton(
+                                enabled = danmakuDraft.isNotBlank(),
+                                onClick = {
+                                    // 发送时刻固定为打开输入时的播放位置，避免打字时视频在走贴错场景
+                                    val at = host.positionNow()
+                                    val text = danmakuDraft
+                                    danmakuDraft = ""
+                                    scope.launch { feed.send(at, text) }
+                                },
+                            ) { Text("发送，贴在 ${time(host.positionNow())}") }
+                        }
+                        Text(
+                            "弹幕跟着媒体时钟走：暂停就停住，倍速会一起变快变慢，拖进度条立刻换成那个位置的弹幕。" +
+                                "固定在上半区，底部留给字幕。",
+                            color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp),
+                        )
+                    }
+                    "更多" -> {
+                        Setting("适应画面", "保留原始比例", !fill) { fill = false }
+                        Setting("填满画面", "可能裁掉画面边缘", fill) { fill = true }
+                    }
+                    // 内核不在这开面板：用户不选内核，失败时 KernelHost 自动换另一个顶上去（无感）。
+                    "电视投屏" -> {
+                        Text("手机和电视须连接同一局域网。字幕和弹幕仅在手机显示。", color = Muted)
+                        if (scanning) Text("正在搜索电视…", Modifier.padding(top = 12.dp))
+                        else if (devices.isEmpty()) Text("未发现可投屏的电视。", Modifier.padding(top = 12.dp))
+                        devices.forEach { device ->
+                            Setting(device.friendlyName, "DLNA") {
+                                info = "正在准备投屏…"
+                                scope.launch {
+                                    val file = withContext(Dispatchers.IO) {
+                                        runCatching {
+                                            val input = source.asset?.let { context.assets.open("$it.mp4") }
+                                                ?: source.uri?.let(context.contentResolver::openInputStream)
+                                            checkNotNull(input).use { stream ->
+                                                File.createTempFile("screening-", ".mp4", context.cacheDir).also { out ->
+                                                    try { out.outputStream().use { stream.copyTo(it) } }
+                                                    catch (failure: Exception) { out.delete(); throw failure }
+                                                }
+                                            }
+                                        }.getOrNull()
+                                    }
+                                    if (file == null) {
+                                        info = "无法读取视频文件。"
+                                    } else {
+                                        caster.castLocal(device, file.path, source.title) { failure ->
+                                            info = failure?.let { "投屏失败：$it" } ?: "已发送到 ${device.friendlyName}"
+                                            if (failure == null) host.pause()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+        }
+        if (info.isNotEmpty()) Text(info, Modifier.padding(top = 9.dp), color = Mint)
     }
     Column(Modifier.fillMaxSize().background(Ink).then(
         if (!full) Modifier.safeDrawingPadding().verticalScroll(rememberScrollState()) else Modifier
@@ -367,9 +547,10 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
             )
             Box(
                 Modifier.matchParentSize()
-                    .pointerInput(locked, full) {
+                    .pointerInput(locked, full, panel) {
                         detectTapGestures(
-                            onTap = { if (!locked) { chrome = !chrome; interaction++ } },
+                            // 影院态菜单打开时，点画面先收菜单（菜单就在底部走带上，点黑处=关掉它）
+                            onTap = { if (!locked) { if (panel != null) panel = null else { chrome = !chrome }; interaction++ } },
                             onDoubleTap = { tap ->
                                 if (!locked) { jump(if (tap.x < size.width / 2) -10_000 else 10_000); chrome = true }
                             },
@@ -482,11 +663,37 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                     }
                 }
             }
+            if (full) panel?.let { current ->
+                // 影院态菜单（用户点名「底部弹窗一点不好看」）：不再是全宽大抽屉，
+                // 半透 scrim + 一张浮在走带上方的圆角卡；点 scrim 或画面都能收。
+                Box(
+                    Modifier.matchParentSize()
+                        .pointerInput(current) { detectTapGestures { panel = null; interaction++ } }
+                        .background(Color.Black.copy(alpha = .42f)),
+                ) {
+                    Column(
+                        Modifier.align(Alignment.BottomCenter).width(340.dp)
+                            .padding(bottom = 116.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Ink.copy(alpha = .96f))
+                            .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 10.dp)
+                            .heightIn(max = 170.dp)
+                            .verticalScroll(rememberScrollState()),
+                    ) { panelBody(current) }
+                }
+            }
             if (locked) {
-                TextButton(
-                    onClick = { locked = false; chrome = true; interaction++ },
-                    modifier = Modifier.align(Alignment.TopStart).padding(12.dp),
-                ) { Text("解锁") }
+                // 锁定/解锁成对都在右上角同一个位置、同一套锁头（用户点名）：
+                // 锁定后其他控件全收，只留解锁锁头在这个角，样式和锁定键一模一样。
+                Row(
+                    Modifier.align(Alignment.TopEnd).fillMaxWidth()
+                        .background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = .7f), Color.Transparent)))
+                        .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
+                        .padding(start = 8.dp, end = 8.dp, top = 10.dp, bottom = 12.dp),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    ScreenIcon(Icons.Default.LockOpen, "解锁控件", { locked = false; chrome = true; interaction++ })
+                }
             }
         }
         if (!full) {
@@ -504,206 +711,15 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
             }
         }
     }
-    panel?.let { current ->
+    // 面板内容只写一份；影院态浮在走带上方（用户点名底部大弹窗难看），信息态还是底部抽屉。
+    // 信息态：底部抽屉；影院态的面板浮在画面 Box 里（见播放区），不再是横屏大抽屉。
+    if (!full) panel?.let { current ->
         ModalBottomSheet(onDismissRequest = { panel = null; interaction++ }, containerColor = Ink) {
             Column(
-                Modifier.fillMaxWidth().heightIn(max = if (full) 235.dp else 640.dp)
+                Modifier.fillMaxWidth().heightIn(max = 640.dp)
                     .verticalScroll(rememberScrollState())
                     .padding(start = 20.dp, end = 20.dp, bottom = 18.dp),
-            ) {
-                Text(current, fontSize = 24.sp, fontWeight = FontWeight.Black)
-                Spacer(Modifier.height(8.dp))
-                when (current) {
-                    "字幕" -> {
-                        Setting("关闭字幕", "不影响播放和弹幕", captionSource == 0) { captionSource = 0 }
-                        // 样式放最前：面板在弹窗里能滚的范围有限，样式是主功能不该藏在延时/导入后面
-                        Text("字幕样式", Modifier.padding(top = 8.dp), fontWeight = FontWeight.Bold)
-                        captionPresets.forEachIndexed { index, preset ->
-                            Setting(preset.title, preset.hint, presetIndex == index) {
-                                presetIndex = index
-                                store.edit().putInt("caption-style", index).apply()
-                            }
-                        }
-                        // 服务端字幕：只有服务端条目才有对应记录，随包样片和本地文件不显示这一段
-                        serverVideoId?.let { videoId ->
-                            when {
-                                serverLoading -> Text("正在取字幕列表…", color = Muted, fontSize = 13.sp)
-                                serverList == null -> {
-                                    Text("服务端字幕还没取到。", color = Peach, fontSize = 13.sp)
-                                    TextButton(onClick = {
-                                        serverLoading = true
-                                        scope.launch {
-                                            serverList = runCatching { withContext(Dispatchers.IO) { feedStore.subtitles(videoId) } }.getOrNull()
-                                            serverLoading = false
-                                        }
-                                    }) { Text("重试") }
-                                }
-                                serverList!!.isEmpty() -> Text("这个视频服务端没有字幕。", color = Muted, fontSize = 13.sp)
-                                else -> serverList!!.forEach { item ->
-                                    val chosen = captionSource == 3 && serverCaptionName == item.title
-                                    Setting(
-                                        item.title,
-                                        (if (item.label.isNotEmpty()) item.label else "") +
-                                            if (serverBusy == item.id) "  加载中…" else "",
-                                        selected = chosen,
-                                    ) {
-                                        if (chosen) { captionSource = 3; return@Setting }
-                                        if (serverCaption != null && serverCaptionName == item.title) { captionSource = 3; return@Setting }
-                                        if (serverBusy != null) return@Setting
-                                        serverBusy = item.id
-                                        scope.launch {
-                                            val loaded = withContext(Dispatchers.IO) {
-                                                runCatching {
-                                                    val text = feedStore.subtitleContent(item.id)
-                                                    check(looksLikeSubtitle(text)) { "内容不像字幕" }
-                                                    ScreeningCaption(StringReader(text!!))
-                                                }
-                                            }
-                                            serverBusy = null
-                                            loaded.onSuccess {
-                                                serverCaption = it; serverCaptionName = item.title
-                                                captionSource = 3; offset = 0; info = "已加载：${item.title}"
-                                            }.onFailure {
-                                                info = "字幕加载失败：${it.message ?: "网络或服务端问题"}"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        Setting("导入本地字幕", "打开系统文件选择器，支持 SRT / WebVTT") {
-                            // 同时允许 octet-stream：很多 srt 在系统库里没有注册成文本类型，只给 text/*
-                            // 会让选择器把它们过滤掉；给 */* 又会让华为选择器停在「图片」分区
-                            picker.launch(
-                                arrayOf(
-                                    "text/*",
-                                    "application/x-subrip",
-                                    "application/x-subtitle-vtt",
-                                    "application/octet-stream",
-                                ),
-                            )
-                        }
-                        if (captions != null) Setting("已导入的字幕", captionName, captionSource == 2) { captionSource = 2 }
-                        if (source.asset != null) Setting("使用演示字幕", "随包的 WebVTT，第 1 秒开始逐句出现", captionSource == 1) { captionSource = 1 }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("字幕延时", Modifier.weight(1f))
-                            TextButton({ offset = (offset - 500).coerceAtLeast(-60_000) }) { Text("−500 ms") }
-                            Text("${if (offset > 0) "+" else ""}$offset ms", color = Mint)
-                            TextButton({ offset = (offset + 500).coerceAtMost(60_000) }) { Text("+500 ms") }
-                        }
-                        Text("正值让字幕更晚出现。", color = Muted, fontSize = 12.sp)
-                    }
-                    "倍速" -> listOf(.5f, .75f, 1f, 1.25f, 1.5f, 2f).forEach { value ->
-                        Setting("${value}×", if (value == 1f) "正常速度" else "", speed == value) {
-                            speed = value; host.setSpeed(value); panel = null
-                        }
-                    }
-                    "弹幕" -> {
-                        Setting("关闭弹幕", "立即清屏，不影响字幕和播放", !danmaku) { danmaku = false }
-                        // 来源切换：两个来源实现同一个 TimedCommentSource，渲染和车道调度完全共用
-                        Setting("本地样例弹幕", "随包内置，无需网络", danmaku && danmakuSource == DANMAKU_SAMPLE) {
-                            danmakuSource = DANMAKU_SAMPLE; danmaku = true
-                        }
-                        Setting("服务端弹幕", "链路演示：分窗拉取、发送回显、重试、撤回（假服务端，接口与真服务端一致）", danmaku && danmakuSource == DANMAKU_SERVER) {
-                            danmakuSource = DANMAKU_SERVER; danmaku = true
-                        }
-                        Setting("在线弹幕", "真 HTTP 收发：分窗分页拉取、幂等发送、撤回（服务端未就绪时显示错误，可切回本地）", danmaku && danmakuSource == DANMAKU_ONLINE) {
-                            danmakuSource = DANMAKU_ONLINE; danmaku = true
-                        }
-                        if (danmaku) {
-                            OutlinedTextField(
-                                value = danmakuDraft,
-                                onValueChange = { danmakuDraft = it.take(40) },
-                                placeholder = { Text("发一条弹幕，贴在 ${time(host.positionNow())}") },
-                                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                                singleLine = true,
-                            )
-                            danmakuState.outgoing.lastOrNull()?.let { mine ->
-                                val label = when (mine.state) {
-                                    SendState.Sending -> "发送中"
-                                    SendState.Sent -> "已发送"
-                                    SendState.Failed -> "发送失败：${mine.error ?: "未知原因"}"
-                                    SendState.Retracted -> "已撤回"
-                                }
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("「${mine.text}」 $label", color = if (mine.state == SendState.Failed) Peach else Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
-                                    if (mine.state == SendState.Failed) TextButton(onClick = { scope.launch { feed.retry(mine.clientMessageId) } }) { Text("重试") }
-                                    if (mine.state == SendState.Sent) TextButton(onClick = { scope.launch { feed.retract(mine.clientMessageId) } }) { Text("撤回") }
-                                }
-                            }
-                            TextButton(
-                                enabled = danmakuDraft.isNotBlank(),
-                                onClick = {
-                                    // 发送时刻固定为打开输入时的播放位置，避免打字时视频在走贴错场景
-                                    val at = host.positionNow()
-                                    val text = danmakuDraft
-                                    danmakuDraft = ""
-                                    scope.launch { feed.send(at, text) }
-                                },
-                            ) { Text("发送，贴在 ${time(host.positionNow())}") }
-                        }
-                        Text(
-                            "弹幕跟着媒体时钟走：暂停就停住，倍速会一起变快变慢，拖进度条立刻换成那个位置的弹幕。" +
-                                "固定在上半区，底部留给字幕。",
-                            color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp),
-                        )
-                    }
-                    "更多" -> {
-                        Setting("适应画面", "保留原始比例", !fill) { fill = false }
-                        Setting("填满画面", "可能裁掉画面边缘", fill) { fill = true }
-                    }
-                    "内核" -> {
-                        Text("换内核不重启播放：新内核静音准备好，第一帧上屏时才切过去。位置、倍速、字幕都不受影响；新内核播不了会自动退回原来的，并保留你的偏好设置。", color = Muted, fontSize = 12.sp)
-                        Spacer(Modifier.height(8.dp))
-                        Kernel.entries.forEach { kind ->
-                            Setting(
-                                "${kind.title} 内核",
-                                if (host.switching && host.kernel != kind) kind.note else kind.note,
-                                host.kernel == kind && !host.switching,
-                            ) {
-                                if (host.kernel == kind) return@Setting
-                                info = "正在切换到 ${kind.title}…"
-                                host.select(kind)
-                                panel = null
-                            }
-                        }
-                        Text("选择会写回设置里的播放内核，别的页面打开视频也用同一个。", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
-                    }
-                    "电视投屏" -> {
-                        Text("手机和电视须连接同一局域网。字幕和弹幕仅在手机显示。", color = Muted)
-                        if (scanning) Text("正在搜索电视…", Modifier.padding(top = 12.dp))
-                        else if (devices.isEmpty()) Text("未发现可投屏的电视。", Modifier.padding(top = 12.dp))
-                        devices.forEach { device ->
-                            Setting(device.friendlyName, "DLNA") {
-                                info = "正在准备投屏…"
-                                scope.launch {
-                                    val file = withContext(Dispatchers.IO) {
-                                        runCatching {
-                                            val input = source.asset?.let { context.assets.open("$it.mp4") }
-                                                ?: source.uri?.let(context.contentResolver::openInputStream)
-                                            checkNotNull(input).use { stream ->
-                                                File.createTempFile("screening-", ".mp4", context.cacheDir).also { out ->
-                                                    try { out.outputStream().use { stream.copyTo(it) } }
-                                                    catch (failure: Exception) { out.delete(); throw failure }
-                                                }
-                                            }
-                                        }.getOrNull()
-                                    }
-                                    if (file == null) {
-                                        info = "无法读取视频文件。"
-                                    } else {
-                                        caster.castLocal(device, file.path, source.title) { failure ->
-                                            info = failure?.let { "投屏失败：$it" } ?: "已发送到 ${device.friendlyName}"
-                                            if (failure == null) host.pause()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                if (info.isNotEmpty()) Text(info, Modifier.padding(top = 9.dp), color = Mint)
-            }
+            ) { panelBody(current) }
         }
     }
 }

@@ -618,8 +618,13 @@ private fun Library(
                 }
             }
             FeedError(pager.error, pager::reload)
-            if (page.sample != null) FilledTonalButton(onClick = { picker.launch(arrayOf("video/*")) }, modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
-                Text("打开手机里的视频")
+            // 样式跟着下面的「继续看」行走：Lift 卡 + 薄荷图标（用户点名实验页不该再混旧的 tonal 按钮）
+            if (page.sample != null) Row(
+                Modifier.padding(top = 10.dp).fillMaxWidth().clip(Tile).background(Lift).clickable { picker.launch(arrayOf("video/*")) }.padding(11.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Default.PlayArrow, null, tint = Mint)
+                Text("打开手机里的视频", Modifier.padding(start = 8.dp), fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
             resume?.let { entry ->
                 Row(Modifier.padding(top = 10.dp).fillMaxWidth().clip(Tile).background(Lift).clickable { openEntry(entry) }.padding(11.dp),
