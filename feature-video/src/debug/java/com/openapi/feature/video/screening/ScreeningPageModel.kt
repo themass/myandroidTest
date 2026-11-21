@@ -31,18 +31,23 @@ internal enum class FeedRoute { CHANNEL, ALBUM, PLAY, WEB, CONFIG }
  * 这张卡是不是「点进去还有一页」的东西：图集卡，或者能定出频道 key 的卡。
  * 外链卡（http/https）和配置频道卡（video://config）都算入口——原逻辑把它们
  * 路由到 WebView / 旧频道页，不是在放映场里直接播，也不进放映场内页。
+ * 例外：路径直接落在媒体文件上的外链（裸 m3u8/mp4，ddys 片单的影片卡就是这种）
+ * 不是「一页」，是能直接播的源，不算入口。
  * 剩下的（直链 video://）才当可以直接播。
  */
 internal val RemoteEntry.isGroupEntry: Boolean
-    get() = !videoChannelKey().isNullOrEmpty() || isWebAction(actionUrl) || isConfigAction(actionUrl) ||
+    get() = !videoChannelKey().isNullOrEmpty() ||
+        (isWebAction(actionUrl) && !isPlayableMediaUrl(actionUrl)) || isConfigAction(actionUrl) ||
         sampleCoverAsset() != null || key.startsWith(SAMPLE_CHANNEL_KEY_PREFIX)
 
 /**
  * 一个推荐位在页面上怎么响应：图集/真频道入口进内页，外链和配置频道走原路由，其余直接播。
- * 外链和 CONFIG 必须排在频道/播放之前——原逻辑（`ConfigActionJump`）对它们没有别的去处。
+ * 可播媒体外链排在 WEB 之前——WebView 不播 HLS，塞进去就是黑屏；放映场内核（Exo/IJK）能直接播。
+ * 其余外链和 CONFIG 必须排在频道/播放之前——原逻辑（`ConfigActionJump`）对它们没有别的去处。
  */
 internal fun routeOf(entry: RemoteEntry): FeedRoute = when {
     entry.isImageCard -> FeedRoute.ALBUM
+    isPlayableMediaUrl(entry.actionUrl) -> FeedRoute.PLAY
     isWebAction(entry.actionUrl) -> FeedRoute.WEB
     isConfigAction(entry.actionUrl) -> FeedRoute.CONFIG
     entry.isGroupEntry -> FeedRoute.CHANNEL

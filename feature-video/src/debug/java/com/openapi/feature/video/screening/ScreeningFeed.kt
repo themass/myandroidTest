@@ -74,6 +74,22 @@ internal fun isWebAction(actionUrl: String?): Boolean =
     schemeOf(actionUrl) == "http" || schemeOf(actionUrl) == "https"
 
 /**
+ * 可播的媒体文件后缀（放映场内核认的格式；FLV/AVI 这类 Media3 不认的故意不收，
+ * 让它们继续走 WEB，比进播放器黑屏强）。比较时去掉 query 和大小写。
+ */
+private val PLAYABLE_SUFFIXES = listOf(".m3u8", ".mp4", ".mkv", ".ts")
+
+/**
+ * http(s) 且路径直接落在可播媒体文件上（ddys 片单的 actionUrl 就是裸 `…/index.m3u8`）。
+ * 这类卡不该进 WebView（网页壳不播 HLS，点了就是黑屏），要走放映场内核直接播。
+ */
+internal fun isPlayableMediaUrl(actionUrl: String?): Boolean {
+    if (!isWebAction(actionUrl)) return false
+    val path = actionUrl!!.substringBefore('?').lowercase()
+    return PLAYABLE_SUFFIXES.any { path.endsWith(it) }
+}
+
+/**
  * 配置频道卡：`video://config?channel=hsex_all`（夜色分类全是这种）。
  *
  * 原逻辑把 `video://` 路由到 `VideoChannleActivity`，它先拿 `channel` 调

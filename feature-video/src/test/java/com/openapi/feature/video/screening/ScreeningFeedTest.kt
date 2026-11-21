@@ -176,11 +176,47 @@ class ScreeningFeedTest {
         // 原页面里这类卡点下去是 WebView；放映场不许把它判给 CHANNEL/PLAY
         assertEquals(FeedRoute.CHANNEL, routeOf(remoteEntry(2L, 0, "内部频道", null, null, 1f,
             "videoList1://video/list?channel=movie_1", false, dataType = 5)!!))
-        // 直链 mp4 也是 https scheme：原路由表对 https 只有 WebView 一个去处，跟它对齐
-        assertEquals(FeedRoute.WEB, routeOf(remoteEntry(3L, 0, "直链视频", null, null, 1f,
-            "https://cdn.example/a.mp4", false, dataType = 2)!!))
+        // 网页壳不播 HLS/MKV；内核也不认的 .flv 继续走 WEB，比进播放器黑屏强
+        assertEquals(FeedRoute.WEB, routeOf(remoteEntry(3L, 0, "网页视频页", null, null, 1f,
+            "https://ddys.io/movie/2024.html", false, dataType = 2)!!))
+        assertEquals(FeedRoute.WEB, routeOf(remoteEntry(6L, 0, "flv 流", null, null, 1f,
+            "https://cdn.example/a.flv", false, dataType = 2)!!))
         assertEquals(FeedRoute.ALBUM, routeOf(remoteEntry(4L, 0, "册子", null, null, 1f,
             "img://channel/list?channel=img_night", false, dataType = 6)!!))
+    }
+
+    // ---- ddys 片单真机回归：影片卡 actionUrl 是裸 m3u8，必须进内核而不是 WebView ----
+
+    @Test
+    fun `媒体文件外链直接播，普通网页外链进 WEB`() {
+        assertTrue(isPlayableMediaUrl("https://v.lzcdn27.com/20260110/3188_12fe1643/index.m3u8"))
+        assertTrue(isPlayableMediaUrl("https://cdn.example/A.MP4"))
+        assertTrue(isPlayableMediaUrl("https://cdn.example/a.m3u8?token=xyz"))
+        // query 里有 .mp4 不算，看的是路径
+        assertFalse(isPlayableMediaUrl("https://cdn.example/play?id=a.mp4"))
+        assertFalse(isPlayableMediaUrl("https://ddys.io/movie/2024.html"))
+        assertFalse(isPlayableMediaUrl("https://ddys.io/movie/2024"))
+        assertFalse(isPlayableMediaUrl("videoList1://list?channel=ddys动作"))
+        assertFalse(isPlayableMediaUrl(null))
+    }
+
+    @Test
+    fun `裸 m3u8 影片卡路由 PLAY：不进 WebView 也不当频道入口`() {
+        // 实机日志样本：route=WEB 导致黑屏（WebView 不播 HLS）
+        val movie = remoteEntry(1L, 0, "猎战狂徒", null, null, 1.5f,
+            "https://v.lzcdn27.com/20260110/3188_12fe1643/index.m3u8", false, dataType = 2)!!
+        assertEquals(FeedRoute.PLAY, routeOf(movie))
+        // 不是「还有一页」：右上角也不能显示成频道入口样式
+        assertFalse(movie.isGroupEntry)
+    }
+
+    @Test
+    fun `带 channel 参数的可播外链仍是频道入口不误伤`() {
+        // 外链频道卡（param 有值、路径不是媒体文件）维持 WEB 原路由
+        val channel = remoteEntry(1L, 0, "成人动漫", null, null, 1.2f,
+            "https://exex.j8olo.cc/page/shipin/15", false, dataType = 5, param = "se8成人动漫")!!
+        assertEquals(FeedRoute.WEB, routeOf(channel))
+        assertTrue(channel.isGroupEntry)
     }
 
     // ---- 夜色分类真机回归：video://config?channel= 是配置频道，不是可播条目 ----
