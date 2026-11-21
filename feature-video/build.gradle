@@ -8,13 +8,24 @@ apply from: rootProject.file('gradle/android-library.gradle')
 
 android {
     namespace = 'com.openapi.feature.video'
+    // Only the debug-only Screening Activity uses these shared, offline sample assets.
+    sourceSets.debug.assets.srcDir(rootProject.file('docs/design/video-suite-prototype/media'))
     buildFeatures {
         compose = true
         viewBinding = true
     }
+    testOptions {
+        unitTests {
+            // FeedPager 的重试路径带 Log.i/w，JVM 测试里按 no-op 处理即可
+            returnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    // FeedPager 的重试策略跑在协程上，用虚拟时间测退避等待
+    testImplementation libs.kotlinx.coroutines.test
     // 视频页的实时字幕与翻译
     implementation project(':speech')
     implementation libs.androidx.appcompat

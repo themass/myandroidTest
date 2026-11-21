@@ -33,4 +33,6 @@
     <string name="mediaview_edit_hint_draw">在图片上滑动涂鸦；点已画的笔迹可选中</string>
     <string name="mediaview_edit_hint_text">点图片添加文字；点已有文字可选中，拖动可移动</string>
     <string name="mediaview_edit_hint_mosaic">在要打码的地方滑动，手指划过的地方会被马赛克</string>
+    <string name="mediaview_image_load_failed">图片加载失败，点击重试</string>
+    <string name="mediaview_image_retrying">正在重新加载…</string>
 </resources>

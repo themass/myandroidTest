@@ -5,6 +5,7 @@ import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
@@ -62,6 +63,7 @@ import com.openapi.feature.video.R
 import com.openapi.core.model.RecommendVo
 import com.openapi.core.config.Constants
 import com.openapi.feature.video.page.VideoShowActivityLazyUrl
+import com.openapi.feature.video.prototype.NewVideoShowActivity
 
 @Composable
 internal fun VideoRow(video: LocalVideo, onClick: () -> Unit, onLongClick: () -> Unit) {
@@ -117,7 +119,13 @@ internal fun playLocal(context: Context, video: LocalVideo) {
         needLazyUrl = false
         img = ""
     }
-    val intent = Intent(context, VideoShowActivityLazyUrl::class.java)
+    // 实验开关：调试包走新播放页（prototype 包内实现），正式包仍走旧页，随时可退回去
+    val debuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+    val intent = if (debuggable) {
+        Intent(context, NewVideoShowActivity::class.java)
+    } else {
+        Intent(context, VideoShowActivityLazyUrl::class.java)
+    }
     intent.putExtra(Constants.CONFIG_PARAM, vo)
     context.startActivity(intent)
 }

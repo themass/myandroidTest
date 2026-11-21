@@ -100,6 +100,12 @@ internal enum class HomeTab(@StringRes val label: Int, val icon: ImageVector) {
 @Composable
 fun HomeScreen() {
     var selected by rememberSaveable { mutableIntStateOf(HomeTab.Chat.ordinal) }
+    // P0-4：聊天页的电话入口 = 跳到陪伴页并直接进通话。这里是跨标签的一次性信号，
+    // CompanionRoute 消费后立即复位，回到本页不会重复弹通话。
+    // 必须是进程内 remember，不能用 rememberSaveable：信号置位后进程若被杀
+    // （麦克风权限弹窗挂着时被系统回收就是一例），savedState 会把 pending 带回来，
+    // 重启后 LaunchedEffect 直接替用户拨电话（真机踩到，见 CallLaunchSignalTest）。
+    var callLaunchPending by remember { mutableStateOf(false) }
     // 「我的」：从侧边栏进入，从右边滑入的独立页面，可以右滑关闭
     var profilePageOpen by rememberSaveable { mutableStateOf(false) }
     val current = HomeTab.entries[selected]
@@ -233,12 +239,23 @@ fun HomeScreen() {
             ) {
                 stateHolder.SaveableStateProvider(current.name) {
                     when (current) {
-                        HomeTab.Chat -> ChatRoute(onMenuClick = openDrawer)
+                        HomeTab.Chat -> ChatRoute(
+                            onMenuClick = openDrawer,
+                            // 拍照解题在 :feature-photosolve：feature 之间不依赖，由 app 在这里接上入口（P3-22）
+                            onOpenPhotoSolve = { com.openapi.feature.photosolve.PhotoSolveActivity.start(context) },
+                            // 语音通话在 :feature-companion：同样不建依赖边，跳陪伴标签并请求直接进通话（P0-4）
+                            onStartVoiceCall = {
+                                callLaunchPending = true
+                                selected = HomeTab.Companion.ordinal
+                            },
+                        )
                         HomeTab.Companion -> CompanionRoute(
                             onMenuClick = openDrawer,
                             initialCharacterId = scriptCharacterId
                                 ?: com.openapi.ks.myapp.companion.DEFAULT_CHARACTER_ID,
                             scriptCaseId = scriptCaseId,
+                            launchCallOnOpen = callLaunchPending,
+                            onLaunchCallHandled = { callLaunchPending = false },
                         )
                         HomeTab.Channels -> ChannelsHub()
                         HomeTab.AgentChat -> AgentChatEntry()

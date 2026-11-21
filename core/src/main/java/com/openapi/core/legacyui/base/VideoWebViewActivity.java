@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.openapi.core.legacyui.app.LogActivity;
+import com.openapi.core.legacyui.app.BaseFragmentActivity;
 import com.openapi.common.ui.widget.MyWebView;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.PackageUtils;
@@ -20,8 +20,11 @@ import com.openapi.core.legacyui.features.BaseWebViewFragment;
 
 /**
  * Created by openapi on 2016/3/17.
+ *
+ * 基类从 LogActivity 换成 BaseFragmentActivity（与 WebViewActivity 同款）：
+ * 旧实现没有工具栏，本页没有任何返回入口（溢出菜单里也没有）。
  */
-public class VideoWebViewActivity extends LogActivity implements MyWebView.OnTouchRightSlide {
+public class VideoWebViewActivity extends BaseFragmentActivity implements MyWebView.OnTouchRightSlide {
     BaseWebViewFragment webViewFragment;
     private String url;
 
@@ -42,6 +45,7 @@ public class VideoWebViewActivity extends LogActivity implements MyWebView.OnTou
                 .commit();
         String title = getIntent().getStringExtra(Constants.TITLE);
         url = getIntent().getStringExtra(Constants.URL);
+        setToolbarTitle(title == null || title.isEmpty() ? getString(R.string.core_web_default_title) : title);
     }
 
     @Override

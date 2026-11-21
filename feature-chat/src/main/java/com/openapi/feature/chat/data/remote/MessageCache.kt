@@ -23,8 +23,11 @@ internal class MessageCache {
     private companion object {
         /** 本地临时消息的 id 前缀：这些消息只存在本地，服务端历史里没有。 */
         const val LOCAL_ID_PREFIX = "local-"
-        /** 聊天记录只保留最近这么多条，沿用旧逻辑。 */
-        const val CHAT_LOG_KEEP = 30L
+        /**
+         * 每个会话各自保留最近这么多条纯文字缓存（清理按 sessionId 分组，见 ChatLogDao.trimToLatest）。
+         * 以前是 30 条全局共享，切几个会话后每个会话断网时就只剩几行（整改清单 P1-7）。
+         */
+        const val CHAT_LOG_KEEP = 100L
         /** 单线程清理队列：所有实例共享，保证清理串行执行。 */
         val trimExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     }
@@ -72,46 +75,6 @@ internal class MessageCache {
 
     fun deleteLocal(messageId: String) {
         AppDatabase.getInstance().chatLogDao().deleteByChatId(messageId)
-    }
-
-    /**
-     * 把一轮对话写进本地缓存（离线副本）。用服务端正式 id 作为 chatId；
-     * 用户消息若是本地先写入的（临时 id），这里换成正式 id。空回复不缓存。
-     */
-    fun cacheTurn(
-        sessionId: Long,
-        clientUserId: String,
-        userText: String?,
-        serverUserId: Long,
-        reply: String,
-        serverAssistantId: Long,
-        localAssistantId: String,
-    ) {
-        if (sessionId <= 0) return
-        val now = System.currentTimeMillis()
-        if (userText != null && serverUserId > 0) {
-            val dao = AppDatabase.getInstance().chatLogDao()
-            // 本地先存的用户消息如果带语音或附件，只换成正式 id，内容保留；直接按文字重写会把语音弄丢
-            val local = dao.byChatId(clientUserId)?.toDomainOrNull()
-            dao.deleteByChatId(clientUserId)
-            val user = if (local != null && local.kind != MessageKind.TEXT) {
-                local.copy(id = serverUserId.toString(), text = userText.ifBlank { local.text }, delivery = DeliveryStatus.SENT)
-            } else {
-                ChatMessage(id = serverUserId.toString(), role = ChatRole.USER, text = userText, createdAtMillis = now)
-            }
-            persist(sessionId, user)
-        }
-        if (reply.isNotEmpty()) {
-            persist(
-                sessionId,
-                ChatMessage(
-                    id = if (serverAssistantId > 0) serverAssistantId.toString() else localAssistantId,
-                    role = ChatRole.ASSISTANT,
-                    text = reply,
-                    createdAtMillis = now,
-                ),
-            )
-        }
     }
 
     /**

@@ -25,7 +25,7 @@ internal class AttachmentSender(
     private val state: MutableStateFlow<ChatUiState>,
     private val streamer: ReplyStreamer,
     /** 图文消息的图片已上传完，交由流式层用一个回合发出（避免这里再起第二条回复）。 */
-    private val streamWithAttachments: (String, String?, Boolean, List<OutgoingAttachment>) -> Unit,
+    private val streamWithAttachments: (String, String?, Boolean, List<OutgoingAttachment>, com.openapi.feature.chat.domain.model.GeoLocation?) -> Unit,
 ) {
 
     private companion object {
@@ -44,18 +44,27 @@ internal class AttachmentSender(
     }
 
     /** 附件发送也可以被「停止」打断：和流式回复一样显示生成中，停止后该消息标为可重试。 */
-    suspend fun deliver(message: ChatMessage) {
+    suspend fun deliver(message: ChatMessage, restoreDraftsOnFailure: Boolean = false) {
         inFlight += message.id
         state.update { it.copy(streaming = true) }
         try {
-            deliverBody(message)
+            deliverBody(message, restoreDraftsOnFailure)
+        } catch (c: kotlinx.coroutines.CancellationException) {
+            // 用户按了停止（attachmentJob 只有 onStopGenerating 会取消它）。收尾必须做，
+            // 且在 NonCancellable 里做：否则收尾自己的第一个挂起点会再次抛出取消，
+            // 消息永远停在「发送中」、界面无反馈。收尾之后把取消原样抛出——吞协程
+            // 取消是对整个协程系统撒谎（整改清单 P3-20）。
+            kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                fail(message, restoreDraftsOnFailure, stopped = true)
+            }
+            throw c
         } finally {
             inFlight -= message.id
             state.update { it.copy(streaming = streamer.isReplyActive()) }
         }
     }
 
-    private suspend fun deliverBody(message: ChatMessage) {
+    private suspend fun deliverBody(message: ChatMessage, restoreDraftsOnFailure: Boolean) {
         streamer.setDelivery(message.id, DeliveryStatus.SENDING)
         val sessionId = repository.currentSessionId()
 
@@ -74,21 +83,47 @@ internal class AttachmentSender(
                     }
                 }
                 if (uploadId == null) {
-                    fail(message, sessionId)
+                    fail(message, restoreDraftsOnFailure, stopped = false)
                     return
                 }
                 image to OutgoingAttachment(uploadId = uploadId, kind = MessageKind.IMAGE, name = file.name)
             }
 
-        // 新拿到的 upload_id 记回这条消息并持久化：下次只剩远程来源时它就是复用凭据。
-        val updated = message.copy(images = prepared.map { (image, outgoing) ->
-            image.copy(uploadId = outgoing.uploadId)
-        })
+        // 1b) 视频：与图片同一份复用规矩（文件在 → 重新上传；文件没了但传过 → 复用 id），
+        //     差别在失败语义——视频没有中转降级通道，uploadVideo 返回 null 只能整条标失败等重试。
+        val preparedVideos: List<Pair<com.openapi.feature.chat.domain.model.VideoAttachment, OutgoingAttachment>> =
+            message.videos.map { video ->
+                val file = java.io.File(video.path)
+                val reuse = !file.exists() && video.uploadId != null
+                val uploadId = if (reuse) video.uploadId else {
+                    kotlinx.coroutines.withTimeoutOrNull(ATTACHMENT_TIMEOUT_MS) {
+                        repository.uploadVideo(file, video.name)
+                    }
+                }
+                if (uploadId == null) {
+                    fail(message, restoreDraftsOnFailure, stopped = false)
+                    return
+                }
+                video to OutgoingAttachment(
+                    uploadId = uploadId,
+                    kind = MessageKind.VIDEO,
+                    name = video.name,
+                    // 0（没读到时长）不带：服务端 0..86400 里 0 也是合法值，但没有可信值就别声称
+                    durationSeconds = video.durationSeconds.takeIf { it > 0 },
+                )
+            }
 
-        // 2) 文字 + 图片引用一起进同一个回合：模型只回一次话，界面也只出一条回复。
-        val sent = prepared.map { it.second }
-        if (sent.isNotEmpty() || message.text.isNotBlank()) {
-            streamWithAttachments(message.text, message.id, false, sent)
+        // 新拿到的 upload_id 记回这条消息并持久化：下次只剩远程来源时它就是复用凭据。
+        val updated = message.copy(
+            images = prepared.map { (image, outgoing) -> image.copy(uploadId = outgoing.uploadId) },
+            videos = preparedVideos.map { (video, outgoing) -> video.copy(uploadId = outgoing.uploadId) },
+        )
+
+        // 2) 文字 + 附件引用 + 位置一起进同一个回合：模型只回一次话，界面也只出一条回复。
+        //    只有位置也是完整的一条消息（服务端把三字段全空的发送判 422，位置本身就是内容）。
+        val sent = prepared.map { it.second } + preparedVideos.map { it.second }
+        if (sent.isNotEmpty() || message.text.isNotBlank() || message.location != null) {
+            streamWithAttachments(message.text, message.id, false, sent, message.location)
         }
 
         // 3) 文件仍走 legacy 的逐条接口（`/v1` 没有文件类型）。
@@ -101,7 +136,7 @@ internal class AttachmentSender(
                 }
             }.getOrNull()
             if (reply == null) {
-                fail(message, sessionId)
+                fail(message, restoreDraftsOnFailure, stopped = false)
                 return
             }
         }
@@ -109,13 +144,61 @@ internal class AttachmentSender(
         persistDelivery(updated, DeliveryStatus.SENT)
     }
 
-    /** 失败收尾：撤掉占位、标红、写回本地，行为与以前一致。 */
-    private suspend fun fail(message: ChatMessage, sessionId: Long) {
-        val stopped = !kotlin.coroutines.coroutineContext[kotlinx.coroutines.Job]!!.isActive
+    /**
+     * 失败收尾：撤掉占位、标红、写回本地。
+     * 「是不是被停止」是调用方的事实，不是这里靠 `coroutineContext[Job]` 猜的
+     * （整改清单 P3-20：那种写法只在仓库吞掉取消异常时才碰巧执行到）。
+     */
+    private suspend fun fail(message: ChatMessage, restoreDraftsOnFailure: Boolean, stopped: Boolean) {
         state.update {
             it.copy(sending = false, error = if (stopped) "已停止，消息未发出，可点重试" else "发送失败，请稍后重试")
         }
         streamer.setDelivery(message.id, DeliveryStatus.FAILED)
         persistDelivery(message, DeliveryStatus.FAILED)
+        if (restoreDraftsOnFailure) restoreDrafts(message)
+    }
+
+    /**
+     * 从输入栏发起的发送失败后，把附件和文字放回输入栏（整改清单 P1-11）：
+     * 气泡上的重试只能原样再发一次，用户要「改一下再发」就得靠这里。
+     * 只恢复本机还在的文件（没有字节什么都恢复不了）；输入框已有内容
+     * （用户已经在重打）时不盖掉它，只把附件放回托盘。
+     */
+    private fun restoreDrafts(message: ChatMessage) {
+        val staged = ArrayList<DraftAttachment>()
+        fun addOne(
+            path: String,
+            name: String,
+            kind: MessageKind,
+            durationSeconds: Int = 0,
+            thumbnailPath: String? = null,
+        ) {
+            val file = java.io.File(path)
+            if (!file.exists()) return
+            staged += DraftAttachment(
+                id = "draft-${System.nanoTime()}-${staged.size}",
+                kind = kind,
+                staged = StagedAttachment(
+                    file = file,
+                    displayName = name,
+                    sizeBytes = file.length(),
+                    durationSeconds = durationSeconds,
+                    thumbnailPath = thumbnailPath,
+                ),
+            )
+        }
+        message.images.forEach { addOne(it.path, java.io.File(it.path).name, MessageKind.IMAGE) }
+        message.files.forEach { addOne(it.path, it.name, MessageKind.FILE) }
+        // 视频要连时长和首帧一起还回去，否则重发一次的卡片比第一次还寒碜
+        message.videos.forEach { addOne(it.path, it.name, MessageKind.VIDEO, it.durationSeconds, it.thumbnailPath) }
+        if (staged.isEmpty() && message.location == null) return
+        state.update { current ->
+            current.copy(
+                drafts = current.drafts + staged,
+                // 位置是单值草稿：只在用户没另选位置时放回原位
+                locationDraft = current.locationDraft ?: message.location,
+                input = if (current.input.isEmpty()) message.text else current.input,
+            )
+        }
     }
 }

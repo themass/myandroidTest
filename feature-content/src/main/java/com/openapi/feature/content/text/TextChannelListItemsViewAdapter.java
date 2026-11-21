@@ -31,9 +31,27 @@ import java.util.List;
 public class TextChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<TextChannelListItemsViewAdapter.TextChannleListView, TextItemsVo> {
     FragmentManager fragmentManager = ((FragmentActivity) context).getSupportFragmentManager();
     int currentContainerId = -1;
+    /**
+     * 整改清单 P3-21：「看过置灰」以前在每次 bind 里同步查 Room（关掉
+     * allowMainThreadQueries 后就是崩溃点），现在 bind 只查这份内存集合，
+     * 列表由 {@link #setVisitedUrls} 后台装填、{@link #markVisited} 增量补。
+     */
+    private final com.openapi.feature.content.common.VisitedUrlCache visitedCache =
+            new com.openapi.feature.content.common.VisitedUrlCache();
 
     public TextChannelListItemsViewAdapter(FragmentActivity context, RecyclerView recyclerView, List<TextItemsVo> data, OnRecyclerViewItemClickListener<TextItemsVo> listener) {
         super(context, recyclerView, data, listener);
+    }
+
+    /** 主线程回调里调用：装填已访问地址并重绘。 */
+    public void setVisitedUrls(java.util.List<String> urls) {
+        visitedCache.loadFrom(urls);
+        notifyDataSetChanged();
+    }
+
+    /** 点开的地址立刻标已访问（addHistory 落库是异步的，不能等它）。 */
+    public void markVisited(String url) {
+        visitedCache.markVisited(url);
     }
 
     @Override
@@ -51,7 +69,7 @@ public class TextChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<Tex
         holder.tvDate.setText(vo.fileDate);
         if (position == getSelected()) {
             holder.tvName.setTextColor(ContextCompat.getColor(context, R.color.click));
-        } else if (HistoryUtil.getHistory(context, vo.fileUrl) != null) {
+        } else if (visitedCache.isVisited(vo.fileUrl)) {
             holder.tvName.setTextColor(ContextCompat.getColor(context, R.color.base_gray));
         } else {
             holder.tvName.setTextColor(ContextCompat.getColor(context, R.color.base_black));

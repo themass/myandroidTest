@@ -29,6 +29,7 @@ internal class SendActions(
     private val streamer: ReplyStreamer,
     private val submitEdit: (String, String) -> Unit,
     private val startAttachmentSend: (ChatMessage) -> Unit,
+    private val strings: ChatStrings,
 ) {
 
     fun onSend() {
@@ -42,25 +43,45 @@ internal class SendActions(
             submitEdit(editingId, text)
             return
         }
-        state.update { it.copy(input = "", drafts = emptyList()) }
-        if (drafts.isEmpty()) {
+        val location = snapshot.locationDraft
+        state.update { it.copy(input = "", drafts = emptyList(), editingMessageId = null, locationDraft = null) }
+        if (drafts.isEmpty() && location == null) {
             sendText(text)
             return
         }
-        // 附件和文字组成一条消息：界面上一个气泡，保存一条记录
+        // 附件、位置与文字组成一条消息：界面上一个气泡，保存一条记录
         val now = System.currentTimeMillis()
         val images = drafts.filter { it.kind == MessageKind.IMAGE }
             .map { ImageAttachment(path = it.staged.file.absolutePath) }
         val files = drafts.filter { it.kind == MessageKind.FILE }
             .map { FileAttachment(path = it.staged.file.absolutePath, name = it.staged.displayName, sizeBytes = it.staged.sizeBytes) }
+        val videos = drafts.filter { it.kind == MessageKind.VIDEO }
+            .map {
+                com.openapi.feature.chat.domain.model.VideoAttachment(
+                    path = it.staged.file.absolutePath,
+                    name = it.staged.displayName,
+                    sizeBytes = it.staged.sizeBytes,
+                    durationSeconds = it.staged.durationSeconds,
+                    thumbnailPath = it.staged.thumbnailPath,
+                )
+            }
         val message = ChatMessage(
             id = "local-user-$now",
             role = ChatRole.USER,
             text = text,
             createdAtMillis = now,
-            kind = if (images.isNotEmpty()) MessageKind.IMAGE else MessageKind.FILE,
+            // 富类型只有一个能进 kind（一条消息一个气泡）；混发时服务端按字段各存各的，
+            // kind 决定的是本地缓存行的类型，取「最先要看内容」的那个：位置 > 图片 > 视频 > 文件。
+            kind = when {
+                location != null -> MessageKind.LOCATION
+                images.isNotEmpty() -> MessageKind.IMAGE
+                videos.isNotEmpty() -> MessageKind.VIDEO
+                else -> MessageKind.FILE
+            },
             images = images,
             files = files,
+            videos = videos,
+            location = location,
             delivery = DeliveryStatus.SENDING,
         )
         state.update { it.copy(messages = it.messages + message) }
@@ -77,7 +98,7 @@ internal class SendActions(
             createdAtMillis = now,
             delivery = DeliveryStatus.SENDING,
         )
-        state.update { it.copy(messages = it.messages + user) }
+        state.update { it.copy(messages = it.messages + user, editingMessageId = null) }
         streamer.stream(text, userMessageId = user.id, persistUser = true)
     }
 
@@ -88,7 +109,7 @@ internal class SendActions(
             when (outcome) {
                 is StageOutcome.Staged -> composer.addDraft(kind, outcome.attachment)
                 is StageOutcome.Rejected -> state.update { it.copy(error = outcome.reason) }
-                StageOutcome.Failed -> state.update { it.copy(error = "读取附件失败，请重试") }
+                StageOutcome.Failed -> state.update { it.copy(error = strings.attachmentReadFailed()) }
             }
         }
     }
@@ -116,7 +137,7 @@ internal class SendActions(
                         }
                     }
                     is StageOutcome.Rejected -> state.update { it.copy(error = outcome.reason) }
-                    StageOutcome.Failed -> state.update { it.copy(error = "读取图片失败，请重试") }
+                    StageOutcome.Failed -> state.update { it.copy(error = strings.imageReadFailed()) }
                 }
             }
         }
@@ -143,7 +164,7 @@ internal class SendActions(
                     false
                 }
             }
-            if (!ok) state.update { it.copy(error = "编辑失败，已使用原图") }
+            if (!ok) state.update { it.copy(error = strings.imageEditFallback()) }
             // 编辑产生的临时文件用完即删
             withContext(Dispatchers.IO) { com.openapi.mediaview.edit.PhotoEditExporter.delete(edited) }
         }
@@ -161,7 +182,7 @@ internal class SendActions(
             val uri = runCatching { repository.synthesizeSpeech(message.id, message.text) }.getOrNull()
             state.update { it.copy(speakingMessageId = null) }
             if (uri == null) {
-                state.update { it.copy(error = "朗读失败，请稍后重试") }
+                state.update { it.copy(error = strings.speakFailed()) }
             } else {
                 AudioPlayer.play(message.id, uri)
             }

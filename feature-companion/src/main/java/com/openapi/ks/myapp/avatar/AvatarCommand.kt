@@ -13,6 +13,13 @@ sealed interface AvatarCommand {
     /** 情绪名（如 "joy"），由 [AvatarSpec.expressions] 解析；没映射就保持当前表情。 */
     data class Emotion(val name: String) : AvatarCommand
 
+    /**
+     * 把当前表情收回立绘。agent 的协议里没有「清空表情」这个事件（`emotion:""`
+     * 按「没有情绪」丢弃），但降级进 L2 后端侧丢全部 presentation cue，中途换上
+     * 的表情再也等不到下一条 emotion——只能由客户端自己发这条指令收尾。
+     */
+    data object ClearEmotion : AvatarCommand
+
     /** 嘴型开合 0..1，来自播放音频的振幅。 */
     data class Mouth(val openness: Float) : AvatarCommand
 

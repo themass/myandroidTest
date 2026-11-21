@@ -68,6 +68,13 @@ data class CompanionUiState(
     val messages: List<CompanionMessage> = emptyList(),
     val avatarState: String = "idle",
     val emotion: String? = null,
+    /** 最近一次手势 id；用自增 [gestureSeq] 触发一次性 dispatch。 */
+    val gesture: String? = null,
+    val gestureSeq: Long = 0L,
+    /** 最近一次注视；[gazeSeq] 同样保证连发同方向也能各派一次。 */
+    val gazeX: Float? = null,
+    val gazeY: Float? = null,
+    val gazeSeq: Long = 0L,
     val input: String = "",
     val error: String? = null,
     /** 有主动来电时非空：界面切到来电页，而不是插一条消息。 */

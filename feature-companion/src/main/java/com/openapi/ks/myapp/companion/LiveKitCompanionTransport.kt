@@ -1,12 +1,18 @@
 package com.openapi.ks.myapp.companion
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
+import android.os.Build
 import android.os.SystemClock
 import com.openapi.ks.myapp.avatar.ProactiveKind
 import com.openapi.ks.myapp.companion.protocol.BargeInGate
 import com.openapi.ks.myapp.companion.protocol.CompanionProtocolLink
+import com.openapi.ks.myapp.companion.protocol.CueGapBaseline
 import com.openapi.ks.myapp.companion.protocol.Decision
+import com.openapi.ks.myapp.companion.protocol.DegradeController
 import com.openapi.ks.myapp.companion.protocol.PresentationCue
 import com.openapi.ks.myapp.companion.protocol.ProtocolCatalog
 import com.openapi.ks.myapp.companion.protocol.ProtocolCodec
@@ -104,6 +110,44 @@ class LiveKitCompanionTransport(
      */
     private val speech = SpeechRegistry<String>()
 
+    /** §12.3：本地降级阶梯。假时钟可测；这里只喂传感器并在 apply 闸门用。 */
+    private val degrade = DegradeController()
+
+    /**
+     * P4 验收注入口（§12.3「每一档都能手动触发」）：
+     * `adb shell am broadcast -a com.openapi.ks.chat.action.DEBUG_DEGRADE_LEVEL --ei level 2`
+     * （level = -1 解除强制，回自动判定）。debug 构建才注册——release 里留这个广播
+     * 等于把「形象冻结」开关交给任何能发广播的应用。见 DegradeDebugInjectTest。
+     */
+    private var debugDegradeReceiver: BroadcastReceiver? = null
+
+    private fun registerDegradeDebugInject() {
+        if (!isDebugBuild) return
+        val filter = IntentFilter("com.openapi.ks.chat.action.DEBUG_DEGRADE_LEVEL")
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val level = intent?.getIntExtra("level", -2) ?: return
+                degrade.forceLevel = if (level < 0) null else level
+                logWarn("attempt=$activeAttemptId event=degrade_force level=${degrade.forceLevel}")
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            appContext.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            appContext.registerReceiver(receiver, filter)
+        }
+        debugDegradeReceiver = receiver
+    }
+
+    /** L1 表情抽样序号：每条到闸的 emotion +1，`seq % 2 == 0` 才放行。 */
+    private var emotionEmitSeq = 0
+
+    /** 上一次 speechLoop 看到的降级档位，只为找「升入 L2」那条边（B3）。 */
+    private var lastDegradeLevel = 0
+
+    /** lifetime gaps → 本连接 streak 增量；重连必须 baseline，不能清零。 */
+    private val cueGaps = CueGapBaseline()
+
     /** §10.1：本地开口打断闸。只在本房间生命周期内有意义。 */
     private val bargeGate = BargeInGate()
 
@@ -124,6 +168,13 @@ class LiveKitCompanionTransport(
      */
     private val _mouthLevel = MutableStateFlow(0f)
     override val mouthLevel: StateFlow<Float> = _mouthLevel.asStateFlow()
+
+    private val _remotePcm = MutableSharedFlow<ByteArray>(
+        replay = 0,
+        extraBufferCapacity = 64,
+        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST,
+    )
+    override val remotePcm: Flow<ByteArray> = _remotePcm.asSharedFlow()
 
     /**
      * 用户自己的音量 0..1。本地麦克风采集轨的 PCM。
@@ -165,6 +216,7 @@ class LiveKitCompanionTransport(
         _lastConnectionError.value = null
         val newRoom = LiveKit.create(appContext)
         room = newRoom
+        registerDegradeDebugInject()
         // 新连接就是新 epoch（§5.1）：沿用上一次的 epoch，对端会把我从 0 开始的 seq
         // 当成回退丢掉。identity 用来判 dst 是不是指我，现在还不知道，等连上再看。
         val protocolLink = CompanionProtocolLink(identity = null)
@@ -183,6 +235,7 @@ class LiveKitCompanionTransport(
                     is RoomEvent.Connected -> {
                         _lastConnectionError.value = null
                         _connection.value = TransportConnection.CONNECTED
+                        degrade.onConnection(DegradeController.Conn.CONNECTED)
                         logInfo("attempt=$activeAttemptId event=room_connected elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
                         // identity 由 SDK 在入会时分配，建 Room 的时候还拿不到。不补上的话
                         // 带 `dst` 的定向消息全被当成「不是给我的」丢掉，而广播照常——
@@ -198,6 +251,7 @@ class LiveKitCompanionTransport(
                     }
                     is RoomEvent.FailedToConnect -> {
                         _connection.value = TransportConnection.DISCONNECTED
+                        degrade.onConnection(DegradeController.Conn.DISCONNECTED)
                         _lastConnectionError.value = safeError(event.error.message)
                         logWarn("attempt=$activeAttemptId event=room_failed_to_connect type=${event.error.javaClass.simpleName} message=${safeError(event.error.message)}")
                     }
@@ -211,10 +265,12 @@ class LiveKitCompanionTransport(
                     }
                     is RoomEvent.Reconnecting -> {
                         _connection.value = TransportConnection.RECONNECTING
+                        degrade.onConnection(DegradeController.Conn.RECONNECTING)
                         logWarn("attempt=$activeAttemptId event=reconnecting")
                     }
                     is RoomEvent.Reconnected -> {
                         _connection.value = TransportConnection.CONNECTED
+                        degrade.onConnection(DegradeController.Conn.CONNECTED)
                         _lastConnectionError.value = null
                         logInfo("attempt=$activeAttemptId event=reconnected elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
                         attachSelfSink(newRoom)
@@ -226,11 +282,15 @@ class LiveKitCompanionTransport(
                         // 时间线属于旧连接上的那几段音频：全部作废，墓碑保留
                         // （`speech_id` 不复用，留着无害，还能挡住迟到的 begin）。
                         speech.onReconnected()
+                        // gaps 是 lifetime：baseline 到当前值，避免把历史缺口重放进 streak。
+                        cueGaps.baseline(protocolLink.counters().gaps)
+                        emotionEmitSeq = 0
                         sendHello(newRoom, protocolLink)
                         scheduleHelloRetry(newRoom, protocolLink)
                     }
                     is RoomEvent.Disconnected -> {
                         _connection.value = TransportConnection.DISCONNECTED
+                        degrade.onConnection(DegradeController.Conn.DISCONNECTED)
                         _lastConnectionError.value = safeError(event.error?.message).ifBlank { "连接已断开" }
                         logWarn("attempt=$activeAttemptId event=disconnected reason=${event.reason} error=${safeError(event.error?.message)}")
                         bus.emit(CompanionEvent.Error("连接已断开"))
@@ -436,6 +496,8 @@ class LiveKitCompanionTransport(
 
     private fun publishHealth(current: Room, protocolLink: CompanionProtocolLink) {
         val counters = protocolLink.counters()
+        val now = SystemClock.elapsedRealtime()
+        val level = degrade.level(now)
         val args = JSONObject()
             .put("received", counters.received)
             .put("applied", counters.applied)
@@ -446,7 +508,9 @@ class LiveKitCompanionTransport(
             .put("dropped_unauthorized", counters.droppedUnauthorized)
             .put("dropped_bad", counters.droppedBad)
             .put("gap_count", counters.gaps)
-            .put("degrade_level", "L0")
+            .put("cues_applied", speech.cuesApplied)
+            .put("cues_expired", speech.cuesExpired)
+            .put("degrade_level", "L$level")
         val bytes = protocolLink.outgoing(
             topic = ProtocolCatalog.TOPIC_TEL,
             eventType = "telemetry.health",
@@ -540,6 +604,8 @@ class LiveKitCompanionTransport(
     }
 
     override suspend fun disconnect() {
+        debugDegradeReceiver?.let { runCatching { appContext.unregisterReceiver(it) } }
+        debugDegradeReceiver = null
         detachMouthSink()
         detachSelfSink()
         _mouthLevel.value = 0f
@@ -603,13 +669,20 @@ class LiveKitCompanionTransport(
                 val rms = sqrt(sum / n) / Short.MAX_VALUE
                 val level = (rms / FULL_SCALE_RMS).coerceIn(0.0, 1.0).toFloat() * LEVEL_CEILING
                 _mouthLevel.value = level
+                val nowMono = SystemClock.elapsedRealtime()
+                // §12.3：PCM 存活传感器。不分配；与口型同路径。
+                degrade.onPcm(nowMono)
+                if (_remotePcm.subscriptionCount.value > 0) {
+                    com.openapi.ks.myapp.dh.PcmConvert.toMono16k(data, bitsPerSample, sampleRate, numberOfChannels, frames)
+                        ?.let { _remotePcm.tryEmit(it) }
+                }
 
                 // §9.4：远端首帧就是"这句话的 t0"。没有这一步，所有 `before` /
                 // `after` 锚点都解不出来，表现 cue 会挂在队列里直到 2 秒后过期。
                 // 只在有待标定的时间线时才做，省掉稳态下每帧一次的无用计算。
                 if (speech.timebasePendingId() != null) {
                     speech.onAudioFrame(
-                        now = SystemClock.elapsedRealtime(),
+                        now = nowMono,
                         captureTs = absoluteCaptureTimestampMs,
                     )
                     speechWake.trySend(Unit)
@@ -834,6 +907,20 @@ class LiveKitCompanionTransport(
                 publisher = publisherIdentity,
                 publisherIsAgent = publisher?.kind == Participant.Kind.AGENT,
             ) ?: return
+            val now = SystemClock.elapsedRealtime()
+            degrade.onDataAccepted(now)
+            // cmp.cue 的 gap streak：跳号记连续缺口；只有无 gap 的干净到达才清零。
+            // （gap 是在 ACCEPT 时发现的——同包既记 gap 又清零会让 streak 永远到不了 3。）
+            if (topic == ProtocolCatalog.TOPIC_CUE) {
+                val newGaps = cueGaps.observe(protocolLink.counters().gaps)
+                if (newGaps > 0) {
+                    repeat(newGaps) { degrade.onCueGap() }
+                }
+                degrade.onCueAccepted(now, clearGapStreak = newGaps == 0)
+            } else {
+                // 非 cue 的 v2 包也推进 baseline，避免下次 cue 把中间的非 cue gap 一次灌进 streak。
+                cueGaps.observe(protocolLink.counters().gaps)
+            }
             handleProtocol(accepted.envelope)
             return
         }
@@ -904,6 +991,18 @@ class LiveKitCompanionTransport(
                     PresentationCue.stateEventJson(state)
                 }
             }
+            "presentation.gesture" -> {
+                val id = PresentationCue.parseGesture(args) ?: return
+                scheduleCue(eventType, envelope, at = envelope.at) {
+                    PresentationCue.gestureEventJson(id)
+                }
+            }
+            "presentation.gaze" -> {
+                val gaze = PresentationCue.parseGaze(args) ?: return
+                scheduleCue(eventType, envelope, at = envelope.at) {
+                    PresentationCue.gazeEventJson(gaze.name, gaze.x, gaze.y)
+                }
+            }
             // ---- 语音时间线（§9）----
             "speech.seg" -> {
                 // 句级声明（§9.3）：先于引用它的 cue 与 TTS 到达。
@@ -971,13 +1070,40 @@ class LiveKitCompanionTransport(
         scope.launch {
             while (true) {
                 val now = SystemClock.elapsedRealtime()
+                // 每拍先记一次档位：循环最坏每 5s 醒一回（SPEECH_LOOP_MAX_SLEEP_MS），
+                // L2 判定本身要 cue 静默 5s，这个延迟上界够用且不加消息。
+                // 进 L2 的上升沿清一次表情：此后 presentation 全被闸掉，
+                // 不主动收，卡在脸上的表情会一直挂到恢复。
+                val level = degrade.level(now)
+                if (DegradeController.shouldClearEmotion(lastDegradeLevel, level)) {
+                    logInfo(
+                        "attempt=$activeAttemptId event=emotion_cleared from=L$lastDegradeLevel to=L$level",
+                    )
+                    bus.tryEmit(CompanionEvent.ClearAvatarEmotion)
+                }
+                lastDegradeLevel = level
                 val sweep = speech.sweep(now)
-                for (cue in sweep.apply) {
+                for (applied in sweep.apply) {
+                    degrade.onCueApplied(applied.lateMs)
+                    val type = applied.cue.eventType
+                    val seq = if (type == "presentation.emotion") emotionEmitSeq++ else 0
+                    // 每条单独问一次档：同一次 sweep 里 onCueApplied 会改写 late_ratio，
+                    // 后面的 cue 要按新窗口判定（B4 之前的既有语义，不动）。
+                    val cueLevel = degrade.level(now)
+                    if (!DegradeController.shouldEmit(type, cueLevel, seq)) {
+                        logInfo(
+                            "attempt=$activeAttemptId event=cue_gated type=$type id=${applied.cue.id} level=L$cueLevel",
+                        )
+                        continue
+                    }
                     // 形象层要主线程：bus 是 SharedFlow，collect 在主线程，所以这里
                     // 只需要非挂起地 emit（tryEmit），真正落地由收侧决定。
-                    bus.tryEmit(CompanionEvent.AvatarJson(cue.payload))
+                    bus.tryEmit(CompanionEvent.AvatarJson(applied.cue.payload))
                 }
                 for (dropped in sweep.dropped) {
+                    if (dropped.reason == Decision.Reason.EXPIRED) {
+                        degrade.onCueExpired()
+                    }
                     logInfo(
                         "attempt=$activeAttemptId event=cue_dropped type=${dropped.cue.eventType} id=${dropped.cue.id} reason=${dropped.reason}",
                     )

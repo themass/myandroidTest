@@ -4,9 +4,11 @@ import com.openapi.feature.chat.domain.model.ChatMessage
 import com.openapi.feature.chat.domain.model.DeliveryStatus
 import com.openapi.feature.chat.domain.model.ChatRole
 import com.openapi.feature.chat.domain.model.FileAttachment
+import com.openapi.feature.chat.domain.model.GeoLocation
 import com.openapi.feature.chat.domain.model.ImageAttachment
 import com.openapi.feature.chat.domain.model.ImageSource
 import com.openapi.feature.chat.domain.model.MessageKind
+import com.openapi.feature.chat.domain.model.VideoAttachment
 import com.openapi.feature.chat.domain.model.VoiceAttachment
 import org.json.JSONArray
 import org.json.JSONObject
@@ -38,6 +40,10 @@ object ChatLogMapper {
     const val TYPE_IMAGE = 2
     const val TYPE_FILE = 4
 
+    /** 视频沿用 core MessageType.VIDEO_TYPE = 3；位置是本地新增类型（服务端用 kind 字符串区分）。 */
+    const val TYPE_VIDEO = 3
+    const val TYPE_LOCATION = 5
+
     /** MsgContent 的字段名，与老数据保持一致。 */
     private const val FIELD_CONTENT = "content"
     private const val FIELD_ORG = "org"
@@ -49,6 +55,12 @@ object ChatLogMapper {
     private const val FIELD_IMAGES = "images"
     private const val FIELD_FILES = "files"
     private const val FIELD_CAPTION = "caption"
+
+    /** P2-13 新增：视频列表、坐标、视频首帧缩略图与时长（只有本地行有，服务端不回传缩略图）。 */
+    private const val FIELD_VIDEOS = "videos"
+    private const val FIELD_LOCATION = "location"
+    private const val FIELD_THUMB = "thumb"
+    private const val FIELD_DURATION = "duration"
 
     /** 发送状态：只有非「已发送」才写入（旧数据没有这个字段，读取时视为已发送）。 */
     private const val FIELD_DELIVERY = "delivery"
@@ -75,6 +87,8 @@ object ChatLogMapper {
         var voice: VoiceAttachment? = null
         var images: List<ImageAttachment> = emptyList()
         var files: List<FileAttachment> = emptyList()
+        var videos: List<VideoAttachment> = emptyList()
+        var location: GeoLocation? = null
         val kind: MessageKind
 
         when (msgType) {
@@ -101,6 +115,21 @@ object ChatLogMapper {
                 kind = MessageKind.FILE
             }
 
+            TYPE_VIDEO -> {
+                videos = readVideos(json)
+                text = json?.optString(FIELD_CAPTION).orEmpty()
+                kind = MessageKind.VIDEO
+            }
+
+            TYPE_LOCATION -> {
+                location = readLocation(json)
+                // 老行没有 caption 时退回 content：位置消息的配文两种落法都读得到
+                text = json?.optString(FIELD_CAPTION).orEmpty().ifBlank {
+                    json?.optString(FIELD_CONTENT).orEmpty()
+                }
+                kind = MessageKind.LOCATION
+            }
+
             else -> {
                 // 只有 rawContent 不是 JSON 时才原样显示；是 JSON 但 content 为空，就是空文本
                 text = if (json != null) json.optString(FIELD_CONTENT).orEmpty() else rawContent.orEmpty()
@@ -122,6 +151,8 @@ object ChatLogMapper {
             voice = voice,
             images = images,
             files = files,
+            videos = videos,
+            location = location,
             delivery = delivery,
         )
     }
@@ -174,6 +205,40 @@ object ChatLogMapper {
         )
     }
 
+    /**
+     * 视频列表：对象数组 {content, name, size, duration, uploadId, thumb}。
+     * content=="remote" 与图片同一约定（本机文件已丢，只有服务端对象）；thumb 是首帧缩略图的
+     * 本机路径——它只对本机有效，缩略图文件已不在就丢掉（显示会退化成文件名卡片）。
+     */
+    private fun readVideos(json: JSONObject?): List<VideoAttachment> {
+        val array = json?.optJSONArray(FIELD_VIDEOS) ?: return emptyList()
+        return (0 until array.length()).mapNotNull { index ->
+            val item = array.optJSONObject(index) ?: return@mapNotNull null
+            val uploadId = item.optString("uploadId").takeIf { it.isNotEmpty() }
+            val path = item.optString(FIELD_CONTENT)
+            if (path.isEmpty() && uploadId == null) return@mapNotNull null
+            val thumb = item.optString(FIELD_THUMB)
+            VideoAttachment(
+                path = if (path == REMOTE_MARK) "" else path,
+                name = item.optString(FIELD_FILE_NAME),
+                sizeBytes = item.optString(FIELD_FILE_SIZE).toLongOrNull() ?: 0L,
+                durationSeconds = item.optInt(FIELD_DURATION, 0),
+                uploadId = uploadId,
+                thumbnailPath = thumb.takeIf { it.isNotEmpty() && java.io.File(thumb).exists() },
+            )
+        }
+    }
+
+    /** 坐标对象 {lat, lng, accuracy}；缺任一经纬度就当没有（宁可不显示也不画一个 (0,0) 气泡）。 */
+    private fun readLocation(json: JSONObject?): GeoLocation? {
+        val obj = json?.optJSONObject(FIELD_LOCATION) ?: return null
+        val lat = obj.optDouble("lat", Double.NaN)
+        val lng = obj.optDouble("lng", Double.NaN)
+        if (lat.isNaN() || lng.isNaN()) return null
+        val accuracy = obj.optInt("accuracy", -1).takeIf { it >= 0 }
+        return GeoLocation(latitude = lat, longitude = lng, accuracyMeters = accuracy)
+    }
+
     /** 领域模型 → 要写进 ChatLog.content 的 JSON 字符串（与老格式一致）。 */
     fun toRawContent(message: ChatMessage): String {
         val json = JSONObject()
@@ -217,6 +282,46 @@ object ChatLogMapper {
                 }
                 if (message.text.isNotBlank()) json.put(FIELD_CAPTION, message.text)
             }
+
+            MessageKind.VIDEO -> {
+                // content / fileName / fileSize 照图片/文件的旧例写第一个视频，旧版本读得出来
+                val first = message.videos.firstOrNull()
+                json.put(FIELD_CONTENT, first?.path?.takeIf { it.isNotEmpty() } ?: REMOTE_MARK)
+                if (first != null) {
+                    json.put(FIELD_FILE_NAME, first.name)
+                    json.put(FIELD_FILE_SIZE, first.sizeBytes.toString())
+                }
+                if (message.videos.isNotEmpty()) {
+                    json.put(FIELD_VIDEOS, JSONArray(message.videos.map { video ->
+                        JSONObject()
+                            .put(FIELD_CONTENT, video.path.takeIf { it.isNotEmpty() } ?: REMOTE_MARK)
+                            .put(FIELD_FILE_NAME, video.name)
+                            .put(FIELD_FILE_SIZE, video.sizeBytes.toString())
+                            .put(FIELD_DURATION, video.durationSeconds)
+                            .apply {
+                                video.uploadId?.let { put("uploadId", it) }
+                                // 首帧缩略图只对本机有效；文件已经不在了就不写（读时也会丢弃）
+                                video.thumbnailPath
+                                    ?.takeIf { java.io.File(it).exists() }
+                                    ?.let { put(FIELD_THUMB, it) }
+                            }
+                    }))
+                }
+                if (message.text.isNotBlank()) json.put(FIELD_CAPTION, message.text)
+            }
+
+            MessageKind.LOCATION -> {
+                json.put(FIELD_CONTENT, message.text)
+                message.location?.let { loc ->
+                    json.put(
+                        FIELD_LOCATION,
+                        JSONObject()
+                            .put("lat", loc.latitude)
+                            .put("lng", loc.longitude)
+                            .apply { loc.accuracyMeters?.let { put("accuracy", it) } },
+                    )
+                }
+            }
         }
         if (message.delivery != DeliveryStatus.SENT) json.put(FIELD_DELIVERY, message.delivery.name)
         return json.toString()
@@ -230,6 +335,8 @@ object ChatLogMapper {
         MessageKind.VOICE -> TYPE_AUDIO
         MessageKind.IMAGE -> TYPE_IMAGE
         MessageKind.FILE -> TYPE_FILE
+        MessageKind.VIDEO -> TYPE_VIDEO
+        MessageKind.LOCATION -> TYPE_LOCATION
     }
 
     private fun parseOrNull(raw: String?): JSONObject? {

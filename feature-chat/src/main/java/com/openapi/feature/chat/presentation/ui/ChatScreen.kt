@@ -7,32 +7,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import com.openapi.chatkit.message.rememberMessageSelection
 import com.openapi.chatkit.message.MessageSelectionBar
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,11 +34,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.openapi.feature.chat.domain.model.ChatCharacterOption
 import com.openapi.feature.chat.domain.model.ChatMessage
 import com.openapi.feature.chat.presentation.ChatUiState
+import com.openapi.feature.chat.presentation.EmptyState
+import com.openapi.feature.chat.presentation.emptyStateFor
 import com.openapi.chatkit.input.ChatComposer
 import com.openapi.chatkit.message.ChatMessageList
 import com.openapi.chatkit.message.parts.DefaultMessageText
@@ -58,12 +52,16 @@ import com.openapi.chatkit.model.VoiceStyle
 import com.openapi.chatkit.theme.ChatKitTheme
 import com.openapi.feature.chat.domain.model.MessageKind
 import com.openapi.common.ui.theme.AppColors
-import com.openapi.common.ui.theme.AppSpacing
-import com.openapi.common.ui.theme.AppTypography
 import com.openapi.speech.audio.AudioPlayer
 import com.openapi.feature.chat.R
 import com.openapi.feature.chat.roles.domain.SelectedRole
 import com.openapi.feature.chat.roles.presentation.RoleAvatar
+
+/**
+ * 位置草稿 chip 在托盘里的固定 id。它不是 DraftAttachment（状态里位置是单值字段），
+ * 移除时 ChatRoute 按这个 id 翻给 onRemoveLocationDraft。
+ */
+const val LOCATION_DRAFT_ID = "draft-location"
 
 /**
  * 对话页的组装层：角色头部 + 消息列表 + 输入栏 + 业务弹窗。
@@ -111,6 +109,8 @@ fun ChatScreen(
     onMenuClick: (() -> Unit)?,
     /** 关掉错误条。错误信息本身来自 ViewModel，界面只负责显示与关闭。 */
     onDismissError: () -> Unit = {},
+    /** 历史读取失败时的重试入口。 */
+    onReload: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val playback by AudioPlayer.state.collectAsState()
@@ -119,18 +119,41 @@ fun ChatScreen(
         ChatItemMapper.map(state.messages, playback, state.speakingMessageId, state.likedIds, state.dislikedIds)
     }
     val byId = remember(state.messages) { state.messages.associateBy { it.id } }
-    val composerState = remember(state.input, state.drafts, state.sending, state.streaming, state.recording, state.transcribing, state.partialText, state.editingMessageId, state.voiceDraft) {
+    // stringResource 不能在 remember 的计算块里调用（@DisallowComposableCalls），先取出来
+    val locationChipName = stringResource(R.string.chat_attach_location)
+    val composerState = remember(state.input, state.drafts, state.locationDraft, state.sending, state.streaming, state.recording, state.transcribing, state.partialText, state.editingMessageId, state.voiceDraft) {
         ComposerState(
             text = state.input,
             editing = state.editingMessageId != null,
             voiceDraftText = state.voiceDraft?.text,
-            drafts = state.drafts.map { draft ->
-                DraftItem(
-                    id = draft.id,
-                    type = if (draft.kind == MessageKind.IMAGE) DraftType.Image else DraftType.File,
-                    source = draft.staged.file.absolutePath,
-                    name = draft.staged.displayName,
-                )
+            drafts = buildList {
+                state.drafts.mapTo(this) { draft ->
+                    DraftItem(
+                        id = draft.id,
+                        type = when (draft.kind) {
+                            MessageKind.IMAGE -> DraftType.Image
+                            MessageKind.VIDEO -> DraftType.Video
+                            else -> DraftType.File
+                        },
+                        // 视频草稿的缩略图（没有为空串，托盘退化成 MP4 徽标）
+                        source = draft.staged.thumbnailPath ?: draft.staged.file.absolutePath,
+                        name = draft.staged.displayName,
+                        durationSeconds = draft.staged.durationSeconds,
+                    )
+                }
+                // 位置 chip 排在附件后面；移除走 onRemoveDraft 同一个口——
+                // 特殊 id 由 ChatRoute 翻给 onRemoveLocationDraft
+                state.locationDraft?.let { loc ->
+                    add(
+                        DraftItem(
+                            id = LOCATION_DRAFT_ID,
+                            type = DraftType.Location,
+                            source = "",
+                            name = locationChipName,
+                            locationLabel = String.format(java.util.Locale.US, "%.5f, %.5f", loc.latitude, loc.longitude),
+                        ),
+                    )
+                }
             },
             sending = state.sending,
             generating = state.streaming,
@@ -213,7 +236,14 @@ fun ChatScreen(
                     }
                 },
                 emptyContent = {
-                    if (!state.loading) EmptyChat(identity = identity, onSuggestion = onInputChange)
+                    // 读失败不能画成空会话：那和「历史被清空」没有区别。
+                    when (val empty = emptyStateFor(state)) {
+                        // 读历史的那几百毫秒画骨架，不留纯空白（整改清单 P0-6.2）：
+                        // 空白页让人分不清「正在读」和「读出来就是空的」。
+                        EmptyState.Loading -> LoadingChat()
+                        is EmptyState.Failed -> LoadFailedChat(message = empty.message, onRetry = onReload)
+                        EmptyState.Blank -> EmptyChat(identity = identity, onSuggestion = onInputChange)
+                    }
                 },
             )
 

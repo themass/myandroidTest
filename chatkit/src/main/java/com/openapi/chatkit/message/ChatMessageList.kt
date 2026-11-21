@@ -285,7 +285,8 @@ internal fun ScrollToBottomChip(modifier: Modifier, onClick: () -> Unit) {
     ) {
         Icon(
             Icons.Filled.KeyboardArrowDown,
-            contentDescription = null,
+            // 这个按钮没有可见文字，读屏必须能报出它是干什么的（整改清单 P2-16）
+            contentDescription = stringResource(R.string.chatkit_scroll_to_bottom),
             tint = colors.bubbleText,
             modifier = Modifier.padding(8.dp).size(20.dp),
         )

@@ -18,7 +18,9 @@ internal class ComposerActions(private val state: MutableStateFlow<ChatUiState>)
     fun startEdit(messageId: String) {
         val message = state.value.messages.firstOrNull { it.id == messageId } ?: return
         if (message.role != com.openapi.feature.chat.domain.model.ChatRole.USER || message.images.isNotEmpty() || message.files.isNotEmpty()) return
-        state.update { it.copy(input = message.text, editingMessageId = messageId) }
+        // 草稿托盘一起清掉：编辑提交不带附件（onSend 只在 drafts 为空时走 submitEdit），
+        // 留着旧草稿会让用户以为图文一起编辑，实际发出的是新消息。
+        state.update { it.copy(input = message.text, editingMessageId = messageId, drafts = emptyList()) }
     }
 
     /** 取消编辑：清空输入框并退出编辑状态。 */
@@ -37,6 +39,18 @@ internal class ComposerActions(private val state: MutableStateFlow<ChatUiState>)
 
     fun removeDraft(id: String) {
         state.update { it.copy(drafts = it.drafts.filterNot { d -> d.id == id }) }
+    }
+
+    /**
+     * 放进待发送位置（P2-13）。单值而不是列表：一条消息只带一个坐标，
+     * 再点一次「位置」就是换掉上一个（微信同款行为），不堆积。
+     */
+    fun setLocationDraft(location: com.openapi.feature.chat.domain.model.GeoLocation) {
+        state.update { it.copy(locationDraft = location) }
+    }
+
+    fun removeLocationDraft() {
+        state.update { it.copy(locationDraft = null) }
     }
 }
 

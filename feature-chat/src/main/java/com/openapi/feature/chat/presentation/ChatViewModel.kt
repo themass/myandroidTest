@@ -20,7 +20,6 @@ import com.openapi.feature.chat.domain.usecase.SendMessageUseCase
 import com.openapi.speech.audio.VoiceRecorder
 import com.openapi.feature.chat.roles.data.RolesDependencies
 import com.openapi.feature.chat.roles.domain.SelectedRole
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,54 +27,54 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ChatViewModel : ViewModel() {
 
-    private companion object {
-        /** 流式文字的释放节拍：约 25 次/秒，既顺滑又不会让 Markdown 重解析太频繁。 */
-        const val REVEAL_TICK_MS = 40L
-        /** 单个附件上传+识别的超时：超时按失败处理，气泡显示重试图标，不再一直转圈。 */
-        const val ATTACHMENT_TIMEOUT_MS = 120_000L
-    }
+    // 节拍与超时不在这里定义：真值在使用它们的 ReplyStreamer / AttachmentSender 里，
+    // 这里曾经抄了一份没人用的副本（整改清单 P3-18），改抄本不生效纯误导，删。
 
     private val repository = ChatDependencies.require()
+    // 错误文案端口：文字在 feature-chat 资源里，实现在 app（整改清单 P2-14b）
+    private val strings = ChatDependencies.strings()
     private val loadHistory = LoadHistoryUseCase(repository)
     private val sendMessage = SendMessageUseCase(repository)
     private val roles = RolesDependencies.require()
 
-    private val _uiState = MutableStateFlow(ChatUiState(selectedRole = roles.selected()))
+    // 初始就是「加载中」：第一帧不该先画一个空会话，再跳成历史。
+    private val _uiState = MutableStateFlow(ChatUiState(selectedRole = roles.selected(), loading = true))
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
-    private val characterActions = CharacterActions(repository, roles, _uiState, viewModelScope, onSessionChanged = ::refresh)
+    private val characterActions = CharacterActions(repository, roles, _uiState, viewModelScope, strings, onSessionChanged = ::refresh)
     private val composer = ComposerActions(_uiState)
     private val streamer = ReplyStreamer(
         repository, _uiState, viewModelScope, sendMessage,
         attachmentActive = { attachmentJob?.isActive == true },
         reconcile = { fallbackReloadMessages() },
         syncSessions = { syncSessionsList() },
+        strings = strings,
     )
     private val attachments = AttachmentSender(
         repository, _uiState, streamer,
         // 图文消息：图片已经传完，文字和图片引用一起进同一个回合——只回一次话。
-        streamWithAttachments = { text, messageId, persistUser, files ->
+        streamWithAttachments = { text, messageId, persistUser, files, location ->
             streamReply(text, userMessageId = messageId, persistUser = persistUser, syncAfter = false,
-                attachments = files)
+                attachments = files, location = location)
         },
     )
     private val resend = ResendActions(
         repository, _uiState, viewModelScope, streamer,
         startAttachments = { m -> attachmentJob = viewModelScope.launch { deliverAttachments(m) } },
-        refresh = { refresh() },
     )
     private val send = SendActions(
         repository, _uiState, viewModelScope, composer, streamer,
         submitEdit = { id, text -> submitEdit(id, text) },
-        startAttachmentSend = { m -> attachmentJob = viewModelScope.launch { repository.saveMessage(repository.currentSessionId(), m); deliverAttachments(m) } },
+        startAttachmentSend = { m -> attachmentJob = viewModelScope.launch { repository.saveMessage(repository.currentSessionId(), m); deliverAttachments(m, restoreDraftsOnFailure = true) } },
+        strings = strings,
     )
-    private val history = HistoryActions(repository, _uiState, viewModelScope, isInFlight = { attachments.isInFlight(it) })
+    private val history = HistoryActions(repository, _uiState, viewModelScope, isInFlight = { attachments.isInFlight(it) }, strings = strings)
     private val feedback = FeedbackActions(_uiState)
-    private val removal = MessageRemoval(repository, _uiState, viewModelScope, reconcile = { fallbackReloadMessages() })
+    private val removal = MessageRemoval(repository, _uiState, viewModelScope, reconcile = { fallbackReloadMessages() }, strings = strings)
+    private val imageRetry = ImageRetryActions(repository, _uiState, viewModelScope)
 
     init {
         characterActions.load()
@@ -89,11 +88,15 @@ class ChatViewModel : ViewModel() {
     /** 重新加载当前会话：服务端最新一页历史 + 会话列表（服务端不可达时回退到本地缓存）。 */
     fun refresh() {
         viewModelScope.launch {
-            _uiState.update { it.copy(loading = true, error = null) }
-            val page = runCatching { loadHistory() }.getOrElse { HistoryPage(emptyList(), hasMore = false) }
+            _uiState.update { it.copy(loading = true, error = null, loadError = null) }
+            // 读失败不能静默成空页：那会让「断网」和「历史被清空」看起来一模一样。
+            // 页面照常装配（会话列表、角色都还能用），但把失败原因留下来给消息区渲染。
+            val loaded = runCatching { loadHistory() }
+            val page = loaded.getOrElse { HistoryPage(emptyList(), hasMore = false) }
+            val loadError = loaded.exceptionOrNull()?.let(::describeLoadFailure)
             val sessionId = repository.currentSessionId()
             val merged = mergePending(page.messages, sessionId)
-            val sessions = withContext(Dispatchers.IO) { repository.sessions() }
+            val sessions = repository.sessions()
             val current = sessions.firstOrNull { it.id == sessionId }
             val sessionRole = SessionRole.resolve(current, roles, sessionId)
             val sessionCharacterId = current?.characterId?.takeIf { it > 0 && sessionRole == null }
@@ -107,6 +110,7 @@ class ChatViewModel : ViewModel() {
                     loadingOlder = false,
                     editingMessageId = null,
                     loading = false,
+                    loadError = loadError,
                     sessionId = sessionId,
                     // 会话的角色以会话自己为准：每个角色一段独立历史，不能沿用“最近一次选的角色”
                     selectedRole = sessionRole?.also { roles.setSelected(it) },
@@ -123,7 +127,7 @@ class ChatViewModel : ViewModel() {
         if (visible) viewModelScope.launch { runCatching { syncSessionsList() } }
     }
 
-    private val sessionActions = SessionActions(repository, _uiState, viewModelScope, ::refresh)
+    private val sessionActions = SessionActions(repository, _uiState, viewModelScope, ::refresh, strings)
 
     fun onSessionSelected(sessionId: Long) = sessionActions.select(sessionId)
 
@@ -182,7 +186,8 @@ class ChatViewModel : ViewModel() {
         syncAfter: Boolean = true,
         replaceKey: String? = null,
         attachments: List<OutgoingAttachment> = emptyList(),
-    ) = streamer.stream(text, userMessageId, persistUser, regenerate, syncAfter, replaceKey, attachments)
+        location: com.openapi.feature.chat.domain.model.GeoLocation? = null,
+    ) = streamer.stream(text, userMessageId, persistUser, regenerate, syncAfter, replaceKey, attachments, location)
 
     private fun updateByKey(key: String, transform: (ChatMessage) -> ChatMessage) = streamer.updateByKey(key, transform)
 
@@ -202,12 +207,11 @@ class ChatViewModel : ViewModel() {
     /**
      * 发送带附件的用户消息：逐个上传附件，各自的识别结果合并成一条助手回复；
      * 有配文时再把配文走文字流（用户消息已保存过，不再重复保存）。
+     * [restoreDraftsOnFailure]：从输入栏发起（而不是气泡重试）时为 true，
+     * 失败后把附件和文字放回输入栏，用户能改一下再发（整改清单 P1-11）。
      */
-    /**
-     * 历史页 + 本地还没同步的用户消息（附件等）。冷启动时，上次没发完的「发送中」消息说明进程被杀了，
-     * 标成失败（红色重试），而不是消失或一直转圈。
-     */
-    private suspend fun deliverAttachments(message: ChatMessage) = attachments.deliver(message)
+    private suspend fun deliverAttachments(message: ChatMessage, restoreDraftsOnFailure: Boolean = false) =
+        attachments.deliver(message, restoreDraftsOnFailure)
 
     private suspend fun mergePending(page: List<ChatMessage>, sessionId: Long): List<ChatMessage> =
         history.mergePending(page, sessionId)
@@ -215,6 +219,12 @@ class ChatViewModel : ViewModel() {
 
     /** 重新发送一条失败的用户消息（不重新插入气泡，也不重复保存）。 */
     fun onRetry(messageId: String) = resend.retry(messageId)
+
+    /**
+     * 点击了加载失败的那张图片（整改清单 P1-10）。组件已强制重新加载现有地址；
+     * 远程图在这里额外做一件事：重新签一个 URL 换掉旧的。
+     */
+    fun onRetryImage(messageId: String, index: Int) = imageRetry.retry(messageId, index)
 
     /** 重新生成：去掉最后一条用户消息之后的助手回复，然后重新回答。 */
     fun onRegenerate(assistantId: String) = resend.regenerate(assistantId)
@@ -255,7 +265,7 @@ class ChatViewModel : ViewModel() {
     private suspend fun syncSessionsList() {
         repository.syncSessionsFromServer()
         val sessionId = repository.currentSessionId()
-        val sessions = withContext(Dispatchers.IO) { repository.sessions() }
+        val sessions = repository.sessions()
         _uiState.update { it.copy(sessionId = sessionId, sessions = sessions) }
     }
 
@@ -299,6 +309,25 @@ class ChatViewModel : ViewModel() {
 
 
     fun onRemoveDraft(id: String) = composer.removeDraft(id)
+
+    /** 取掉输入栏上的待发送位置 chip。 */
+    fun onRemoveLocationDraft() = composer.removeLocationDraft()
+
+    /**
+     * 「位置」按钮取到一次粗定位后进这里（P2-13）。坐标先留在状态里，发送时才随消息发出；
+     * 再点一次位置 = 换掉上一个位置。
+     *
+     * 参数刻意用散开的原始值而不是 `LocationFixer.Fix`：那是 internal 类型，
+     * public 方法不能把它暴露到模块外。
+     */
+    fun onLocationFixReady(latitude: Double, longitude: Double, accuracyMeters: Int?) =
+        composer.setLocationDraft(
+            com.openapi.feature.chat.domain.model.GeoLocation(
+                latitude = latitude,
+                longitude = longitude,
+                accuracyMeters = accuracyMeters,
+            ),
+        )
 
 
     /**

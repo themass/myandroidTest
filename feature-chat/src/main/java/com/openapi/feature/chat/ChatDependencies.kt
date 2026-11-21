@@ -3,6 +3,7 @@ package com.openapi.feature.chat
 import com.openapi.feature.chat.domain.auth.LoginGate
 import com.openapi.feature.chat.domain.repository.ChatRepository
 import com.openapi.feature.chat.domain.speech.SpeechToText
+import com.openapi.feature.chat.presentation.ChatStrings
 
 /**
  * 依赖倒置接入点。
@@ -24,6 +25,17 @@ object ChatDependencies {
 
     @Volatile
     private var loginGate: LoginGate? = null
+
+    @Volatile
+    private var strings: ChatStrings? = null
+
+    fun installStrings(strings: ChatStrings) {
+        this.strings = strings
+    }
+
+    fun strings(): ChatStrings = checkNotNull(strings) {
+        "ChatStrings 未注入：请在 Application.onCreate 中调用 ChatDependencies.installStrings(...)"
+    }
 
     fun install(repository: ChatRepository) {
         this.repository = repository

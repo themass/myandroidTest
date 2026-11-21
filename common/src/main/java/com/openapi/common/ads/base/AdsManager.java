@@ -46,6 +46,11 @@ public class AdsManager {
     }
 
     public void init(Context context) {
+        // debug 构建（测试机/开发机/CI）不初始化广告 SDK：见 AdsGate 与 AdsGateTest。
+        if (!AdsGate.enabled()) {
+            LogUtil.i("AdsManager init skipped (debug build)");
+            return;
+        }
         LogUtil.i("AdsManager initok");
         AdviewAdsManager.init(context);
         AdmobAdsManager.init(context);
@@ -84,43 +89,53 @@ public class AdsManager {
     }
 
     public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey) {
+        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         bannerDescMap.get(AdsContext.AdsFrom.ADMOB).bannerAds(context, group, categrey.key, mHandle);
     }
 
     public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey, AdsContext.AdsFrom from) {
+        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         bannerDescMap.get(from).bannerAds(context, group, categrey.key, mHandle);
     }
 
     public void exitBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey) {
+        if (!AdsGate.enabled()) return; // debug 未 init，表为空，解引用即 NPE（AdsGate）
         bannerDescMap.get(AdsContext.AdsFrom.ADVIEW).bannerExit(context, group, categrey.key);
     }
 
     public void showSplashAds(AdsContext.AdsFrom from, FragmentActivity context, RelativeLayout group, RelativeLayout skipView) {
+        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         splashMap.get(from).launchAds(context, group, skipView, mHandle);
     }
 
     public void exitSplashAds(Context context, RelativeLayout group) {
+        if (!AdsGate.enabled()) return; // debug 未 init，表为空，解引用即 NPE（AdsGate）
         splashMap.get(AdsContext.AdsFrom.ADMOB).lanchExit(context, group);
     }
 
 
     public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score, AdsContext.AdsFrom from, int count) {
+        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         interstitialMap.get(from).interstitialAds(context, mHandle, categrey.key, score, count);
     }
 
     public void exitInterstitialAds(Context context, AdsContext.Categrey categrey) {
+        if (!AdsGate.enabled()) return; // debug 未 init，表为空，解引用即 NPE（AdsGate）
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialExit(context, categrey.key);
     }
 
     public void showNative(Context context, NativeAdsReadyListener listener, AdsContext.Categrey categrey) {
+        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         nativeMap.get(AdsContext.AdsFrom.ADVIEW).showNative(context, mHandle, listener, categrey.key);
     }
 
     public void reqVideo(Context context) {
+        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         videoMap.get(AdsContext.AdsFrom.ADVIEW).reqVideo(context, mHandle);
     }
 
     public boolean showVideo(Context context) {
+        if (!AdsGate.enabled()) return false; // debug 未 init，表为空，解引用即 NPE（AdsGate）
         LogUtil.i("Adview req video ads");
         VideoAdviewAds ads = (VideoAdviewAds) videoMap.get(AdsContext.AdsFrom.ADVIEW);
         if (ads.isReq) {
@@ -133,6 +148,7 @@ public class AdsManager {
     }
 
     public void closeVideo(Context context) {
+        if (!AdsGate.enabled()) return; // debug 未 init，表为空，解引用即 NPE（AdsGate）
         videoMap.get(AdsContext.AdsFrom.ADVIEW).exitVideo(context);
     }
 }

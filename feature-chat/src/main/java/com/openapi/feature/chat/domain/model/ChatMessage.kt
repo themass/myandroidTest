@@ -12,6 +12,11 @@ enum class MessageKind {
     VOICE,
     IMAGE,
     FILE,
+    /** 视频：走附件通道（服务端 scene `chat-video`），端上只认 MP4、25 MiB 以内。 */
+    VIDEO,
+
+    /** 位置：不是附件，是消息上的顶层字段；只有粗定位，无地图 SDK、无逆地理编码。 */
+    LOCATION,
 }
 
 /** 语音附件：本地文件或远端 URL。TTS 产物以 `file://` 形式给出。 */
@@ -48,16 +53,48 @@ data class FileAttachment(
 )
 
 /**
+ * 视频附件：发送侧是应用私有目录下的本地 MP4（[path]），历史侧多半只有服务端对象（[uploadId]）。
+ *
+ * 与 [ImageAttachment] 同构：本机文件在就直接显示/重传，文件没了才拿 uploadId 换签名 URL。
+ * 视频只有直传、没有中转降级（中转通道会把字节强转成 JPEG，视频必坏），
+ * 所以 [uploadId] 缺失时这一条只能重发本地文件，没有兜底。
+ * [durationSeconds] 是发送时从本地文件读出的时长（秒），只用于显示；
+ * [thumbnailPath] 是发送侧的本地首帧缩略图路径，历史侧没有（服务端不产缩略图），为 null。
+ */
+data class VideoAttachment(
+    val path: String,
+    val name: String,
+    val sizeBytes: Long = 0L,
+    val durationSeconds: Int = 0,
+    val uploadId: String? = null,
+    val thumbnailPath: String? = null,
+)
+
+/**
+ * 位置消息的坐标（WGS-84）。只有经纬度和可选精度——没有地图 SDK、没有逆地理编码，
+ * 界面只渲染坐标本身，「在地图打开」交给系统 `geo:` intent。
+ * [accuracyMeters] 来自粗定位结果（只有 ACCESS_COARSE_LOCATION 一条路），发送时没有就不带。
+ */
+data class GeoLocation(
+    val latitude: Double,
+    val longitude: Double,
+    val accuracyMeters: Int? = null,
+)
+
+/**
  * 已经上传到对象存储、要随本条消息一起发出的附件引用。
  *
  * 只带 `upload_id`，不重复传正文——图片在发送前已经由 [uploadImage] 传完。
  * 一条用户消息的文字和它的所有附件在**同一个回合**里交给模型，
  * 模型因此只回一次话；分成两个回合会让同一句话得到两条回复。
+ * [durationSeconds] 只有视频附件用（服务端契约里的 `duration_s`，可选、0..86400）；
+ * 图片/文件不带。
  */
 data class OutgoingAttachment(
     val uploadId: String,
     val kind: MessageKind = MessageKind.IMAGE,
     val name: String = "",
+    val durationSeconds: Int? = null,
 )
 
 /**
@@ -83,6 +120,10 @@ data class ChatMessage(
     val images: List<ImageAttachment> = emptyList(),
     /** 一条消息可以带多个文件。 */
     val files: List<FileAttachment> = emptyList(),
+    /** 一条消息可以带多个视频（服务端走附件通道，与图片同一份 upload_id 语义）。 */
+    val videos: List<VideoAttachment> = emptyList(),
+    /** 位置消息的坐标；kind 为 [MessageKind.LOCATION] 时非空。不是附件，是消息自带字段。 */
+    val location: GeoLocation? = null,
     val pending: Boolean = false,
     val delivery: DeliveryStatus = DeliveryStatus.SENT,
     /**

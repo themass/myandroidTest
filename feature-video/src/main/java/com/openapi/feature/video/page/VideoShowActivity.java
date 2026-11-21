@@ -5,7 +5,6 @@ import android.widget.Toast;
 import com.openapi.cast.JavaCaster;
 import com.openapi.cast.DlnaDiscoveryCallback;
 import com.openapi.cast.DlnaDevice;
-import android.widget.ImageButton;
 import com.openapi.common.ui.dialog.AppDialogHost;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
 import android.util.Rational;
@@ -52,13 +51,14 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
     private GoogleCastSessionController castSessionController;
     RecommendVo vo;
     MyFavoriteView myFavoriteView;
-    private android.widget.ImageButton dlnaCastButton;
 
     private void bindButterViews() {
         LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));
         videoPlayer = b.jzVideo;
-        dlnaCastButton = b.btnDlnaCast;
-        myFavoriteView = b.myFavoriteview;
+        // 布局里的 MyFavoriteView 保持 GONE；工具条挂在播放器上以便全屏克隆
+        myFavoriteView = videoPlayer.getMyFavoriteView();
+        // 播放器控制条收起后唯一的返回入口，常驻可见
+        b.btnBack.setOnClickListener(v -> finish());
     }
 
     @Override
@@ -66,6 +66,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_video_show);
         bindButterViews();
+        videoPlayer.ensureOrientationUtils(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             vo = getIntent().getSerializableExtra(Constants.CONFIG_PARAM, RecommendVo.class);
@@ -77,6 +78,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         VideoShowPlaybackStateHelper.prepareSeekRestore(videoPlayer, savedInstanceState);
         videoPlayer.loadPoster(this, vo.img);
         videoPlayer.startPlayLogic();
+        videoPlayer.enableOrientationAfterPrepared();
         VideoShowPlaybackStateHelper.schedulePauseIfWasPaused(videoPlayer, savedInstanceState);
 
         videoPlayer.installGoogleCastRouteButton(this);
@@ -92,10 +94,11 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
             }
         });
 
-        dlnaCastButton.setOnClickListener(v -> showDlnaDevices());
         myFavoriteView.setListener(this);
         myFavoriteView.initFavoriteBackGroud(vo.actionUrl);
-        myFavoriteView.showVideoLocal();
+        myFavoriteView.showOnlineVideoPlayback();
+        // 投屏入口封装在右下角 favor 工具条；发现/投屏仍由本页实现
+        myFavoriteView.setCastClickListener(v -> showDlnaDevices());
         VideoPlaybackUiHelper.maybeShowFirstPlaybackGestureHint(this, videoPlayer);
 
         myFavoriteView.setTranslationSession(new TranslationOverlaySession() {
@@ -146,6 +149,9 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
     protected void onPause() {
         if (castSessionController != null) {
             castSessionController.onPause();
+        }
+        if (videoPlayer != null) {
+            videoPlayer.setOrientationPaused(true);
         }
         super.onPause();
         if (enteringPip) {
@@ -218,6 +224,9 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         } catch (Throwable e) {
             LogUtil.e(e);
         }
+        if (videoPlayer != null) {
+            videoPlayer.setOrientationPaused(false);
+        }
         if (castSessionController != null) {
             castSessionController.onResume();
         }
@@ -225,6 +234,9 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
 
     @Override
     public void onBackPressed() {
+        if (videoPlayer != null) {
+            videoPlayer.backToPortraitIfNeeded();
+        }
         if (GSYVideoManager.backFromWindowFull(this)) {
             return;
         }
@@ -245,6 +257,9 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         }
         if (dlnaDiscovery != null) {
             dlnaDiscovery.close();
+        }
+        if (videoPlayer != null) {
+            videoPlayer.releaseOrientationUtils();
         }
         GSYVideoManager.releaseAllVideos();
         super.onDestroy();

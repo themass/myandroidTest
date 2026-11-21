@@ -43,3 +43,6 @@ app/src/main/obj/
 
 # Kotlin 编译器会话目录
 .kotlin/
+
+# SDD scratch + host-side asset pack cache (multi-hundred MB) — never commit
+.superpowers/

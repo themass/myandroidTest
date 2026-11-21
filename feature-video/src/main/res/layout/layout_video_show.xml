@@ -8,20 +8,26 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 电视投屏（DLNA）：与 GSY 自带的 Google Cast 按钮分开，避免互相挤压 -->
-    <ImageButton
-        android:id="@+id/btn_dlna_cast"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="56dp"
+    <!-- 常驻返回：播放器皮肤 layout_top 里的返回键随控制条一起显示/隐藏，
+         控制条收起后用户就找不到返回入口了。这一颗始终在竖屏左上角。
+         全屏时 GSY 会把播放器挪到独立窗口，本按钮随之不可见，由皮肤自带的返回退出全屏。 -->
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/btn_back"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="56dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/cast_title"
-        android:src="@android:drawable/ic_menu_share"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/video_back_desc"
+        android:padding="8dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/video_back"
         android:tint="#FFFFFF" />
 
-    <!-- 收藏 / 翻译 / 实时字幕入口栏，与其它详情页保持一致 -->
+    <!-- 占位保留 id，实际工具条挂在 DetailGSYVideoPlayer 内（全屏克隆需要）；投屏入口在 MyFavoriteView -->
     <com.openapi.core.favorite.MyFavoriteView
         android:id="@+id/my_favoriteview"
         android:layout_width="wrap_content"

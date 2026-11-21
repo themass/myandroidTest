@@ -8,12 +8,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 data class DraftItem(
     val id: String,
     val type: DraftType,
-    /** 图片为本地路径或地址；文件为本地路径。 */
+    /** 图片为本地路径或地址；文件为本地路径；视频为缩略图路径（没有则空串）。 */
     val source: String,
     val name: String,
+    /** 视频时长（秒），0 = 未知不显示；位置草稿上显示为坐标。 */
+    val durationSeconds: Int = 0,
+    /** 位置草稿的坐标文本（如「31.23, 121.47」）；其他类型为 null。 */
+    val locationLabel: String? = null,
 )
 
-enum class DraftType { Image, File }
+/** [Video] 显示缩略图（缺省退化成 MP4 徽标 + 时长）；[Location] 显示坐标 chip。 */
+enum class DraftType { Image, File, Video, Location }
 
 /** 「+」面板里的一个入口，由调用方决定有哪些入口、点了做什么。 */
 @Immutable

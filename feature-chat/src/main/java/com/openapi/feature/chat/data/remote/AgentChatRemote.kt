@@ -113,10 +113,12 @@ class AgentChatRemote(
         return AgentHistoryPage(rows.reversed(), rows.size >= limit)
     }
 
-    /** 发送一条消息，返回服务端回执。回合本身通过 [events] 观察。 */
-    fun submit(sessionId: Long, text: String, clientMessageId: String): AgentSubmitReceipt {
-        val body = JSONObject().put("text", text).put("client_message_id", clientMessageId)
-        val json = call("POST", "/sessions/$sessionId/messages", body)
+    /**
+     * 发送一条消息，返回服务端回执。回合本身通过 [events] 观察。
+     * [location] 非空时作为消息的顶层 `location` 字段发出（不是附件，服务端存成 kind=location）。
+     */
+    fun submit(sessionId: Long, text: String, clientMessageId: String, location: JSONObject? = null): AgentSubmitReceipt {
+        val json = call("POST", "/sessions/$sessionId/messages", buildAgentSubmitBody(text, clientMessageId, null, location))
         return AgentSubmitReceipt(
             messageId = json.optLong("message_id", 0L),
             turnId = json.optString("turn_id", "").takeIf { it.isNotEmpty() },
@@ -129,12 +131,12 @@ class AgentChatRemote(
         text: String,
         clientMessageId: String,
         attachments: List<JSONObject>,
+        location: JSONObject? = null,
     ): AgentSubmitReceipt {
-        val body = JSONObject()
-            .put("text", text)
-            .put("client_message_id", clientMessageId)
-            .put("attachments", org.json.JSONArray(attachments))
-        val json = call("POST", "/sessions/$sessionId/messages", body)
+        val json = call(
+            "POST", "/sessions/$sessionId/messages",
+            buildAgentSubmitBody(text, clientMessageId, org.json.JSONArray(attachments), location),
+        )
         return AgentSubmitReceipt(
             messageId = json.optLong("message_id", 0L),
             turnId = json.optString("turn_id", "").takeIf { it.isNotEmpty() },
@@ -355,29 +357,86 @@ class AgentChatRemote(
         updatedAt = optString("updated_at", ""),
     )
 
-    private fun JSONObject.toMessage(): AgentMessageVo = AgentMessageVo(
-        id = optLong("id", 0L),
-        role = optString("role", ""),
-        content = optString("content", ""),
-        kind = optString("kind", "chat"),
-        createdAt = optString("created_at", ""),
-        interrupted = optBoolean("interrupted", false),
-        clientMessageId = optString("client_message_id", "").takeIf { it.isNotEmpty() },
-        attachments = optJSONArray("attachments").orEmptyObjects().mapNotNull { a ->
-            a.optString("upload_id").takeIf { it.isNotEmpty() }?.let {
-                AgentAttachmentVo(it, a.optString("kind", "image"), a.optString("name", ""))
-            }
-        },
-    )
-
-    private fun org.json.JSONArray?.orEmptyObjects(): List<JSONObject> =
-        if (this == null) emptyList() else (0 until length()).mapNotNull { optJSONObject(it) }
+    private fun JSONObject.toMessage(): AgentMessageVo = toAgentMessageVo()
 }
+
+/**
+ * 历史 JSON → [AgentMessageVo]（顶层函数：AgentVoMappersTest 之外，映射单测也直接打这里）。
+ *
+ * `location` 只在 kind=="location" 的行出现（服务端契约）；`duration_s` 只在视频附件上出现，
+ * 缺失与 0 都归一成 null——发送时没带时长的视频本来就没有可信值可显示。
+ */
+internal fun JSONObject.toAgentMessageVo(): AgentMessageVo = AgentMessageVo(
+    id = optLong("id", 0L),
+    role = optString("role", ""),
+    content = optString("content", ""),
+    kind = optString("kind", "chat"),
+    createdAt = optString("created_at", ""),
+    interrupted = optBoolean("interrupted", false),
+    clientMessageId = optString("client_message_id", "").takeIf { it.isNotEmpty() },
+    attachments = optJSONArray("attachments").orEmptyObjects().mapNotNull { a ->
+        a.optString("upload_id").takeIf { it.isNotEmpty() }?.let {
+            AgentAttachmentVo(
+                uploadId = it,
+                kind = a.optString("kind", "image"),
+                name = a.optString("name", ""),
+                durationSeconds = a.optJSONObject("meta")?.let { m ->
+                    m.optInt("duration_s", -1).takeIf { d -> d in 1..86_400 }
+                } ?: a.optInt("duration_s", -1).takeIf { d -> d in 1..86_400 },
+            )
+        }
+    },
+    location = optJSONObject("location")?.let { loc ->
+        val lat = loc.optDouble("lat", Double.NaN)
+        val lng = loc.optDouble("lng", Double.NaN)
+        if (lat.isNaN() || lng.isNaN()) null
+        else AgentLocationVo(lat, lng, loc.optInt("accuracy_m", -1).takeIf { it >= 0 })
+    },
+)
+
+private fun org.json.JSONArray?.orEmptyObjects(): List<JSONObject> =
+    if (this == null) emptyList() else (0 until length()).mapNotNull { optJSONObject(it) }
+
+/**
+ * 组装 `POST /sessions/{id}/messages` 的请求体。text 和 client_message_id 恒在；
+ * attachments/location 只在有值时带——服务端把「三个字段全空的发送」判成 422 empty_message，
+ * 而多带一个空的 location/attachments 对象同样是形态错误，所以宁可缺省也不放空壳。
+ * location 是**消息顶层字段**，不是附件——服务端按 kind=="location" 存储，历史原样带回。
+ */
+internal fun buildAgentSubmitBody(text: String, clientMessageId: String, attachments: org.json.JSONArray?, location: JSONObject?): JSONObject =
+    JSONObject()
+        .put("text", text)
+        .put("client_message_id", clientMessageId)
+        .apply {
+            if (attachments != null) put("attachments", attachments)
+            if (location != null) put("location", location)
+        }
+
+/**
+ * 领域坐标 → 服务端 `location` 对象。精度是可选 int：发送时拿不到精度就不带这个 key，
+ * 而不是带一个假的 0（0 米精度是在声称不可能的准确度）。经纬度按原样精度发出。
+ */
+internal fun buildAgentLocationJson(latitude: Double, longitude: Double, accuracyMeters: Int?): JSONObject =
+    JSONObject()
+        .put("lat", latitude)
+        .put("lng", longitude)
+        .apply { accuracyMeters?.let { put("accuracy_m", it) } }
 
 data class AgentSessionVo(val id: Long, val roleId: String?, val name: String, val updatedAt: String)
 
-/** 历史里一条消息携带的附件引用（字节在对象存储，这里只有 id；渲染要再去换签名 URL）。 */
-data class AgentAttachmentVo(val uploadId: String, val kind: String, val name: String)
+/**
+ * 历史里一条消息携带的附件引用（字节在对象存储，这里只有 id；渲染要再去换签名 URL）。
+ * [durationSeconds] 只有 kind=="video" 才有值（服务端字段 `duration_s`，缺失为 null）。
+ */
+data class AgentAttachmentVo(
+    val uploadId: String,
+    val kind: String,
+    val name: String,
+    val durationSeconds: Int? = null,
+)
+
+/** 历史里一条位置消息的坐标（服务端 `location` 对象原样）。 */
+data class AgentLocationVo(val lat: Double, val lng: Double, val accuracyMeters: Int?)
 
 data class AgentMessageVo(
     val id: Long,
@@ -389,6 +448,8 @@ data class AgentMessageVo(
     /** 客户端发起时带的本地 id：历史行与本地富内容行（图片/语音）靠它对齐。 */
     val clientMessageId: String? = null,
     val attachments: List<AgentAttachmentVo> = emptyList(),
+    /** kind=="location" 的行携带坐标，其余行为 null。 */
+    val location: AgentLocationVo? = null,
 )
 
 data class AgentHistoryPage(val items: List<AgentMessageVo>, val hasMore: Boolean)

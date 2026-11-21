@@ -208,6 +208,46 @@ class CompanionViewModelTest {
         vm.stopListening()
     }
 
+    /**
+     * B3 的一环：`AvatarJson`（emotion cue）必须落进 `state.emotion`——这条
+     * cue→UI state 的链路以前在 VM 层一个用例都没有。界面那一跳由 mapper 的用例钉住。
+     */
+    @Test
+    fun `an emotion cue from the transport lands in ui state`() = runTest(dispatcher) {
+        val transport = ScriptedTransport(
+            listOf(CompanionEvent.AvatarJson("""{"v":1,"type":"emotion","emotion":"Joy"}""")),
+        )
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+
+        assertEquals("joy", vm.state.value.emotion)
+        vm.stopListening()
+    }
+
+    /**
+     * B3：降级进 L2 后 cue 全被端侧丢掉，卡在脸上的表情等不到下一条 emotion。
+     * 传输层在升档那条边发 [CompanionEvent.ClearAvatarEmotion]，ViewModel 必须把
+     * state.emotion 收回 null——若这条指令不生效，上一条 cue 留下的 "joy" 会留在这里。
+     */
+    @Test
+    fun `a degrade clear wipes the stuck emotion out of ui state`() = runTest(dispatcher) {
+        val transport = ScriptedTransport(
+            listOf(
+                CompanionEvent.AvatarJson("""{"v":1,"type":"emotion","emotion":"Joy"}"""),
+                CompanionEvent.ClearAvatarEmotion,
+            ),
+        )
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+
+        assertNull("降级清除后 state 里不能还留着 joy", vm.state.value.emotion)
+        vm.stopListening()
+    }
+
     /** 主动消息事件必须带上来源类型，界面据此显示「她记得 / 她来找你」。 */
     @Test
     fun `a proactive event from the transport keeps its kind for the label`() = runTest(dispatcher) {
@@ -221,6 +261,31 @@ class CompanionViewModelTest {
 
         val proactive = vm.state.value.messages.last { it.proactive == ProactiveKind.EVENT }
         assertEquals("面试加油", proactive.text)
+        vm.stopListening()
+    }
+
+    /**
+     * 语音通话的字幕回归：语音链路里没有人先发 send()，所以**没有**流式占位，
+     * 服务端推来的 TextDelta 以前全被 appendToStreaming 丢掉——字幕永远是空的，
+     * 「字幕开/关」看起来毫无效果。第一个 delta 必须自己开一条流式消息。
+     */
+    @Test
+    fun `a text delta without a placeholder starts a streaming caption`() = runTest(dispatcher) {
+        val transport = ScriptedTransport(
+            listOf(
+                CompanionEvent.TextDelta("你好，"),
+                CompanionEvent.TextDelta("今天过得怎么样？"),
+                CompanionEvent.TurnDone,
+            ),
+        )
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+
+        val reply = vm.state.value.messages.single { it.role == MessageRole.ASSISTANT }
+        assertEquals("你好，今天过得怎么样？", reply.text)
+        assertEquals("TurnDone 之后不再是流式", false, reply.streaming)
         vm.stopListening()
     }
 
@@ -345,6 +410,55 @@ class CompanionViewModelTest {
         assertEquals("新线路要连上新会话", 1, volc.connects)
         vm.stopListening()
     }
+
+    /**
+     * 长按动作轮盘的发送入口：动作文案**不经过输入框**直接发（输入框可能是空的，
+     * 也不该被动作文案污染）。链路 = transport.sendText + 用户气泡 + 流式占位，
+     * 与打字发送同一形态，她的回话才能落进同一条字幕流。
+     */
+    @Test
+    fun `sendActionText sends straight to the transport without touching the input box`() = runTest(dispatcher) {
+        val transport = SendingTransport()
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+        vm.onInputChange("草稿不要动")
+        vm.sendActionText("摸了摸她的头")
+        runCurrent()
+
+        assertEquals("文案要直达传输层", listOf("摸了摸她的头"), transport.sentTexts)
+        assertEquals("输入框不能被动作文案污染", "草稿不要动", vm.state.value.input)
+        val user = vm.state.value.messages.last { it.role == MessageRole.USER }
+        assertEquals("摸了摸她的头", user.text)
+        val placeholder = vm.state.value.messages.last { it.role == MessageRole.ASSISTANT }
+        assertEquals("要有流式占位等她的回话", true, placeholder.streaming)
+        vm.stopListening()
+    }
+
+    /** 连线还没断时动作能发；连接不可用时不许把文案打进房间（与 send() 同一道闸）。 */
+    @Test
+    fun `sendActionText does nothing while the connection is down`() = runTest(dispatcher) {
+        val transport = SendingTransport()
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.sendActionText("摸了摸她的头")
+        runCurrent()
+
+        assertEquals("没连上就不该发", emptyList<String>(), transport.sentTexts)
+        assertEquals("没连上就不该加气泡", emptyList<MessageRole>(), vm.state.value.messages.map { it.role })
+        vm.stopListening()
+    }
+}
+
+/** 记录 sendText 文案的传输替身：动作发送路径的唯一证据就在「房间收到了什么」。 */
+private class SendingTransport : CompanionTransport {
+    val sentTexts = mutableListOf<String>()
+    override val events: kotlinx.coroutines.flow.Flow<CompanionEvent> =
+        kotlinx.coroutines.flow.MutableSharedFlow()
+    override suspend fun connect(session: SessionResponse) = Unit
+    override fun sendText(text: String) { sentTexts.add(text) }
+    override suspend fun disconnect() = Unit
 }
 
 /** 记录 connect/disconnect 次数的探针，用于验证 provider 换线时的实现交接。 */

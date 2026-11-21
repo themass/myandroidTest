@@ -44,6 +44,8 @@ interface ChatRepository {
      *   为 null 时由实现生成新的 id。
      * @param attachments 已上传的附件引用。**与 text 一起在同一个回合里发出**——
      *   拆成「附件一轮 + 文字一轮」会让同一句话得到两条回复，消息在界面上也失真。
+     * @param location 位置消息的坐标（P2-13）。服务端据此把这条存成 kind=="location"；
+     *   text/attachments/location 三者全空的发送会被服务端 422 拒掉，所以调用方要保证至少有一个。
      */
     fun sendMessageStream(
         sessionId: Long,
@@ -53,6 +55,7 @@ interface ChatRepository {
         persistUserMessage: Boolean = true,
         clientMessageId: String? = null,
         attachments: List<OutgoingAttachment> = emptyList(),
+        location: com.openapi.feature.chat.domain.model.GeoLocation? = null,
     ): Flow<ChatStreamEvent>
 
     /**
@@ -80,8 +83,20 @@ interface ChatRepository {
     /** 只清本地缓存里该会话的消息（服务端已清空后调用）。 */
     suspend fun clearLocalMessages(sessionId: Long)
 
+    /**
+     * 服务端一键清空该会话的全部消息（`DELETE /sessions/{id}/messages`，整改清单 P1-9）。
+     * 返回 false 表示这条路径不可用（旧服务端没有该接口或调用失败），调用方应回退到逐条删除。
+     */
+    suspend fun clearHistory(sessionId: Long): Boolean
+
     /** 本地还没有被服务端历史覆盖的用户消息（附件、正在发送或失败的消息），用于冷启动时恢复。 */
     suspend fun localPendingMessages(sessionId: Long): List<ChatMessage>
+
+    /**
+     * 该会话的本地缓存消息（不联网）。用于切换会话时立刻显示上一个已加载过的内容，
+     * 而不是让上一个会话的消息在界面上多停留几秒。可能为空（没缓存过），调用方自行决定。
+     */
+    suspend fun cachedMessages(sessionId: Long): List<ChatMessage>
 
     suspend fun deleteMessage(sessionId: Long, messageId: String): Boolean
 
@@ -112,6 +127,26 @@ interface ChatRepository {
      * @return 失败（网络、未登录、服务端拒绝等）返回 null
      */
     suspend fun uploadImage(localFile: java.io.File, fileName: String): String?
+
+    /**
+     * 上传一个视频，返回 `upload_id`（scene `chat-video`，P2-13）。语义与 [uploadImage] 相同：
+     * 只把字节放进存储，回合由 [sendMessageStream] 带着 id 发起。
+     *
+     * **视频没有中转降级通道**（中转上传会把字节按图片归一化，MP4 进去必坏），
+     * 失败就是失败——返回 null，调用方提示重试，绝不能静默换通道。
+     * 大小/类型预检在实现里做（[com.openapi.feature.chat.domain.model.VideoRules]），超限不发起网络请求。
+     */
+    suspend fun uploadVideo(localFile: java.io.File, fileName: String): String? = null
+
+    /**
+     * 为已上传的对象重新换取一个可渲染地址（整改清单 P1-10：历史图片签名 URL 过期 /
+     * 换 URL 失败后，点击失败占位走这里重签，走的是历史整页换 URL 的同一条
+     * `GET /uploads/{id}` 通道）。
+     *
+     * 只有 /v1 后端支持；返回 null 表示换不到（旧链路、对象不存在、网络失败），
+     * 调用方保持原样即可——界面上的失败占位仍在，用户可以再点一次。
+     */
+    suspend fun refreshImageUrl(uploadId: String): String? = null
 
     /**
      * 上传一个图片或文件附件，等待大模型的回复。
@@ -150,8 +185,13 @@ interface ChatRepository {
     /** 删除自己的自定义角色；失败返回 false。 */
     suspend fun deleteCharacter(characterId: Int): Boolean
 
-    /** 本地缓存的会话列表，按服务端 updatedAt 倒序。 */
-    fun sessions(): List<ChatSession>
+    /**
+     * 本地缓存的会话列表，按服务端 updatedAt 倒序。
+     *
+     * 整改清单 P3-21：这是对 Room 的读，AppDatabase 不再允许主线程查询，
+     * 所以它是 suspend（实现内部切 IO），调用方都已在协程里。
+     */
+    suspend fun sessions(): List<ChatSession>
 
     /** 切换当前会话（写入 SP，之后的历史和发送都以它为准）。 */
     fun setCurrentSessionId(sessionId: Long)

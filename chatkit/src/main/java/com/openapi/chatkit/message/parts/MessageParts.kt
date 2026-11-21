@@ -11,6 +11,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -46,19 +48,28 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.openapi.chatkit.R
 import com.openapi.chatkit.media.ImageViewer
 import com.openapi.chatkit.media.imageModel
+import com.openapi.chatkit.model.ImageLoadState
+import com.openapi.chatkit.model.ImageVisualStatus
 import com.openapi.chatkit.model.MessagePart
 import com.openapi.mediaview.MediaCarousel
 import com.openapi.mediaview.MediaItem
+import com.openapi.mediaview.MediaLoadFailedOverlay
 import com.openapi.mediaview.MediaStack
 import com.openapi.mediaview.MediaTheme
+import com.openapi.mediaview.rememberStatefulImageModel
 import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.theme.ChatKit
 import java.util.Locale
@@ -78,6 +89,11 @@ fun TextBubble(
     modifier: Modifier = Modifier,
     /** 气泡卡片内部、正文下面的 footer（助手最新回复）。 */
     footer: (@Composable () -> Unit)? = null,
+    /**
+     * 读屏动作（整改清单 P2-16）：与长按菜单同一批操作。
+     * 挂在气泡自身节点上，读屏在局部菜单里直接执行，不需要「长按」这个摸不到的手势。
+     */
+    screenReaderActions: List<CustomAccessibilityAction> = emptyList(),
     content: @Composable () -> Unit,
 ) {
     val colors = ChatKit.colors
@@ -87,7 +103,12 @@ fun TextBubble(
         color = if (isUser) colors.userBubble else colors.assistantBubble,
         contentColor = if (isUser) colors.userBubbleText else colors.assistantBubbleText,
         shape = bubbleShape(sender),
-        modifier = modifier.combinedClickable(onClick = {}, onLongClick = onLongPress),
+        modifier = modifier
+            .combinedClickable(onClick = {}, onLongClick = onLongPress)
+            .then(
+                if (screenReaderActions.isEmpty()) Modifier
+                else Modifier.semantics { customActions = screenReaderActions }
+            ),
     ) {
         Box(Modifier.padding(horizontal = dimens.bubblePaddingHorizontal, vertical = dimens.bubblePaddingVertical)) {
             if (footer == null) {
@@ -151,6 +172,11 @@ private val SINGLE_IMAGE_MIN = 96.dp
 /**
  * 图片块。单张按原图比例显示；多张排成方格（2、4 张两列，其余三列），最多 9 张，
  * 超出的数量盖在第 9 张上。点击任意一张打开全屏查看器（组件自己管理查看器状态）。
+ *
+ * 加载失败不再是一块无出路的底色（整改清单 P1-10）：失败的图显示「图片加载失败，点击重试」
+ * 占位，整块可点击重试；重试期间显示进度样式。每台设备的换源能力不同：组件先做本地强制重载
+ * （换缓存 key 重新解码 / 重新请求原地址），同时把 [onRetryImage] 交给调用方去重新换取远程
+ * 地址（签名 URL）；调用方换到新地址后更新来源，来源一变组件会按新地址重新加载。
  */
 @Composable
 fun ImageGrid(
@@ -159,16 +185,38 @@ fun ImageGrid(
     /** 长按某一张图：传它的来源（本地路径或地址）。 */
     onLongPress: (String) -> Unit,
     modifier: Modifier = Modifier,
+    /** 点击了加载失败的那张图（下标）。组件已做本地重载；调用方若能重新换源就换源。 */
+    onRetryImage: (Int) -> Unit = {},
 ) {
     if (sources.isEmpty()) return
     var viewerStart by remember { mutableStateOf<Int?>(null) }
     val placeholder = ChatKit.colors.surfaceVariant
+    // 每张图一个状态机实例。来源一换（例如重新签好了 URL）整组回到 Loading，
+    // 迟到的旧回调只会落在已被换掉的状态对象上，不会把新图盖成失败。
+    val states = remember(sources) { sources.map { mutableStateOf(ImageLoadState()) } }
+    fun update(index: Int, transform: (ImageLoadState) -> ImageLoadState) {
+        val slot = states.getOrNull(index) ?: return
+        slot.value = transform(slot.value)
+    }
+    fun retry(index: Int) {
+        val slot = states.getOrNull(index) ?: return
+        val before = slot.value
+        val after = before.onRetryClick()
+        if (after === before) return // 不在失败态：没有可重试的东西，也不通知调用方
+        slot.value = after
+        onRetryImage(index)
+    }
 
     if (sources.size == 1) {
-        AsyncImage(
-            model = imageModel(sources[0]),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
+        val state by states[0]
+        val failed = state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying
+        val stateful = rememberStatefulImageModel(imageModel(sources[0]), state.attempt)
+        val model: Any? = if (failed && state.status != ImageVisualStatus.Retrying) {
+            null // 失败且未点重试：不发请求，避免每次重组都重烧一次必失败的加载
+        } else {
+            stateful
+        }
+        Box(
             modifier = modifier
                 .sizeIn(
                     minWidth = SINGLE_IMAGE_MIN,
@@ -178,19 +226,62 @@ fun ImageGrid(
                 )
                 .clip(RoundedCornerShape(12.dp))
                 .background(placeholder)
-                .combinedClickable(onClick = { viewerStart = 0 }, onLongClick = { onLongPress(sources[0]) }),
-        )
+                .combinedClickable(
+                    onClick = {
+                        if (state.status == ImageVisualStatus.Failed) retry(0) else viewerStart = 0
+                    },
+                    onLongClick = { onLongPress(sources[0]) },
+                ),
+        ) {
+            AsyncImage(
+                model = model,
+                // 气泡里的图片不是纯装饰：读屏要报得出这里有一张图（整改清单 P2-16）
+                contentDescription = stringResource(R.string.chatkit_image),
+                contentScale = ContentScale.Fit,
+                onSuccess = { update(0) { it.onLoaded() } },
+                onError = { update(0) { it.onFailed() } },
+                modifier = Modifier.fillMaxSize(),
+            )
+            if (state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying) {
+                MediaLoadFailedOverlay(
+                    retrying = state.status == ImageVisualStatus.Retrying,
+                    compact = true, // 气泡缩略图最大 168×200dp，用紧凑版图标和文字
+                )
+            }
+        }
     } else {
         // 多图：2–4 张用堆叠卡片，5 张及以上用横向轮播（通用媒体组件 :mediaview）
-        val items = sources.map { MediaItem(model = imageModel(it)) }
+        val items = sources.mapIndexed { index, source ->
+            val state by states[index]
+            MediaItem(
+                model = imageModel(source),
+                failed = state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying,
+                retrying = state.status == ImageVisualStatus.Retrying,
+                attempt = state.attempt,
+            )
+        }
         val onTap: (Int) -> Unit = { index -> viewerStart = index }
         val onLong: (Int) -> Unit = { index -> onLongPress(sources[index]) }
         val theme = if (androidx.compose.foundation.isSystemInDarkTheme()) MediaTheme.Dark else MediaTheme.Light
         Box(modifier) {
             if (sources.size <= 4) {
-                MediaStack(items = items, theme = theme, onClick = onTap, onLongClick = onLong)
+                MediaStack(
+                    items = items,
+                    theme = theme,
+                    onClick = onTap,
+                    onLongClick = onLong,
+                    onRetry = ::retry,
+                    onItemError = { index -> update(index) { it.onFailed() } },
+                )
             } else {
-                MediaCarousel(items = items, theme = theme, onClick = onTap, onLongClick = onLong)
+                MediaCarousel(
+                    items = items,
+                    theme = theme,
+                    onClick = onTap,
+                    onLongClick = onLong,
+                    onRetry = ::retry,
+                    onItemError = { index -> update(index) { it.onFailed() } },
+                )
             }
         }
     }
@@ -200,6 +291,7 @@ fun ImageGrid(
             sources = sources,
             startIndex = start,
             onDismiss = { viewerStart = null },
+            onRetry = ::retry,
             onLongPress = { source ->
                 // 先关掉查看器（它是独立窗口，会挡住菜单），再弹出同一张图的菜单
                 viewerStart = null
@@ -284,4 +376,169 @@ internal fun formatFileSize(bytes: Long): String = when {
     bytes < 1024 -> "$bytes B"
     bytes < 1024 * 1024 -> String.format(Locale.US, "%.1f KB", bytes / 1024.0)
     else -> String.format(Locale.US, "%.1f MB", bytes / (1024.0 * 1024.0))
+}
+
+/**
+ * 视频卡片：有缩略图显示缩略图（右下角时长角标 + 中央播放键），没有就退化成
+ * 「MP4 徽标 + 文件名 + 时长」。点击把 [MessageAction.OpenVideo] 交给调用方——
+ * 播放用的是本机文件还是现签的 URL、用什么播放器，都是业务侧的事，组件不碰。
+ */
+@Composable
+fun VideoCard(
+    video: MessagePart.Video,
+    onClick: () -> Unit,
+    onLongPress: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = ChatKit.colors
+    val hasThumb = video.thumbnailPath.isNotBlank()
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.divider),
+        modifier = modifier
+            .widthIn(min = 200.dp, max = 260.dp)
+            .combinedClickable(onClick = onClick, onLongClick = onLongPress),
+    ) {
+        Column {
+            if (hasThumb) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 160.dp)
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                        .background(colors.surfaceVariant),
+                ) {
+                    AsyncImage(
+                        model = imageModel(video.thumbnailPath),
+                        contentDescription = stringResource(R.string.chatkit_video),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    // 中央播放键：静态图标即可，点击热区是整个卡片
+                    Box(
+                        Modifier
+                            .align(Alignment.Center)
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color.Black.copy(alpha = 0.45f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            Icons.Filled.PlayArrow,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                    if (video.durationSeconds > 0) {
+                        Text(
+                            formatDuration(video.durationSeconds),
+                            color = Color.White,
+                            fontSize = 11.sp,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(6.dp)
+                                .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 5.dp, vertical = 2.dp),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    video.name,
+                    color = colors.bubbleText,
+                    fontSize = ChatKit.typography.secondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(start = 12.dp, end = 12.dp),
+                )
+                Spacer(Modifier.height(10.dp))
+            } else {
+                // 历史侧/缩略图缺失：退化成与文件卡片同款的行卡
+                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            video.name,
+                            color = colors.bubbleText,
+                            fontSize = ChatKit.typography.secondary,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            if (video.durationSeconds > 0) formatDuration(video.durationSeconds) else "",
+                            color = colors.secondaryText,
+                            fontSize = ChatKit.typography.caption,
+                        )
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    FileBadge(extension = "MP4")
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 位置气泡：坐标两行数字 + 精度标注 + 「在地图打开」。
+ * 组件不画地图也不解地址——按钮点击把回调交给调用方（geo: intent 在业务侧），
+ * 所以这里连 Android context 能力都不需要，纯 Compose 就能渲染。
+ */
+@Composable
+fun LocationBubble(
+    sender: Sender,
+    location: MessagePart.Location,
+    onOpenMap: () -> Unit,
+    onLongPress: () -> Unit,
+    modifier: Modifier = Modifier,
+    /** 读屏动作，与文字气泡同一套（挂在可点击的气泡节点上）。 */
+    screenReaderActions: List<CustomAccessibilityAction> = emptyList(),
+) {
+    val colors = ChatKit.colors
+    TextBubble(
+        sender = sender,
+        onLongPress = onLongPress,
+        modifier = modifier.widthIn(min = 220.dp),
+        screenReaderActions = screenReaderActions,
+    ) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Outlined.LocationOn,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    stringResource(R.string.chatkit_location),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = ChatKit.typography.body,
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                String.format(Locale.US, "%.5f, %.5f", location.latitude, location.longitude),
+                fontSize = ChatKit.typography.secondary,
+            )
+            location.accuracyMeters?.let { meters ->
+                Text(
+                    stringResource(R.string.chatkit_location_accuracy, meters),
+                    color = colors.secondaryText,
+                    fontSize = ChatKit.typography.caption,
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            // 用文本按钮而不是 Button：气泡里的次要操作，颜色跟随气泡 contentColor
+            Text(
+                stringResource(R.string.chatkit_open_in_map),
+                color = ChatKit.colors.accent,
+                fontSize = ChatKit.typography.secondary,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable(onClick = onOpenMap)
+                    .padding(vertical = 2.dp),
+            )
+        }
+    }
 }

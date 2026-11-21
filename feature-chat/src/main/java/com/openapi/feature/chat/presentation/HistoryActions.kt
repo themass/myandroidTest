@@ -21,6 +21,7 @@ internal class HistoryActions(
     private val state: MutableStateFlow<ChatUiState>,
     private val scope: CoroutineScope,
     private val isInFlight: (String) -> Boolean,
+    private val strings: ChatStrings,
     private val io: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
@@ -36,7 +37,7 @@ internal class HistoryActions(
             val page = runCatching { loadHistory(beforeId = oldestId) }.getOrNull()
             state.update { cur ->
                 if (page == null) {
-                    cur.copy(loadingOlder = false, error = "加载更早的消息失败，请稍后重试")
+                    cur.copy(loadingOlder = false, error = strings.historyLoadOlderFailed())
                 } else {
                     val known = page.messages.map { it.id }.toSet()
                     cur.copy(

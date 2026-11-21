@@ -17,6 +17,7 @@ import com.openapi.feature.content.home.domain.ChannelEntries
 import com.openapi.feature.content.home.domain.ChannelPage
 import com.openapi.app.R
 import com.openapi.core.model.RecommendVo
+import com.openapi.core.model.RecommendUrl
 import com.openapi.core.config.Constants
 import com.openapi.core.account.UserLoginUtil
 import com.openapi.feature.user.login.LoginActivity
@@ -26,19 +27,18 @@ class LegacyChannelEntries(app: Context) : ChannelEntries {
 
     private val service by lazy { BaseService().also { it.setup(app) } }
 
+    /** 分类只保留电影 + 夜色（2026-11 用户定的）；「自定义」分类的数据早已没人维护，删掉。夜色仍受地区开关控制。 */
     override fun categories(context: Context): List<ChannelCategory> = buildList {
         add(ChannelCategory(MOVIE, R.string.tab_movie))
         if (PreferenceUtils.getPrefBoolean(context, Constants.AREA_SWITCH, Constants.AREA_SWITCH_DEFAULT)) {
             add(ChannelCategory(NIGHT, R.string.tab_ng))
         }
-        add(ChannelCategory(CUSTOMER, R.string.tab_customer))
     }
 
     override suspend fun loadChannels(categoryId: String, start: Int): ChannelPage {
         val api = when (categoryId) {
             MOVIE -> Constants.API_RECOMMEND_MOVIE_URL
             NIGHT -> Constants.API_RECOMMEND_NIGHT_URL
-            CUSTOMER -> Constants.API_RECOMMEND_CUSTOME_URL
             else -> throw IllegalArgumentException("未知的频道分类：$categoryId")
         }
         val data = service.awaitInfoList(
@@ -49,6 +49,9 @@ class LegacyChannelEntries(app: Context) : ChannelEntries {
             .map { vo ->
                 // 旧数据里的 rate 是 长/宽，卡片要的是 宽/高；限制范围避免极端比例把列表撑坏
                 val ratio = if (vo.rate > 0f) 1f / vo.rate else 1f
+                // 服务端常把 img/actionUrl 写成相对路径，真正站点在 baseurl；这里先拼好，缩略图和点击都能用
+                vo.img = RecommendUrl.resolve(vo.baseurl, vo.img)
+                vo.actionUrl = RecommendUrl.resolve(vo.baseurl, vo.actionUrl)
                 Channel(
                     title = vo.title.orEmpty(),
                     description = vo.desc.orEmpty().trim(),
@@ -76,6 +79,10 @@ class LegacyChannelEntries(app: Context) : ChannelEntries {
         val param = HashMap<String, Any>()
         param[CommonConstants.ADS_SHOW_CONFIG] = vo.adsShow
         param[CommonConstants.ADS_POP_SHOW_CONFIG] = vo.adsPopShow
+        // ConfigActionJump 兜底拼相对路径时用；loadChannels 已 resolve，这里再传一遍防漏
+        if (!vo.baseurl.isNullOrBlank()) {
+            param["baseurl"] = vo.baseurl
+        }
         CoreEvents.postConfigAction(ConfigActionEvent(context, vo.actionUrl, vo.title, param))
         MobAgent.onEventRecommondChannel(context, vo.title)
     }
@@ -83,7 +90,6 @@ class LegacyChannelEntries(app: Context) : ChannelEntries {
     private companion object {
         const val MOVIE = "movie"
         const val NIGHT = "night"
-        const val CUSTOMER = "customer"
         const val NET_TAG = "home_channels"
     }
 }

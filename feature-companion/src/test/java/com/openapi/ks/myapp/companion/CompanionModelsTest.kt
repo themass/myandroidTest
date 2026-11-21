@@ -79,6 +79,72 @@ class CompanionModelsTest {
     }
 }
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34], application = android.app.Application::class)
+class CharacterVoiceLabelTest {
+
+    @Test
+    fun `server voice label is read when present`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"linche","name":"林澈","voice_label":"沉稳男声"}"""))
+        assertEquals("沉稳男声", s.voiceLabel)
+    }
+
+    @Test
+    fun `voice_name is accepted as a fallback key`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"sudai","name":"苏黛","voice_name":"温柔女声"}"""))
+        assertEquals("温柔女声", s.voiceLabel)
+    }
+
+    @Test
+    fun `missing or blank voice label stays null so the UI shows no chip`() {
+        assertEquals(null, CharacterSummary.from(JSONObject("""{"id":"a","name":"A"}""")).voiceLabel)
+        assertEquals(null, CharacterSummary.from(JSONObject("""{"id":"a","name":"A","voice_label":"  "}""")).voiceLabel)
+    }
+
+    @Test
+    fun `voice_ref in extensions vvv maps known speaker ids to a Chinese voice name`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"sudai","name":"苏黛","extensions":{"vvv":{"voice_ref":{"provider":"volcengine","voice_id":"saturn_zh_female_tiexinnvyou_tob"}}}}"""))
+        assertEquals("贴心女友", s.voiceLabel)
+    }
+
+    @Test
+    fun `top level voice_ref wins over extensions vvv`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"x","name":"X","voice_ref":{"voice_id":"saturn_zh_female_bingjiaojiejie_tob"},"extensions":{"vvv":{"voice_ref":{"voice_id":"saturn_zh_female_tiexinnvyou_tob"}}}}"""))
+        assertEquals("病娇姐姐", s.voiceLabel)
+    }
+
+    @Test
+    fun `voice_ref also found under data for imported V2 cards`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"x","name":"X","data":{"voice_ref":{"voice_id":"saturn_zh_female_bingjiaojiejie_tob"}}}"""))
+        assertEquals("病娇姐姐", s.voiceLabel)
+    }
+
+    @Test
+    fun `unknown voice_id is shown verbatim and never labeled by gender`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"x","name":"X","voice_ref":{"voice_id":"some_new_speaker"}}"""))
+        assertEquals("some_new_speaker", s.voiceLabel)
+    }
+
+    @Test
+    fun `explicit voice_label still beats voice_ref`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"x","name":"X","voice_label":"自定义","voice_ref":{"voice_id":"saturn_zh_female_tiexinnvyou_tob"}}"""))
+        assertEquals("自定义", s.voiceLabel)
+    }
+
+    @Test
+    fun `explicit null voice_ref means no chip`() {
+        val s = CharacterSummary.from(JSONObject("""{"id":"x","name":"X","voice_available":true,"voice_ref":null}"""))
+        assertEquals(null, s.voiceLabel)
+    }
+
+    @Test
+    fun `header chip text joins name and voice only when a voice is known`() {
+        assertEquals("沉稳男声", callVoiceChipText("沉稳男声"))
+        assertEquals(null, callVoiceChipText(null))
+        assertEquals(null, callVoiceChipText(""))
+    }
+}
+
 class CompanionTimeTest {
 
     @Test

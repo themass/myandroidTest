@@ -28,6 +28,8 @@
     <string name="chatkit_transcribing">Recognizing speech…</string>
     <string name="chatkit_remove_attachment">Remove attachment</string>
     <string name="chatkit_image_count">%1$d / %2$d</string>
+    <string name="chatkit_image">Image</string>
+    <string name="chatkit_scroll_to_bottom">Scroll to bottom</string>
     <string name="chatkit_release_to_end">Release to finish</string>
     <string name="chatkit_release_to_send_short">Release to send</string>
     <string name="chatkit_release_to_cancel_short">Release to cancel</string>
@@ -55,4 +57,8 @@
     <string name="chatkit_att_copy_path">Copy path</string>
     <string name="chatkit_path_app">Path in app</string>
     <string name="chatkit_path_saved">Saved to</string>
+    <string name="chatkit_video">Video</string>
+    <string name="chatkit_location">Location</string>
+    <string name="chatkit_location_accuracy">Accuracy ±%1$d m</string>
+    <string name="chatkit_open_in_map">Open in map</string>
 </resources>

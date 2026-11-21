@@ -39,4 +39,7 @@ dependencies {
     implementation libs.kotlinx.coroutines.android
     // LiveKit 语音/实时传输（LiveKitCompanionTransport）
     implementation 'io.livekit:livekit-android:2.29.0'
+
+    // In-repo DH engines module (Duix / Live2D / Tao runtimes; external includes removed in Task 7).
+    implementation project(':dh-engines')
 }

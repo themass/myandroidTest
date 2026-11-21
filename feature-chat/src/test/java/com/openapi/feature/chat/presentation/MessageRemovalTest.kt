@@ -27,6 +27,7 @@ class MessageRemovalTest {
             state = state,
             scope = scope,
             reconcile = { reconciles++ },
+            strings = FakeChatStrings(),
             io = StandardTestDispatcher(scope.testScheduler),
         )
     }
@@ -70,18 +71,37 @@ class MessageRemovalTest {
         // 本地临时消息不删服务端，留在列表里并提示
         assertEquals(listOf("local-2"), h.state.value.messages.map { it.id })
         assertEquals(listOf("10", "12"), h.repo.deletedMessages)
-        assertEquals("1 条尚未同步，请稍后再删", h.state.value.error)
+        assertEquals("S:deleteManyPartUnsynced:1", h.state.value.error)
         assertEquals(1, h.reconciles)
     }
 
+    /** 服务端有一键清空接口时：一次调用清掉整个会话，不再分页拉 id 逐条删（整改清单 P1-9）。 */
     @Test
-    fun clearConversationRemovesEverythingAndClearsTheLocalCache() {
+    fun clearConversationUsesTheOneShotEndpointWhenTheRepositorySupportsIt() {
         val h = Harness(listOf(msg("10"), msg("11")))
         h.repo.history = listOf(msg("10"), msg("11"))
+        h.repo.clearHistoryOk = true
         h.removal.clearConversation()
         h.scope.advanceUntilIdle()
         assertTrue(h.state.value.messages.isEmpty())
         assertNull(h.state.value.error)
+        assertEquals(1, h.repo.clearHistoryCalls)
+        assertTrue("一键清空成功后不应再逐条删服务端消息", h.repo.deletedMessages.isEmpty())
+        assertEquals(1, h.repo.clearedLocal)
+    }
+
+    /** 旧服务端没有该接口（或调用失败）时：回退到原来的分页 + 逐条删除路径。 */
+    @Test
+    fun clearConversationFallsBackToPerMessageDeletesWithoutOneShotSupport() {
+        val h = Harness(listOf(msg("10"), msg("11")))
+        h.repo.history = listOf(msg("10"), msg("11"))
+        h.repo.clearHistoryOk = false
+        h.removal.clearConversation()
+        h.scope.advanceUntilIdle()
+        assertTrue(h.state.value.messages.isEmpty())
+        assertNull(h.state.value.error)
+        assertEquals(1, h.repo.clearHistoryCalls)
+        assertEquals(listOf("10", "11"), h.repo.deletedMessages)
         assertEquals(1, h.repo.clearedLocal)
     }
 
@@ -93,7 +113,7 @@ class MessageRemovalTest {
         h.removal.clearConversation()
         h.scope.advanceUntilIdle()
         assertEquals(setOf("10", "11"), h.state.value.messages.map { it.id }.toSet())
-        assertEquals("有 2 条消息清空失败，请稍后重试", h.state.value.error)
+        assertEquals("S:clearFailed:2", h.state.value.error)
         assertEquals(0, h.repo.clearedLocal)
     }
 }

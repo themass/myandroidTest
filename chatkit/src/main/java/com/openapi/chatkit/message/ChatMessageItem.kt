@@ -30,6 +30,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.snapshotFlow
@@ -60,8 +61,10 @@ import com.openapi.chatkit.R
 import com.openapi.chatkit.message.parts.DefaultMessageText
 import com.openapi.chatkit.message.parts.FileCard
 import com.openapi.chatkit.message.parts.ImageGrid
+import com.openapi.chatkit.message.parts.LocationBubble
 import com.openapi.chatkit.message.parts.TextBubble
 import com.openapi.chatkit.message.parts.ThinkingIndicator
+import com.openapi.chatkit.message.parts.VideoCard
 import com.openapi.chatkit.message.parts.VoiceBubble
 import com.openapi.chatkit.model.AttachmentActionKind
 import com.openapi.chatkit.model.AttachmentPathInfo
@@ -122,6 +125,22 @@ fun ChatMessageItem(
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val assistantMaxWidth = minOf(screenWidth * dimens.assistantMaxContentFraction, screenWidth - dimens.listHorizontalPadding * 2)
     var anchor by remember { mutableStateOf(Rect.Zero) }
+    // 读屏用户做不了「长按」，也摸不到弹出来的菜单（整改清单 P2-16）。
+    // 长按菜单里有什么，气泡的语义节点就挂什么——执行走同一条 onAction
+    // （「多选」仍由列表本地拦截，读屏和点菜单殊途同归）。
+    // 挂在气泡自己的节点上（见 MessageContent），而不是外面套一层：
+    // 否则一条消息会被读屏拆成两个焦点，正文还要再读一遍。
+    val screenReaderActions: List<CustomAccessibilityAction> =
+        if (selectionActive || item.thinking || item.streaming) {
+            emptyList()
+        } else {
+            menuItemsFor(item, isLatestAssistant).map { entry ->
+                CustomAccessibilityAction(entry.label) {
+                    onAction(entry.action)
+                    true
+                }
+            }
+        }
 
     // 根节点从 Row 换成 Column 只为容纳 [overlay]（如「她记得」来源标签）。
     // overlay 为 null 时不产生任何子项，Row 独占 Column 宽度，布局与原版逐像素一致。
@@ -176,6 +195,7 @@ fun ChatMessageItem(
                         onLongPress = { onLongPress(anchor) },
                         onAttachmentLongPress = onAttachmentLongPress,
                         footer = assistantFooter,
+                        screenReaderActions = screenReaderActions,
                     )
                 }
                 if (isUser && showSentLabel && item.status == SendStatus.Sent) {
@@ -233,13 +253,18 @@ internal fun MessageContent(
     onAttachmentLongPress: (AttachmentTarget) -> Unit = {},
     /** 助手回复的 footer：放进最后一个文字气泡里面。 */
     footer: (@Composable () -> Unit)? = null,
+    /** 读屏动作（同长按菜单项），挂在有内容的气泡节点上；见 ChatMessageItem 的注释。 */
+    screenReaderActions: List<CustomAccessibilityAction> = emptyList(),
 ) {
     val sender = item.sender
     val images = item.parts.filterIsInstance<MessagePart.Images>()
     val files = item.parts.filterIsInstance<MessagePart.File>()
+    val videos = item.parts.filterIsInstance<MessagePart.Video>()
+    val locations = item.parts.filterIsInstance<MessagePart.Location>()
     val voices = item.parts.filterIsInstance<MessagePart.Voice>()
     val texts = item.parts.filterIsInstance<MessagePart.Text>().filter { it.text.isNotEmpty() }
-    val hasContent = images.isNotEmpty() || files.isNotEmpty() || voices.isNotEmpty() || texts.isNotEmpty()
+    val hasContent = images.isNotEmpty() || files.isNotEmpty() || videos.isNotEmpty() ||
+        locations.isNotEmpty() || voices.isNotEmpty() || texts.isNotEmpty()
 
     Column(
         horizontalAlignment = if (sender == Sender.User) Alignment.End else Alignment.Start,
@@ -254,6 +279,8 @@ internal fun MessageContent(
                 sources = part.sources,
                 maxWidth = maxWidth,
                 onLongPress = { source -> onAttachmentLongPress(AttachmentTarget.Image(source)) },
+                // 失败图片上的点击：组件已做本地重载，这里把「换源」的活儿交给调用方（P1-10）
+                onRetryImage = { index -> onAction(MessageAction.RetryImage(index)) },
             )
         }
         files.forEach { file ->
@@ -264,12 +291,31 @@ internal fun MessageContent(
                 modifier = Modifier.widthIn(max = maxWidth),
             )
         }
+        videos.forEach { video ->
+            VideoCard(
+                video = video,
+                onClick = { onAction(MessageAction.OpenVideo(video)) },
+                onLongPress = { onAttachmentLongPress(AttachmentTarget.File(MessagePart.File(video.path, video.name, 0))) },
+                modifier = Modifier.widthIn(max = maxWidth),
+            )
+        }
+        locations.forEach { location ->
+            LocationBubble(
+                sender = sender,
+                location = location,
+                onOpenMap = { onAction(MessageAction.OpenLocation(location)) },
+                onLongPress = onLongPress,
+                modifier = Modifier.widthIn(max = maxWidth),
+                screenReaderActions = screenReaderActions,
+            )
+        }
         voices.forEach { voice ->
             VoiceBubble(
                 sender = sender,
                 voice = voice,
                 onClick = { onAction(MessageAction.PlayVoice) },
                 onLongPress = onLongPress,
+                screenReaderActions = screenReaderActions,
                 modifier = Modifier.widthIn(max = maxWidth),
             )
         }
@@ -279,6 +325,7 @@ internal fun MessageContent(
                 onLongPress = onLongPress,
                 modifier = Modifier.widthIn(max = maxWidth),
                 footer = if (index == texts.lastIndex) footer else null,
+                screenReaderActions = screenReaderActions,
             ) {
                 text(item, part.text)
             }

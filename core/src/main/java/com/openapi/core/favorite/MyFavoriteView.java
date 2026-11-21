@@ -39,9 +39,13 @@ public class MyFavoriteView extends LinearLayout {
     FavoriteImageView ivFavorite;
     ImageView ivBrowser;
     ImageView ivM3u8Lines;
+    TextView tvCast;
     TextView tvTranslate;
     TextView speed;
     private OnFavoriteItemClick onFavoriteItemClick;
+    /** 投屏入口回调：:core 只负责入口，发现/投屏由页面实现（不依赖 :cast）。 */
+    @Nullable
+    private OnClickListener castClickListener;
     /** 「译」按钮的逻辑（翻译浮层、在线流式字幕）。 */
     private final FavoriteTranslationController translation = new FavoriteTranslationController();
 
@@ -100,13 +104,39 @@ public class MyFavoriteView extends LinearLayout {
         ivFavorite = b.ivFavorite;
         ivBrowser = b.ivOpenBrowser;
         ivM3u8Lines = b.ivM3u8Lines;
+        tvCast = b.tvCast;
         tvTranslate = b.tvTranslate;
         speed = b.speed;
         ivFavorite.setOnClickListener(v -> favoriteClick(v));
         ivBrowser.setOnClickListener(v -> browserClick(v));
         ivM3u8Lines.setOnClickListener(v -> showM3u8LineMenu(v));
+        tvCast.setOnClickListener(v -> {
+            if (castClickListener != null) {
+                castClickListener.onClick(v);
+            }
+        });
         tvTranslate.setOnClickListener(v -> translation.toggle());
         speed.setOnClickListener(v -> speedClick(v));
+    }
+
+    /**
+     * 投屏入口：页面注入点击回调后按钮才显示。
+     * 组件只负责展示与转发，不引入 DLNA / Cast 依赖。
+     */
+    public void setCastClickListener(@Nullable OnClickListener listener) {
+        this.castClickListener = listener;
+        if (tvCast != null) {
+            tvCast.setVisibility(listener != null ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    /** 供「更多」菜单等外部入口转发到同一投屏回调。 */
+    public boolean performCastClick() {
+        if (castClickListener == null || tvCast == null || tvCast.getVisibility() != View.VISIBLE) {
+            return false;
+        }
+        tvCast.performClick();
+        return true;
     }
 
     public void initFavoriteBackGroud(String url) {
@@ -118,6 +148,26 @@ public class MyFavoriteView extends LinearLayout {
         speed.setVisibility(View.VISIBLE);
         tvTranslate.setVisibility(View.VISIBLE);
         speed.setText(speedX[currentSpeedIndex] + "X");
+    }
+
+    /**
+     * 本地文件播放：保留倍速 / 译 / 收藏；隐藏外线 m3u8，并可选隐藏「复制链接+浏览器」
+     * （content:// 复制出去通常无意义）。分享图标不是投屏入口。
+     */
+    public void showLocalFilePlayback(boolean showOpenInBrowser) {
+        setVisibility(View.VISIBLE);
+        ivM3u8Lines.setVisibility(View.GONE);
+        speed.setVisibility(View.VISIBLE);
+        tvTranslate.setVisibility(View.VISIBLE);
+        ivBrowser.setVisibility(showOpenInBrowser ? View.VISIBLE : View.GONE);
+        speed.setText(speedX[currentSpeedIndex] + "X");
+    }
+
+    /** 在线视频详情：显示完整工具条。 */
+    public void showOnlineVideoPlayback() {
+        setVisibility(View.VISIBLE);
+        showVideoLocal();
+        ivBrowser.setVisibility(View.VISIBLE);
     }
 
     public void favoriteClick(View view) {

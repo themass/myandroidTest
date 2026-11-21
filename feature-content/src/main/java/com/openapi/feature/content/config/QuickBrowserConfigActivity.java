@@ -10,7 +10,6 @@ import com.openapi.common.util.android.PackageUtils;
 import com.openapi.common.ads.base.AdsContext;
 import com.openapi.feature.content.R;
 import com.openapi.core.config.Constants;
-import com.openapi.core.account.UserLoginUtil;
 import com.openapi.core.legacyui.base.WebViewActivity;
 
 /**
@@ -35,9 +34,11 @@ public class QuickBrowserConfigActivity extends LogActivity {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         }
-        if (UserLoginUtil.isVIP() || !adsPopNeed) {
-            finishActivity();
-        }
+        // 以前只有 VIP 或不需要弹广告时才 finish：非 VIP 用户会滞留在这个 2dp 透明页上——
+        // LogActivity 并不会在这里弹插屏，本页等于空转，还没有任何返回入口。
+        // 本页只是跳转分发器；弹广告的逻辑在 WebViewActivity 内部（它收到 adsPopShow 自己弹），
+        // 所以无论什么身份，派发完一律关掉。
+        finishActivity();
     }
 
 

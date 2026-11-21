@@ -5,15 +5,14 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import android.util.Log;
-import android.widget.FrameLayout;
 
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.feature.video.R;
 import com.openapi.core.config.Constants;
+import com.openapi.core.legacyui.app.BaseFragmentActivity;
 import com.openapi.core.legacyui.features.BasePullLoadbleFragment;
 import com.openapi.feature.video.list.GSYAutoVideoListFragment;
 
@@ -21,8 +20,11 @@ import java.util.HashMap;
 
 /**
  * Created by openapi on 2015/9/1.
+ *
+ * 基类从 AppCompatActivity 换成 BaseFragmentActivity：旧实现没有工具栏，
+ * 用户进到这个由服务端配置打开的页面后没有任何返回入口（只能靠系统返回键）。
  */
-public class VideoListShowActivity extends AppCompatActivity {
+public class VideoListShowActivity extends BaseFragmentActivity {
     private HashMap<String, String> vo;
 
     @Override
@@ -45,6 +47,12 @@ public class VideoListShowActivity extends AppCompatActivity {
 
         } catch (Exception e) {
             Log.e("", "", e);
+        }
+        String title = getIntent().getStringExtra(Constants.TITLE);
+        if (title != null && !title.isEmpty()) {
+            setToolbarTitle(title, true);
+        } else {
+            setToolbarTitle(R.string.video, true);
         }
     }
 

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -20,6 +21,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -37,19 +42,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-/** 一个媒体条目：图片或视频（视频在缩略图上显示播放标记）。[model] 可以是本地路径、URI 或网络地址。 */
+/**
+ * 一个媒体条目：图片或视频（视频在缩略图上显示播放标记）。[model] 可以是本地路径、URI 或网络地址。
+ *
+ * [failed] / [retrying] / [attempt] 由父组件的 [MediaLoadState] 驱动（整改清单 P1-10）：
+ * 加载失败时卡片不再是一块黑底，而是可辨认的失败占位；[attempt] 拼进 Coil 缓存 key，
+ * 点一次重试换一个 key，强制重新解码本机文件 / 重新请求远程地址。全部默认值下行为与旧版一致。
+ */
 data class MediaItem(
     val model: Any,
     val isVideo: Boolean = false,
     val contentDescription: String? = null,
+    val failed: Boolean = false,
+    val retrying: Boolean = false,
+    val attempt: Int = 0,
 )
 
 /** 浅色 / 深色：决定卡片边框、圆点和角标的颜色。 */
@@ -78,6 +95,13 @@ fun MediaStack(
     offsetStep: Dp = 14.dp,
     onClick: (index: Int) -> Unit = {},
     onLongClick: ((index: Int) -> Unit)? = null,
+    /**
+     * 点了一张**已标记失败**的卡片：交给调用方去重新取地址（整改清单 P1-10）。
+     * 不传时失败的卡片照常走 [onClick]。
+     */
+    onRetry: ((index: Int) -> Unit)? = null,
+    /** 某张卡片自然加载失败：报给调用方合并进状态，让失败的卡片显示失败占位。 */
+    onItemError: ((index: Int) -> Unit)? = null,
 ) {
     if (items.isEmpty()) return
     val count = items.size
@@ -85,6 +109,10 @@ fun MediaStack(
     val visible = minOf(count, STACK_VISIBLE)
     val totalWidth = cardWidth + offsetStep * (visible - 1)
     val totalHeight = cardHeight + offsetStep * (visible - 1)
+    // 失败卡点击的语义：有 onRetry 就重试，否则照旧打开查看器
+    val frontClick: (MediaItem, Int) -> Unit = { item, index ->
+        if (onRetry != null && item.failed) onRetry(index) else onClick(index)
+    }
 
     // 牌堆最上面那张在 items 里的下标；换一条消息（items 变化）时回到第一张
     var front by remember(items) { mutableIntStateOf(0) }
@@ -160,9 +188,9 @@ fun MediaStack(
                     .clip(RoundedCornerShape(16.dp))
                     .border(2.dp, border, RoundedCornerShape(16.dp))
                     .background(Color.Black)
-                    .combinedClickable(onClick = { onClick(index) }, onLongClick = onLongClick?.let { cb -> { cb(index) } }),
+                    .combinedClickable(onClick = { frontClick(item, index) }, onLongClick = onLongClick?.let { cb -> { cb(index) } }),
             ) {
-                MediaImage(item)
+                MediaImage(item, onError = onItemError?.let { cb -> { cb(index) } })
                 if (item.isVideo) VideoBadge(Modifier.align(Alignment.TopStart).padding(8.dp))
             }
         }
@@ -198,6 +226,10 @@ fun MediaCarousel(
     gap: Dp = 8.dp,
     onClick: (index: Int) -> Unit = {},
     onLongClick: ((index: Int) -> Unit)? = null,
+    /** 点了一张**已标记失败**的卡片：交给调用方去重新取地址（整改清单 P1-10）。 */
+    onRetry: ((index: Int) -> Unit)? = null,
+    /** 某张卡片自然加载失败：报给调用方合并进状态。 */
+    onItemError: ((index: Int) -> Unit)? = null,
 ) {
     if (items.isEmpty()) return
     val listState = rememberLazyListState()
@@ -215,9 +247,12 @@ fun MediaCarousel(
                         .size(width = cardWidth, height = cardHeight)
                         .clip(RoundedCornerShape(16.dp))
                         .background(Color.Black)
-                        .combinedClickable(onClick = { onClick(index) }, onLongClick = onLongClick?.let { cb -> { cb(index) } }),
+                        .combinedClickable(
+                            onClick = { if (onRetry != null && item.failed) onRetry(index) else onClick(index) },
+                            onLongClick = onLongClick?.let { cb -> { cb(index) } },
+                        ),
                 ) {
-                    MediaImage(item)
+                    MediaImage(item, onError = onItemError?.let { cb -> { cb(index) } })
                     if (item.isVideo) VideoBadge(Modifier.align(Alignment.TopStart).padding(9.dp))
                 }
             }
@@ -263,14 +298,91 @@ fun MediaBubble(
 
 // ---------- 内部组件 ----------
 
+/**
+ * 图片本体（整改清单 P1-10）：
+ * - 自然加载失败 → [onError] 报给调用方合并进状态，卡片显示失败占位（灰底 + 破损图标 + 文案）；
+ * - [MediaItem.failed] 时不重新请求，直接显示失败占位；[MediaItem.retrying] 时占位上叠一个进度圈；
+ * - [MediaItem.attempt] 拼进 Coil 缓存 key，点一次重试换一次 key → 强制重新解码本机文件 / 重新请求远程地址。
+ */
 @Composable
-private fun MediaImage(item: MediaItem) {
-    AsyncImage(
-        model = item.model,
-        contentDescription = item.contentDescription,
-        contentScale = ContentScale.Crop,
-        modifier = Modifier.fillMaxSize(),
-    )
+private fun MediaImage(item: MediaItem, onError: (() -> Unit)? = null) {
+    val failed = item.failed
+    val stateful = statefulModel(item)
+    // 失败且未点重试：不发请求（model=null），避免每次重组都重新烧一次必失败的加载
+    val model: Any? = if (failed && !item.retrying) null else stateful
+    Box(Modifier.fillMaxSize()) {
+        AsyncImage(
+            model = model,
+            contentDescription = item.contentDescription,
+            contentScale = ContentScale.Crop,
+            onError = { onError?.invoke() },
+            modifier = Modifier.fillMaxSize(),
+        )
+        if (failed) {
+            MediaLoadFailedOverlay(retrying = item.retrying, compact = true)
+        }
+    }
+}
+
+/**
+ * 给带重试次数的条目构造 Coil 模型。attempt>0 时把次数拼进 memoryCacheKey（diskCacheKey
+ * 默认跟随它）：每次重试换一个新 key，内存 / 磁盘缓存必然未命中，本机文件被强制重新解码、
+ * 远程地址被强制重新请求——否则内存缓存里的失败结果会被直接回放，「重试」就变成
+ * 永远在重放同一个错误。
+ *
+ * 结果必须 remember：ImageRequest 不实现 equals，每次重组 new 一个会让 Coil 把每次重组
+ * 都当成「换了图」重新加载一遍（列表滚动 / 流式刷新时就是无限重载）。
+ */
+@Composable
+fun rememberStatefulImageModel(raw: Any, attempt: Int): Any {
+    val context = LocalContext.current
+    return remember(raw, attempt) {
+        if (attempt <= 0) raw
+        else ImageRequest.Builder(context).data(raw).memoryCacheKey("retry:$attempt:$raw").build()
+    }
+}
+
+/** 卡片里图片本体用的包装（见 [rememberStatefulImageModel]）。 */
+@Composable
+private fun statefulModel(item: MediaItem): Any = rememberStatefulImageModel(item.model, item.attempt)
+
+/**
+ * 失败占位：灰底 + 破损图片图标 + 「图片加载失败 / 点击重试」。
+ * [compact] 用于缩略卡片（小图标小字）；全屏查看器用大一号。
+ */
+@Composable
+fun MediaLoadFailedOverlay(retrying: Boolean, compact: Boolean, modifier: Modifier = Modifier) {
+    val iconSize = if (compact) 26.dp else 48.dp
+    val textSize = if (compact) 11.sp else 15.sp
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFF3A3F44)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            if (retrying) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(iconSize),
+                    color = Color.White.copy(alpha = 0.9f),
+                    strokeWidth = 2.dp,
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Filled.BrokenImage,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.85f),
+                    modifier = Modifier.size(iconSize),
+                )
+            }
+            Spacer(Modifier.height(if (compact) 6.dp else 10.dp))
+            Text(
+                text = stringResource(if (retrying) R.string.mediaview_image_retrying else R.string.mediaview_image_load_failed),
+                color = Color.White.copy(alpha = 0.85f),
+                fontSize = textSize,
+            )
+        }
+    }
 }
 
 /** 视频标记：左上角半透明圆底 + 播放三角。 */

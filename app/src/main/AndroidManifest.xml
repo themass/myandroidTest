@@ -8,8 +8,10 @@
         android:name="android.hardware.camera"
         android:required="false" />
     <uses-permission android:name="android.permission.MEDIA_PROJECTION" tools:node="remove"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" tools:node="remove"/>
+    <!-- 频道/本地音乐：MusicService.startForeground(..., MEDIA_PLAYBACK) 必需；勿再 tools:node=remove -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <!--
         Google Play 上架：权限「非用不申请」。这里只保留代码里真的用到的；
         每一项都写明谁在用，新增权限前先看这张表并在 docs/design/play-compliance.md 登记。

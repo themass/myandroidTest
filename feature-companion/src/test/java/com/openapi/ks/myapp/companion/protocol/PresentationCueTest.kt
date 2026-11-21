@@ -70,7 +70,7 @@ class PresentationCueTest {
     }
 
     @Test
-    fun `翻译出来的串是 v1 的 key 且能被 ViewModel 的正则认出来`() {
+    fun `翻译出来的串是 v1 的 key 且能被 AvatarEventMapper 认出来`() {
         val emotionEvent = PresentationCue.emotionEventJson("joy")
         assertTrue(emotionEvent.contains("\"type\":\"emotion\""))
         assertTrue(emotionEvent.contains("\"emotion\":\"joy\""))
@@ -87,5 +87,39 @@ class PresentationCueTest {
         val emotion = PresentationCue.parseEmotion(JSONObject().put("name", "开心"))!!
         assertEquals("neutral", emotion.name)
         assertFalse(PresentationCue.stateEventJson("开心").contains("\\u"))
+    }
+
+    @Test
+    fun `gesture 优先取 id 并接受 name 回落`() {
+        assertEquals("nod", PresentationCue.parseGesture(JSONObject().put("id", "Nod")))
+        assertEquals("tilt_head", PresentationCue.parseGesture(JSONObject().put("name", "Tilt_Head")))
+        assertEquals("nod", PresentationCue.parseGesture(JSONObject().put("id", "nod").put("name", "other")))
+        assertNull(PresentationCue.parseGesture(JSONObject()))
+    }
+
+    @Test
+    fun `gaze 可按名字或数值解析`() {
+        val named = PresentationCue.parseGaze(JSONObject().put("name", "look_left"))!!
+        assertEquals("look_left", named.name)
+        assertEquals(-0.5f, named.x, 0.0001f)
+        assertEquals(0f, named.y, 0.0001f)
+
+        val numeric = PresentationCue.parseGaze(JSONObject().put("x", 0.2).put("y", -0.1))!!
+        assertEquals("custom", numeric.name)
+        assertEquals(0.2f, numeric.x, 0.0001f)
+        assertEquals(-0.1f, numeric.y, 0.0001f)
+
+        assertNull(PresentationCue.parseGaze(JSONObject()))
+    }
+
+    @Test
+    fun `gesture 与 gaze 事件串能被 mapper 识别`() {
+        val gesture = PresentationCue.gestureEventJson("nod")
+        assertTrue(gesture.contains("\"type\":\"gesture\""))
+        assertTrue(gesture.contains("\"id\":\"nod\""))
+
+        val gaze = PresentationCue.gazeEventJson("look_user", 0f, 0f)
+        assertTrue(gaze.contains("\"type\":\"gaze\""))
+        assertTrue(gaze.contains("\"name\":\"look_user\""))
     }
 }

@@ -56,6 +56,11 @@ data class CharacterSummary(
     val tagline: String,
     val tags: List<String>,
     val voiceAvailable: Boolean,
+    /**
+     * 这个角色的声音的人话名字（如「沉稳男声」），通话页顶栏用来告诉用户「声音跟形象走」。
+     * 服务端按 voice_ref 下发；没下发或为空就是 null，界面不显示声音标签（不编造）。
+     */
+    val voiceLabel: String? = null,
 ) {
     companion object {
         fun from(json: JSONObject) = CharacterSummary(
@@ -66,9 +71,37 @@ data class CharacterSummary(
                 (0 until arr.length()).map { arr.optString(it) }
             }.orEmpty(),
             voiceAvailable = json.optBoolean("voice_available", true),
+            voiceLabel = (json.optString("voice_label").ifBlank { json.optString("voice_name") })
+                .trim().ifBlank { null }
+                ?: voiceRefLabel(json),
+        )
+
+        /**
+         * 服务端 voice_ref：`{"provider":"volcengine","voice_id":"..."}`。位置优先级：
+         * 顶层（外部导入的 V2 卡）> data 顶层 > extensions.vvv > data.extensions.vvv。
+         * resource_id=seed-tts-2.0 下没有授权男声，所以文案绝不写「男声/女声」，
+         * 只写音色中文名；不认识的 id 原样展示。
+         */
+        private fun voiceRefLabel(json: JSONObject): String? {
+            val data = json.optJSONObject("data")
+            val ref = json.optJSONObject("voice_ref")
+                ?: data?.optJSONObject("voice_ref")
+                ?: json.optJSONObject("extensions")?.optJSONObject("vvv")?.optJSONObject("voice_ref")
+                ?: data?.optJSONObject("extensions")?.optJSONObject("vvv")?.optJSONObject("voice_ref")
+                ?: return null
+            val id = ref.optString("voice_id").trim().ifBlank { return null }
+            return VOLC_VOICE_NAMES[id] ?: id
+        }
+
+        private val VOLC_VOICE_NAMES = mapOf(
+            "saturn_zh_female_tiexinnvyou_tob" to "贴心女友",
+            "saturn_zh_female_bingjiaojiejie_tob" to "病娇姐姐",
         )
     }
 }
+
+/** 顶栏声音标签文案；声音未知时返回 null，调用方不画标签。 */
+fun callVoiceChipText(voiceLabel: String?): String? = voiceLabel?.trim()?.takeIf { it.isNotEmpty() }
 
 data class CharacterPage(val items: List<CharacterSummary>, val total: Int)
 

@@ -83,6 +83,25 @@ final class PlayerMoreMenu {
         });
         speedBox.addView(decoderRow, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        // 投屏入口：点「更多」也能找到，避免只认右上角图标
+        TextView castRow = new TextView(appAct);
+        castRow.setText(R.string.cast_title);
+        castRow.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        castRow.setTextColor(0xFF1A1A1A);
+        castRow.setPadding(padH, padV, padH, padV);
+        if (selectable.resourceId != 0) {
+            castRow.setBackgroundResource(selectable.resourceId);
+        }
+        castRow.setOnClickListener(v -> {
+            dlg.dismiss();
+            // 与右下角 favor 投屏入口共用同一回调
+            if (!player.getMyFavoriteView().performCastClick()) {
+                ToastUtil.showShort(R.string.cast_title);
+            }
+        });
+        speedBox.addView(castRow, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         dlg.show();
     }
 

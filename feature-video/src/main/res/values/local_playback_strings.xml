@@ -1,0 +1,13 @@
+<resources>
+    <string name="local_subtitle_title">Subtitles</string>
+    <string name="local_subtitle_import">Import UTF-8 SRT / VTT</string>
+    <string name="local_subtitle_loaded">Local subtitles loaded</string>
+    <string name="local_subtitle_invalid">Could not read this UTF-8 SRT / VTT file</string>
+    <string name="local_subtitle_hide">Hide subtitles</string>
+    <string name="local_subtitle_show">Show imported subtitles</string>
+    <string name="local_subtitle_delay">Subtitle delay: %1$+d ms</string>
+    <string name="local_subtitle_delay_hint">Positive values show subtitles later.</string>
+    <string name="local_tools_speed">Speed</string>
+    <string name="local_tools_favorite">Favorite</string>
+    <string name="local_tools_cast">Cast to TV</string>
+</resources>

@@ -113,6 +113,46 @@ public class AppDatabaseTest {
         assertEquals("m40", left.get(29).chatId);
     }
 
+    /**
+     * 保留额度按会话各自计算，不是全局共享：以前 30 条是跨所有会话的总额，
+     * 多切几个会话后每个会话断网时就只剩几行（整改清单 P1-7）。
+     */
+    @Test
+    public void trimKeepsTheLatestKeepPerSessionNotGlobally() {
+        for (int i = 1; i <= 40; i++) {
+            db.chatLogDao().save(log("a" + i, 1));
+        }
+        for (int i = 1; i <= 40; i++) {
+            db.chatLogDao().save(log("b" + i, 2));
+        }
+        db.chatLogDao().trimToLatest(30);
+        List<ChatLog> first = db.chatLogDao().bySession(1);
+        List<ChatLog> second = db.chatLogDao().bySession(2);
+        assertEquals(30, first.size());
+        assertEquals(30, second.size());
+        assertEquals("a11", first.get(0).chatId);
+        assertEquals("b11", second.get(0).chatId);
+    }
+
+    /** 富内容与本地临时行照旧不参与清理，每个会话的清理也只数纯文字行。 */
+    @Test
+    public void trimPerSessionKeepsRichAndLocalRows() {
+        for (int i = 1; i <= 40; i++) {
+            db.chatLogDao().save(log("a" + i, 1));
+        }
+        ChatLog rich = log("rich-1", 1);
+        rich.msgType = 2; // IMAGE_TYPE
+        db.chatLogDao().save(rich);
+        ChatLog local = log("local-keep", 1);
+        db.chatLogDao().save(local);
+        db.chatLogDao().trimToLatest(30);
+        List<ChatLog> left = db.chatLogDao().bySession(1);
+        // 文字行各会话留 30（a11..a40），加上富内容与 local- 行共 32
+        assertEquals(32, left.size());
+        assertNotNull(left.stream().filter(x -> "rich-1".equals(x.chatId)).findFirst().orElse(null));
+        assertNotNull(left.stream().filter(x -> "local-keep".equals(x.chatId)).findFirst().orElse(null));
+    }
+
     @Test
     public void trimDoesNothingWhenThereAreFewerThanThirty() {
         for (int i = 1; i <= 5; i++) {

@@ -11,12 +11,10 @@ import kotlinx.coroutines.withContext
  * 从一张照片里检测题目纸面的四个角。
  *
  * 现有 [com.openapi.imaging.cropassist.DocQuadNetCropAssistProvider] 的模型输出本来就是四个角的
- * 热力图（`corner_heatmaps` 1x4x64x64），但当前接口只把四个点压成了外接矩形（`CropNorm`），
- * 斜拍的题目因此会带进大量背景。这里复用同一个 [CropAssistProvider] 的能力，把「四点」这一层
- * 暴露出来；模型缺失时退化为「整张图」，让用户手动拖角点。
- *
- * 之所以不直接改 [CropAssistProvider] 的返回类型：裁剪页（A27 的手动框选）仍然按矩形工作，
- * 改它会牵动那一整条已经稳定的流程；这里作为独立的、仅供拍照解题使用的能力。
+ * 热力图（`corner_heatmaps` 1x4x64x64），检测器会把真实的四边形带在
+ * [CropAssistResult.SuggestedBox.quad] 里；这里优先用它（斜拍题目不再退化成外接矩形）。
+ * 只给出矩形框的旧式 provider 仍按矩形构造四边形。模型缺失时返回 null，
+ * 由调用方决定是提示重拍还是让用户用 [defaultQuad] 手动拖角点。
  */
 class QuestionQuadDetector(
     private val provider: CropAssistProvider,
@@ -34,9 +32,17 @@ class QuestionQuadDetector(
      */
     suspend fun detect(bitmap: Bitmap): QuadNorm? = withContext(Dispatchers.Default) {
         val suggestion = provider.suggest(bitmap) as? CropAssistResult.SuggestedBox ?: return@withContext null
-        // provider 目前给的是外接矩形；先按矩形构造四边形，四个角都是直角。
-        // 换成输出四点的 provider 时，这里改成读它的 corners 即可，接口不变。
-        rectangleToQuad(suggestion.norm)
+        quadFrom(suggestion)
+    }
+
+    /**
+     * provider 的建议 → 可用的四边形；不可用时 null。纯逻辑，[detect] 与单测共用。
+     */
+    internal fun quadFrom(suggestion: CropAssistResult.SuggestedBox): QuadNorm? {
+        // provider 给出真实四边形就直接用；只有矩形时退化成直角四边形。接口不变。
+        val quad = suggestion.quad ?: rectangleToQuad(suggestion.norm) ?: return null
+        // 面积过大（几乎整张图）说明检测没找到纸面，而不是「纸面就是整张图」
+        return if (quad.area() > QuadNorm.MAX_AREA) null else quad
     }
 
     /** 外接矩形 → 四边形（顺序 TL、TR、BR、BL）。 */

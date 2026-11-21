@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="880" viewBox="0 0 1024 880"><defs><linearGradient id="scene" x2="0" y2="1"><stop stop-color="#345968"/><stop offset="1" stop-color="#19282d"/></linearGradient></defs><style>text{font-family:Inter,"PingFang SC",sans-serif}</style>
+<rect x="0" y="0" width="1024" height="880" rx="0" fill="#101519"/>
+<text x="48" y="56" font-size="15" fill="#a5e7cb" font-weight="700">MEDIA STUDIO  /  PLAYER DETAIL</text>
+<text x="48" y="106" font-size="36" fill="#f0f4f2" font-weight="750">播放工具与本地字幕</text>
+<text x="48" y="134" font-size="15" fill="#aab9b7" font-weight="500">同一播放会话 · 两种布局 · 静态设计稿</text>
+<rect x="48" y="173" width="440" height="620" rx="22" fill="#171e24"/>
+<rect x="536" y="173" width="440" height="620" rx="22" fill="#171e24"/>
+<text x="72" y="213" font-size="20" fill="#f0f4f2" font-weight="700">01  横屏播放控件分区</text>
+<text x="560" y="213" font-size="20" fill="#f0f4f2" font-weight="700">02  字幕面板 · 本地优先</text>
+<rect x="67" y="254" width="402" height="228" rx="12" fill="url(#scene)"/>
+<text x="82" y="285" font-size="15" fill="#f0f4f2" font-weight="500">‹   云层之上</text>
+<text x="372" y="285" font-size="13" fill="#f0f4f2" font-weight="500">锁屏   ⋯</text>
+<text x="162" y="301" font-size="13" fill="#d5e8dd" font-weight="500">这段的配乐很好听</text>
+<text x="179" y="366" font-size="24" fill="#f0f4f2" font-weight="500">↶     ▶     ↷</text>
+<text x="176" y="411" font-size="13" fill="#f0f4f2" font-weight="500">风穿过山谷，天色渐亮。</text>
+<rect x="82" y="450" width="370" height="4" rx="12" fill="#657c82"/>
+<rect x="82" y="450" width="170" height="4" rx="12" fill="#a5e7cb"/>
+<text x="82" y="475" font-size="12" fill="#f0f4f2" font-weight="500">18:42 / 42:18</text>
+<text x="407" y="475" font-size="12" fill="#f0f4f2" font-weight="500">全屏</text>
+<rect x="67" y="497" width="90" height="42" rx="12" fill="#222a30"/>
+<text x="80" y="524" font-size="14" fill="#f0f4f2" font-weight="500">字幕</text>
+<rect x="165" y="497" width="90" height="42" rx="12" fill="#222a30"/>
+<text x="178" y="524" font-size="14" fill="#f0f4f2" font-weight="500">倍速 1×</text>
+<rect x="263" y="497" width="90" height="42" rx="12" fill="#222a30"/>
+<text x="276" y="524" font-size="14" fill="#f0f4f2" font-weight="500">弹幕</text>
+<rect x="361" y="497" width="108" height="42" rx="12" fill="#222a30"/>
+<text x="374" y="524" font-size="14" fill="#f0f4f2" font-weight="500">更多 ⋯</text>
+<rect x="240" y="558" width="229" height="52" rx="12" fill="#c3f3dc"/>
+<text x="254" y="589" font-size="14" fill="#132a21" font-weight="700">右下 Favor   收藏   电视投屏</text>
+<text x="72" y="652" font-size="14" fill="#aab9b7" font-weight="500">字幕占底部，弹幕避让字幕和控件。</text>
+<text x="72" y="682" font-size="14" fill="#aab9b7" font-weight="500">收藏和投屏不挪回右上角。</text>
+<text x="72" y="712" font-size="14" fill="#aab9b7" font-weight="500">换轨、解码、画中画进入「更多」。</text>
+<rect x="555" y="249" width="402" height="59" rx="12" fill="#232b32"/>
+<text x="570" y="273" font-size="16" fill="#f0f4f2" font-weight="700">关闭字幕</text>
+<text x="570" y="295" font-size="12" fill="#b6c9c5" font-weight="500">保持播放</text>
+<rect x="555" y="317" width="402" height="59" rx="12" fill="#232b32"/>
+<text x="570" y="341" font-size="16" fill="#f0f4f2" font-weight="700">内嵌轨道</text>
+<text x="570" y="363" font-size="12" fill="#b6c9c5" font-weight="500">仅显示当前内核可用轨道</text>
+<rect x="555" y="385" width="402" height="59" rx="12" fill="#244338"/>
+<text x="570" y="409" font-size="16" fill="#f0f4f2" font-weight="700">本地文件  ✓</text>
+<text x="570" y="431" font-size="12" fill="#b6c9c5" font-weight="500">云层之上.zh.srt</text>
+<rect x="555" y="453" width="402" height="59" rx="12" fill="#232b32"/>
+<text x="570" y="477" font-size="16" fill="#f0f4f2" font-weight="700">本机生成</text>
+<text x="570" y="499" font-size="12" fill="#b6c9c5" font-weight="500">选择音轨与语言，仅在设备上转写</text>
+<rect x="555" y="521" width="402" height="59" rx="12" fill="#232b32"/>
+<text x="570" y="545" font-size="16" fill="#f0f4f2" font-weight="700">在线实时</text>
+<text x="570" y="567" font-size="12" fill="#b6c9c5" font-weight="500">单独开启，不自动回退</text>
+<rect x="555" y="606" width="402" height="49" rx="12" fill="#222a30"/>
+<text x="570" y="636" font-size="15" fill="#f0f4f2" font-weight="500">字幕延时     −      +500 ms      +</text>
+<text x="570" y="691" font-size="14" fill="#aab9b7" font-weight="500">+500 ms 表示字幕晚半秒出现。</text>
+<text x="570" y="724" font-size="14" fill="#a5e7cb" font-weight="500">导入 SRT / VTT  ·  字号  ·  背景  ·  位置</text>
+<text x="48" y="837" font-size="14" fill="#aab9b7" font-weight="500">静态原型，不代表播放控件或本机转写已集成。</text>
+</svg>

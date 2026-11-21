@@ -55,6 +55,8 @@ public class MyApplication extends MultiDexApplication {
     public void onCreate() {
         super.onCreate();
         isDebug = SystemUtils.isApkDebugable(this);
+        // 广告总开关随构建类型就位：AdsManager 的所有入口按它放行（debug = 不加载不展示）。
+        com.openapi.common.ads.base.AdsGate.setDebugBuild(isDebug);
         LogUtil.e("isDebug=" + isDebug);
         instance = this;
         // 网络层的业务配置（域名、请求头名、登录失效处理）在启动时注入，commonutil 不再写死
@@ -100,6 +102,9 @@ public class MyApplication extends MultiDexApplication {
                 new LocalChatStore(this),
                 legacyChat));
         ChatDependencies.INSTANCE.installLoginGate(new com.openapi.app.data.chat.LegacyLoginGate());
+        // 对话页错误提示的文案资源实现（整改清单 P2-14b）：应用级 Context，随进程存活
+        ChatDependencies.INSTANCE.installStrings(
+                new com.openapi.feature.chat.presentation.ResourceChatStrings(this));
         com.openapi.app.data.home.LegacyHomeEntries home = new com.openapi.app.data.home.LegacyHomeEntries(this);
         com.openapi.app.home.HomeDependencies.INSTANCE.install(home);
         com.openapi.feature.content.home.ChannelsDependencies.INSTANCE.install(home);

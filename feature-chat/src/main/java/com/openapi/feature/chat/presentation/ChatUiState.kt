@@ -16,6 +16,11 @@ data class ChatUiState(
     val streaming: Boolean = false,
     val loading: Boolean = false,
     val error: String? = null,
+    /**
+     * 历史加载失败的原因。和 [error] 分开：这条守着「消息区为空」时的显示，
+     * 不会被一次成功的发送清掉，也不能退化成空会话。
+     */
+    val loadError: String? = null,
     val sessionId: Long = 0L,
     val characters: List<ChatCharacterOption> = emptyList(),
     val selectedCharacterId: Int? = null,
@@ -36,6 +41,12 @@ data class ChatUiState(
     val dislikedIds: Set<String> = emptySet(),
     /** 待发送的附件草稿（图片或文件），显示在输入栏上方，发送时和文字一起发出。 */
     val drafts: List<DraftAttachment> = emptyList(),
+    /**
+     * 待发送的位置（P2-13）。刻意不塞进 [drafts]：草稿是「一个文件」的形状
+     * （StagedAttachment 里有 File），位置没有字节可暂存，硬造一个假文件只会让
+     * 上传、恢复草稿那几条路径到处特判。输入栏把它画成一个独立 chip。
+     */
+    val locationDraft: com.openapi.feature.chat.domain.model.GeoLocation? = null,
     /** 会话列表，默认会话在前。 */
     val sessions: List<ChatSession> = emptyList(),
     val sessionsVisible: Boolean = false,
@@ -44,7 +55,7 @@ data class ChatUiState(
     /** 正在加载更早的一页历史。 */
     val loadingOlder: Boolean = false,
 ) {
-    val canSend: Boolean get() = (input.isNotBlank() || drafts.isNotEmpty()) && !sending
+    val canSend: Boolean get() = (input.isNotBlank() || drafts.isNotEmpty() || locationDraft != null) && !sending
 
     val selectedCharacter: ChatCharacterOption?
         get() = characters.firstOrNull { it.id == selectedCharacterId }

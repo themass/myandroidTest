@@ -58,6 +58,22 @@ internal object ChatPlatform {
         return FileProvider.getUriForFile(context, FILE_PROVIDER, file)
     }
 
+    /**
+     * 「在地图打开」：系统 `geo:` intent（P2-13）。
+     *
+     * 不用任何地图 SDK：坐标精度本来就是城市街区级，交给用户设备上任何一个地图应用
+     * （Maps、高德、百度都认 geo:）。一个都装不上才提示（车载/纯净系统可能真没有）。
+     */
+    fun openMap(context: Context, latitude: Double, longitude: Double) {
+        try {
+            // 不拼 ?z= 缩放参数：各地图应用对它的支持不一致，中心点正确比缩放重要
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:$latitude,$longitude"))
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(context, context.getString(R.string.chat_open_map_failed), Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private const val PREFS = "chat_voice_style"
     /** v2：默认改为豆包式（Ripple）。换了键名，老的手动选择不再覆盖默认值。 */
     private const val KEY = "style_v2"
