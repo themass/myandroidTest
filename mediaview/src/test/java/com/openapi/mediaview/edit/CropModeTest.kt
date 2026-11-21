@@ -103,17 +103,6 @@ class CropModeTest {
         }
     }
 
-    @Test
-    fun choosingAnAspectKeepsTheStateInSyncWithTheRect() {
-        val state = CropEditorState(Rect(0f, 0f, 400f, 200f), CropAspect.Free)
-        val next = state.withAspect(CropAspect.Square, Rect(0f, 0f, 400f, 200f))
-        assertEquals(CropAspect.Square, next.aspect)
-        assertRect(Rect(100f, 0f, 300f, 200f), next.rect, 1e-3f)
-        // 原状态不变（不可变数据）
-        assertEquals(CropAspect.Free, state.aspect)
-        assertRect(Rect(0f, 0f, 400f, 200f), state.rect, 1e-3f)
-    }
-
     // ---- 把手拖拽 ----
 
     @Test

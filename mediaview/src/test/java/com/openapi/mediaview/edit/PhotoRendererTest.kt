@@ -8,6 +8,7 @@ import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -535,6 +536,23 @@ class PhotoRendererTest {
         // 成功路径：原样交出结果，不吞、不包装
         val ok = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888)
         assertSame(ok, PhotoRenderer.guardRender("test") { ok })
+    }
+
+    /**
+     * 上界钉子（#58）：吞的集合不许变宽。上一条只钉了下界（少了 RuntimeException/OOM 会红），
+     * 把 catch 从 `RuntimeException` 扩到 `Throwable`/`Error` 它照样绿——而那就等于把
+     * StackOverflowError、虚拟机内部 Error 这类「进程已经不可信」的信号也吞成一张源图，
+     * 编辑器看起来正常、底下已经烂掉。所以这里直接钉：非 OOM 的 Error 必须原样抛出去。
+     *
+     * 用一个构造出来的 StackOverflowError，不真把 JVM 栈打爆。
+     */
+    @Test
+    fun guardRenderDoesNotSwallowErrorsItWasNotGiven() {
+        val boom = StackOverflowError("fake：只为钉 catch 集合的上界")
+        val thrown = assertThrows(StackOverflowError::class.java) {
+            PhotoRenderer.guardRender("test") { throw boom }
+        }
+        assertSame("必须原样抛出，不吞、不包装", boom, thrown)
     }
 
     /** 输出位图上 [fromX, toX) 这段里「接近纯白」的像素数。 */

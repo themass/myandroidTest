@@ -167,16 +167,26 @@ fun PhotoEditor(
 
     Surface(modifier = modifier.fillMaxSize(), color = Color.Black) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+            val cropping = tool == EditorTool.Crop
+
             TopBar(
                 edits = edits,
+                // 裁剪模式期间把 undo/redo/reset 整组灰掉（与「裁后禁旋转」同款处置，入口即封死）。
+                // 三个理由，缺一个都会漏：
+                // 1) 手拖的选框只活在 cropSelection 里，不进 edits——撤销会改画幅、视口重铺，
+                //    选框被静默丢弃重铺默认居中框，用户的手拖没了却没有任何提示；
+                // 2) 舞台/控件用的是 state 的 cropViewport，而 onConfirm 用的是即时的
+                //    EditCoords.cropWindow(edits)——「旧视口 × 新窗口」这种跨快照配对只要发生一次
+                //    就是偏移裁剪，而这一帧正好由上面那类动作触发；
+                // 3) 裁剪中途改 edits 会让预览尺寸在一帧之内对不上正在拖的把手。
+                // 与其去追每一帧的配对，不如让用户在这条路径上根本没有可点的按钮。
+                actionsEnabled = !cropping,
                 onCancel = onCancel,
                 onUndo = { edits = edits.undo(); selected = null },
                 onRedo = { edits = edits.redo(); selected = null },
                 onReset = { edits = edits.reset(); selected = null },
                 onDone = { onDone(edits) },
             )
-
-            val cropping = tool == EditorTool.Crop
 
             // 面板随时可能被换掉（选中某条标注抢面板、切工具、进裁剪），而滑杆可能正拖在半路：
             // 那种情况下 onValueChangeFinished 永远不会来。不清这几个标志，预览就一直卡在 640 降档、
@@ -307,8 +317,9 @@ fun PhotoEditor(
                 if (cropping) {
                     // 这一层是**纯舞台**：比例预设与确认/取消在它之外（下面的面板槽），
                     // 否则那些控件会吃掉角把手的命中（见 CropMode 的注释）。
-                    // 视口用公布出去的 cropViewport 而不是这里的 fit：两层必须永远拿到同一个值，
-                    // 否则裁剪中途预览尺寸变了（TopBar 撤销还活着）就会有一帧用错分母。
+                    // 视口用公布出去的 cropViewport 而不是这里的 fit：两层必须永远拿到同一个值。
+                    // 裁剪中途改 edits 的那条入口（TopBar 的 undo/redo/reset）已经在
+                    // [TopBar] 的 actionsEnabled 上封死，所以这里不再会「预览尺寸变了但选框还按旧分母」。
                     CropMode(
                         viewport = cropViewport,
                         aspect = cropAspect,
@@ -517,7 +528,7 @@ private fun EditOp.isAnnotation(): Boolean = this is EditOp.Stroke || this is Ed
  *
  * **兜底半径必须罩住整条链路（renderBase *和* drawOps），而且只有一个 catch。**
  * 这里不能直接调 [PhotoRenderer.render]（那会丢掉底图缓存），但**失败怎么处理**不许自己写：
- * 一律走 [PhotoRenderer.guardRender]（全仓唯一一处吞异常的地方），本函数只负责「失败就换源图」
+ * 一律走 [PhotoRenderer.guardRender]（渲染路径唯一吞异常处），本函数只负责「失败就换源图」
  * 这个预览专属的决定。drawOps 每次都全幅 `copy()` 一份再叠马赛克的 block 位图，正是低端机
  * 拖滑杆时最可能 OOM 的分配，让它漏出去就是把这个异常打进 composition、直接杀掉编辑器。
  * **别再把它拆回「只包 renderBase」**，也不要在这里再复制一对 catch——预览有图可显示，
@@ -670,6 +681,7 @@ private fun DrawScope.drawSelectionBox(box: Rect, fit: Rect) {
 @Composable
 private fun TopBar(
     edits: PhotoEdits,
+    actionsEnabled: Boolean,
     onCancel: () -> Unit,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
@@ -689,9 +701,9 @@ private fun TopBar(
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.weight(1f),
         )
-        BarIcon(Icons.AutoMirrored.Filled.Undo, R.string.mediaview_edit_undo, edits.canUndo, onUndo)
-        BarIcon(Icons.AutoMirrored.Filled.Redo, R.string.mediaview_edit_redo, edits.canRedo, onRedo)
-        BarIcon(Icons.Filled.RestartAlt, R.string.mediaview_edit_reset, edits.isDirty, onReset)
+        BarIcon(Icons.AutoMirrored.Filled.Undo, R.string.mediaview_edit_undo, actionsEnabled && edits.canUndo, onUndo)
+        BarIcon(Icons.AutoMirrored.Filled.Redo, R.string.mediaview_edit_redo, actionsEnabled && edits.canRedo, onRedo)
+        BarIcon(Icons.Filled.RestartAlt, R.string.mediaview_edit_reset, actionsEnabled && edits.isDirty, onReset)
         IconButton(onClick = onDone) {
             Icon(Icons.Filled.Check, stringResource(R.string.mediaview_edit_done), tint = Color.White)
         }
