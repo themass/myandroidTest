@@ -496,6 +496,42 @@ class PhotoEditsTest {
         assertNull(EditHitTest.findOpAt(e, Offset(0.15f, 0.2f)))
     }
 
+    /**
+     * 裁剪后点选/选中框不漂移（Review Focus 头号风险）：命中路径**自己**消费了裁剪窗口。
+     *
+     * 这条钉的是 [EditHitTest.findOpAt] 的真实行为，不是 [editsWithoutOps] 的模型断言——
+     * 后者只证明「窗口没被滤掉」，命中路径照样可能按整幅画面去算，那正是用户会看见的漂移。
+     *
+     * 形状：源点 (0.5,0.5)→(0.7,0.5) 的一条水平笔迹 + 窗口 (0.6,0,1,1)。窗口把 0.5 推到窗口**外**
+     * （裁剪帧 x=-0.25），把 0.7 拉到 x=0.25，所以笔迹在显示空间里跨在窗口左沿上。于是同一个
+     * 坐标值在两种口径下结论相反：
+     * - 窗口内 (0.25,0.5) 必须命中（不消费窗口时它对应源点 0.25，离笔迹远 → 会点不到）；
+     * - 「未裁剪的显示位置」(0.5,0.5) 必须点不到（不消费窗口时它正是笔迹的起点 → 会命中）。
+     */
+    @Test
+    fun hitTestAndSelectionBoxFollowTheCropWindow() {
+        val s = EditOp.Stroke(
+            points = listOf(Offset(0.5f, 0.5f), Offset(0.7f, 0.5f)),
+            colorArgb = 0xFFFF0000,
+            widthRatio = 0.01f,
+        )
+        val cropped = edits().push(s).setCrop(EditOp.Crop(0.6f, 0f, 1f, 1f))
+        // 对照：同一份笔迹在没有窗口时落在显示 (0.5,0.5)~(0.7,0.5)
+        val plain = edits().push(s)
+        assertEquals(0, EditHitTest.findOpAt(plain, Offset(0.5f, 0.5f)))
+        assertNull(EditHitTest.findOpAt(plain, Offset(0.25f, 0.5f)))
+
+        assertEquals("窗口内的显示点要命中", 0, EditHitTest.findOpAt(cropped, Offset(0.25f, 0.5f)))
+        assertNull("未裁剪的显示位置已经不属于这条笔迹", EditHitTest.findOpAt(cropped, Offset(0.5f, 0.5f)))
+
+        // 选中框同一个口径：两端的显示 x 是 -0.25 与 0.25，中心必须在 0；
+        // 按整幅画面算会停在 0.6（框跑到笔迹右边，就是「选中框漂移」）。
+        val box = EditHitTest.selectionBounds(s, editsWithoutOps(cropped))!!
+        assertEquals(0f, (box.left + box.right) / 2f, 1e-3f)
+        // 显示宽 400（1000×0.4），半个笔宽 = 0.01×400/2 = 2px = 0.005
+        assertEquals(0.255f, box.right, 1e-3f)
+    }
+
     @Test
     fun selectionBoundsEncloseAStroke() {
         val s = stroke(0.1f, 0.2f)

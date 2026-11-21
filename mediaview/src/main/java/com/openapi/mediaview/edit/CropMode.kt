@@ -209,19 +209,6 @@ enum class CropAspect(val ratio: Float?, val labelRes: Int) {
 /** 四个角把手。只做角把手，边中点与整框平移不做（把手只有一类，手势层才可推理）。 */
 enum class CropHandle { TopLeft, TopRight, BottomLeft, BottomRight }
 
-/**
- * 裁剪模式的可视状态：选框（视口本地像素）+ 比例。
- *
- * 只有这两个字段——不存源编辑、不存位图。那些都在 [PhotoEditor] 手里，确认时由它
- * 经 [CropGeometry.composedCrop] 合成后一次性提交，所以「取消」天然什么都不用回滚。
- */
-data class CropEditorState(val rect: Rect, val aspect: CropAspect) {
-
-    /** 换比例：选框重排成该比例在 [frame] 里的居中奖。 */
-    fun withAspect(aspect: CropAspect, frame: Rect): CropEditorState =
-        copy(aspect = aspect, rect = CropGeometry.fitAspectRect(aspect, frame.width, frame.height))
-}
-
 // ---------------------------------------------------------------------------
 // Compose 叠加层
 // ---------------------------------------------------------------------------
