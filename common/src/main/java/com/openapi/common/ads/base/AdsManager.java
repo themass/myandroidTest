@@ -99,6 +99,7 @@ public class AdsManager {
     }
 
     public void exitBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey) {
+        if (!AdsGate.enabled()) return; // debug 未 init，表为空，解引用即 NPE（AdsGate）
         bannerDescMap.get(AdsContext.AdsFrom.ADVIEW).bannerExit(context, group, categrey.key);
     }
 
@@ -108,6 +109,7 @@ public class AdsManager {
     }
 
     public void exitSplashAds(Context context, RelativeLayout group) {
+        if (!AdsGate.enabled()) return; // debug 未 init，表为空，解引用即 NPE（AdsGate）
         splashMap.get(AdsContext.AdsFrom.ADMOB).lanchExit(context, group);
     }
 
@@ -118,6 +120,7 @@ public class AdsManager {
     }
 
     public void exitInterstitialAds(Context context, AdsContext.Categrey categrey) {
+        if (!AdsGate.enabled()) return; // debug 未 init，表为空，解引用即 NPE（AdsGate）
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialExit(context, categrey.key);
     }
 
@@ -132,6 +135,7 @@ public class AdsManager {
     }
 
     public boolean showVideo(Context context) {
+        if (!AdsGate.enabled()) return false; // debug 未 init，表为空，解引用即 NPE（AdsGate）
         LogUtil.i("Adview req video ads");
         VideoAdviewAds ads = (VideoAdviewAds) videoMap.get(AdsContext.AdsFrom.ADVIEW);
         if (ads.isReq) {
@@ -144,6 +148,7 @@ public class AdsManager {
     }
 
     public void closeVideo(Context context) {
+        if (!AdsGate.enabled()) return; // debug 未 init，表为空，解引用即 NPE（AdsGate）
         videoMap.get(AdsContext.AdsFrom.ADVIEW).exitVideo(context);
     }
 }
