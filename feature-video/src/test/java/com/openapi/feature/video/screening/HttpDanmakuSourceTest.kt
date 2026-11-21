@@ -255,4 +255,45 @@ class HttpDanmakuSourceTest {
         assertTrue("取消原样上抛，不吞成 Result.failure，实际 ${caught?.let { it::class.simpleName }}", caught is CancellationException)
         assertTrue("在途请求被真的取消", transport.cancelled)
     }
+
+    // ---------- path 段安全形态 ----------
+
+    @Test
+    fun `安全字符集内的 key 原样进 URL 路径段`() = runBlocking {
+        val transport = FakeTransport()
+        source(transport).loadWindow(0, 100, null)
+        assertTrue(
+            "demo 段不加工",
+            "/timeline/v1/local/demo/v1/comments?" in transport.requests.single().url,
+        )
+    }
+
+    @Test
+    fun `含斜杠的 contentId 收成定长哈希段，同一 key 两次请求同一段`() = runBlocking {
+        val transport = FakeTransport()
+        val http = HttpDanmakuSource(
+            TimelineKey.local("file:content://media/external/video/media/42"),
+            transport,
+            endpoint = DanmakuEndpoint("https://api.test/timeline/v1"),
+        )
+        http.loadWindow(0, 100, null)
+        http.loadWindow(100, 200, null)
+        val segments = transport.requests.map { Regex("/local/([^/]+)/v1/").find(it.url)!!.groupValues[1] }
+        assertEquals(2, segments.size)
+        assertEquals("同一个 key 必须映成同一段，否则自己的弹幕都找不回来", segments[0], segments[1])
+        assertTrue("哈希段：h+16hex，实际 ${segments[0]}", Regex("^h[0-9a-f]{16}$").matches(segments[0]))
+    }
+
+    @Test
+    fun `超长 clientMessageId 收成定长哈希，重发仍是同一个值`() = runBlocking {
+        val transport = FakeTransport { _, _ -> HttpDanmakuSource.DanmakuResponse(200, postedJson(1, 0, "好")) }
+        val http = source(transport)
+        val longId = "l".repeat(200)
+        http.post(longId, 0, "好").getOrThrow()
+        http.post(longId, 0, "好").getOrThrow()
+        val ids = transport.requests.map { clientMessageIdOf(bodyOf(it)) }
+        assertEquals(2, ids.size)
+        assertEquals(ids[0], ids[1])
+        assertTrue("哈希后过服务端 128 列宽校验，实际 ${ids[0]}", Regex("^h[0-9a-f]{16}$").matches(ids[0]))
+    }
 }

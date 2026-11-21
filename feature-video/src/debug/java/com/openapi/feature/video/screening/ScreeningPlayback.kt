@@ -432,7 +432,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                         Setting("服务端弹幕", "链路演示：分窗拉取、发送回显、重试、撤回（假服务端，接口与真服务端一致）", danmaku && danmakuSource == DANMAKU_SERVER) {
                             danmakuSource = DANMAKU_SERVER; danmaku = true
                         }
-                        Setting("在线弹幕", "真 HTTP 收发：分窗分页拉取、幂等发送、撤回（服务端未就绪时显示错误，可切回本地）", danmaku && danmakuSource == DANMAKU_ONLINE) {
+                        Setting("在线弹幕", "真 HTTP 收发：登录后发送，所有人看到同一条时间轴（服务端未部署时显示错误，可切回本地）", danmaku && danmakuSource == DANMAKU_ONLINE) {
                             danmakuSource = DANMAKU_ONLINE; danmaku = true
                         }
                         if (danmaku) {
