@@ -137,6 +137,25 @@ class CompanionViewModel(
     }
 
     /**
+     * 长按动作轮盘的发送：把动作文案（「摸了摸她的头」）当作用户的话直接发出去。
+     *
+     * 与 [send] 同一条出站链路（sendText + 用户气泡 + 流式占位），区别只有两点：
+     * 文案不经输入框（输入框可能是空的，也不该被动作文案覆盖），闸口只看连接
+     * 状态（输入框有无内容与此无关）。她的回话沿同一事件流回来，字幕照常滚动。
+     */
+    fun sendActionText(text: String) {
+        if (_state.value.connection != CompanionConnection.CONNECTED) return
+        transport.sendText(text)
+        _state.update {
+            it.copy(
+                messages = it.messages +
+                    newMessage(MessageRole.USER, text) +
+                    newMessage(MessageRole.ASSISTANT, "", streaming = true),
+            )
+        }
+    }
+
+    /**
      * 取角色的展示信息（名字、一句话人设），顶栏用。
      *
      * 从角色列表里找当前这个，而不是 `character(id)` 单条接口——顶栏只需要展示字段，

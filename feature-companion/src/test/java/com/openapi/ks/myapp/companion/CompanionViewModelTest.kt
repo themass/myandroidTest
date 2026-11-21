@@ -410,6 +410,55 @@ class CompanionViewModelTest {
         assertEquals("新线路要连上新会话", 1, volc.connects)
         vm.stopListening()
     }
+
+    /**
+     * 长按动作轮盘的发送入口：动作文案**不经过输入框**直接发（输入框可能是空的，
+     * 也不该被动作文案污染）。链路 = transport.sendText + 用户气泡 + 流式占位，
+     * 与打字发送同一形态，她的回话才能落进同一条字幕流。
+     */
+    @Test
+    fun `sendActionText sends straight to the transport without touching the input box`() = runTest(dispatcher) {
+        val transport = SendingTransport()
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+        vm.onInputChange("草稿不要动")
+        vm.sendActionText("摸了摸她的头")
+        runCurrent()
+
+        assertEquals("文案要直达传输层", listOf("摸了摸她的头"), transport.sentTexts)
+        assertEquals("输入框不能被动作文案污染", "草稿不要动", vm.state.value.input)
+        val user = vm.state.value.messages.last { it.role == MessageRole.USER }
+        assertEquals("摸了摸她的头", user.text)
+        val placeholder = vm.state.value.messages.last { it.role == MessageRole.ASSISTANT }
+        assertEquals("要有流式占位等她的回话", true, placeholder.streaming)
+        vm.stopListening()
+    }
+
+    /** 连线还没断时动作能发；连接不可用时不许把文案打进房间（与 send() 同一道闸）。 */
+    @Test
+    fun `sendActionText does nothing while the connection is down`() = runTest(dispatcher) {
+        val transport = SendingTransport()
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.sendActionText("摸了摸她的头")
+        runCurrent()
+
+        assertEquals("没连上就不该发", emptyList<String>(), transport.sentTexts)
+        assertEquals("没连上就不该加气泡", emptyList<MessageRole>(), vm.state.value.messages.map { it.role })
+        vm.stopListening()
+    }
+}
+
+/** 记录 sendText 文案的传输替身：动作发送路径的唯一证据就在「房间收到了什么」。 */
+private class SendingTransport : CompanionTransport {
+    val sentTexts = mutableListOf<String>()
+    override val events: kotlinx.coroutines.flow.Flow<CompanionEvent> =
+        kotlinx.coroutines.flow.MutableSharedFlow()
+    override suspend fun connect(session: SessionResponse) = Unit
+    override fun sendText(text: String) { sentTexts.add(text) }
+    override suspend fun disconnect() = Unit
 }
 
 /** 记录 connect/disconnect 次数的探针，用于验证 provider 换线时的实现交接。 */

@@ -61,6 +61,11 @@ fun DigitalHumanLabHost(
      * 回不回。本地脉冲反馈不等这个回调——点了没反应是体验底线。null = 不监听（聊天页）。
      */
     onTapped: ((String) -> Unit)? = null,
+    /**
+     * 长按她：呼出动作轮盘。null = 不监听（聊天页与调试舞台）。
+     * 长按不做脉冲——长按的即时反馈就是轮盘本身弹出来。
+     */
+    onLongPressed: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
@@ -109,6 +114,7 @@ fun DigitalHumanLabHost(
     }
     val haptics = LocalHapticFeedback.current
     val tappedNow by androidx.compose.runtime.rememberUpdatedState(onTapped)
+    val longPressedNow by androidx.compose.runtime.rememberUpdatedState(onLongPressed)
 
     // 激活即上膛：正常销毁走 markClean；native crash 让标记残留 → 下次冷启动熔断。
     // release 仍只归 DisposableEffect(Unit)/replaceWith 管——切换时 bridge.current()
@@ -253,18 +259,22 @@ fun DigitalHumanLabHost(
         // 点她一下（GL/TextureView 引擎）：引擎 View 自己不回单点触摸，这里补上。
         // 事件顺序：缩放/拖动层在 Initial pass 先看手指（双指、放大拖拽被它吃掉），
         // 剩下的单点轻触由这层在 Main pass 认成 tap——捏合时多点按下不会误判成点击。
+        // 长按同一层认领：抬手前被认成长按的就不是轻触，tap 与长按天然互斥。
         if (engine.id != DhEngineId.SIMPLE) {
             Box(
                 Modifier
                     .matchParentSize()
                     .pointerInput(engine) {
-                        detectTapGestures { offset ->
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            tapPressed = true
-                            tappedNow?.invoke(
-                                stageTapRegion(offset.x / size.width, offset.y / size.height),
-                            )
-                        }
+                        detectTapGestures(
+                            onTap = { offset ->
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                tapPressed = true
+                                tappedNow?.invoke(
+                                    stageTapRegion(offset.x / size.width, offset.y / size.height),
+                                )
+                            },
+                            onLongPress = { longPressedNow?.invoke() },
+                        )
                     },
             )
         }

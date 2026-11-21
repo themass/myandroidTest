@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /** 收纳盒里一行的动作。 */
-internal enum class DrawerAction { LISTEN_USER, LISTEN_AI, TOGGLE_CAPTIONS, THEME }
+internal enum class DrawerAction { LISTEN_USER, LISTEN_AI, TOGGLE_CAPTIONS, THEME, VOICE }
 
 internal data class DrawerRow(val action: DrawerAction, val label: String, val active: Boolean)
 
@@ -37,12 +37,14 @@ internal data class DrawerRow(val action: DrawerAction, val label: String, val a
  * - 试听两行只在调试包出现（[previewAvailable]），竖放，正在放的那行变「■ 停止」。
  * - 字幕开关始终在：「字幕 · 开 / 关」。
  * - 背景调色在字幕下面：「背景 · 深海 / 自定义 248°」，点开调色弹窗。
+ * - 声音行在最后、只读（服务端还没开换音色接口）：服务端下发了音色才出现。
  */
 internal fun heroDrawerRows(
     previewAvailable: Boolean,
     previewSpeaker: String?,
     captionsVisible: Boolean,
     theme: CallTheme,
+    voiceLabel: String? = null,
 ): List<DrawerRow> = buildList {
     if (previewAvailable) {
         add(DrawerRow(DrawerAction.LISTEN_USER, if (previewSpeaker == "user") "■ 停止用户试听" else "▶ 用户试听", previewSpeaker == "user"))
@@ -56,6 +58,11 @@ internal fun heroDrawerRows(
         "背景 · ${theme.uiName}"
     }
     add(DrawerRow(DrawerAction.THEME, themeLabel, theme.id == CallTheme.CUSTOM_ID))
+    val voice = voiceLabel?.trim()?.takeIf { it.isNotEmpty() }
+    if (voice != null) {
+        // active=false：当前是只读展示行（点不响应），将来接口开了再变可点。
+        add(DrawerRow(DrawerAction.VOICE, "声音 · $voice", active = false))
+    }
 }
 
 /**
