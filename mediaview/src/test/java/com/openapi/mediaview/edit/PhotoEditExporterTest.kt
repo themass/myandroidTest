@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -16,6 +17,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import kotlin.math.max
 
 /**
  * [PhotoEditExporter.export]：导出路径**不许**静默回退原图。
@@ -145,5 +147,31 @@ class PhotoEditExporterTest {
         // 中线一段：源图在中线附近的像素不是红的
         val mid = decoded!!.getPixel(decoded.width / 2, decoded.height / 2)
         assertTrue("导出图的中线应被红笔迹盖住，实际 ${Integer.toHexString(mid)}", Color.red(mid) > 200 && Color.green(mid) < 90 && Color.blue(mid) < 90)
+    }
+
+    /**
+     * 导出**不许**回收调用方传进来的位图。
+     *
+     * identity edits 下 renderStrict 原样返回 [source]；源图长边又超过 [PhotoEditExporter.MAX_LONG_EDGE]
+     * 时 `scaleForUpload` 会另造一张缩小的，于是「scaled ≠ rendered 就回收 rendered」这条清理
+     * 逻辑回收的其实是**调用方的**那张——而 ChatRoute 里的 PhotoEditor 还在用它做预览
+     * （`pendingEdit = null` 只是发出信号，真正卸载要等一次重组，而导出在 IO 线程上先跑完了）。
+     * 之后谁再拿它画一次就是 `Canvas: trying to use a recycled bitmap`。
+     */
+    @Test
+    fun exportNeverRecyclesTheCallersBitmap() {
+        val cacheDir = folder.newFolder("cache")
+        // 长边 > MAX_LONG_EDGE：scaleForUpload 一定会另造一张。尺寸照 brief 真机验收那档（4000×3000）
+        // 往下取一半，只为省时间；逐像素填色太慢，这条测试只关心「谁被回收了」。
+        val src = Bitmap.createBitmap(2600, 1600, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.rgb(10, 120, 200)) }
+
+        val uri = PhotoEditExporter.export(src, PhotoEdits(src.width, src.height), cacheDir, assets())
+
+        assertNotNull(uri)
+        assertFalse("导出把调用方的位图回收了", src.isRecycled)
+        // 反证：源图确实大到需要缩放，否则这条测试什么都没钉住
+        assertTrue(src.width > PhotoEditExporter.MAX_LONG_EDGE)
+        val decoded = BitmapFactory.decodeFile(java.io.File(uri!!.path!!).path)
+        assertEquals(PhotoEditExporter.MAX_LONG_EDGE, max(decoded!!.width, decoded.height))
     }
 }

@@ -84,7 +84,13 @@ object PhotoEditExporter {
                 val format = if (hasAlpha) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
                 scaled.compress(format, if (hasAlpha) 100 else JPEG_QUALITY, out)
             }
-            if (scaled !== rendered && !rendered.isRecycled) rendered.recycle()
+            // 只回收**本函数自己造的**位图。identity edits 时 renderStrict 原样返回调用方的
+            // source，而 ChatRoute 的预览还在用它（pendingEdit = null 只是发信号，真正卸载要等
+            // 一次重组，导出却先在 IO 线程跑完）——回收它，下一次绘制就是
+            // 「Canvas: trying to use a recycled bitmap」。source 的命由调用方定，这里一律不碰。
+            // （可达：decode 的采样只保证长边 < 4096，4000px 的照片就是整幅解出来 > MAX_LONG_EDGE，
+            // 于是 scaleForUpload 必然另造一张 → scaled ≠ rendered。）
+            if (scaled !== rendered && rendered !== source && !rendered.isRecycled) rendered.recycle()
             // 编码器失败时 compress 只是返回 false，不抛：留下的是一张半截文件 + 一个能打开的 Uri，
             // 下游（覆盖暂存 → 发送）看不出任何异常。和「静默回退原图」是同一种假成功，一并拒掉。
             if (compressed) Uri.fromFile(file) else {
