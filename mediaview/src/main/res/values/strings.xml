@@ -40,6 +40,11 @@
     <string name="mediaview_edit_crop_square">方形</string>
     <string name="mediaview_edit_crop_four_three">4:3</string>
     <string name="mediaview_edit_crop_sixteen_nine">16:9</string>
+    <string name="mediaview_edit_filter">滤镜</string>
+    <string name="mediaview_edit_filter_done">完成滤镜</string>
+    <string name="mediaview_edit_intensity">强度</string>
+    <string name="mediaview_edit_compare">原图</string>
+    <string name="mediaview_edit_hint_filter">点一格套上滤镜，再点同一格取消；按住「原图」对比</string>
     <string name="mediaview_image_load_failed">图片加载失败，点击重试</string>
     <string name="mediaview_image_retrying">正在重新加载…</string>
 </resources>

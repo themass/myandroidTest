@@ -128,6 +128,144 @@ class PhotoEditsTest {
         assertEquals(EditOp.Filter("creamy", 60), e.filter)
     }
 
+    // ---- 滤镜面板的滑杆语义（Task 6）----
+
+    /**
+     * 面板上拖强度滑杆：中间过程只换预览（[PhotoEdits.withOpsUnrecorded]），
+     * 撤销栈必须一动不动——否则拖一次滑杆留下几十步「撤销」，用户按十次才回到拖动之前。
+     */
+    @Test
+    fun draggingFilterIntensityAddsNoUndoStep() {
+        val base = edits().setFilter("creamy", 60)
+        var live = base
+        listOf(20, 45, 80, 100).forEach { v ->
+            val i = live.ops.indexOfLast { it is EditOp.Filter }
+            live = base.withOpsUnrecorded(live.ops.toMutableList().also { it[i] = EditOp.Filter("creamy", v) })
+        }
+        assertEquals("拖动途中不产生历史", base.undoStack.size, live.undoStack.size)
+        assertEquals(listOf<EditOp>(EditOp.Filter("creamy", 60)), base.ops)
+        assertEquals(EditOp.Filter("creamy", 100), live.filter)
+    }
+
+    /** 松手那一下才是「一步」：撤销回到拖动之前的强度，而不是把滤镜整条删掉。 */
+    @Test
+    fun committingFilterIntensityIsExactlyOneUndoStep() {
+        val base = edits().push(stroke()).setFilter("creamy", 60)
+        // 拖动过程中的一串预览（无历史）
+        val live = base.withOpsUnrecorded(
+            base.ops.toMutableList().also { it[1] = EditOp.Filter("creamy", 85) },
+        )
+        // 松手：以拖动前的 base 为底，replaceAt 一次
+        val committed = base.setFilter("creamy", 85)
+        assertEquals("只记一步", base.undoStack.size + 1, committed.undoStack.size)
+        assertEquals(EditOp.Filter("creamy", 85), committed.filter)
+        assertEquals(EditOp.Filter("creamy", 60), committed.undo().filter)
+        // 与 withOps(live.ops) 等价（同一份结果，都是恰一步）
+        assertEquals(committed.ops, base.withOps(live.ops).ops)
+        assertEquals(base.withOps(live.ops).undoStack.size, committed.undoStack.size)
+    }
+
+    /** 面板是互斥的：换滤镜＝替换，全列表至多一条 Filter（渲染取最后一条，但面板不该攒）。 */
+    @Test
+    fun setFilterNeverStacksMoreThanOneFilterOp() {
+        val s = stroke()
+        val t = text()
+        val e = edits()
+            .setFilter("creamy", 100)
+            .push(s)
+            .setFilter("retro", 40)
+            .push(t)
+            .setFilter("mono", 70)
+        assertEquals("全列表至多一条 Filter", 1, e.ops.count { it is EditOp.Filter })
+        assertEquals(EditOp.Filter("mono", 70), e.filter)
+        // 原位替换：Filter 停在它第一次落下的位置（index 0），标注的相对顺序不受扰动。
+        // 位置本身无实现含义（渲染按类型挑最后一条），这里钉的是「不会攒、也不会把标注挤走」。
+        assertEquals(listOf<EditOp>(EditOp.Filter("mono", 70), s, t), e.ops)
+    }
+
+    /** 再点已选中的那一格 = 回到无滤镜，且可以撤销回来。 */
+    @Test
+    fun setFilterNullRemovesTheFilterOpAndIsUndoable() {
+        val f = EditOp.Filter("moody", 55)
+        val s = stroke()
+        val e = edits().push(s).setFilter("moody", 55)
+        assertEquals(2, e.ops.size)
+        val cleared = e.setFilter(null)
+        assertNull(cleared.filter)
+        assertEquals(listOf<EditOp>(s), cleared.ops)
+        assertEquals(f, cleared.undo().filter)
+        // 本来就没有滤镜时，移除是空操作：不产生一步历史
+        val noFilter = edits().push(s)
+        assertEquals(noFilter, noFilter.setFilter(null))
+    }
+
+    /** 重复点同一格同一强度不该堆历史（[PhotoEdits.commit] 的内容相同即空操作）。 */
+    @Test
+    fun setFilterWithIdenticalIdAndIntensityDoesNotCreateHistory() {
+        val e = edits().setFilter("airy", 100)
+        assertEquals(e.undoStack.size, e.setFilter("airy", 100).undoStack.size)
+        assertEquals(1, e.ops.count { it is EditOp.Filter })
+    }
+
+    /** 换滤镜不该动到旋转（Rotate 始终在头部、只有一条）。 */
+    @Test
+    fun setFilterLeavesRotationAndFlipAloneAtTheFront() {
+        val e = edits().rotateClockwise().flipHorizontal().setFilter("coolwhite", 30).setFilter("retro", 90)
+        assertEquals(1, e.ops.count { it is EditOp.Rotate })
+        assertEquals(1, e.quarterTurns)
+        assertTrue(e.isFlipped)
+        assertEquals(1, e.ops.count { it is EditOp.Filter })
+        assertEquals(EditOp.Filter("retro", 90), e.filter)
+    }
+
+    // ---- 选中框用的「无标注会话」 ----
+
+    /**
+     * 选中框只关心画幅（旋转/镜像/裁剪），标注要丢掉；
+     * 但 **Crop 必须留着**——滤掉它，裁剪后的选中框就会按整幅画面算，框跑偏（Task 3 挂账）。
+     */
+    @Test
+    fun editsWithoutOpsDropsAnnotationsButKeepsCropRotationAndFlip() {
+        val crop = EditOp.Crop(0.1f, 0.1f, 0.9f, 0.9f)
+        val e = edits()
+            .rotateClockwise()
+            .flipHorizontal()
+            .push(stroke())
+            .setCrop(crop)
+            .push(text())
+            .push(EditOp.Mosaic(listOf(Offset(0.3f, 0.3f), Offset(0.6f, 0.4f)), widthRatio = 0.06f))
+            .setFilter("creamy", 60)
+            .push(EditOp.Adjust(10, 0, 0))
+
+        val stripped = editsWithoutOps(e)
+        assertEquals(crop, stripped.crop)
+        assertEquals(1, stripped.quarterTurns)
+        assertTrue(stripped.isFlipped)
+        assertNull("滤镜不参与选中框几何", stripped.filter)
+        assertTrue("调整不参与选中框几何", stripped.adjust.isIdentity)
+        // 保留项按原有相对顺序：rotateClockwise/flipHorizontal 会把自己的记录提到头部，
+        // 所以这里先 Flip 再 Rotate，Crop 落在它当初的位置上。顺序对选中框无影响
+        // （几何只读 quarterTurns/isFlipped/crop），断言它只是把「保留了哪三条」钉死。
+        assertEquals(
+            "只留 Rotate/Flip/Crop",
+            listOf<EditOp>(EditOp.FlipHorizontal, EditOp.Rotate(1), crop),
+            stripped.ops,
+        )
+        // 画幅口径不变：裁剪后的显示尺寸跟着走
+        assertEquals(e.displayWidth, stripped.displayWidth)
+        assertEquals(e.displayHeight, stripped.displayHeight)
+    }
+
+    /** 没有裁剪时行为与扩之前逐点相同（回归保护）。 */
+    @Test
+    fun editsWithoutOpsWithoutCropKeepsOnlyRotateAndFlip() {
+        val e = edits().rotateClockwise().push(stroke()).push(text())
+        assertEquals(
+            listOf<EditOp>(EditOp.Rotate(1)),
+            editsWithoutOps(e).ops,
+        )
+    }
+
     // ---- 选中后删除 / 修改 / 拖动 ----
 
     @Test
