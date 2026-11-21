@@ -12,6 +12,15 @@ enum class SendStatus { Sent, Sending, Failed }
 enum class Reaction { None, Like, Dislike }
 
 /**
+ * 一组图片在气泡里用什么样式排。样式由「策略 + 张数」决定，张数不再单独决定样式：
+ *
+ * - [Auto]：按张数分支的旧行为（1 张按原图比例显示，2–4 张收纳盒，5 张及以上轮播）。
+ * - [Stack]：一律走收纳盒（mediaview 的 MediaStack），任意张数都是同一个样式——
+ *   聊天气泡与陪伴端图片消息统一成这套样式的默认值。
+ */
+enum class ImageLayout { Auto, Stack }
+
+/**
  * 一条消息里的一个部分。一条消息可以由多个部分组合而成，渲染顺序固定为
  * 图片 → 文件 → 语音 → 文字（附件在上、文字在下），与列表顺序无关。
  */
@@ -20,8 +29,11 @@ sealed interface MessagePart {
     /** 文字。助手文字可由调用方用 Markdown 渲染（见 [com.openapi.chatkit.message.ChatMessageList] 的 text 参数）。 */
     data class Text(val text: String) : MessagePart
 
-    /** 一组图片：本地文件路径或 http(s) 地址。 */
-    data class Images(val sources: List<String>) : MessagePart
+    /**
+     * 一组图片：本地文件路径或 http(s) 地址。
+     * [layout] 默认 [ImageLayout.Stack]：映射图片时不用显式传，两端默认同一套收纳盒样式。
+     */
+    data class Images(val sources: List<String>, val layout: ImageLayout = ImageLayout.Stack) : MessagePart
 
     /** 一个文件。 */
     data class File(val path: String, val name: String, val sizeBytes: Long) : MessagePart

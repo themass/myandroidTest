@@ -194,20 +194,22 @@ fun MediaStack(
                 if (item.isVideo) VideoBadge(Modifier.align(Alignment.TopStart).padding(8.dp))
             }
         }
-        // 位置角标：右上角。>1 张时显示「当前/总数」，滑动时有进度感
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(8.dp)
-                .clip(RoundedCornerShape(percent = 50))
-                .background(Color.Black.copy(alpha = 0.5f))
-                .padding(horizontal = 8.dp, vertical = 3.dp),
-        ) {
-            Text(
-                text = if (count > 1) "${front + 1}/$count" else count.toString(),
-                color = Color.White,
-                fontSize = 12.sp,
-            )
+        // 位置角标：右上角。>1 张时显示「当前/总数」，滑动时有进度感；单张没有位置可言，不显示
+        if (count > 1) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+                    .clip(RoundedCornerShape(percent = 50))
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .padding(horizontal = 8.dp, vertical = 3.dp),
+            ) {
+                Text(
+                    text = "${front + 1}/$count",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                )
+            }
         }
     }
 }
