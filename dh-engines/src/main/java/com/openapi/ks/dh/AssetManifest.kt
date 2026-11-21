@@ -14,7 +14,7 @@ data class AssetSpec(
     enum class Kind { ZIP, FILE }
 }
 
-enum class EngineAssets { DUIX, LIVE2D, TAO }
+enum class EngineAssets { DUIX, LIVE2D, TAO, VRM }
 
 /** Pure data: which packs each engine needs. No I/O. */
 object AssetManifest {
@@ -53,9 +53,22 @@ object AssetManifest {
         ),
     )
 
+    // VRM 实验田（three.js + WebView，lab only）：pixiv/three-vrm 仓库自带的示例模型，
+    // VRM 1.0 单文件。上游只有 raw 文件没有 zip，kind=FILE 直落 cache。
+    // 仅供效果验证，模型逐件授权（personalNonProfit 默认），不进生产。
+    private val vrm = listOf(
+        AssetSpec(
+            id = "vrm1-constraint-twist-sample",
+            url = "https://raw.githubusercontent.com/pixiv/three-vrm/dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm",
+            relativePath = "models/VRM1_Constraint_Twist_Sample.vrm",
+            kind = AssetSpec.Kind.FILE,
+        ),
+    )
+
     fun assetsFor(engine: EngineAssets): List<AssetSpec> = when (engine) {
         EngineAssets.DUIX -> duix
         EngineAssets.LIVE2D -> live2d
         EngineAssets.TAO -> tao
+        EngineAssets.VRM -> vrm
     }
 }

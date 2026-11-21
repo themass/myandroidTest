@@ -2,8 +2,9 @@
 # 开发机代下载 DH 引擎素材并推到真机缓存，替代设备端下载（设备到 GitHub 可能很慢/超时）。
 #
 # 用法:
-#   scripts/dh-lab/seed-assets.sh            # 三家全部（Live2D 需自备 ATRI，见下）
+#   scripts/dh-lab/seed-assets.sh            # 全部引擎（Live2D 需自备 ATRI，见下）
 #   scripts/dh-lab/seed-assets.sh duix tao   # 只推指定引擎
+#   scripts/dh-lab/seed-assets.sh vrm          # 只推 VRM 实验田模型（10MB 级）
 #   SERIAL=xxxx scripts/dh-lab/seed-assets.sh
 #
 # 推送布局与 AssetStore 完全一致（应用内部 filesDir/dh-engines/<engine>/…，经 run-as 落盘，
@@ -62,7 +63,22 @@ push_unpack() { # push_unpack <engine> <zip> <relativePath>
   echo "== $engine/$rel 已推送并打 marker"
 }
 
-ENGINES="${*:-duix live2d tao}"
+ENGINES="${*:-duix live2d tao vrm}"
+# 单文件素材（AssetSpec.Kind.FILE，如 VRM 模型）：push 到 cacheRoot(<engine>)/<rel>，最后写 marker。
+push_file() { # push_file <engine> <host_file> <relativePath>
+  local engine="$1" host="$2" rel="$3"
+  local dest_rel="files/dh-engines/$engine/$rel"
+  local parent marker_rel stage
+  parent="${rel%/*}"
+  if [ "$parent" = "$rel" ]; then marker_rel="files/dh-engines/$engine/tmp/$rel"
+  else marker_rel="files/dh-engines/$engine/$parent/tmp/${rel##*/}"; fi
+  stage="$DEVICE_TMP/$engine-$(basename "$rel")"
+  "${ADB[@]}" push "$host" "$stage" >/dev/null
+  ra "mkdir -p $DATA/$(dirname "$dest_rel") && cp $stage $DATA/$dest_rel"
+  ra "mkdir -p $DATA/$(dirname $marker_rel) && touch $DATA/$marker_rel"
+  echo "== $engine/$rel 已推送并打 marker"
+}
+
 
 if echo " $ENGINES " | grep -q " audio "; then
   AUDIO_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/test-audio"
@@ -158,3 +174,10 @@ if echo " $ENGINES " | grep -q " tao "; then
 fi
 
 echo "完成。冷启动 App 后进通话页即可看到对应引擎可用。"
+
+if echo " $ENGINES " | grep -q " vrm "; then
+  # VRM 实验田（WebView + three.js）：pixiv/three-vrm 官方示例模型，单文件 FILE 直落 cache。
+  # 布局必须与 AssetManifest.vrm 一致：cacheRoot(vrm)/models/VRM1_Constraint_Twist_Sample.vrm。
+  fetch VRM1_Constraint_Twist_Sample.vrm "https://raw.githubusercontent.com/pixiv/three-vrm/dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm"
+  push_file vrm "$PACKS/VRM1_Constraint_Twist_Sample.vrm" "models/VRM1_Constraint_Twist_Sample.vrm"
+fi

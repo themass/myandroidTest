@@ -101,6 +101,8 @@ fun CompanionRoute(
      */
     launchCallOnOpen: Boolean = false,
     onLaunchCallHandled: () -> Unit = {},
+    /** 全屏通话覆盖层的挂起状态上报：宿主据此关掉抽屉滑动（VRM 舞台手势要完整序列）。 */
+    onCallActiveChanged: (Boolean) -> Unit = {},
 ) {
     val context = LocalContext.current.applicationContext
     val api = remember(context) {
@@ -136,6 +138,11 @@ fun CompanionRoute(
     // 所以不走 CompanionPage 那套"切换页面"的状态。
     val uiState by chatViewModel.state.collectAsStateWithLifecycle()
     val inCall = uiState.callActive
+    DisposableEffect(inCall) {
+        onCallActiveChanged(inCall)
+        // 离开陪伴页（切标签）时组合退出，兜底复位，别让宿主以为通话还挂着。
+        onDispose { onCallActiveChanged(false) }
+    }
 
     // 进通话先要有录音权限：没有就申请；用户拒绝也照样进，只是以静音形态进（她能说，你只能看/打字）。
     // 用一个待办动作区分「拒绝后该继续做什么」——申请前不知道回调回来对应哪件事。

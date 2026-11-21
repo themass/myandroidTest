@@ -6,6 +6,9 @@ enum class DhEngineId {
     LIVE2D,
     DUIX,
     TAO_AVATAR,
+
+    /** WebView + three.js + VRM 实验田（lab only，不进生产）。 */
+    VRM,
 }
 
 data class DhEngineAvailability(

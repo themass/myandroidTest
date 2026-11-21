@@ -139,6 +139,9 @@ fun HomeScreen() {
     }
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
+    // 陪伴页的全屏通话覆盖层挂起时也要关抽屉滑动：通话里 VRM WebView 的单指拖动
+    // 会被父级抽屉在 touch slop 处抢走（实测页面只收到 down + 1 个 move 就 CANCEL）。
+    var companionCallActive by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val openDrawer: () -> Unit = {
         profile = entries.profile(context)
@@ -159,7 +162,11 @@ fun HomeScreen() {
         drawerState = drawerState,
         // 对话页的按住录音、上滑取消是手势操作，边缘滑动会和它抢手势：对话标签里只用菜单按钮打开，
         // 其余标签可以从左边缘滑出来；已经打开时任何标签都可以滑动关闭
-        gesturesEnabled = current != HomeTab.Chat || drawerState.isOpen,
+        gesturesEnabled = drawerSwipeEnabled(
+            currentIsChat = current == HomeTab.Chat,
+            drawerOpen = drawerState.isOpen,
+            callVisible = companionCallActive,
+        ),
         drawerContent = {
             ModalDrawerSheet {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
@@ -256,6 +263,7 @@ fun HomeScreen() {
                             scriptCaseId = scriptCaseId,
                             launchCallOnOpen = callLaunchPending,
                             onLaunchCallHandled = { callLaunchPending = false },
+                            onCallActiveChanged = { companionCallActive = it },
                         )
                         HomeTab.Channels -> ChannelsHub()
                         HomeTab.AgentChat -> AgentChatEntry()

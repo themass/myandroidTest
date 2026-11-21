@@ -43,6 +43,7 @@ class DhEngineDownloadGateTest {
         assertEquals(EngineAssets.DUIX, DhEngineId.DUIX.assets())
         assertEquals(EngineAssets.LIVE2D, DhEngineId.LIVE2D.assets())
         assertEquals(EngineAssets.TAO, DhEngineId.TAO_AVATAR.assets())
+        assertEquals(EngineAssets.VRM, DhEngineId.VRM.assets())
     }
 
     // 就绪判断现在是「引擎自判可用」（availability），不再是 AssetStore.isReady：
