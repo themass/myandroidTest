@@ -86,17 +86,6 @@ class CallThemeTest {
     }
 
     @Test
-    fun `背景菜单的自定义入口：选中带勾和角度，没选带省略号`() {
-        assertEquals("　 自定义…", customThemeMenuLabel(CallTheme.Default))
-        assertEquals("✓ 自定义（250°）", customThemeMenuLabel(customCallTheme(250f)))
-        // 色相丢失的兜底路径也要有角度可显示（默认紫 248°），不能显示成 0°。
-        assertEquals(
-            "✓ 自定义（${CallTheme.DEFAULT_CUSTOM_HUE.toInt()}°）",
-            customThemeMenuLabel(CallTheme.Default.copy(id = CallTheme.CUSTOM_ID, hueDegrees = null)),
-        )
-    }
-
-    @Test
     fun `色轮取点：右0° 下90° 左180° 上270°，顺时针`() {
         // 圆心 (100,100)，半径 50。屏幕坐标 y 向下，所以「下」是 +y。
         assertEquals(0f, hueFromPoint(150f, 100f, 100f, 100f), 0.5f)

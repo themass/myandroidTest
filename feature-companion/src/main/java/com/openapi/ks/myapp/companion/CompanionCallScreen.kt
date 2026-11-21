@@ -419,6 +419,8 @@ fun CompanionCallScreen(
     // 主角模式右侧收纳盒：展开状态与字幕显隐（旋转后保留；默认字幕显示）。
     var drawerOpen by rememberSaveable { mutableStateOf(false) }
     var captionsVisible by rememberSaveable { mutableStateOf(true) }
+    // 背景调色弹窗：从收纳盒的「背景」行点开。
+    var themePickerOpen by rememberSaveable { mutableStateOf(false) }
 
     // 主角模式：形象铺满整屏做最底层，顶栏与操作条以浮层压在上面（各带渐变遮罩）；
     // 其余布局保持原有「顶栏 / 舞台 / 操作条」纵向排布。摄像头开着时仍走视频舞台。
@@ -442,8 +444,6 @@ fun CompanionCallScreen(
                 // 试听按钮搬到右侧收纳盒（HeroSideDrawer），菜单里不再重复。
                 previewState = previewState,
                 onPreviewAudio = null,
-                theme = theme,
-                onThemeChange = onThemeChange,
             )
         }
     } else {
@@ -526,16 +526,25 @@ fun CompanionCallScreen(
                         previewAvailable = onPreviewAudio != null,
                         previewSpeaker = previewState.speaker,
                         captionsVisible = captionsVisible,
+                        theme = theme,
                     ),
                     onRowClick = { action ->
                         when (action) {
                             DrawerAction.LISTEN_USER -> onPreviewAudio?.invoke("user")
                             DrawerAction.LISTEN_AI -> onPreviewAudio?.invoke("ai")
                             DrawerAction.TOGGLE_CAPTIONS -> captionsVisible = !captionsVisible
+                            DrawerAction.THEME -> themePickerOpen = true
                         }
                     },
                     modifier = Modifier.align(Alignment.CenterEnd),
                 )
+                if (themePickerOpen && onThemeChange != null) {
+                    CallThemePickerDialog(
+                        theme = theme,
+                        onThemeChange = onThemeChange,
+                        onDismiss = { themePickerOpen = false },
+                    )
+                }
                 Column(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
@@ -827,8 +836,6 @@ private fun HeroCallHeader(
     onEngineMenuClick: ((DhEngineMenuRow) -> Unit)?,
     previewState: CallAudioPreviewState,
     onPreviewAudio: ((String) -> Unit)?,
-    theme: CallTheme = CallTheme.Default,
-    onThemeChange: ((CallTheme) -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
@@ -878,7 +885,7 @@ private fun HeroCallHeader(
                 }
             }
         }
-        if (onWaveOptionsChange != null || engineMenu != null || onPreviewAudio != null || onThemeChange != null) {
+        if (onWaveOptionsChange != null || engineMenu != null || onPreviewAudio != null) {
             WaveStyleMenu(
                 options = waveOptions,
                 onChange = onWaveOptionsChange,
@@ -887,8 +894,6 @@ private fun HeroCallHeader(
                 onEngineMenuClick = onEngineMenuClick,
                 previewState = previewState,
                 onPreviewAudio = onPreviewAudio,
-                theme = theme,
-                onThemeChange = onThemeChange,
             )
         }
     }
@@ -909,11 +914,8 @@ private fun WaveStyleMenu(
     onEngineMenuClick: ((DhEngineMenuRow) -> Unit)? = null,
     previewState: CallAudioPreviewState = CallAudioPreviewState(),
     onPreviewAudio: ((String) -> Unit)? = null,
-    theme: CallTheme = CallTheme.Default,
-    onThemeChange: ((CallTheme) -> Unit)? = null,
 ) {
     var open by remember { mutableStateOf(false) }
-    var themePickerOpen by remember { mutableStateOf(false) }
     Box {
         // 玻璃底板 + 描边 + 亮色图标：深色背景上只有一个灰色小图标时，用户根本发现不了入口。
         IconButton(
@@ -952,25 +954,6 @@ private fun WaveStyleMenu(
                 DropdownMenuItem(
                     text = { Text(if (previewState.speaker == "ai") "■ 停止 AI 试听" else "▶ AI 试听") },
                     onClick = { open = false; onPreviewAudio("ai") },
-                )
-            }
-            if (onThemeChange != null) {
-                MenuSectionLabel("背景")
-                CallTheme.Presets.forEach { preset ->
-                    DropdownMenuItem(
-                        text = { Text(if (theme.id == preset.id) "✓ ${preset.uiName}" else "　 ${preset.uiName}") },
-                        onClick = {
-                            open = false
-                            onThemeChange(preset)
-                        },
-                    )
-                }
-                DropdownMenuItem(
-                    text = { Text(customThemeMenuLabel(theme)) },
-                    onClick = {
-                        open = false
-                        themePickerOpen = true
-                    },
                 )
             }
             if (onChange == null) return@DropdownMenu
@@ -1013,13 +996,6 @@ private fun WaveStyleMenu(
                     },
                 )
             }
-        }
-        if (themePickerOpen && onThemeChange != null) {
-            CallThemePickerDialog(
-                theme = theme,
-                onThemeChange = onThemeChange,
-                onDismiss = { themePickerOpen = false },
-            )
         }
     }
 }
@@ -1118,12 +1094,25 @@ private fun CallThemePickerDialog(
                 )
             }
             Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                CallTheme.Presets.forEach { preset ->
+                    PresetSwatch(
+                        label = preset.uiName,
+                        // OLED 主题背景本身是透明的（省电设计），色板强制不透明才看得见。
+                        swatch = Brush.verticalGradient(
+                            listOf(preset.top.copy(alpha = 1f), preset.bottom.copy(alpha = 1f)),
+                        ),
+                        selected = theme.id == preset.id,
+                        onClick = { onThemeChange(preset) },
+                    )
+                }
+            }
+            Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TextButton(onClick = { pick(CallTheme.DEFAULT_CUSTOM_HUE) }) {
-                    Text("默认紫", color = CallColors.TextSecondary, fontSize = 13.sp)
-                }
                 Spacer(modifier = Modifier.weight(1f))
                 TextButton(
                     onClick = {
@@ -1138,6 +1127,40 @@ private fun CallThemePickerDialog(
                 }
             }
         }
+    }
+}
+
+/** 预设主题色板：一枚上亮下暗的渐变小圆 + 名字，当前主题描白圈。 */
+@Composable
+private fun PresetSwatch(
+    label: String,
+    swatch: Brush,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(onClick = onClick)
+            .semantics { contentDescription = "背景主题 $label" }
+            .padding(6.dp),
+    ) {
+        Canvas(
+            modifier = Modifier
+                .size(34.dp)
+                .clip(CircleShape)
+                .background(if (selected) Color.White else Color.Transparent, CircleShape)
+                .padding(if (selected) 2.dp else 0.dp),
+        ) {
+            drawCircle(brush = swatch)
+        }
+        Text(
+            text = label,
+            color = if (selected) CallColors.TextPrimary else CallColors.TextSecondary,
+            fontSize = 11.sp,
+        )
     }
 }
 
