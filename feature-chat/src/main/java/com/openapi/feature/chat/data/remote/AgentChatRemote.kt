@@ -1,6 +1,8 @@
 package com.openapi.feature.chat.data.remote
 
 import android.content.Context
+import com.openapi.common.media.MediaUploadException
+import com.openapi.common.media.MediaUploader
 import com.openapi.common.util.log.LogUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -65,6 +67,12 @@ class AgentChatRemote(
         .writeTimeout(120, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
+
+    /**
+     * 上传与换签名 URL 的实现提公到 [MediaUploader]（陪伴侧打的是同一套 `/v1/uploads`，
+     * 长在这个类里它只能再抄一遍）。这里复用 [restClient]，不新建连接池。
+     */
+    private val mediaUploader = MediaUploader(baseUrl, tokenProvider, restClient)
 
     class Failure(message: String, val status: Int?, val code: String?) : Exception(message)
 
@@ -161,28 +169,24 @@ class AgentChatRemote(
     // ---------------------------------------------------------------- 上传
 
     /**
-     * 上传一张图片，返回 upload_id。
-     *
-     * `/v1/uploads` 收的是**原始字节**而不是 multipart（`routers/uploads.py` 直接读 `request.body()`），
-     * 所以这里不能复用旧链路那套表单上传。
+     * 上传一张图片，返回 upload_id。请求形状见 [MediaUploader.uploadBlocking]。
      */
-    fun upload(file: File, mime: String): String {
-        val token = requireToken()
-        val request = Request.Builder()
-            .url(url("/uploads"))
-            .header("Authorization", "Bearer $token")
-            .header("Content-Type", mime)
-            .post(file.readBytes().toRequestBody(mime.toMediaType()))
-            .build()
-        restClient.newCall(request).execute().use { response ->
-            val text = response.body?.string().orEmpty()
-            if (!response.isSuccessful) throw failure(response.code, text)
-            val json = runCatching { JSONObject(text) }.getOrNull()
-                ?: throw Failure("上传响应格式不对", response.code, null)
-            val id = json.optString("upload_id", "")
-            if (id.isEmpty()) throw Failure("上传没有返回 upload_id", response.code, null)
-            return id
+    fun upload(file: File, mime: String): String =
+        try {
+            mediaUploader.uploadBlocking(file, mime)
+        } catch (e: MediaUploadException) {
+            throw e.toFailure()
         }
+
+    /**
+     * [MediaUploadException] 翻回本类的 [Failure]，**错误语义与委托前逐条一致**：
+     * - 服务端按 `/v1` 协议回了错误体（非 2xx）→ 原样交给 [failure] 翻译（含它那条 warn 日志）；
+     * - 本地判定（未登录 / 响应不是 JSON / 缺 upload_id）→ message 已经是能直接给人看的话，
+     *   委托前也不走 [failure]、不打日志，这里保持不打。
+     */
+    private fun MediaUploadException.toFailure(): Failure {
+        serverBody?.let { return failure(status, it) }
+        return Failure(message.orEmpty(), status, code)
     }
 
     /**
@@ -216,10 +220,9 @@ class AgentChatRemote(
     /**
      * 按 upload_id 换一个**短期签名 GET URL**（服务端给 300 秒）。
      * 历史消息的图片只有 upload_id，渲染前现换；URL 是 bearer secret：不打印、不进日志、不落缓存。
+     * 拿不到 url（404/401/响应坏了）只返回 null——调用方据此让那一张图退化成空路径，不能拖垮整页。
      */
-    fun attachmentUrl(uploadId: String): String? =
-        runCatching { call("GET", "/uploads/$uploadId", null).optString("url").takeIf { it.isNotEmpty() } }
-            .getOrNull()
+    fun attachmentUrl(uploadId: String): String? = mediaUploader.signedUrlBlocking(uploadId)
 
     /** 把一个签名 GET URL 的内容下载成文件（历史图片拉回本机缓存）。 */
     fun downloadTo(url: String, target: File): Boolean = runCatching {
