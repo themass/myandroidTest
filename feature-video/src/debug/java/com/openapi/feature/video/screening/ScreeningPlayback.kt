@@ -273,8 +273,13 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     }
     val seekBlock: @Composable () -> Unit = {
         Column {
-            // 自绘细进度条（3dp 轨道 + 11dp 圆钮）：M3 默认 Slider 轨道太粗，
-            // 而这个 material3 版本没有粗细参数，slot 签名也够不着——自己画更可控（用户点名）。
+            // 时间在条上方两端、细进度条在下：照 astryx 设计稿的走带（3dp 轨道 + 11dp 圆钮自绘，
+            // 这个 material3 版 Slider 没有粗细参数——见 ThinSeek）。
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(time(dragging?.let { (it * width).toLong() } ?: position), color = Muted, fontSize = 12.sp)
+                Spacer(Modifier.weight(1f))
+                Text(time(width), color = Muted, fontSize = 12.sp)
+            }
             ThinSeek(
                 fraction = dragging ?: if (width > 0) (position.toFloat() / width).coerceIn(0f, 1f) else 0f,
                 enabled = width > 0,
@@ -285,17 +290,15 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 },
                 modifier = Modifier.fillMaxWidth(),
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("${time(dragging?.let { (it * width).toLong() } ?: position)} / ${time(width)}", color = Muted, fontSize = 12.sp)
-                Spacer(Modifier.weight(1f))
-                IconButton(onClick = { setFull(!full) }) {
-                    Icon(if (full) Icons.Default.FullscreenExit else Icons.Default.Fullscreen, if (full) "退出全屏" else "全屏")
-                }
-            }
         }
     }
-    val toolsRow: @Composable () -> Unit = {
-        Row(Modifier.fillMaxWidth().background(Lift, Tile), horizontalArrangement = Arrangement.SpaceEvenly) {
+    // iconOnly：影院态底部只要图标走带（设计稿），文字让给画面；信息态保留图标+文字在 Lift 卡上。
+    val toolsRow: @Composable (Boolean) -> Unit = { iconOnly ->
+        Row(
+            Modifier.fillMaxWidth()
+                .then(if (iconOnly) Modifier else Modifier.background(Lift, Tile)),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
             listOf(
                 "字幕" to Icons.Default.Subtitles,
                 (if (speed == 1f) "倍速" else "${speed}×") to Icons.Default.Speed,
@@ -304,14 +307,14 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 "更多" to Icons.Default.MoreHoriz,
             ).forEachIndexed { index, (name, picture) ->
                 Column(
-                    Modifier.weight(1f).heightIn(min = 51.dp).clip(Tile).clickable {
+                    Modifier.weight(1f).heightIn(min = if (iconOnly) 40.dp else 51.dp).clip(Tile).clickable {
                         info = ""; panel = if (index == 1) "倍速" else name.substringBefore(" ·")
                     },
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Icon(picture, null, Modifier.size(17.dp), tint = if (index == 0 && captionSource != 0 || index == 3 && danmaku || index == 2) Mint else White)
-                    Text(name, fontSize = 11.sp, maxLines = 1)
+                    Icon(picture, name, Modifier.size(18.dp), tint = if (index == 0 && captionSource != 0 || index == 3 && danmaku || index == 2) Mint else White)
+                    if (!iconOnly) Text(name, fontSize = 11.sp, maxLines = 1)
                 }
             }
         }
@@ -333,10 +336,29 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     Column(Modifier.fillMaxSize().background(Ink).then(
         if (!full) Modifier.safeDrawingPadding().verticalScroll(rememberScrollState()) else Modifier
     )) {
-        // 播放区往下挪：贴着头部压得太紧（用户点名）
+        // 竖屏（信息态，设计稿的主要改动）：返回+片名不再压在画面上，走页面自己的顶栏；
+        // 画面下移成一张圆角卡，和瀑布流同一套 13dp 语言。
+        if (!full) {
+            Row(
+                Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ScreenIcon(Icons.AutoMirrored.Filled.ArrowBack, "返回列表", { onExit() })
+                Text(
+                    source.title,
+                    Modifier.weight(1f).padding(start = 10.dp),
+                    color = White, fontSize = 17.sp, lineHeight = 22.sp,
+                    fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+                ScreenIcon(Icons.Default.Fullscreen, "全屏", { setFull(true) })
+            }
+        }
         Box(
             Modifier.fillMaxWidth()
-                .then(if (full) Modifier.weight(1f) else Modifier.padding(top = 10.dp).aspectRatio(16f / 10))
+                .then(
+                    if (full) Modifier.weight(1f)
+                    else Modifier.padding(horizontal = 6.dp).clip(Tile).aspectRatio(16f / 10)
+                )
                 .background(Color.Black),
         ) {
             AndroidView(
@@ -413,7 +435,8 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 }
             }
             if ((chrome || !playing) && !locked) {
-                Row(
+                // 压屏头部只在影院态有：半屏的返回+片名已经上了页面顶栏（设计稿），不再压在画面上
+                if (full) Row(
                     Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = .7f), Color.Transparent)))
                         .windowInsetsPadding(if (full) WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal) else WindowInsets(0, 0, 0, 0))
                         // 头部和画面顶边拉开距离：以前返回键几乎贴着状态栏压在上面
@@ -454,10 +477,8 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                             .padding(horizontal = 20.dp, vertical = 8.dp),
                     ) {
                         seekBlock()
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Box(Modifier.weight(1f)) { toolsRow() }
-                            favorRow()
-                        }
+                        // 影院态底部只要走带+图标工具台（设计稿）：收藏/投屏留在信息态
+                        toolsRow(true)
                     }
                 }
             }
@@ -473,8 +494,11 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 seekBlock()
                 Text(channel.ifEmpty { "本周放映" }, color = Mint, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Text(source.title, color = White, fontSize = 35.sp, lineHeight = 40.sp, fontWeight = FontWeight.Black)
-                Text(source.description, color = Muted, modifier = Modifier.padding(top = 5.dp, bottom = 16.dp))
-                toolsRow()
+                Text(source.description, color = Muted, modifier = Modifier.padding(top = 5.dp, bottom = 12.dp))
+                // 设计稿：简介和工具台之间一条分隔线，下半页分成「讲什么」和「能干什么」两段
+                HorizontalDivider(color = Lift)
+                Spacer(Modifier.height(10.dp))
+                toolsRow(false)
                 Box(Modifier.fillMaxWidth().padding(top = 10.dp), contentAlignment = Alignment.CenterEnd) { favorRow() }
                 error?.let { message -> Text(message, color = Peach, modifier = Modifier.padding(top = 12.dp)) }
             }
