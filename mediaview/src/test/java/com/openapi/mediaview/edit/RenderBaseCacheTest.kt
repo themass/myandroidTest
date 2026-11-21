@@ -35,7 +35,12 @@ class RenderBaseCacheTest {
      */
     private fun liftBlackLut(): Lut3D = CubeLut.parse(grayCube(16, ::liftBlack))!!
 
-    /** 16×16 渐变源图：16² 的 LruCache size = 256，容量 4 意味着恰好 4 帧。 */
+    /**
+     * 16×16 渐变源图（小图，逐像素比较很便宜）。
+     *
+     * 尺寸和缓存容量**无关**：[android.util.LruCache] 没被覆写 `sizeOf`，每条 entry 恒为 1，
+     * 所以 capacity=4 就是「最多留 4 帧」，跟帧有多少像素无关。
+     */
     private fun source(): Bitmap {
         val mutable = Bitmap.createBitmap(16, 16, Bitmap.Config.ARGB_8888)
         for (x in 0 until 16) for (y in 0 until 16) {
@@ -134,17 +139,38 @@ class RenderBaseCacheTest {
     fun capacityEvictsOldestFrames() {
         val source = source()
         val cache = RenderBaseCache(capacity = 4)
-        // 6 个互不相同的键：亮度 0..5 各自产生不同的底图
-        repeat(6) { i ->
-            val e = PhotoEdits(16, 16).push(EditOp.Adjust(brightness = i, contrast = 0, saturation = 0))
-            cache.put(source, e, 640, PhotoRenderer.renderBase(source, e))
+        // 6 个互不相同的键，且每个都必须产出**真正的帧**（亮度从 1 起，不含恒等 Adjust——
+        // 恒等时 renderBase 把 source 原样返回，会被 put 的守卫挡掉，那样这里实际只存了 5 帧，
+        // 断言就变成空转）。
+        val frames = (1..6).map { i ->
+            PhotoEdits(16, 16).push(EditOp.Adjust(brightness = i, contrast = 0, saturation = 0))
         }
+        frames.forEach { e -> cache.put(source, e, 640, PhotoRenderer.renderBase(source, e)) }
 
-        // LruCache 逐出最久未用的：前两帧（亮度 0、1）必须在容量 4 之外
-        val e0 = PhotoEdits(16, 16).push(EditOp.Adjust(brightness = 0, contrast = 0, saturation = 0))
-        val e1 = PhotoEdits(16, 16).push(EditOp.Adjust(brightness = 1, contrast = 0, saturation = 0))
-        assertNull("put 6 帧、容量 4：最早的帧已被逐出", cache.get(source, e0, 640))
-        assertNull(cache.get(source, e1, 640))
+        // LruCache 逐出最久未用的：前两帧（亮度 1、2）必须在容量 4 之外
+        assertNull("put 6 帧、容量 4：最早的帧已被逐出", cache.get(source, frames[0], 640))
+        assertNull(cache.get(source, frames[1], 640))
+        // 反证：不是「什么都查不到」造成的假通过
+        assertNotNull("最后 put 的帧必须还在", cache.get(source, frames[5], 640))
+    }
+
+    /**
+     * [RenderBaseCache.put] 遇到 `bmp === source` 不存。
+     *
+     * 预处理全是空操作时 renderBase 原样返回 source；把它存进缓存等于用缓存的强引用
+     * 把调用方的源位图钉住（会话结束后本该释放），而这一帧又等于「什么都不做」，毫无收益。
+     */
+    @Test
+    fun putRefusesToStoreTheSourceItself() {
+        val source = source()
+        val cache = RenderBaseCache()
+        // 只有一条 Rotate(0)：走完整管线但像素不动 → renderBase 原样返回 source
+        val passthrough = PhotoEdits(16, 16).push(EditOp.Rotate(0))
+        assertSame("前置条件：这种 edits 的底图就是 source 本身", source, PhotoRenderer.renderBase(source, passthrough))
+
+        cache.put(source, passthrough, 640, source)
+
+        assertNull("source 本身不该被存进缓存", cache.get(source, passthrough, 640))
     }
 
     @Test
