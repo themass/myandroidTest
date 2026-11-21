@@ -51,7 +51,7 @@ object PhotoRenderer {
         // 旋转/镜像也要渲染：它们在预览里同样要可见
         if (edits.ops.isEmpty()) return source
         return try {
-            renderInternal(source, edits, maxLongEdge, lutProvider)
+            drawOps(renderBase(source, edits, maxLongEdge, lutProvider), edits)
         } catch (e: OutOfMemoryError) {
             Log.e(TAG, "render out of memory, falling back to source", e)
             source
@@ -61,11 +61,26 @@ object PhotoRenderer {
         }
     }
 
-    private fun renderInternal(
+    /**
+     * 预处理段：旋转/镜像 → 裁剪 → 调整 → 滤镜 → 降采样，**一笔标注都不画**。
+     *
+     * 拆出来是因为这一段只取决于「原图 + [preprocessingFingerprint] + 边长」，
+     * 和涂鸦/文字/马赛克无关：编辑时标注每变一笔都要重画，底图却没有理由重算，
+     * 所以它可以被 [RenderBaseCache] 缓存住（预览的卡顿主要就在这一段）。
+     *
+     * 返回的位图可能仍是 [source]（什么都没改过时），也可能是不可变的（解码出来的原图 /
+     * `createBitmap` 的只读结果）——要往上画东西别直接用 [Canvas]，走 [drawOps]。
+     *
+     * 失败时**不兜底**（OOM / RuntimeException 直接抛出），回退语义集中在 [render]，
+     * 免得缓存命中路径和未命中路径给出两种不同的降级行为。
+     *
+     * @param lutProvider 语义同 [render]
+     */
+    fun renderBase(
         source: Bitmap,
         edits: PhotoEdits,
-        maxLongEdge: Int,
-        lutProvider: (String) -> Lut3D?,
+        maxLongEdge: Int = MAX_OUTPUT_LONG_EDGE,
+        lutProvider: (String) -> Lut3D? = { null },
     ): Bitmap {
         val rotated = rotate(source, edits.quarterTurns)
         val mirrored = if (edits.isFlipped) mirror(rotated) else rotated
@@ -75,13 +90,22 @@ object PhotoRenderer {
         val cropped = applyCrop(mirrored, edits)
         val adjusted = applyAdjust(cropped, edits.adjust)
         val filtered = applyFilter(adjusted, source, edits.filter, lutProvider)
-        val scaled = downscaleIfNeeded(filtered, maxLongEdge)
+        return downscaleIfNeeded(filtered, maxLongEdge)
+    }
 
-        // 标注和马赛克都要往位图上写，而上面几步在没有旋转/调整时会把原图直接返回（不可变）。
+    /**
+     * 标注段：把 [EditOp.Stroke] / [EditOp.Text] / [EditOp.Mosaic] 画到 [base] 上，
+     * 返回**新位图**（传入的 [base] 一个像素都不被改——它可能就是 [RenderBaseCache] 里的缓存帧，
+     * 就地画一次就把这份底图污染了，后续每次命中都带着上一笔的标注）。
+     *
+     * @param base [renderBase] 的输出
+     */
+    fun drawOps(base: Bitmap, edits: PhotoEdits): Bitmap {
+        // 标注和马赛克都要往位图上写，而 renderBase 在没有旋转/调整时会把原图直接返回（不可变）。
         // 这里保证拿到的是一张可变位图，否则 Canvas(bitmap) 会抛 IllegalStateException。
-        // scaled === source 时即使它可变也不能直接画：那是调用方的原图。
-        val canvasTarget = if (scaled !== source && scaled.isMutable) scaled
-        else scaled.copy(Bitmap.Config.ARGB_8888, true)
+        // base 是调用方（或缓存）的位图，所以**一律**在副本上画：不能像以前那样
+        // 「已经是可变的就直接用」，那会改到别人的位图。
+        val canvasTarget = base.copy(Bitmap.Config.ARGB_8888, true)
 
         val canvas = Canvas(canvasTarget)
         val w = canvasTarget.width.toFloat()
@@ -93,7 +117,7 @@ object PhotoRenderer {
                 is EditOp.Stroke -> drawStroke(canvas, op, w, h, edits, paint)
                 is EditOp.Text -> drawText(canvas, op, w, h, edits, paint)
                 is EditOp.Mosaic -> drawMosaic(canvasTarget, op, w, h, edits)
-                else -> Unit // 旋转/镜像/调整/滤镜已在上面一次性处理
+                else -> Unit // 旋转/镜像/调整/滤镜已在 renderBase 里一次性处理
             }
         }
         return canvasTarget
