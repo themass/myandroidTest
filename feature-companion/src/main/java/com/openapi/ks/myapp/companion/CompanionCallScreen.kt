@@ -527,6 +527,7 @@ fun CompanionCallScreen(
                         previewSpeaker = previewState.speaker,
                         captionsVisible = captionsVisible,
                         theme = theme,
+                        voiceLabel = callVoiceChipText(state.voiceLabel),
                     ),
                     onRowClick = { action ->
                         when (action) {
@@ -534,6 +535,8 @@ fun CompanionCallScreen(
                             DrawerAction.LISTEN_AI -> onPreviewAudio?.invoke("ai")
                             DrawerAction.TOGGLE_CAPTIONS -> captionsVisible = !captionsVisible
                             DrawerAction.THEME -> themePickerOpen = true
+                            // 只读展示行：服务端换音色接口还没开，点了不响应。
+                            DrawerAction.VOICE -> Unit
                         }
                     },
                     modifier = Modifier.align(Alignment.CenterEnd),

@@ -58,4 +58,28 @@ class HeroSideDrawerTest {
         assertEquals("背景 · 自定义 120°", custom.last().label)
         assertEquals(true, custom.last().active)
     }
+
+    @Test
+    fun `声音行在背景下面，只在服务端下发了音色时出现`() {
+        val noVoice = heroDrawerRows(
+            previewAvailable = false, previewSpeaker = null, captionsVisible = true,
+            theme = CallTheme.Default, voiceLabel = null,
+        )
+        assertEquals(
+            listOf(DrawerAction.TOGGLE_CAPTIONS, DrawerAction.THEME),
+            noVoice.map { it.action },
+        )
+
+        val withVoice = heroDrawerRows(
+            previewAvailable = false, previewSpeaker = null, captionsVisible = true,
+            theme = CallTheme.Default, voiceLabel = "痣妖姐姐",
+        )
+        assertEquals(
+            listOf(DrawerAction.TOGGLE_CAPTIONS, DrawerAction.THEME, DrawerAction.VOICE),
+            withVoice.map { it.action },
+        )
+        assertEquals("声音 · 痣妖姐姐", withVoice.last().label)
+        // 服务端还没开换音色接口：声音行只读，点了不响应（active=false 兼作「不可点」标记）。
+        assertEquals(false, withVoice.last().active)
+    }
 }

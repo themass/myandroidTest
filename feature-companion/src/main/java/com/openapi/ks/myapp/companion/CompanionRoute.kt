@@ -54,10 +54,12 @@ import com.openapi.ks.myapp.avatar.AvatarEventMapper
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.SimpleAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
+import com.openapi.ks.myapp.dh.AvatarActionTray
 import com.openapi.ks.myapp.dh.DhEngineDownloadGate
 import com.openapi.ks.myapp.dh.DhEngineRegistry
 import com.openapi.ks.myapp.dh.DhEngineWatchdog
 import com.openapi.ks.myapp.dh.EngineClickAction
+import com.openapi.ks.myapp.dh.avatarActions
 import com.openapi.ks.myapp.dh.dhEngineLabel
 import com.openapi.ks.myapp.dh.DhLabBootstrap
 import com.openapi.ks.myapp.dh.DhLabGate
@@ -315,6 +317,9 @@ fun CompanionRoute(
         // 用户在菜单里再点已勾选的引擎 = 「解除熔断再试一次」。引擎 id 没变，Compose 不会重组，
         // 所以用计数器重建 LabHost（key），让它重新读隔离状态。
         var engineRetry by remember { mutableIntStateOf(0) }
+        // 长按她 → 动作托盘（贴在舞台上的一层薄纱）。只在数字人引擎舞台生效，
+        // 「原来的形象」分层立绘保持原样不受影响。
+        var actionTrayOpen by rememberSaveable { mutableStateOf(false) }
         val uiScope = rememberCoroutineScope()
         // 重型引擎的素材没下好时，点菜单先下载；下载成功后**重查引擎可用性**再换舞台——
         // 素材下齐但 native 缺失时不换（否则舞台上静默退回 Simple）。Simple / 原形象不受影响。
@@ -551,6 +556,7 @@ fun CompanionRoute(
                 }
                 else -> {
                     {
+                        Box(Modifier.fillMaxSize()) {
                         key(engineRetry) {
                         DigitalHumanLabHost(
                             spec = avatarFiles?.let { AvatarSpec(files = it) },
@@ -560,7 +566,20 @@ fun CompanionRoute(
                             engineId = chosen,
                             // 点她一下：本地立刻有反馈（舞台脉冲），区域上报给 agent 决定回不回。
                             onTapped = chatViewModel::onAvatarTapped,
+                            // 长按她：动作托盘弹出；选了可点动作 = 把文案当用户的话发出去。
+                            onLongPressed = { actionTrayOpen = true },
                         )
+                        }
+                        if (actionTrayOpen) {
+                            AvatarActionTray(
+                                actions = avatarActions(),
+                                onActionClick = { action ->
+                                    action.messageText?.let(chatViewModel::sendActionText)
+                                    actionTrayOpen = false
+                                },
+                                onDismiss = { actionTrayOpen = false },
+                            )
+                        }
                         }
                     }
                 }
