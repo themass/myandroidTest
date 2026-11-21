@@ -96,6 +96,37 @@ class PhotoEditsTest {
         assertEquals(EditOp.Adjust(0, 0, 0), adj)
     }
 
+    // ---- 滤镜 ----
+
+    @Test
+    fun filterIsNullWhenNoFilterOp() {
+        assertNull(edits().filter)
+        assertNull(edits().push(stroke()).push(text()).filter)
+        assertNull(edits().push(EditOp.Adjust(10, 0, 0)).rotateClockwise().filter)
+    }
+
+    @Test
+    fun lastFilterWins() {
+        val e = edits().push(EditOp.Filter("creamy", 40)).push(stroke()).push(EditOp.Filter("retro", 80))
+        assertEquals(EditOp.Filter("retro", 80), e.filter)
+    }
+
+    @Test
+    fun removingTheVisibleFilterFallsBackToTheEarlierOne() {
+        val e = edits().push(EditOp.Filter("creamy", 40)).push(EditOp.Filter("retro", 80))
+        assertEquals(EditOp.Filter("creamy", 40), e.removeAt(1).filter)
+        assertNull(e.removeAt(1).removeAt(0).filter)
+    }
+
+    @Test
+    fun filterDoesNotDisturbTheAdjustAccessor() {
+        var e = edits().push(EditOp.Adjust(10, -20, 30)).push(EditOp.Filter("creamy", 60))
+        assertEquals(EditOp.Adjust(10, -20, 30), e.adjust)
+        e = e.push(EditOp.Adjust(0, 0, 0))
+        assertTrue("最后一条 Adjust 生效", e.adjust.isIdentity)
+        assertEquals(EditOp.Filter("creamy", 60), e.filter)
+    }
+
     // ---- 选中后删除 / 修改 / 拖动 ----
 
     @Test

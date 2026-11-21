@@ -28,6 +28,15 @@ sealed interface EditOp {
     }
 
     /**
+     * 3D LUT 滤镜。[id] 是 [FilterPresets.ids] 中的一个，对应 assets 下的 `<id>.cube`；
+     * [intensity] 是 0..100 的强度（界面上是滑杆），0 等同于不套表。
+     *
+     * 这里只有「选了哪张表、多强」。表本身由渲染时通过 `lutProvider` 现取，
+     * 数据模型不碰文件、也不碰 Bitmap。
+     */
+    data class Filter(val id: String, val intensity: Int) : EditOp
+
+    /**
      * 一次自由涂鸦：一段连续的折线。[widthRatio] 相对图片短边的比例，保证不同分辨率下手感一致。
      */
     data class Stroke(
@@ -168,6 +177,9 @@ data class PhotoEdits(
 
     /** 当前的调整参数（没有就是全 0）。 */
     val adjust: EditOp.Adjust get() = ops.lastOrNull { it is EditOp.Adjust } as? EditOp.Adjust ?: EditOp.Adjust(0, 0, 0)
+
+    /** 当前生效的滤镜（ops 里最后一条；一条都没有就是 null = 不套表）。 */
+    val filter: EditOp.Filter? get() = ops.lastOrNull { it is EditOp.Filter } as? EditOp.Filter
 
     companion object {
         fun of(width: Int, height: Int): PhotoEdits = PhotoEdits(width, height)
