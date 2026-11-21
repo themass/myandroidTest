@@ -13,6 +13,8 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import kotlin.math.abs
+import kotlin.math.max
 
 /**
  * 真机回归：只有标注（涂鸦/文字/马赛克）、没有旋转/调整时，渲染器直接在解码出的
@@ -331,6 +333,116 @@ class PhotoRendererTest {
         val out = PhotoRenderer.render(source, withoutCrop)
         assertEquals(400, out.width)
         assertTrue("撤销裁剪后线的全宽都回来了", countWhite(out, 0, out.width / 2) > 0)
+    }
+
+    // ---- 底图 / 标注分层（renderBase + drawOps）----
+
+    /**
+     * 两条管线的输出逐像素比，返回**单通道最大差**（含 alpha）；尺寸不同返回 [Int.MAX_VALUE]。
+     *
+     * 分层拆分本该是纯搬移，所以这个值必须是 0；允许 ±1 是给中间那次「先画再缩放」与
+     * 「先缩放再画」的唯一可能偏差留余量（见 [drawOpsOverRenderBaseMatchesFullRenderPixelForPixel]）。
+     */
+    private fun maxChannelDifference(a: Bitmap, b: Bitmap): Int {
+        if (a.width != b.width || a.height != b.height) return Int.MAX_VALUE
+        var worst = 0
+        for (x in 0 until a.width) for (y in 0 until a.height) {
+            val p = a.getPixel(x, y)
+            val q = b.getPixel(x, y)
+            worst = max(
+                worst,
+                max(
+                    max(abs(Color.red(p) - Color.red(q)), abs(Color.green(p) - Color.green(q))),
+                    max(abs(Color.blue(p) - Color.blue(q)), abs(Color.alpha(p) - Color.alpha(q))),
+                ),
+            )
+        }
+        return worst
+    }
+
+    private fun strokeAcross() = EditOp.Stroke(
+        points = listOf(androidx.compose.ui.geometry.Offset(0.1f, 0.5f), androidx.compose.ui.geometry.Offset(0.9f, 0.5f)),
+        colorArgb = 0xFFFF0000L,
+        widthRatio = 0.1f,
+    )
+
+    /**
+     * `renderBase` 只能跑到降采样为止：同一张图上带不带标注，底图必须逐像素一样。
+     *
+     * 底图刻意走「滤镜生效」这条路（而不是让它等于原图引用），否则「两边都返回 source」
+     * 也能让断言成立，测不出「标注被画进了底图」。
+     */
+    @Test
+    fun renderBaseLeavesAnnotationsOut() {
+        val source = gradient(80, 40)
+        val plain = PhotoRenderer.renderBase(
+            source,
+            passthroughEdits(source.width, source.height).push(EditOp.Filter("test", 100)),
+        ) { liftBlackLut() }
+        val annotated = PhotoRenderer.renderBase(
+            source,
+            passthroughEdits(source.width, source.height)
+                .push(EditOp.Filter("test", 100))
+                .push(strokeAcross())
+                .push(EditOp.Text("你好", 0.2f, 0.2f, 0xFF00FF00L, 0.2f)),
+        ) { liftBlackLut() }
+
+        assertNotSame(source, plain)
+        assertNotNull("底图必须真的套上了滤镜，否则下面的比较是空的", firstDifference(plain, source))
+        assertEquals(plain.width, annotated.width)
+        assertEquals(plain.height, annotated.height)
+        assertEquals("renderBase 里不该有任何标注像素", 0, maxChannelDifference(plain, annotated))
+    }
+
+    /**
+     * `drawOps(renderBase(…))` 必须和整链 `render(…)` 出同一张图（±1）。
+     *
+     * 这是「拆分没有改变对外行为」的正向证据：上面那些回归测试只证明整链没坏，
+     * 这一条证明「底图 + 标注」两段合成回来还是那个结果。
+     *
+     * 顺带钉住一条缓存前提：`drawOps` 不能在传进来的底图上画（Task 6 会把底图缓存复用，
+     * 就地画一次就把缓存里的那张污染了）。
+     */
+    @Test
+    fun drawOpsOverRenderBaseMatchesFullRenderPixelForPixel() {
+        val source = immutableSource()
+        val e = edits(source)
+            .push(strokeAcross())
+            .push(EditOp.Text("你好", 0.15f, 0.1f, 0xFF0000FFL, 0.15f))
+            .push(
+                EditOp.Mosaic(
+                    listOf(
+                        androidx.compose.ui.geometry.Offset(0.1f, 0.85f),
+                        androidx.compose.ui.geometry.Offset(0.9f, 0.85f),
+                    ),
+                    widthRatio = 0.12f,
+                ),
+            )
+
+        val full = PhotoRenderer.render(source, e)
+        val base = PhotoRenderer.renderBase(source, e)
+        val pixelBefore = base.getPixel(100, 50)
+        val composed = PhotoRenderer.drawOps(base, e)
+
+        assertEquals(full.width, composed.width)
+        assertEquals(full.height, composed.height)
+        assertNotSame(source, composed)
+        assertTrue(
+            "合成结果与整链渲染最多差 1，实际最大差 ${maxChannelDifference(full, composed)}",
+            maxChannelDifference(full, composed) <= 1,
+        )
+        // 反证：合成图确实画上了东西（否则上一条断言在比两张白图）
+        assertNotEquals(Color.WHITE, composed.getPixel(100, 50))
+        assertEquals("drawOps 必须在副本上画，不能改传入的底图", pixelBefore, base.getPixel(100, 50))
+
+        // 缓存场景专门钉一次：Task 6 缓存的底图是**可变**帧，就地画一次就把这份底图污染了，
+        // 之后每次命中都带着上一笔（上面那条断言在「底图恰好不可变」时抓不到这种事）。
+        val mutableBase = base.copy(Bitmap.Config.ARGB_8888, /* isMutable = */ true)
+        val mutablePxBefore = mutableBase.getPixel(100, 50)
+        val drawn = PhotoRenderer.drawOps(mutableBase, e)
+        assertEquals(Color.WHITE, mutablePxBefore)
+        assertNotEquals(Color.WHITE, drawn.getPixel(100, 50))
+        assertEquals("可变底图也不能被就地画", mutablePxBefore, mutableBase.getPixel(100, 50))
     }
 
     /** 输出位图上 [fromX, toX) 这段里「接近纯白」的像素数。 */
