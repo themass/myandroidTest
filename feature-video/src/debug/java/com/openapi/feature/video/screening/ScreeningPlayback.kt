@@ -8,6 +8,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -54,6 +55,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStreamReader
 import java.io.StringReader
+import kotlin.math.roundToInt
 
 /**
  * 一个可播放的东西。
@@ -73,6 +75,15 @@ internal fun documentName(context: Context, uri: Uri): String = runCatching {
     context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
         ?.use { if (it.moveToFirst()) it.getString(0) else null }
 }.getOrNull() ?: "本地文件"
+
+/**
+ * 播放区横滑快进退的档位换算：右滑（正位移）快进、左滑快退，每滑过 1/4 屏宽跳 30 秒。
+ * 纯函数抽出来是为了 JVM 单测钉住方向和档位（手势回调里没法直接测）。
+ */
+internal fun dragSeekMs(totalDragPx: Float, viewportWidthPx: Float): Long {
+    if (viewportWidthPx <= 0f) return 0L
+    return (totalDragPx / (viewportWidthPx / 4f)).roundToInt() * 30_000L
+}
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -177,6 +188,12 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     }
     var fill by remember { mutableStateOf(false) }
     var liked by remember { mutableStateOf(store.getBoolean("favorite:$id", false)) }
+    // 播放区横滑快进退（市场惯例：右滑快进、左滑快退）：累计滑动量每过 1/4 屏宽跳 30 秒，
+    // 回包气泡 0.9 秒后自己收，连滑就刷新同一个气泡而不是叠一层。
+    var swipeSeconds by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(swipeSeconds) {
+        if (swipeSeconds != null) { delay(900); swipeSeconds = null }
+    }
     val discovery = remember { DlnaDiscoveryCallback() }
     val caster = remember { JavaCaster(context) }
     var devices by remember { mutableStateOf<List<DlnaDevice>>(emptyList()) }
@@ -315,14 +332,34 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 factory = { host.view },
                 modifier = Modifier.matchParentSize(),
             )
-            Box(Modifier.matchParentSize().pointerInput(locked, full) {
-                detectTapGestures(
-                    onTap = { if (!locked) { chrome = !chrome; interaction++ } },
-                    onDoubleTap = { tap ->
-                        if (!locked) { jump(if (tap.x < size.width / 2) -10_000 else 10_000); chrome = true }
+            Box(
+                Modifier.matchParentSize()
+                    .pointerInput(locked, full) {
+                        detectTapGestures(
+                            onTap = { if (!locked) { chrome = !chrome; interaction++ } },
+                            onDoubleTap = { tap ->
+                                if (!locked) { jump(if (tap.x < size.width / 2) -10_000 else 10_000); chrome = true }
+                            },
+                        )
+                    }
+                    // 横滑快进退（市场惯例：右滑快进、左滑快退）：每滑过 1/4 屏宽跳一档，一档 30 秒。
+                    // 滑过阈值就消费事件，上面的点击检测会收到取消，不会滑完又开关控件。
+                    .pointerInput(locked, full) {
+                        var acc = 0f
+                        var steppedMs = 0L
+                        detectHorizontalDragGestures(onDragStart = { acc = 0f; steppedMs = 0L }) { _, dragAmount ->
+                            if (locked) return@detectHorizontalDragGestures
+                            acc += dragAmount
+                            val ms = dragSeekMs(acc, size.width.toFloat())
+                            if (ms != steppedMs) {
+                                steppedMs = ms
+                                host.seekTo((host.position + ms).coerceIn(0, width))
+                                refresh()
+                                swipeSeconds = (ms / 1000).toInt()
+                            }
+                        }
                     },
-                )
-            })
+            )
             // 弹幕占上半区：底部永远留给字幕和控件，二者不互相压
             if (danmaku && !locked) {
                 DanmakuOverlay(
@@ -349,24 +386,38 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                         ),
                 )
             }
+            swipeSeconds?.let { delta ->
+                // 横滑快进退的回包：中屏气泡，+45s / -30s，带落点时间，滑完 0.9 秒自收
+                Box(
+                    Modifier.align(Alignment.Center).clip(RoundedCornerShape(12.dp))
+                        .background(Color.Black.copy(alpha = .72f))
+                        .padding(horizontal = 18.dp, vertical = 12.dp),
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text((if (delta > 0) "+" else "") + "${delta}s", color = White, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                        Text(time(position), color = Muted, fontSize = 12.sp)
+                    }
+                }
+            }
             if ((chrome || !playing) && !locked) {
                 Row(
                     Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = .7f), Color.Transparent)))
                         .windowInsetsPadding(if (full) WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal) else WindowInsets(0, 0, 0, 0))
-                        .padding(horizontal = 8.dp),
+                        // 头部和画面顶边拉开距离：以前返回键几乎贴着状态栏压在上面
+                        .padding(start = 8.dp, end = 8.dp, top = if (full) 10.dp else 14.dp, bottom = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     ScreenIcon(Icons.AutoMirrored.Filled.ArrowBack, if (full) "退出全屏" else "返回列表", {
                         if (full) setFull(false) else onExit()
                     })
-                    if (full) {
-                        Text(
-                            source.title,
-                            Modifier.weight(1f).padding(start = 10.dp),
-                            color = White, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        )
-                        ScreenIcon(Icons.Default.Lock, "锁定控件", { locked = true })
-                    }
+                    // 片名上头部：全屏和非全屏都显示，滑到中间时也知道在看哪部
+                    Text(
+                        source.title,
+                        Modifier.weight(1f).padding(start = 10.dp),
+                        color = White, fontSize = if (full) 16.sp else 15.sp, lineHeight = 20.sp,
+                        fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
+                    if (full) ScreenIcon(Icons.Default.Lock, "锁定控件", { locked = true })
                 }
                 Row(
                     Modifier.align(Alignment.Center).offset(y = if (full) (-28).dp else 0.dp),

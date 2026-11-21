@@ -219,6 +219,25 @@ class ScreeningFeedTest {
         assertTrue(channel.isGroupEntry)
     }
 
+    // ---- 播放区横滑快进退：方向与档位是纯函数，钉住「右滑快进 30s 一档」 ----
+
+    @Test
+    fun `横滑 seek 右滑快进左滑快退，每四分之一屏一档 30 秒`() {
+        val w = 1080f
+        assertEquals(0L, dragSeekMs(0f, w))
+        // 滑过 1/4 屏宽 = 一档
+        assertEquals(30_000L, dragSeekMs(300f, w))
+        assertEquals(30_000L, dragSeekMs(400f, w))
+        // 半屏 = 两档
+        assertEquals(60_000L, dragSeekMs(540f, w))
+        // 左滑快退，负方向
+        assertEquals(-30_000L, dragSeekMs(-270f, w))
+        assertEquals(-120_000L, dragSeekMs(-1080f, w))
+        // 还没过半档（12.5%）不算；尺寸非法不炸
+        assertEquals(0L, dragSeekMs(-100f, w))
+        assertEquals(0L, dragSeekMs(500f, 0f))
+    }
+
     // ---- 夜色分类真机回归：video://config?channel= 是配置频道，不是可播条目 ----
 
     @Test
