@@ -349,7 +349,8 @@ internal class KernelHost(private val context: Context) {
         if (player.duration > 0) duration = player.duration
         if (player.ratio > 0f && player.ratio != ratio) {
             ratio = player.ratio
-            if (fill) applyScale()
+            // fit 和 fill 都跟比例走：fit 要把画面槽缩成视频比例，不是继续拉满容器
+            applyScale()
         }
         // 只在内核真的起播/停下时同步；准备中内核一定是 false，别把用户的播放意图改掉
         if (player.ready) playing = player.playing
@@ -361,15 +362,10 @@ internal class KernelHost(private val context: Context) {
         for (index in 0 until view.childCount) {
             val child = view.getChildAt(index)
             val params = child.layoutParams as? FrameLayout.LayoutParams ?: continue
-            if (fill && ratio > 0f && width > 0 && height > 0) {
-                val box = width.toFloat() / height
-                val scale = if (ratio > box) ratio / box else box / ratio
-                params.width = (width * scale).toInt().coerceAtLeast(1)
-                params.height = (height * scale).toInt().coerceAtLeast(1)
-            } else {
-                params.width = FrameLayout.LayoutParams.MATCH_PARENT
-                params.height = FrameLayout.LayoutParams.MATCH_PARENT
-            }
+            val (w, h) = fitBoxPx(width.toFloat(), height.toFloat(), ratio, fill)
+            params.width = if (width > 0) w else FrameLayout.LayoutParams.MATCH_PARENT
+            params.height = if (height > 0) h else FrameLayout.LayoutParams.MATCH_PARENT
+            params.gravity = Gravity.CENTER
             child.layoutParams = params
         }
     }
@@ -386,7 +382,9 @@ internal class KernelHost(private val context: Context) {
 
     init {
         view.addOnLayoutChangeListener { _, _, _, _, _, oldLeft, oldTop, oldRight, oldBottom ->
-            if (fill && (oldRight - oldLeft) != view.width || (oldBottom - oldTop) != view.height) applyScale()
+            // fit 也要跟着容器重算（画面槽现在按视频比例缩），所以不再只看 fill。
+            // 原来的 `fill && A || B` 因优先级等于 `(fill && A) || B`，fit 下容器变矮时不重排——正是拉伸的一半成因。
+            if ((oldRight - oldLeft) != view.width || (oldBottom - oldTop) != view.height) applyScale()
         }
     }
 
@@ -397,4 +395,25 @@ internal class KernelHost(private val context: Context) {
         /** 交接后旧内核保留多久；这期间新内核报错可以直接退回 */
         const val RETIRE_GRACE_MS = 5000L
     }
+}
+
+/**
+ * 画面槽在容器里的尺寸：fit=按视频比例完整放进容器（留黑边），fill=按大边铺满再裁边。
+ * 比例未知时铺满（起播前的一瞬），拿到元数据立刻重算。
+ * 文件级纯函数——KernelHost 要 Context，JVM 单测构造不出，只能这样钉住方向。
+ */
+internal fun fitBoxPx(viewW: Float, viewH: Float, videoRatio: Float, fill: Boolean): Pair<Int, Int> {
+    if (viewW <= 0f || viewH <= 0f || videoRatio <= 0f)
+        return viewW.toInt().coerceAtLeast(1) to viewH.toInt().coerceAtLeast(1)
+    val box = viewW / viewH
+    // fill 也必须是视频比例的最小覆盖槽：原实现两边同乘一个系数，槽比例=容器比例，宽屏照样被拉扁。
+    val (w, h) = if (fill) {
+        if (videoRatio > box) viewH * videoRatio to viewH else viewW to viewW / videoRatio
+    } else if (videoRatio > box) {
+        // fit：两条边只缩不涨——视频比容器扁（宽屏）就以宽为准，否则以高为准
+        viewW to viewW / videoRatio
+    } else {
+        viewH * videoRatio to viewH
+    }
+    return w.toInt().coerceAtLeast(1) to h.toInt().coerceAtLeast(1)
 }

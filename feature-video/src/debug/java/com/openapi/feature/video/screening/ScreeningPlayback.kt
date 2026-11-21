@@ -6,8 +6,10 @@ import android.provider.OpenableColumns
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -23,8 +25,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -269,15 +273,17 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     }
     val seekBlock: @Composable () -> Unit = {
         Column {
-            Slider(
-                value = dragging ?: if (width > 0) (position.toFloat() / width).coerceIn(0f, 1f) else 0f,
-                onValueChange = { dragging = it; interaction++ },
-                onValueChangeFinished = {
+            // 自绘细进度条（3dp 轨道 + 11dp 圆钮）：M3 默认 Slider 轨道太粗，
+            // 而这个 material3 版本没有粗细参数，slot 签名也够不着——自己画更可控（用户点名）。
+            ThinSeek(
+                fraction = dragging ?: if (width > 0) (position.toFloat() / width).coerceIn(0f, 1f) else 0f,
+                enabled = width > 0,
+                onFraction = { dragging = it; interaction++ },
+                onCommit = {
                     dragging?.let { host.seekTo((width * it).toLong()); refresh() }
                     dragging = null
                 },
-                enabled = width > 0,
-                modifier = Modifier.fillMaxWidth().height(34.dp),
+                modifier = Modifier.fillMaxWidth(),
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("${time(dragging?.let { (it * width).toLong() } ?: position)} / ${time(width)}", color = Muted, fontSize = 12.sp)
@@ -327,7 +333,12 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     Column(Modifier.fillMaxSize().background(Ink).then(
         if (!full) Modifier.safeDrawingPadding().verticalScroll(rememberScrollState()) else Modifier
     )) {
-        Box(Modifier.fillMaxWidth().then(if (full) Modifier.weight(1f) else Modifier.aspectRatio(16f / 10)).background(Color.Black)) {
+        // 播放区往下挪：贴着头部压得太紧（用户点名）
+        Box(
+            Modifier.fillMaxWidth()
+                .then(if (full) Modifier.weight(1f) else Modifier.padding(top = 10.dp).aspectRatio(16f / 10))
+                .background(Color.Black),
+        ) {
             AndroidView(
                 factory = { host.view },
                 modifier = Modifier.matchParentSize(),
@@ -387,9 +398,11 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 )
             }
             swipeSeconds?.let { delta ->
-                // 横滑快进退的回包：中屏气泡，+45s / -30s，带落点时间，滑完 0.9 秒自收
+                // 横滑快进退的回包：+45s / -30s 带落点时间，滑完 0.9 秒自收。
+                // 位置偏上避开中间那排控件——气泡和控件同在中线会被整个盖住（装机实测过）。
                 Box(
-                    Modifier.align(Alignment.Center).clip(RoundedCornerShape(12.dp))
+                    Modifier.align(Alignment.Center).offset(y = if (full) (-140).dp else (-110).dp)
+                        .clip(RoundedCornerShape(12.dp))
                         .background(Color.Black.copy(alpha = .72f))
                         .padding(horizontal = 18.dp, vertical = 12.dp),
                 ) {
@@ -667,6 +680,54 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 }
                 if (info.isNotEmpty()) Text(info, Modifier.padding(top = 9.dp), color = Mint)
             }
+        }
+    }
+}
+
+/**
+ * 细进度条：3dp 轨道 + 11dp 圆钮，自绘。
+ * 这个 material3 版本的 Slider 没有粗细参数，默认轨道在窄屏视频上太粗（用户点名）；
+ * 自己画还顺带把触点做成整行 28dp 高——好看和好按不用二选一。
+ */
+@Composable
+private fun ThinSeek(
+    fraction: Float,
+    enabled: Boolean,
+    onFraction: (Float) -> Unit,
+    onCommit: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val active = if (enabled) Mint else Mint.copy(alpha = .45f)
+    val inactive = if (enabled) Lift else Lift.copy(alpha = .45f)
+    Box(
+        modifier
+            .height(28.dp)
+            .pointerInput(enabled) {
+                if (!enabled) return@pointerInput
+                detectTapGestures {
+                    // 点按即跳转：写完 fraction 立刻 commit，不用等抬手
+                    val at = (it.x / size.width.toFloat()).coerceIn(0f, 1f)
+                    onFraction(at); onCommit()
+                }
+            }
+            .pointerInput(enabled) {
+                if (!enabled) return@pointerInput
+                fun at(x: Float) = (x / size.width.toFloat()).coerceIn(0f, 1f)
+                detectDragGestures(
+                    onDragStart = { onFraction(at(it.x)) },
+                    onDrag = { change, _ -> change.consume(); onFraction(at(change.position.x)) },
+                    onDragEnd = onCommit,
+                    onDragCancel = onCommit,
+                )
+            },
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            val r = 5.5.dp.toPx()
+            val cy = size.height / 2f
+            val cx = r + fraction.coerceIn(0f, 1f) * (size.width - r * 2f).coerceAtLeast(0f)
+            drawLine(inactive, Offset(r, cy), Offset(size.width - r, cy), 3.dp.toPx(), StrokeCap.Round)
+            drawLine(active, Offset(r, cy), Offset(cx, cy), 3.dp.toPx(), StrokeCap.Round)
+            drawCircle(active, r, Offset(cx, cy))
         }
     }
 }
