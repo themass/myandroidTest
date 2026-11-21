@@ -2,6 +2,8 @@ package com.openapi.ks.myapp.companion
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import kotlin.math.PI
+import kotlin.math.atan2
 
 /**
  * 通话页的背景主题（纯数据，绘制方在 CompanionCallScreen 消费）。
@@ -28,6 +30,8 @@ data class CallTheme(
     val bottomGlowArgb: Int,
     /** 强调色：状态点、时长等「她在线」的信号跟着主题走。 */
     val accentArgb: Int,
+    /** 自定义主题的色相（0..360，调色弹窗滑杆回填用）；预设主题为 null。 */
+    val hueDegrees: Float? = null,
 ) {
     val top get() = Color(topArgb)
     val mid get() = Color(midArgb)
@@ -66,5 +70,64 @@ data class CallTheme(
         /** 按存储 id 解析；空/未知一律回落默认（值可能是旧版本写的）。 */
         fun fromName(name: String?): CallTheme =
             Presets.firstOrNull { it.id == name } ?: Default
+
+        /** 自定义主题的存储 id（色相另存在 hue 键里，见 CallThemePreferences）。 */
+        const val CUSTOM_ID = "custom"
+
+        /** 自定义标记在但色相丢失（旧版本写过坏值）时的兜底色相：深海同款紫。 */
+        const val DEFAULT_CUSTOM_HUE = 248f
     }
+}
+
+/**
+ * 由一个色相派生整套自定义主题：用户只转一个色轮，暗部明度、光晕强度这些
+ * 调不好的参数由我们钉死。派生规则对着深海/暖夜的观感来：
+ * 背景是同色相的近黑三段渐变（顶最亮、逐级变暗），光晕/强调色是同色相的高饱和亮色。
+ */
+fun customCallTheme(hueDegrees: Float): CallTheme {
+    val hue = ((hueDegrees % 360f) + 360f) % 360f
+    return CallTheme(
+        id = CallTheme.CUSTOM_ID,
+        uiName = "自定义",
+        topArgb = hslToArgb(hue, 0.45f, 0.16f),
+        midArgb = hslToArgb(hue, 0.50f, 0.085f),
+        bottomArgb = hslToArgb(hue, 0.55f, 0.035f),
+        glowArgb = hslToArgb(hue, 0.68f, 0.52f),
+        glowStrength = 0.32f,
+        bottomGlowArgb = hslToArgb(hue, 0.45f, 0.29f),
+        accentArgb = hslToArgb(hue, 0.80f, 0.74f),
+        hueDegrees = hue,
+    )
+}
+
+/**
+ * 「背景」菜单里自定义入口的文案：选中时打勾并显示当前色相，没选时是「自定义…」。
+ * 色相丢失（兜底路径）时显示兜底色相，不显示 0°。
+ */
+fun customThemeMenuLabel(theme: CallTheme): String =
+    if (theme.id == CallTheme.CUSTOM_ID) {
+        val hue = theme.hueDegrees ?: CallTheme.DEFAULT_CUSTOM_HUE
+        "✓ 自定义（${hue.toInt()}°）"
+    } else {
+        "　 自定义…"
+    }
+
+/**
+ * 色环取色：把触点 (x, y) 换算成色相角（度，顺时针，右=0° 下=90°）。
+ * 屏幕坐标 y 向下，所以直接用 atan2(dy, dx) 就是「顺时针为正」，映射到 0..360。
+ */
+fun hueFromPoint(x: Float, y: Float, centerX: Float, centerY: Float): Float {
+    val raw = atan2(y - centerY, x - centerX) * (180.0 / PI).toFloat()
+    return ((raw % 360f) + 360f) % 360f
+}
+
+/** HSL → sRGB（ARGB 不透明）。android.graphics.Color.HSLToColor 不在这层的测试依赖里，自己算。 */
+private fun hslToArgb(h: Float, s: Float, l: Float): Int {
+    fun channel(n: Int): Float {
+        val k = (n + h / 30f) % 12f
+        val a = s * minOf(l, 1f - l)
+        return l - a * maxOf(-1f, minOf(k - 3f, 9f - k, 1f))
+    }
+    fun byte(v: Float) = (v * 255f + 0.5f).toInt().coerceIn(0, 255)
+    return (0xFF shl 24) or (byte(channel(0)) shl 16) or (byte(channel(8)) shl 8) or byte(channel(4))
 }

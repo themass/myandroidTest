@@ -40,4 +40,22 @@ class CallThemePreferencesTest {
             .putString("theme", "no_such_theme").commit()
         assertEquals(CallTheme.Default.id, loadCallTheme(context).id)
     }
+
+    @Test
+    fun `自定义主题存色相，读回同色相`() {
+        saveCallTheme(context, customCallTheme(180f))
+        val loaded = loadCallTheme(context)
+        assertEquals(CallTheme.CUSTOM_ID, loaded.id)
+        assertEquals(180f, loaded.hueDegrees!!)
+        assertEquals(customCallTheme(180f).topArgb, loaded.topArgb)
+    }
+
+    @Test
+    fun `自定义标记在但色相丢了：默认色相顶上，不崩`() {
+        context.getSharedPreferences(CALL_THEME_PREFS, Context.MODE_PRIVATE).edit()
+            .putString("theme", CallTheme.CUSTOM_ID).commit()
+        val loaded = loadCallTheme(context)
+        assertEquals(CallTheme.CUSTOM_ID, loaded.id)
+        assertEquals(customCallTheme(CallTheme.DEFAULT_CUSTOM_HUE).topArgb, loaded.topArgb)
+    }
 }

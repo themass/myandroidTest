@@ -51,4 +51,66 @@ class CallThemeTest {
         assertEquals(CallTheme.Default.id, CallTheme.fromName(null).id)
         assertEquals(CallTheme.Default.id, CallTheme.fromName("乱写的").id)
     }
+
+    @Test
+    fun `自定义主题由色相派生，同色相稳定复现且全不透明`() {
+        val a = customCallTheme(260f)
+        val b = customCallTheme(260f)
+        assertEquals(CallTheme.CUSTOM_ID, a.id)
+        assertEquals(a.topArgb, b.topArgb)
+        assertEquals(a.glowArgb, b.glowArgb)
+        for (argb in listOf(a.topArgb, a.midArgb, a.bottomArgb, a.glowArgb, a.accentArgb)) {
+            assertEquals("背景色必须不透明", 0xFFL, (argb.toLong() shr 24) and 0xFF)
+        }
+    }
+
+    @Test
+    fun `不同色相背景不同，渐变从顶到底逐档变暗`() {
+        val red = customCallTheme(0f)
+        val green = customCallTheme(120f)
+        assertTrue("色相必须改变画面", red.topArgb != green.topArgb)
+        assertTrue("顶亮底暗", luma(red.topArgb) > luma(red.midArgb))
+        assertTrue("中间还要再暗一档", luma(red.midArgb) > luma(red.bottomArgb))
+        assertTrue("光晕比背景亮（要看得见光）", luma(red.glowArgb) > luma(red.topArgb))
+    }
+
+    @Test
+    fun `色相环绕：360 与 0 同色`() {
+        assertEquals(customCallTheme(0f).topArgb, customCallTheme(360f).topArgb)
+    }
+
+    @Test
+    fun `hueDegrees 只有自定义主题携带`() {
+        assertEquals(260f, customCallTheme(260f).hueDegrees)
+        assertEquals(null, CallTheme.Default.hueDegrees)
+    }
+
+    @Test
+    fun `背景菜单的自定义入口：选中带勾和角度，没选带省略号`() {
+        assertEquals("　 自定义…", customThemeMenuLabel(CallTheme.Default))
+        assertEquals("✓ 自定义（250°）", customThemeMenuLabel(customCallTheme(250f)))
+        // 色相丢失的兜底路径也要有角度可显示（默认紫 248°），不能显示成 0°。
+        assertEquals(
+            "✓ 自定义（${CallTheme.DEFAULT_CUSTOM_HUE.toInt()}°）",
+            customThemeMenuLabel(CallTheme.Default.copy(id = CallTheme.CUSTOM_ID, hueDegrees = null)),
+        )
+    }
+
+    @Test
+    fun `色轮取点：右0° 下90° 左180° 上270°，顺时针`() {
+        // 圆心 (100,100)，半径 50。屏幕坐标 y 向下，所以「下」是 +y。
+        assertEquals(0f, hueFromPoint(150f, 100f, 100f, 100f), 0.5f)
+        assertEquals(90f, hueFromPoint(100f, 150f, 100f, 100f), 0.5f)
+        assertEquals(180f, hueFromPoint(50f, 100f, 100f, 100f), 0.5f)
+        assertEquals(270f, hueFromPoint(100f, 50f, 100f, 100f), 0.5f)
+        // 左下 45°（屏幕坐标）= 色轮 135°
+        assertEquals(135f, hueFromPoint(50f, 150f, 100f, 100f), 1f)
+    }
+
+    private fun luma(argb: Int): Int {
+        val r = (argb shr 16) and 0xFF
+        val g = (argb shr 8) and 0xFF
+        val b = argb and 0xFF
+        return r + g + b
+    }
 }
