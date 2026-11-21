@@ -500,7 +500,12 @@ fun CompanionCallScreen(
         )
     }
 
-    CallBackdrop(level = ringLevel, theme = theme, modifier = modifier.fillMaxSize()) {
+    // 陀螺视差：手机倾斜时主光晕同向微移（上限 14dp），伪造「视线在她房间里移动」。
+    // 减弱动态或设备无旋转矢量传感器时偏移恒 0，画面与没有这个特性时一致。
+    val parallax = rememberStageParallax()
+    val parallaxMaxPx = if (reducedMotion) 0f
+        else with(androidx.compose.ui.platform.LocalDensity.current) { parallaxMaxOffsetDp(false).dp.toPx() }
+    CallBackdrop(level = ringLevel, theme = theme, parallax = parallax, parallaxMaxPx = parallaxMaxPx, modifier = modifier.fillMaxSize()) {
         if (fullBleed) {
             // 背景铺满全屏，内容让开状态栏/导航栏；浮层坐在形象之上。
             Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars)) {
@@ -621,6 +626,9 @@ private fun CallBackdrop(
     modifier: Modifier = Modifier,
     /** 背景主题；默认值与旧版 CallColors 常量一致，未设置主题时画面不变。 */
     theme: CallTheme = CallTheme.Default,
+    /** 陀螺视差：归一化姿态偏移(-1..1) × 最大偏移像素；静止/无传感器时为 0。 */
+    parallax: State<Offset>,
+    parallaxMaxPx: Float,
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(
@@ -634,8 +642,8 @@ private fun CallBackdrop(
             )
 
             // 头像位置的主光晕。0.34 是视觉重心——比几何中心略高，人眼会把上半屏当主体。
-            val cx = size.width / 2f
-            val cy = size.height * 0.34f
+            val cx = size.width / 2f + parallax.value.x * parallaxMaxPx
+            val cy = size.height * 0.34f + parallax.value.y * parallaxMaxPx
             val glowRadius = size.minDimension * (0.55f + 0.17f * level.value)
             drawRect(
                 Brush.radialGradient(
