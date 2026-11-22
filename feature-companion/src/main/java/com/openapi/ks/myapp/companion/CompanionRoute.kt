@@ -604,6 +604,9 @@ fun CompanionRoute(
                             onTapped = chatViewModel::onAvatarTapped,
                             // 长按她：动作托盘弹出；选了可点动作 = 把文案当用户的话发出去。
                             onLongPressed = { actionTrayOpen = true },
+                            // 测试语音 rig 走生产注入路径：PCM 从远端音频轨回调共用的
+                            // 下游入口进 transport，下游电平→嘴型与真通话完全同路。
+                            audioInjector = chatViewModel::injectLabAudioPcm16k,
                         )
                         }
                         if (actionTrayOpen) {

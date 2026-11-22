@@ -81,21 +81,56 @@ object DhTestAudio {
 
     /**
      * 播放一个 WAV：先发 [motionId] 手势（可选，Duix 的 startMotion 通道），再按 20ms
-     * 节拍喂给当前引擎：
-     * - PCM 驱动引擎（[DigitalHumanEngine.pcmDriven]，如 Duix）只收真 PCM，不发 Mouth
-     *   （Duix 的 Mouth 分支会合成假 PCM，和真 PCM 抢嘴型）；
-     * - 其余引擎收折算幅度（Mouth 指令）：非静音块发峰值，进入静音段时发一次 0 收尾，
-     *   之后不再刷 0。
+     * 节拍把 PCM 喂下去，两条路径二选一：
+     *
+     * - **生产注入路径（首选）**：给了 [injector] 且第一块被接受时，每批 PCM 都从
+     *   远端音频轨回调的**同一个下游入口**进 transport（电平提取 → mouthLevel /
+     *   remotePcm → bridge → 引擎），rig 自己不再折算电平——测到的就是真通话那条链。
+     *   这是 mock 验收「不许旁路」的落点。
+     * - **bridge 直喂（降级）**：[injector] 为 null，或这条连接没有可注入的音频通路
+     *   （Fake 替身返回 false），退回老行为：PCM 驱动引擎（[DigitalHumanEngine.pcmDriven]，
+     *   如 Duix）收真 PCM；其余引擎收折算幅度（Mouth 指令），进静音段补发一次 0 收尾。
+     *
      * 返回喂入的总字节数，解析失败返回 0 且不喂任何数据。
      */
-    suspend fun play(file: File, bridge: DigitalHumanBridge, motionId: Int? = null): Int {
-        val pcm = parseWavPcm16Mono16k(file.readBytes()) ?: return 0
+    suspend fun play(
+        file: File,
+        bridge: DigitalHumanBridge,
+        motionId: Int? = null,
+        injector: ((ByteArray) -> Boolean)? = null,
+    ): Int {
+        val parsed = parseWavPcm16Mono16k(file.readBytes()) ?: return 0
+        // 尾部落单字节不构成一个采样，两种路径都用不上，先削掉。
+        val pcm = if (parsed.size % 2 == 0) parsed else parsed.copyOfRange(0, parsed.size - 1)
         if (motionId != null) {
             bridge.onAvatarCommand(AvatarCommand.Gesture(motionId.toString()))
         }
-        val pcmDriven = bridge.current().pcmDriven
         var sent = 0
         var off = 0
+        if (injector != null && off < pcm.size) {
+            val end = minOf(off + BATCH_BYTES, pcm.size)
+            if (injector(pcm.copyOfRange(off, end))) {
+                android.util.Log.i("DhTestAudio", "mode=transport t0=${System.currentTimeMillis()}")
+                sent += end - off
+                off = end
+                while (off < pcm.size) {
+                    val e = minOf(off + BATCH_BYTES, pcm.size)
+                    // 中途被拒 = 连接换了替身：停喂并让下面的降级分支接手剩余部分。
+                    if (!injector(pcm.copyOfRange(off, e))) break
+                    sent += e - off
+                    off = e
+                    if (off < pcm.size) delay(20)
+                }
+                if (off >= pcm.size) {
+                    if (bridge.current().pcmDriven) {
+                        // 播完必须收尾，否则推送段永远挂着，人物停在带摆动的待机口型循环。
+                        bridge.flushRemotePcm()
+                    }
+                    return sent
+                }
+            }
+        }
+        val pcmDriven = bridge.current().pcmDriven
         var mouthOpen = false // 上一次发的是非零 Mouth 吗？静音时只补发一次 0。
         while (off < pcm.size) {
             val end = minOf(off + BATCH_BYTES, pcm.size)
@@ -117,7 +152,6 @@ object DhTestAudio {
             if (off < pcm.size) delay(20)
         }
         if (pcmDriven) {
-            // 播完必须收尾，否则推送段永远挂着，人物停在带摆动的待机口型循环。
             bridge.flushRemotePcm()
         }
         return sent

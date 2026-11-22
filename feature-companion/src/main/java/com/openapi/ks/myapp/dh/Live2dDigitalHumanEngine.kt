@@ -49,7 +49,9 @@ class Live2dDigitalHumanEngine(
     }
 
     override fun dispatch(command: AvatarCommand) {
-        val rt = runtime?.takeIf { viewCreated } ?: return
+        val rt = runtime?.takeIf { viewCreated }
+        if (command is AvatarCommand.Mouth) traceMouth(command.openness)
+        rt ?: return
         when (command) {
             is AvatarCommand.Mouth -> {
                 rt.setMouth(command.openness)
@@ -61,6 +63,25 @@ class Live2dDigitalHumanEngine(
             is AvatarCommand.Emotion -> rt.setExpression(command.name)
             else -> Unit
         }
+    }
+
+    /** 口型轨迹的节流状态；[clockMs] 测试注入门（假时钟让日志轨迹可断言）。 */
+    private var mouthLastLogMs = -1L
+    private var mouthWasOpen = false
+    internal var clockMs: () -> Long = System::currentTimeMillis
+
+    /**
+     * 口型证据通道：`Live2dTouch: mouth v=0.477 t=…` 值-时间对，按 [Live2dMouthTrace]
+     * 节流。真机验收拿它对齐素材包络（envclip.wav），不靠肉眼辨认「好像动过」。
+     * 与 runtime 在不在无关——日志记的是喂进来的电平，画面没挂也不该丢证据。
+     */
+    private fun traceMouth(openness: Float) {
+        val now = clockMs()
+        if (!Live2dMouthTrace.shouldLog(now, mouthLastLogMs, openness, mouthWasOpen)) return
+        Log.i(TAG, "mouth v=${"%.3f".format(openness)} t=$now")
+        val (last, open) = Live2dMouthTrace.advanced(now, openness)
+        mouthLastLogMs = last
+        mouthWasOpen = open
     }
 
     /**
