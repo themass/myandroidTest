@@ -75,8 +75,18 @@ ffmpeg -hide_banner -loglevel error -y \
   -f lavfi -i "aevalsrc=exprs='0.45*sin(2*PI*220*t)*(between(t\,1\,1.4)+between(t\,1.6\,2)+between(t\,2.2\,2.6)+between(t\,2.8\,3.2)+between(t\,3.4\,3.8))':s=16000:d=5" \
   -c:a pcm_s16le "$OUT/envclip.wav"
 
+# 8) 慢包络（envslow）：**截图通道**专用的 envclip。adb screencap 一张 ~450ms，
+#    400ms 的开口窗口对它来说是欠采样（开口帧与闭合帧各拍到一半，帧差糊成噪声）。
+#    这里把包络放大到 2.5s 开/1.5s 合：每个开口段能拍到 5+ 帧连续张嘴、
+#    每个闭合段 3 帧闭嘴——嘴部 ROI 帧差与包络的对应才肉眼可核。
+#    电平判据（0.45 峰值）与 envclip 完全一致，只是节奏放慢。
+echo "== envslow (1s 静默→(2.5s 开/1.5s 合)x2→1s 静默, 220Hz)"
+ffmpeg -hide_banner -loglevel error -y \
+  -f lavfi -i "aevalsrc=exprs='0.45*sin(2*PI*220*t)*(between(t\,1\,3.5)+between(t\,5\,7.5))':s=16000:d=10" \
+  -c:a pcm_s16le "$OUT/envslow.wav"
+
 # 校验：每个文件必须非静音（mean_volume > -60dB）且时长符合预期下限，防止再产出静音/丢段文件
-CHECKS="sentence 2 vowels 6 long 20 pauses 3 fast 2 tone 3 envclip 4.5"
+CHECKS="sentence 2 vowels 6 long 20 pauses 3 fast 2 tone 3 envclip 4.5 envslow 9.5"
 fail=0
 set -- $CHECKS
 while [ $# -gt 0 ]; do
