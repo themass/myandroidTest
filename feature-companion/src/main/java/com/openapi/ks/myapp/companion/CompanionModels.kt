@@ -217,6 +217,27 @@ data class ProfileEntry(
     }
 }
 
+// ---- 用户档案（Markdown 长文）----
+
+/**
+ * AI 对你的档案：一份 Markdown 长文，由 LLM 定期维护，用户也可改写。
+ * 与 [ProfileEntry]（一条条的画像条目）不同，这是一个整体文档。
+ * [source] 标明最近一次写入来源：`llm`（AI 维护）/ `admin`（用户改写）。
+ */
+data class ProfileDoc(
+    val markdown: String,
+    val version: Int?,
+    val source: String?,
+) {
+    companion object {
+        fun from(json: JSONObject) = ProfileDoc(
+            markdown = json.optString("markdown"),
+            version = if (json.isNull("version") || !json.has("version")) null else json.getInt("version"),
+            source = json.optString("source").takeIf { it.isNotBlank() },
+        )
+    }
+}
+
 data class TimelineEventItem(
     val id: String,
     val title: String,

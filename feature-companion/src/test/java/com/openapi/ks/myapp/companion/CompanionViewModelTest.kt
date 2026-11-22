@@ -1145,6 +1145,14 @@ class FakeCompanionApi(
     override suspend fun deleteEvent(id: String) = error("unused")
     override suspend fun preferences(): CompanionPreferences = error("unused")
     override suspend fun updatePreferences(patch: Map<String, Any?>): CompanionPreferences = error("unused")
+
+    /** 档案脚本：默认给一份空档案（读不到），update 记录写入。 */
+    var profileDocValue: ProfileDoc = ProfileDoc(markdown = "", version = null, source = null)
+    val profileDocWrites = mutableListOf<Pair<String, String>>()
+    override suspend fun profileDoc(roleId: String): ProfileDoc = profileDocValue
+    override suspend fun updateProfileDoc(roleId: String, markdown: String) {
+        profileDocWrites += roleId to markdown
+    }
 }
 
 /**

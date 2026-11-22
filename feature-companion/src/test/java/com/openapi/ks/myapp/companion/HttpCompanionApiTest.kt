@@ -204,6 +204,37 @@ class HttpCompanionApiTest {
         assertEquals("done", JSONObject(fake.bodies.single()).getString("status"))
     }
 
+    // -------------------------------------------------------------- 用户档案（Markdown）
+
+    @Test
+    fun `profile doc get scopes by role and parses markdown version source`() {
+        val fake = Fake(body = """{"markdown":"## 基本情况\n做前端","version":3,"source":"llm"}""")
+        val doc = runBlocking { api(fake).profileDoc("lin che") }
+        assertTrue(fake.seen.single().url.toString().endsWith("/v1/memory/profile_doc?role_id=lin+che"))
+        assertEquals("## 基本情况\n做前端", doc.markdown)
+        assertEquals(3, doc.version)
+        assertEquals("llm", doc.source)
+    }
+
+    @Test
+    fun `profile doc with null version parses as null not zero`() {
+        val fake = Fake(body = """{"markdown":"","version":null,"source":""}""")
+        val doc = runBlocking { api(fake).profileDoc("linche") }
+        assertEquals("", doc.markdown)
+        assertNull(doc.version)
+        assertNull(doc.source)
+    }
+
+    @Test
+    fun `profile doc save is a PUT with the markdown body and no return parse`() {
+        val fake = Fake(body = "")   // 201 空响应体
+        runBlocking { api(fake).updateProfileDoc("linche", "## 基本情况\n我改的") }
+        val req = fake.seen.single()
+        assertEquals("PUT", req.method)
+        assertTrue(req.url.toString().endsWith("/v1/memory/profile_doc?role_id=linche"))
+        assertEquals("## 基本情况\n我改的", JSONObject(fake.bodies.single()).getString("markdown"))
+    }
+
     // -------------------------------------------------------------- 历史附件
 
     @Test

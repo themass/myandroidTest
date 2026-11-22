@@ -28,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Tab
@@ -325,6 +326,136 @@ private fun EventsPane(
                 TextButton(onClick = { onDelete(event.id) }) { Text(stringResource(R.string.companion_delete)) }
             }
             HorizontalDivider()
+        }
+    }
+}
+
+// ============================ 用户档案 ============================
+
+/**
+ * AI 对你的档案页：顶部选角色（档案按角色隔离），下面是这份角色的 Markdown 档案，
+ * 可直接编辑、整篇保存。草稿为空时显示空态提示（档案还没被 AI 写出来过）。
+ */
+@Composable
+fun ProfileDocScreen(
+    state: ProfileDocState,
+    onRetry: () -> Unit,
+    onSelectRole: (String) -> Unit,
+    onDraftChange: (String) -> Unit,
+    onSave: () -> Unit,
+    onDismissSavedHint: () -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        ScreenHeader(title = stringResource(R.string.companion_profile_doc_title), onBack = onBack)
+
+        // 角色选择：档案按角色隔离，一个角色一份。列表空/加载中就不画这行。
+        if (!state.charactersLoading && state.characters.isNotEmpty()) {
+            RoleDocSelector(
+                characters = state.characters,
+                selectedId = state.roleId,
+                onSelect = onSelectRole,
+            )
+            Spacer(Modifier.height(10.dp))
+        }
+
+        when {
+            state.roleId == null -> {
+                if (state.charactersLoading || state.error != null) {
+                    if (state.error != null) ErrorBlock(state.error, onRetry) else Loading()
+                } else {
+                    EmptyBlock()
+                }
+            }
+            state.docLoading && state.draft == null -> Loading()
+            else -> {
+                state.error?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    Spacer(Modifier.height(6.dp))
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // 来源标注：AI 维护 / 你改过。让用户知道这份档案现在是谁的笔迹。
+                    state.doc?.source?.let { src ->
+                        Text(
+                            if (src == "admin") stringResource(R.string.companion_profile_doc_edited_by_you)
+                            else stringResource(R.string.companion_profile_doc_maintained_by_ai),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    OutlinedTextField(
+                        value = state.draft.orEmpty(),
+                        onValueChange = onDraftChange,
+                        label = { Text(stringResource(R.string.companion_profile_doc_edit_hint)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(280.dp),
+                        minLines = 8,
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        if (state.savedHint) {
+                            Text(
+                                stringResource(R.string.companion_profile_doc_saved),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        } else {
+                            Text("")
+                        }
+                        Button(
+                            onClick = onSave,
+                            enabled = !state.saving && (state.draft ?: "") != (state.doc?.markdown ?: ""),
+                        ) {
+                            if (state.saving) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    strokeWidth = 2.dp,
+                                )
+                                Spacer(Modifier.width(6.dp))
+                            }
+                            Text(if (state.saving) stringResource(R.string.companion_saving)
+                            else stringResource(R.string.companion_profile_doc_save))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** 档案页顶部的角色选择行：横向滚动的小胶囊，选中态描边。 */
+@Composable
+private fun RoleDocSelector(
+    characters: List<CharacterSummary>,
+    selectedId: String?,
+    onSelect: (String) -> Unit,
+) {
+    androidx.compose.foundation.lazy.LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 2.dp),
+    ) {
+        items(characters, key = { it.id }) { character ->
+            val selected = character.id == selectedId
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = if (selected) HerViolet.copy(alpha = 0.16f)
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                border = if (selected) androidx.compose.foundation.BorderStroke(2.dp, HerViolet) else null,
+            ) {
+                Text(
+                    character.name,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                    modifier = Modifier
+                        .clickable { onSelect(character.id) }
+                        .padding(horizontal = 14.dp, vertical = 6.dp),
+                )
+            }
         }
     }
 }

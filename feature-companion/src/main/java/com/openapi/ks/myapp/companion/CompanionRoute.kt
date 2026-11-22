@@ -75,7 +75,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 
 /** 陪伴界面里能去的页面。聊天是主页面，其余三个从顶部进入。 */
-enum class CompanionPage { CHAT, CHARACTERS, MEMORY, SETTINGS }
+enum class CompanionPage { CHAT, CHARACTERS, MEMORY, PROFILE_DOC, SETTINGS }
 
 /**
  * 陪伴界面的完整装配：聊天主页面 + 角色列表 / 记忆 / 偏好三个子页面。
@@ -231,6 +231,7 @@ fun CompanionRoute(
                     onOpenCall = openCall,
                     onOpenCharacters = { page = CompanionPage.CHARACTERS },
                     onOpenProfile = { page = CompanionPage.MEMORY },
+                    onOpenProfileDoc = { page = CompanionPage.PROFILE_DOC },
                     onMenuClick = onMenuClick,
                 )
             }
@@ -266,6 +267,22 @@ fun CompanionRoute(
                     onAddEvent = vm::addEvent,
                     onSuppressProfile = vm::suppressProfile,
                     onDeleteProfile = vm::deleteProfile,
+                    onBack = { page = CompanionPage.CHAT },
+                )
+            }
+
+            CompanionPage.PROFILE_DOC -> {
+                val vm: ProfileDocViewModel = viewModel(
+                    factory = viewModelFactory { initializer { ProfileDocViewModel(api, characterId) } },
+                )
+                val state by vm.state.collectAsStateWithLifecycle()
+                ProfileDocScreen(
+                    state = state,
+                    onRetry = vm::load,
+                    onSelectRole = vm::selectRole,
+                    onDraftChange = vm::onDraftChange,
+                    onSave = vm::save,
+                    onDismissSavedHint = vm::dismissSavedHint,
                     onBack = { page = CompanionPage.CHAT },
                 )
             }
