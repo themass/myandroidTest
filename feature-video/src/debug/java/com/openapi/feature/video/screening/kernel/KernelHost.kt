@@ -171,6 +171,7 @@ internal class KernelHost(private val context: Context) {
 
     fun seekTo(ms: Long) {
         val target = ms.coerceAtLeast(0)
+        android.util.Log.i("SeekHold", "seekTo target=$target active=${active?.kind}")
         position = target
         awaitingSeek = true
         active?.player?.seekTo(target)
@@ -355,12 +356,22 @@ internal class KernelHost(private val context: Context) {
     private fun syncFromActive() {
         val player = active?.player ?: return
         val playerPosition = player.position
+        val heldBefore = position
+        val gated = player.buffering || awaitingSeek
         position = playerPositionOrHold(
             held = position,
             playerPosition = playerPosition,
             playing = player.playing,
-            buffering = player.buffering || awaitingSeek,
+            buffering = gated,
         )
+        // 探针（真机 seek 泄漏取证，临时）：只在可疑窗口打，不给正常播放刷日志
+        if (gated || playerPosition < heldBefore) {
+            android.util.Log.i(
+                "SeekHold",
+                "held=$heldBefore p=$playerPosition playing=${player.playing} " +
+                    "buf=${player.buffering} await=$awaitingSeek -> $position",
+            )
+        }
         // 内核报出的位置落进落点窗口才算真落点，恢复信任。
         // 上界同样必须有：向后拖时 seek 还没被内核处理，读数仍是拖前的旧位置，
         // 只写下界会让它立刻误判落点、弹回旧位置。
