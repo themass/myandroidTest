@@ -37,6 +37,9 @@ dependencies {
     implementation libs.androidx.lifecycle.viewmodel.compose
     implementation libs.androidx.lifecycle.runtime.compose
     implementation libs.kotlinx.coroutines.android
+    // 待发条的缩略图。版本与 :chatkit 对齐（同一个 coil-compose，两处各引一次是因为
+    // 模块之间不共享依赖声明；升级时要一起改，否则运行时是两份 coil）。
+    implementation 'io.coil-kt:coil-compose:2.7.0'
     // LiveKit 语音/实时传输（LiveKitCompanionTransport）
     implementation 'io.livekit:livekit-android:2.29.0'
 

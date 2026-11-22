@@ -22,6 +22,12 @@ object ProtocolHandshake {
     const val ACK_TIMEOUT_MS = 3_000L
 
     /**
+     * 图片消息的能力名。**服务端 SERVER_CAPS 里必须写着同一个字符串**，逐字一致：
+     * 名字对不上时两边都不会报错，只是交集里安静地少这一项。
+     */
+    const val CAP_MEDIA_IMAGE = "media.image"
+
+    /**
      * 客户端认识的每一项能力及其自身版本号。0 表示「知道但未启用」。
      * 与服务端 `SERVER_CAPS` 必须覆盖同一批名字，否则交集会少一项。
      */
@@ -32,6 +38,11 @@ object ProtocolHandshake {
         "presentation.gaze" to 1,
         "speech.v1" to 1,
         "perception.attention" to 1,
+        // 图片消息（P1）：客户端能发 `control.input` 的 `kind="attachments"`。
+        // **名字必须与服务端 SERVER_CAPS 逐字一致**——差一个字符不会报错，只会让交集里
+        // 少这一项，于是「+」入口永远不出现，而两边日志都干净（改这边要同步改
+        // companion/agent/protocol/handshake.py）。
+        CAP_MEDIA_IMAGE to 1,
     )
 
     /** 客户端自报的上限。服务端据此裁剪它的发送节奏。 */
