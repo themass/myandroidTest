@@ -214,7 +214,12 @@ private fun ScreeningHome(activity: ScreeningActivity) {
             when (target) {
                 is PlayScreen -> key(target.source) {
                     holder.SaveableStateProvider(target.source.key) {
-                        ScreeningPlayback(activity, target.source, target.channel, progress[target.source.key] ?: 0L,
+                        // 进度兜底现读 prefs（真机 2026-11-23）：progress 这张内存表只有列表页
+                        // items 就位那一刻才灌 prefs，冷启动没经过列表页就进片会漏掉存档——
+                        // prefs 存着 1:58，冷启动却从头播。缺就现取一次（阈值判定在 storedProgress）。
+                        val entryKey = target.source.key
+                        val resumeAt = progress[entryKey] ?: storedProgress(preferences, entryKey).also { progress[entryKey] = it }
+                        ScreeningPlayback(activity, target.source, target.channel, resumeAt,
                             onExit = { forward = false; selection = null }, onSave = { position ->
                                 progress[target.source.key] = position
                                 preferences.edit().putLong(progressKey(target.source.key), position).apply()
@@ -561,8 +566,13 @@ private data class PlayScreen(val source: ScreeningSource, val channel: String)
 /** 进度存的键：所有条目（样例和真实）都按 [RemoteEntry.key] 存，一条规则。 */
 private fun progressKey(entryKey: String) = "position:$entryKey"
 
-private fun storedProgress(preferences: android.content.SharedPreferences, entryKey: String): Long =
-    preferences.getLong(progressKey(entryKey), if (entryKey == sampleReelKey("ridge")) 4200L else 0L)
+/** 续播阈值（用户点名「开头 10+ 秒被跳」）：只瞥了几秒不值得跳过片头，低于它就当没看过，从头播。 */
+private const val RESUME_MIN_MS = 5_000L
+
+private fun storedProgress(preferences: android.content.SharedPreferences, entryKey: String): Long {
+    val stored = preferences.getLong(progressKey(entryKey), 0L)
+    return if (stored >= RESUME_MIN_MS) stored else 0L
+}
 
 @Composable
 internal fun Cover(id: String, modifier: Modifier = Modifier) {
