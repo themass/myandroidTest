@@ -174,4 +174,22 @@ class Live2dTouchReactionTest {
                 }
         }
     }
+
+    @Test
+    fun `every lab exp3 pins a fast fade so taps feel instant`() {
+        // 真机反馈 2026-11-22「触摸效果没有」：exp3 不写 FadeInTime/FadeOutTime 时
+        // CubismExpressionMotion 用 DefaultFadeTime=1.0s，淡入比人的耐心还长，按下去
+        // 「像没反应」。每个组合必须显式写 ≤0.3s 的双向淡变（生成器 FADE_SECONDS）。
+        File(labAssetsDir, "expressions").listFiles { f -> f.extension == "json" }!!
+            .forEach { f ->
+                val text = f.readText()
+                Regex("\"Fade(In|Out)Time\":\\s*([0-9.]+)").findAll(text).forEach { m ->
+                    val seconds = m.groupValues[2].toFloat()
+                    assertTrue("$f ${m.groupValues[1]} too slow: $seconds", seconds in 0f..0.3f)
+                }
+                assertTrue("$f must pin both FadeInTime and FadeOutTime",
+                    Regex("\"FadeInTime\"").containsMatchIn(text) &&
+                        Regex("\"FadeOutTime\"").containsMatchIn(text))
+            }
+    }
 }
