@@ -174,7 +174,6 @@ internal class KernelHost(private val context: Context) {
 
     fun seekTo(ms: Long) {
         val target = ms.coerceAtLeast(0)
-        android.util.Log.i("SeekHold", "seekTo target=$target active=${active?.kind}")
         position = target
         seekTarget = target
         seekIssuedAt = SystemClock.elapsedRealtime()
@@ -361,13 +360,11 @@ internal class KernelHost(private val context: Context) {
     private fun syncFromActive() {
         val player = active?.player ?: return
         val playerPosition = player.position
-        val heldBefore = position
-        val gated = player.buffering || awaitingSeek
         position = playerPositionOrHold(
             held = position,
             playerPosition = playerPosition,
             playing = player.playing,
-            buffering = gated,
+            buffering = player.buffering || awaitingSeek,
         )
         // 落点判定：见 [awaitingSeekAfter]。IJK 在 seekTo 后会有一小段「假读数=目标值本身」
         // 的缓存期（探针实测 ~400ms），落点窗口会被它立刻命中——判定前先过信任延迟窗。
@@ -378,14 +375,6 @@ internal class KernelHost(private val context: Context) {
             playerPosition = playerPosition,
             target = seekTarget,
         )
-        // 探针（真机 seek 泄漏取证，临时）：只在可疑窗口打，不给正常播放刷日志
-        if (gated || playerPosition < heldBefore) {
-            android.util.Log.i(
-                "SeekHold",
-                "held=$heldBefore p=$playerPosition playing=${player.playing} " +
-                    "buf=${player.buffering} await=$awaitingSeek -> $position",
-            )
-        }
         if (player.duration > 0) duration = player.duration
         if (player.ratio > 0f && player.ratio != ratio) {
             ratio = player.ratio
