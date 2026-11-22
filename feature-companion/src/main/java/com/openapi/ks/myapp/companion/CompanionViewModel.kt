@@ -287,10 +287,20 @@ class CompanionViewModel(
      * 等的是「已落进房间」这个事实，不是「我们调用过」：服务端的 pending 槽只活到
      * 下一次用户回合，文本抢跑一次，图片就落到下一条消息上去
      * （见 [CompanionTransport.sendAttachments]）。
+     *
+     * **发布失败就整条中止**（终评 I-3）：`sendAttachments` 现在会把「没落进房间」如实回出来，
+     * 这里必须照着上传失败那条路走——不发文本、输入框与待发条原样留着、把原因说给用户。
+     * 以前这里等的是「调用过」，五条失败路径全都静默返回，于是网络一抖就是「文本发出去了、
+     * 图既没发出去也没留下」，正好是 [send] 那条 KDoc 声明要避免的半条消息。
+     * 图**不**在这里重传：字节还在待发条里，用户再按一次发送就是完整的一条消息。
      */
     private suspend fun deliver(text: String, localPaths: List<String>, uploadIds: List<String>) {
         attachmentSeq += 1
-        transport.sendAttachments(uploadIds, "att-${System.currentTimeMillis()}-$attachmentSeq")
+        val delivered = transport.sendAttachments(uploadIds, "att-${System.currentTimeMillis()}-$attachmentSeq")
+        if (!delivered) {
+            _state.update { it.copy(uploading = false, error = ATTACHMENT_DELIVERY_FAILED_MESSAGE) }
+            return
+        }
         sendTextNow(text, localPaths, uploadIds)
     }
 
@@ -343,11 +353,7 @@ class CompanionViewModel(
      */
     fun sendActionText(text: String) {
         if (_state.value.connection != CompanionConnection.CONNECTED) return
-        if (_state.value.uploading) {
-            // 不说清楚就是「点了没反应」：用户看不到输入区为什么按不动。
-            _state.update { it.copy(error = UPLOAD_IN_PROGRESS_MESSAGE) }
-            return
-        }
+        if (uploadInProgress()) return
         transport.sendText(text)
         _state.update {
             it.copy(
@@ -356,6 +362,20 @@ class CompanionViewModel(
                     newMessage(MessageRole.ASSISTANT, "", streaming = true),
             )
         }
+    }
+
+    /**
+     * 上传闸：`send()` 的 `uploading` 那一段时间里，任何**另起一条文本回合**的入口都从这里过
+     * （[sendActionText]、[regenerateLastReply]；[send] 自己走 `canSend`，那条已经含同一判据）。
+     *
+     * 返回 true 表示「这里必须停下」，并顺手把原因写给用户——不说清楚就是「点了没反应」，
+     * 而用户看不到输入区为什么按不动。闸只有一处实现：再加一个出站入口时忘了它，
+     * 就会重新长出「attachments 还在路上、文本先开回合」那个形状（终评 I-2 漏掉的正是这里）。
+     */
+    private fun uploadInProgress(): Boolean {
+        if (!_state.value.uploading) return false
+        _state.update { it.copy(error = UPLOAD_IN_PROGRESS_MESSAGE) }
+        return true
     }
 
     /**
@@ -400,10 +420,16 @@ class CompanionViewModel(
      * chatkit 的「重新回答」在「最后一条是用户消息」时出现。删掉她的回复后就会露出这个入口，
      * 所以它必须真的能重新问一遍——否则又是一个点了没反应的按钮。
      * 不重复添加用户气泡（那条已经在了），只补一个流式占位。
+     *
+     * **它和 [send] / [sendActionText] 一样不能绕过上传闸**（终评 I-2）：它发出去的是一条
+     * 全新的文本回合，而 attachments 事件可能还在路上——服务端的 pending 槽只活到最后那次
+     * 用户回合，文本抢跑一次，图就落到下一条消息上去。这一条以前只查连接和 streaming，
+     * 漏了 uploading，正是 [sendActionText] 那条 KDoc 写明的同一个形状。
      */
     fun regenerateLastReply() {
         val current = _state.value
         if (current.connection != CompanionConnection.CONNECTED) return
+        if (uploadInProgress()) return
         val lastUser = current.messages.lastOrNull { it.role == MessageRole.USER } ?: return
         if (current.messages.lastOrNull()?.streaming == true) return
         transport.sendText(lastUser.text)
@@ -732,6 +758,37 @@ class CompanionViewModel(
         }
     }
 
+    /**
+     * 灰占位上点一下：给那一张图重新换一次签名 URL（终评 I-4）。
+     *
+     * 为什么必须有：签名 URL 只活 300 秒，而 [hydrateImages] 一辈子只在 [restoreHistory] 里跑一次。
+     * 于是任何一条「打开页面时恰好没换到 URL」的历史图片，五分钟后就永远是灰块——
+     * 而 [CompanionMessage.attachmentIds] 恰恰是为了这一刻才特意留在消息上的。
+     * chatkit 的失败占位本来就画了重试图标并发出 [com.openapi.chatkit.model.MessageAction.RetryImage]，
+     * 「对话」页接了它（`ImageRetryActions`），陪伴页以前把它咽进了 `else -> Unit`。
+     *
+     * 只重取 [index] 那一张，不整条重来：同一条消息里已经换到的那些 URL 是有效凭证，
+     * 一起重取等于允许一次失败把一张好图换成灰的（与 [com.openapi.chatkit.model.MessagePart.Images]
+     * 的下标语义一致——组件传回来的就是用户点的那一格）。
+     *
+     * 换不到就什么都不改：灰占位还在，用户可以再点一次。这里不报错——读图失败不是连接失败。
+     */
+    fun retryImage(messageId: Long, index: Int) {
+        val remote = api ?: return
+        val ids = _state.value.messages.firstOrNull { it.id == messageId }?.attachmentIds ?: return
+        val uploadId = ids.getOrNull(index) ?: return
+        viewModelScope.launch {
+            val url = runCatching { remote.attachmentUrl(uploadId) }.getOrNull()
+            if (url.isNullOrEmpty()) return@launch
+            _state.update { st ->
+                st.copy(messages = st.messages.map { m ->
+                    if (m.id != messageId) m
+                    else m.copy(images = m.images.mapIndexed { i, path -> if (i == index) url else path })
+                })
+            }
+        }
+    }
+
     private suspend fun restorePendingActions() {
         val remote = api ?: return
         val pending = runCatching { remote.pendingActions() }.getOrElse { return }
@@ -907,8 +964,13 @@ class CompanionViewModel(
     companion object {
         const val DEFAULT_INBOX_POLL_MILLIS = 30_000L
 
-        /** 一条消息最多带几张图。与服务端与「对话」页的同一道闸保持一致。 */
-        const val MAX_PENDING_IMAGES = 9
+        /**
+         * 一条消息最多带几张图。真值在 :common 的
+         * [com.openapi.common.media.MAX_MESSAGE_IMAGES]——那里同时钉着服务端的
+         * `MAX_MESSAGE_ATTACHMENTS` 和「对话」页的同一道闸；这里只是本页的旧名字，
+         * 留着一个别名比再抄一个 9 安全。
+         */
+        const val MAX_PENDING_IMAGES = com.openapi.common.media.MAX_MESSAGE_IMAGES
 
         /** 选中的图暂存在 `filesDir` 下的这个目录（FileProvider 已授权 files 根目录）。 */
         const val ATTACHMENT_DIR = "companion_attachments"
@@ -921,6 +983,14 @@ class CompanionViewModel(
 
         /** 房间不支持图片（协商变了）：图传不了，也不该只把文本单独发出去。 */
         const val UPLOAD_UNSUPPORTED_MESSAGE = "当前连接不支持图片，请重新进入对话后再试"
+
+        /**
+         * 图已经传好了，但 attachments 那条事件没能落进房间（终评 I-3）：文本不发，图留在待发条里。
+         *
+         * 刻意不复用 [UPLOAD_FAILED_MESSAGE]——「上传失败」是句谎话，那一步真的成功了，
+         * 花的流量也没浪费；这里的实话是「最后一步没送进去，再按一次就行」。
+         */
+        const val ATTACHMENT_DELIVERY_FAILED_MESSAGE = "图片没能发送出去，已保留，请再按一次发送"
 
         /**
          * 图片还在传，动作文案不能插队（见 [sendActionText]）。

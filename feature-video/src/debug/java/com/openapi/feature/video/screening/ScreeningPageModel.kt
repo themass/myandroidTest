@@ -47,7 +47,11 @@ internal enum class FeedRoute { CHANNEL, ALBUM, PLAY, WEB }
  */
 internal enum class ScreeningPageKind { VIDEOS, SUBCHANNELS }
 
-/** 这一张卡进内页后取哪种接口：配置频道（`video://…?channel=`）列子频道，其余取片单。 */
+/**
+ * 这一张卡进内页后取哪种接口：配置频道（`video://`、`teleplay://`、`movie://` + `channel=`）
+ * 列子频道，其余取片单。取哪种接口跟 scheme 白名单走，不跟 channel 值的长相走——
+ * `movie_1` 这类值和子频道 key 长得像，但 teleplay/movie 的第一层必须是 channel.json。
+ */
 internal fun videoChannelPageKind(entry: RemoteEntry): ScreeningPageKind =
     if (isConfigAction(entry.actionUrl)) ScreeningPageKind.SUBCHANNELS else ScreeningPageKind.VIDEOS
 
@@ -61,35 +65,31 @@ internal fun videoChannelPageKind(entry: RemoteEntry): ScreeningPageKind =
  */
 internal val RemoteEntry.isGroupEntry: Boolean
     get() = !videoChannelKey().isNullOrEmpty() ||
-        (isWebAction(actionUrl) && !isPlayableMediaUrl(actionUrl)) || isConfigAction(actionUrl) ||
-        sampleCoverAsset() != null || key.startsWith(SAMPLE_CHANNEL_KEY_PREFIX)
+        (isWebAction(actionUrl) && !isPlayableMediaUrl(actionUrl)) || isConfigAction(actionUrl)
 
 /**
- * 一个推荐位在页面上怎么响应：图集/真频道入口进内页，其余直接播或交回 WebView。
+ * 一个推荐位在页面上怎么响应：图集/真频道入口进内页，其余直接播或交回原分发。
  * 可播媒体外链排最前——WebView 不播 HLS，塞进去就是黑屏；放映场内核（Exo/IJK）能直接播。
  * 「有频道 key 就进内页」排在其余外链之前（用户拍板 B 线：客户端全收）：
  * 外链频道卡（param 是真频道 key）以前掉回 WebView，用户从频道点进去「往里点就变旧 UI」
  * 的根因就在这。探针实测服务端 items.json 认这批 key（hsexhsex.men、badnews_all 各 30 行
  * 可播条目）；查不到行的频道（se8成人动漫）errno 也是 0 空列表，由内页诚实空态 +
- * [webFallbackUrl] 「在网页里打开」兜底，不拿旧页面填空。配置频道卡（夜色那批）也进
- * CHANNEL，内页按 [videoChannelPageKind] 先列子频道再下钻。
+ * [webFallbackUrl] 「在网页里打开」兜底，不拿旧页面填空。配置频道卡（夜色/teleplay/movie）
+ * 也进 CHANNEL，内页按 [videoChannelPageKind] 先列子频道再下钻。
+ * WEB 现在承担两件事：http(s) 交 WebView，以及 `sound://`/`text://` 交回原分发
+ * （旧 SoundChannleActivity/TextChannleActivity）——放映场还没有音频/正文页，
+ * 以前这两种 scheme 被当视频发 items.json，点进去两头落空。
  */
 internal fun routeOf(entry: RemoteEntry): FeedRoute = when {
     entry.isImageCard -> FeedRoute.ALBUM
     isPlayableMediaUrl(entry.actionUrl) -> FeedRoute.PLAY
+    isLegacyOnlyAction(entry.actionUrl) -> FeedRoute.WEB
     isConfigAction(entry.actionUrl) -> FeedRoute.CHANNEL
     !entry.videoChannelKey().isNullOrEmpty() -> FeedRoute.CHANNEL
     isWebAction(entry.actionUrl) -> FeedRoute.WEB
     entry.isGroupEntry -> FeedRoute.CHANNEL
     else -> FeedRoute.PLAY
 }
-
-/** 样例频道卡的 key 前缀（见 `ScreeningSampleFeed`）。 */
-private const val SAMPLE_CHANNEL_KEY_PREFIX = "sample:channel:"
-
-/** 样例频道卡的封面 asset 名；真实条目返回 null。 */
-internal fun RemoteEntry.sampleCoverAsset(): String? =
-    key.takeIf { it.startsWith(SAMPLE_CHANNEL_KEY_PREFIX) }?.removePrefix(SAMPLE_CHANNEL_KEY_PREFIX)
 
 /**
  * 卡片右上角的时长：只有随包 12 秒样片能给得出真值。

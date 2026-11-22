@@ -107,9 +107,23 @@ internal class SendActions(
         scope.launch {
             val outcome = withContext(Dispatchers.IO) { AttachmentStager.stage(context, kind, uri) }
             when (outcome) {
-                is StageOutcome.Staged -> composer.addDraft(kind, outcome.attachment)
+                is StageOutcome.Staged -> rejectIfOverLimit(kind, outcome.attachment)
                 is StageOutcome.Rejected -> state.update { it.copy(error = outcome.reason) }
                 StageOutcome.Failed -> state.update { it.copy(error = strings.attachmentReadFailed()) }
+            }
+        }
+    }
+
+    /**
+     * 进草稿托盘，超了图片上限就说清楚（终评 I-1）。
+     *
+     * 走 `Rejected` 那条已有的「说得出原因」的路径，而不是静默丢掉这一张：从「文件」里选图片
+     * 也到这里，那条路的选择器压根没有条数上限（它一次只给一张），到顶完全可能发生。
+     */
+    private fun rejectIfOverLimit(kind: MessageKind, staged: StagedAttachment) {
+        if (!composer.addDraft(kind, staged)) {
+            state.update {
+                it.copy(error = strings.imageLimitReached(com.openapi.common.media.MAX_MESSAGE_IMAGES))
             }
         }
     }
@@ -126,7 +140,14 @@ internal class SendActions(
                 when (outcome) {
                     is StageOutcome.Staged -> {
                         val staged = outcome.attachment
-                        composer.addDraft(MessageKind.IMAGE, staged)
+                        // 到顶就停在这一张上并说明原因（终评 I-1）：继续往下循环只会把
+                        // 剩下几张也解码压缩一遍，白费等用户看着进度条跑完。
+                        if (!composer.addDraft(MessageKind.IMAGE, staged)) {
+                            state.update {
+                                it.copy(error = strings.imageLimitReached(com.openapi.common.media.MAX_MESSAGE_IMAGES))
+                            }
+                            return@launch
+                        }
                         // 先入草稿再编辑：取消编辑时图片仍然可用（等同「不编辑直接发送」）
                         val editor = openEditor
                         if (editor != null) {

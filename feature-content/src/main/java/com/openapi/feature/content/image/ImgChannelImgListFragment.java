@@ -34,7 +34,7 @@ public class ImgChannelImgListFragment extends RecommendFragment {
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN1);
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
         StaticDataUtil.add(Constants.IMG_CHANNEL, vo);
-        intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
+        // 不再关工具栏：关了就没有任何返回入口（7c543d01 给别的页补页内返回时漏了这批旧页）
         context.startActivity(intent);
     }
 

@@ -198,16 +198,6 @@ internal class KernelHost(private val context: Context) {
         applyScale()
     }
 
-    fun select(kind: Kernel) {
-        if (kind == kernel || pending != null) return
-        if (source == null) {
-            PlaybackEnginePrefs.setEngine(context, kind.pref)
-            kernel = kind
-            return
-        }
-        handoff(kind, persist = true)
-    }
-
     /**
      * 起一个新内核把当前画面接过去。
      * [persist] 为真时写回设置（用户主动选的）；自动兜底不写，用户的偏好保持原样。

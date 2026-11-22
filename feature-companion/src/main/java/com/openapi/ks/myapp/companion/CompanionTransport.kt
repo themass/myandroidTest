@@ -154,9 +154,18 @@ interface CompanionTransport {
      * [clientMsgId] 是这一组附件的幂等键（`att-<epochMillis>-<seq>`）：重连补发、
      * 或用户重复触发时，服务端凭它认得出「这是同一组」，不会挂两遍。
      *
-     * 默认空实现：没有数据通道的替身没有这条路径（发送侧的闸在 [imageSupported]）。
+     * **返回值就是这条契约的后半截**（终评 I-3）：`true` = 这组附件已经落进房间，可以发文本了；
+     * `false` = 没能落进去（房间没了、协商在通话中间变了、编码失败、发布失败）。
+     * 以前它返回 Unit 并且在每条失败路径上「记一条 warn 然后什么都不做」，调用方无从分辨
+     * 成功与失败，于是网络一抖就是「文本发出去了、图没了、图也没留着」——正是这条接口
+     * 自己声明要防的半条消息。调用方拿到 false 必须**不发文本**、把待发条原样留着。
+     *
+     * 空 `uploadIds` 返回 `true`（没什么要落的，也就没有失败）；调用方本来就不该用空集合进来。
+     *
+     * 默认实现返回 `false`：没有数据通道的替身**没有**这条路径，「没落进去」是它的真实答案
+     * （发送侧的入口闸在 [imageSupported]，正常走不到这里）。
      */
-    suspend fun sendAttachments(uploadIds: List<String>, clientMsgId: String) = Unit
+    suspend fun sendAttachments(uploadIds: List<String>, clientMsgId: String): Boolean = false
 
     /**
      * 开关本地麦克风。默认空实现：没有音频能力的替身不该假装能开麦。

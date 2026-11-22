@@ -150,18 +150,25 @@ private fun ScreeningHome(activity: ScreeningActivity) {
     }
     val openChannel: (RemoteEntry) -> Unit = { entry ->
         forward = true
+        // 取数键分层级（对齐旧页面）：第一层列子频道用 actionUrl 里的 channel=
+        // （VideoChannleBodyFragment 就是拿 CONFIG_PARAM 的 channel 发 channel.json）；
+        // 片单页才用 param 优先（VideoChannelListFragment.getUrl 用 vo.param）。
+        // 以前不分层，config 卡的 param（若有）会顶掉 channelType 键，第一层就查空。
+        val kind = videoChannelPageKind(entry)
+        val fetchKey = if (kind == ScreeningPageKind.SUBCHANNELS) entry.channelParam else entry.videoChannelKey()
         channelPage = ScreeningChannelPage(
             title = entry.title,
             detail = entry.description,
             coverUrl = entry.imageUrl,
-            coverAsset = entry.sampleCoverAsset(),
+            // 随包封面 asset 只有「本地样片库」页头用得上（localPage 构造）；服务端条目没有。
+            coverAsset = null,
             // 原页面 VideoChannelListFragment.getUrl 用的是 vo.param。外链频道卡以前在这里
             // 被置空（掉回 WebView 就不用内页取数了）；B 线吸收后必须把 key 传下去，
-            // 内页才拿它发 items.json。没有 key 的入口（样例频道）照旧走样片兜底。
-            channelParam = entry.videoChannelKey(),
-            sample = sampleChannelFor(entry),
+            // 内页才拿它发 items.json。（旧「样例频道」兜底已随写死样例频道一并清掉。）
+            channelParam = fetchKey,
+            sample = null,
             // 夜色配置频道卡（hsex_all 这类）进去先列子频道，点一行再下钻片单
-            kind = videoChannelPageKind(entry),
+            kind = kind,
             // 片单查不到时给的回网页退路；内部频道卡没有网页，为 null 就不画按钮
             webFallback = entry.webFallbackUrl(),
         )
@@ -214,7 +221,12 @@ private fun ScreeningHome(activity: ScreeningActivity) {
             when (target) {
                 is PlayScreen -> key(target.source) {
                     holder.SaveableStateProvider(target.source.key) {
-                        ScreeningPlayback(activity, target.source, target.channel, progress[target.source.key] ?: 0L,
+                        // 进度兜底现读 prefs（真机 2026-11-23）：progress 这张内存表只有列表页
+                        // items 就位那一刻才灌 prefs，冷启动没经过列表页就进片会漏掉存档——
+                        // prefs 存着 1:58，冷启动却从头播。缺就现取一次（阈值判定在 storedProgress）。
+                        val entryKey = target.source.key
+                        val resumeAt = progress[entryKey] ?: storedProgress(preferences, entryKey).also { progress[entryKey] = it }
+                        ScreeningPlayback(activity, target.source, target.channel, resumeAt,
                             onExit = { forward = false; selection = null }, onSave = { position ->
                                 progress[target.source.key] = position
                                 preferences.edit().putLong(progressKey(target.source.key), position).apply()
@@ -561,8 +573,13 @@ private data class PlayScreen(val source: ScreeningSource, val channel: String)
 /** 进度存的键：所有条目（样例和真实）都按 [RemoteEntry.key] 存，一条规则。 */
 private fun progressKey(entryKey: String) = "position:$entryKey"
 
-private fun storedProgress(preferences: android.content.SharedPreferences, entryKey: String): Long =
-    preferences.getLong(progressKey(entryKey), if (entryKey == sampleReelKey("ridge")) 4200L else 0L)
+/** 续播阈值（用户点名「开头 10+ 秒被跳」）：只瞥了几秒不值得跳过片头，低于它就当没看过，从头播。 */
+private const val RESUME_MIN_MS = 5_000L
+
+private fun storedProgress(preferences: android.content.SharedPreferences, entryKey: String): Long {
+    val stored = preferences.getLong(progressKey(entryKey), 0L)
+    return if (stored >= RESUME_MIN_MS) stored else 0L
+}
 
 @Composable
 internal fun Cover(id: String, modifier: Modifier = Modifier) {
@@ -575,7 +592,7 @@ internal fun Cover(id: String, modifier: Modifier = Modifier) {
 /** 一张卡的封面：远程地址走 Glide，随包 asset 走 assets，都没有就纯色底。 */
 @Composable
 internal fun EntryCover(entry: RemoteEntry, modifier: Modifier = Modifier) {
-    val asset = entry.sampleCoverAsset() ?: entry.assetId()
+    val asset = entry.assetId()
     when {
         !entry.imageUrl.isNullOrBlank() -> RemoteCover(entry.imageUrl, modifier)
         asset != null -> Cover(asset, modifier)

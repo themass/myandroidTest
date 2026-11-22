@@ -35,4 +35,5 @@ class ResourceChatStrings(private val context: Context) : ChatStrings {
     override fun videoTooLarge() = context.getString(R.string.chat_video_too_large)
     override fun videoNotMp4() = context.getString(R.string.chat_video_not_mp4)
     override fun locationFailed() = context.getString(R.string.chat_location_failed)
+    override fun imageLimitReached(max: Int) = context.getString(R.string.chat_image_limit_reached, max)
 }

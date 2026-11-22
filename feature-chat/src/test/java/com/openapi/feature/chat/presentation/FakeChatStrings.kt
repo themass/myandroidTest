@@ -29,4 +29,5 @@ internal class FakeChatStrings : ChatStrings {
     override fun videoTooLarge() = "S:videoTooLarge"
     override fun videoNotMp4() = "S:videoNotMp4"
     override fun locationFailed() = "S:locationFailed"
+    override fun imageLimitReached(max: Int) = "S:imageLimitReached:$max"
 }

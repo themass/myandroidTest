@@ -619,17 +619,25 @@ class LiveKitCompanionTransport(
      * 没必要为图片再开一个 `t`（协议目录两端各写一份，多一项就多一处可能不同步的地方）。
      *
      * **没有旧版回退通道**：v1 的服务端压根不认 `upload_ids`，退化成文本流只会发出去一串
-     * 谁也不读的 id。没握手到 v2、或 `media.image` 没谈成，就记一条 warn 然后什么都不做
+     * 谁也不读的 id。没握手到 v2、或 `media.image` 没谈成，就记一条 warn 然后回 `false`
      * ——界面上的「+」在这种连接下本来就不出现，走到这里说明状态在通话中间变了，
      * 让它留在日志里可查，而不是假装成功。
      *
-     * 这里**直接 `publishData` 而不是 `scope.launch`**：返回即「已落进房间」，调用方才能
+     * 这里**直接 `publishData` 而不是 `scope.launch`**：返回 `true` 即「已落进房间」，调用方才能
      * 等它返回再发文本（见 [CompanionTransport.sendAttachments]）。`scope.launch` 的写法
      * 与 [sendText] 各自一条协程，谁先到达由调度器决定，文本抢跑一次，图就落到下一条消息上。
+     *
+     * **每一条没发出去的出路都回 `false`**（终评 I-3）：房间没了、协商变了、编码失败、
+     * 发布失败。调用方（`CompanionViewModel.deliver`）据此**不发文本**、把待发条留着——
+     * 回 `true` 等于告诉它「图已经在房间里了」，而那是句谎话：文本会照发，图既不补发也不
+     * 留在界面上，用户看到的是「她回了一句『图我看到了』而屏幕上根本没有图」。
      */
-    override suspend fun sendAttachments(uploadIds: List<String>, clientMsgId: String) {
-        if (uploadIds.isEmpty()) return
-        val current = room ?: return
+    override suspend fun sendAttachments(uploadIds: List<String>, clientMsgId: String): Boolean {
+        if (uploadIds.isEmpty()) return true
+        val current = room ?: run {
+            logWarn("attempt=$activeAttemptId event=attachments_no_room ids=${uploadIds.size}")
+            return false
+        }
         val protocolLink = link
         val negotiatedImage = protocolLink?.negotiator?.canReceive(ProtocolHandshake.CAP_MEDIA_IMAGE) == true
         if (protocolLink == null || !protocolLink.isV2 || !negotiatedImage) {
@@ -637,7 +645,7 @@ class LiveKitCompanionTransport(
                 "attempt=$activeAttemptId event=attachments_skipped ids=${uploadIds.size} " +
                     "v2=${protocolLink?.isV2} negotiated=$negotiatedImage",
             )
-            return
+            return false
         }
         // JSONArray 手动装：Android 的 org.json 没有 `JSONArray(Collection)` 这个构造器
         // （那是桌面版 org.json 的），`putJSONArray` 同样不存在。逐个 put 出来的字节
@@ -655,16 +663,16 @@ class LiveKitCompanionTransport(
         )
         if (bytes == null) {
             logWarn("attempt=$activeAttemptId event=attachments_encode_failed ids=${uploadIds.size}")
-            return
+            return false
         }
-        runCatching {
+        return runCatching {
             current.localParticipant
                 .publishData(bytes, DataPublishReliability.RELIABLE, ProtocolCatalog.TOPIC_IN)
         }.onSuccess {
             logInfo("attempt=$activeAttemptId event=attachments_sent ids=${uploadIds.size} clientMsgId=$clientMsgId")
         }.onFailure {
             logWarn("attempt=$activeAttemptId event=attachments_publish_failed type=${it.javaClass.simpleName}")
-        }
+        }.isSuccess
     }
 
     /**

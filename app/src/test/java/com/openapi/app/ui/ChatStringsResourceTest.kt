@@ -83,6 +83,11 @@ class ChatStringsResourceTest {
         assertEquals("创建角色失败，请稍后重试", s.roleCreateFailed())
         assertEquals("更新角色失败，请稍后重试", s.roleUpdateFailed())
         assertEquals("删除角色失败，请稍后重试", s.roleDeleteFailed())
+        // 终评 I-1：图片超上限的那句提示是**用户看得见**的（选择器 maxItems 只是建议值，
+        // 厂商 ROM 可能不认，所以本地还有一道闸会走到这句）。数字是填进去的，
+        // 所以这里同时钉住「占位符真的被替换了」而不是原样吐出 %1$d。
+        assertEquals("一条消息最多 9 张图片", s.imageLimitReached(9))
+        assertEquals("一条消息最多 3 张图片", s.imageLimitReached(3))
     }
 
     @Test

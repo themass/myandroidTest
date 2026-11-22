@@ -35,6 +35,26 @@ class CaptionStyleTest {
         assertEquals(0, captionPresetIndex(-5))
         assertEquals(captionPresets.lastIndex, captionPresetIndex(999))
     }
+
+    @Test
+    fun strokeOnlyWhenNoReadableBackground() {
+        val plain = captionPresets.first { it.title == "默认" }.style
+        // 有底衬（78% 黑）的预设不叠描边——底衬本身就是可读性方案，别糊字
+        assertEquals(0, captionStrokeArgbOf(plain))
+        // 「纯净」= 无底衬，必须给描边，否则白字压亮画面不可读（装机踩过）
+        val pure = captionPresets.first { it.title == "纯净" }.style
+        assertEquals(FALLBACK_STROKE_ARGB, captionStrokeArgbOf(pure))
+        // 显式描边优先于兜底
+        val explicit = pure.copy(strokeArgb = 0xFF000000.toInt())
+        assertEquals(0xFF000000.toInt(), captionStrokeArgbOf(explicit))
+    }
+
+    @Test
+    fun nearTransparentBackgroundStillGetsFallbackStroke() {
+        // 底衬薄到看不见（<10%）视同无底衬：服务端下发这种样式也不给不可读放行
+        val thin = captionPresets.first { it.title == "默认" }.style.copy(backgroundAlpha = .05f)
+        assertEquals(FALLBACK_STROKE_ARGB, captionStrokeArgbOf(thin))
+    }
 }
 
 class CaptionMotionTest {

@@ -36,11 +36,6 @@ internal fun sampleReels(channel: Channel?): List<RemoteEntry> =
         }
     }
 
-/** 样例频道卡 → 原来的 [Channel]（拿它的片单）。 */
-internal fun sampleChannelFor(entry: RemoteEntry): Channel? =
-    entry.actionUrl.takeIf { it.startsWith(SAMPLE_CHANNEL_SCHEME) }
-        ?.removePrefix(SAMPLE_CHANNEL_SCHEME)?.let { cover -> channels.firstOrNull { it.cover == cover } }
-
 /** 样例片单条目 → 随包 asset 名；不是样例外返回 null。 */
 internal fun RemoteEntry.assetId(): String? = when {
     key.startsWith(SAMPLE_REEL_SCHEME) -> key.removePrefix(SAMPLE_REEL_SCHEME)
@@ -48,5 +43,4 @@ internal fun RemoteEntry.assetId(): String? = when {
     else -> null
 }
 
-private const val SAMPLE_CHANNEL_SCHEME = "sample://channel/"
 private const val SAMPLE_REEL_SCHEME = "sample:reel:"

@@ -19,6 +19,8 @@ data class CaptionStyle(
     /** 一行最多几行；超出按 [motion] 处理。 */
     val maxLines: Int,
     val motion: CaptionMotionMode,
+    /** 文字描边色 0xAARRGGBB；0 = 交给 [captionStrokeArgbOf] 兜底（无底衬一律补深色描边）。 */
+    val strokeArgb: Int = 0,
 ) {
     companion object {
         /** 基准字号（sp）；[fontScale] 乘在它上面。 */
@@ -53,6 +55,19 @@ enum class CaptionMotionMode {
     SCROLL,
 }
 
+/** 兜底描边：和弹幕同一档深色（68% 黑），保证白字压在任何画面上都读得清。 */
+internal const val FALLBACK_STROKE_ARGB = 0xB3000000.toInt()
+
+/**
+ * 最终描边色。底衬几乎透明时必须有描边——白字无描边压亮天空直接糊掉（「纯净」预设装机踩过）。
+ * 显式描边优先；将来服务端下发样式缺这个字段，也走同一条兜底，不给不可读的样式放行。
+ */
+fun captionStrokeArgbOf(style: CaptionStyle): Int = when {
+    style.strokeArgb != 0 -> style.strokeArgb
+    style.backgroundAlpha < 0.1f -> FALLBACK_STROKE_ARGB
+    else -> 0
+}
+
 /** 预设：面板里可点的那几张。样式是给用户选的成品，不是散开的旋钮。 */
 data class CaptionPreset(val title: String, val hint: String, val style: CaptionStyle)
 
@@ -66,8 +81,8 @@ val captionPresets: List<CaptionPreset> = listOf(
         CaptionStyle(0xFFFFE066.toInt(), .78f, 1.25f, CaptionPosition.BOTTOM, 3, CaptionMotionMode.AUTO),
     ),
     CaptionPreset(
-        "纯净", "去掉底衬，画面不挡",
-        CaptionStyle(0xFFFFFFFF.toInt(), 0f, 1f, CaptionPosition.BOTTOM, 3, CaptionMotionMode.AUTO),
+        "纯净", "去掉底衬，白字描边，画面不挡",
+        CaptionStyle(0xFFFFFFFF.toInt(), 0f, 1f, CaptionPosition.BOTTOM, 3, CaptionMotionMode.AUTO, FALLBACK_STROKE_ARGB),
     ),
     CaptionPreset(
         "顶部", "字幕贴上面，不挡演员脸",

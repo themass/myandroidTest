@@ -311,8 +311,8 @@ private fun Lightbox(shots: List<RemoteEntry>, start: Int, onMove: (Int) -> Unit
                     .padding(horizontal = 10.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                TextButton(onClick = { }) { Icon(Icons.Default.FavoriteBorder, null, Modifier.size(16.dp)); Text(" 收藏") }
-                TextButton(onClick = { }) { Icon(Icons.Default.Download, null, Modifier.size(16.dp)); Text(" 下载") }
+                // 「收藏 / 下载」两个键以前是空实现（点了没反应），随死代码一并撤掉；
+                // 做真功能时再加回来。
                 Spacer(Modifier.weight(1f))
                 Text("双指缩放 · 左右滑动", color = Muted, fontSize = 11.sp, modifier = Modifier.align(Alignment.CenterVertically))
             }

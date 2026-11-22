@@ -945,6 +945,216 @@ class CompanionViewModelTest {
         assertFalse("发完闸口要放开", vm.state.value.uploading)
         vm.stopListening()
     }
+
+    /**
+     * 终评 I-3：attachments **没能落进房间**时，文本一次都不许发，图必须留在待发条里。
+     *
+     * 上传成功但发布失败（房间断了、协商在通话中间变了、编码失败）以前是静默的：
+     * `sendAttachments` 返回 Unit，`deliver` 等完就往下走 `sendTextNow`，于是
+     * 「她回了一句『图我看到了』而屏幕上根本没有图」——图既没发出去也没留着，
+     * 与 [send] 那条 KDoc 声明的「全有或全无」正好相反。
+     *
+     * 三条一起钉：文本没进房间、待发条原样还在（再按一次就是完整的一条消息）、
+     * 错误提示出来了（否则用户以为发出去了，只会等她回话）。
+     */
+    @Test
+    fun `a failed attachments publish aborts the text and keeps the pending images`() = runTest(dispatcher) {
+        val transport = AttachmentTransport(attachmentsSucceed = false)
+        val uploader = FakeImageUploader()
+        val vm = imageVm(transport, uploader)
+
+        vm.start("linche")
+        runCurrent()
+        val image = pendingFile("img_1.jpg")
+        vm.addPendingImage(image)
+        vm.onInputChange("看这张")
+        vm.send()
+        runCurrent()
+
+        assertEquals("attachments 试过一次", listOf("sendAttachments"), transport.calls)
+        assertEquals("没能落进房间就不许发文本", emptyList<String>(), transport.sentTexts)
+        assertEquals("图必须留在待发条里（用户再按一次就行）", listOf(image.absolutePath),
+            vm.state.value.pendingImages.map { it.path })
+        assertEquals("输入框里的话也要留着", "看这张", vm.state.value.input)
+        assertNotNull("要告诉用户没发出去", vm.state.value.error)
+        assertFalse("闸口要放开，否则发送键再也按不动", vm.state.value.uploading)
+        assertFalse("不许落下乐观气泡", vm.state.value.messages.any { it.role == MessageRole.USER })
+        vm.stopListening()
+    }
+
+    /**
+     * 终评 I-3 的后半截：失败之后**再按一次发送**要能真的把这条消息发出去。
+     *
+     * 「已保留待重发」这句话只有在重发真的可行时才算数——图已经传好了，但 attachments
+     * 那条事件要能重发一次才算数。所以这里在**同一个 VM、同一条连接**上翻掉发布结果：
+     * 换第二个 VM 只会验证「第二次也是第一次」，验不到重发这条路。
+     */
+    @Test
+    fun `retrying after a failed attachments publish sends the whole message`() = runTest(dispatcher) {
+        val transport = AttachmentTransport(attachmentsSucceed = false)
+        val vm = imageVm(transport, FakeImageUploader())
+
+        vm.start("linche")
+        runCurrent()
+        vm.addPendingImage(pendingFile("img_1.jpg"))
+        vm.onInputChange("看这张")
+        vm.send()
+        runCurrent()
+        assertEquals("第一次没发出去", emptyList<String>(), transport.sentTexts)
+        val attemptsBeforeRetry = transport.calls.size
+
+        // 房间恢复了，用户再按一次发送：这条消息必须完整出去，而且图不重复。
+        transport.attachmentsSucceed = true
+        vm.send()
+        runCurrent()
+
+        assertEquals("重发是完整的一条消息", listOf("sendAttachments", "sendText"),
+            transport.calls.drop(attemptsBeforeRetry))
+        assertEquals("两次加起来只试过两次发布、发出一条文本", listOf("看这张"), transport.sentTexts)
+        assertEquals("待发条要清空，不能留着一张已发出的图", emptyList<String>(), vm.state.value.pendingImages.map { it.path })
+        vm.stopListening()
+    }
+
+    /**
+     * 终评 I-2：「重新回答」不能绕过上传闸。
+     *
+     * 它和 [CompanionViewModel.sendActionText] 是同一个形状：发出去的都是**另起一条文本回合**，
+     * 而 attachments 事件可能还在路上——服务端的 pending 槽只活到下一次用户回合，
+     * 文本抢跑一次，图就落到这条「重新回答」上去。以前这里只查连接与 streaming。
+     *
+     * 形状要先造对：界面上**必须已经有一条用户气泡**（否则它会在「找不到 lastUser」那里
+     * 提前 return，测不到闸）。所以先发一条纯文字、把她的占位回复删掉，再发起一条带图的
+     * 消息——这正是「图还在传、用户顺手点了重新回答」的那个时刻。
+     */
+    @Test
+    fun `regenerating during an upload does not start a text-only turn`() = runTest(dispatcher) {
+        val transport = AttachmentTransport()
+        val uploader = FakeImageUploader(slowMillis = 1_000)
+        val vm = imageVm(transport, uploader)
+
+        vm.start("linche")
+        runCurrent()
+        vm.onInputChange("在吗")
+        vm.send()
+        runCurrent()
+        vm.deleteMessage(vm.state.value.messages.last().id) // 删掉她的占位回复：streaming 关掉
+        runCurrent()
+
+        vm.addPendingImage(pendingFile("img_1.jpg"))
+        vm.onInputChange("看这张")
+        vm.send()
+        advanceTimeBy(500)
+        runCurrent()
+        assertTrue("先确认上传真的还在途", vm.state.value.uploading)
+        assertTrue("界面上要有那条可重问的用户气泡，否则这条测试是空的",
+            vm.state.value.messages.any { it.role == MessageRole.USER })
+        // 「在吗」那条纯文本是同步发的，它已经在记录里了；后面比的都是它**之后**新增的出站。
+        val baseline = transport.calls.toList()
+
+        vm.regenerateLastReply()
+        runCurrent()
+
+        // 这一刻上传还在途，连 sendAttachments 都还没轮到：不许多出任何一次出站。
+        assertEquals("上传途中不许有新的出站（重新回答也算）", baseline, transport.calls)
+        assertNotNull("点了没反应是最糟的反馈，要说得出原因", vm.state.value.error)
+        // 上传跑完之后，原来那条带图的消息照常发出去，而且只发一遍。
+        advanceTimeBy(2_000)
+        runCurrent()
+        assertEquals("重发之外不许多出一次文本回合", listOf("sendAttachments", "sendText"),
+            transport.calls.drop(baseline.size))
+        assertEquals("重问不能替那条带图的消息多发出一句", listOf("在吗", "看这张"), transport.sentTexts)
+        vm.stopListening()
+    }
+
+    // ------------------------------------------------------ 历史图片：灰占位可重试（终评 I-4）
+
+    /**
+     * 灰占位上点一下要真的能救回来：签名 URL 只活 300 秒，而整页换 URL 一辈子只在
+     * `restoreHistory` 里跑一次，所以「打开页面时恰好没换到」的那张图否则就永远是灰块——
+     * 尽管 `attachmentIds` 恰恰是为了这一刻才留在消息上的。
+     *
+     * 假 API 的 URL 表是**活的** Map：第一次换的时候里面是 null（灰占位），点过重试才填上
+     * 真地址——这正是「五分钟后 URL 过期 / 当时那次请求恰好失败」的形状。
+     */
+    @Test
+    fun `retrying a failed history image re-fetches only that url and fills it in`() = runTest(dispatcher) {
+        val urls = mutableMapOf<String, String?>("u-gone" to null)
+        val api = FakeCompanionApi(
+            session = sessionWithChat(7L),
+            historyItems = listOf(CompanionHistoryItem("user", "照片在这儿", listOf("u-gone"))),
+            attachmentUrls = urls,
+        )
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        settleStartup()
+
+        val message = vm.state.value.messages.single()
+        assertEquals("第一次没换到就是灰占位", listOf(""), message.images)
+        assertEquals("整页只换过一次", listOf("u-gone"), api.attachmentUrlCalls)
+
+        // 用户点了灰块
+        urls["u-gone"] = "https://signed/u-gone"
+        vm.retryImage(message.id, 0)
+        runCurrent()
+
+        val retried = vm.state.value.messages.single()
+        assertEquals("重试要把这一格填成真地址", listOf("https://signed/u-gone"), retried.images)
+        assertEquals("附件 id 不能被重试弄丢", listOf("u-gone"), retried.attachmentIds)
+        assertEquals("重试只重取那一张", listOf("u-gone", "u-gone"), api.attachmentUrlCalls)
+        assertNull("读图失败不是错误态，不该弹提示", vm.state.value.error)
+        vm.stopListening()
+    }
+
+    /** 重试还是换不到：灰占位原样留着（用户能再点一次），不许少一格、也不许报错。 */
+    @Test
+    fun `retrying an image that still cannot be fetched keeps the placeholder`() = runTest(dispatcher) {
+        val api = FakeCompanionApi(
+            session = sessionWithChat(7L),
+            historyItems = listOf(CompanionHistoryItem("user", "照片在这儿", listOf("u-gone"))),
+            attachmentUrls = mapOf("u-gone" to null),
+        )
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        settleStartup()
+
+        val message = vm.state.value.messages.single()
+        vm.retryImage(message.id, 0)
+        runCurrent()
+
+        assertEquals("换不到就什么都不改", listOf(""), vm.state.value.messages.single().images)
+        assertEquals("文字不能因为一次重试失败而丢", "照片在这儿", vm.state.value.messages.single().text)
+        assertNull(vm.state.value.error)
+        vm.stopListening()
+    }
+
+    /**
+     * 下标语义：只有被点的那一张重取，同一行里**已经换到的**那张不许被一次失败换成灰的。
+     * 组件传回来的 index 就是用户点的那一格，这里必须按它逐位对齐。
+     */
+    @Test
+    fun `retrying one image does not touch the other images in the same message`() = runTest(dispatcher) {
+        val urls = mutableMapOf<String, String?>("u1" to "https://signed/u1", "u2" to null)
+        val api = FakeCompanionApi(
+            session = sessionWithChat(7L),
+            historyItems = listOf(CompanionHistoryItem("user", "两张", listOf("u1", "u2"))),
+            attachmentUrls = urls,
+        )
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        settleStartup()
+        assertEquals(listOf("https://signed/u1", ""), vm.state.value.messages.single().images)
+
+        vm.retryImage(vm.state.value.messages.single().id, 1)
+        runCurrent()
+
+        assertEquals("只有第二格被重取，第一格原样不动", listOf("https://signed/u1", ""),
+            vm.state.value.messages.single().images)
+        assertEquals("只问了 u2 一次", listOf("u1", "u2", "u2"), api.attachmentUrlCalls.sorted())
+        vm.stopListening()
+    }
 }
 
 /** 发送侧测试共用的 ViewModel：一条会记调用顺序的房间 + 一个假上传。 */
@@ -980,8 +1190,15 @@ private class FakeImageUploader(
  *
  * 默认按「`media.image` 已谈成」装配——它是发送路径的替身，不协商图片的话测的就不是
  * 发送路径了。协商位本身那条（谈不成时「+」不出现）单独有用例。
+ *
+ * [attachmentsSucceed] 模拟发布这一步的结果（终评 I-3）：false = 房间没了 / 协商变了 /
+ * 编码或发布失败，`sendAttachments` 回 false，调用方必须**不发文本**。
  */
-private class AttachmentTransport(negotiated: Boolean = true) : CompanionTransport {
+private class AttachmentTransport(
+    negotiated: Boolean = true,
+    /** 可翻：`false` 模拟这一次没落进房间（房间断了/协商变了/编码或发布失败），翻回 `true` 就是用户再按一次发送时房间恢复了。 */
+    var attachmentsSucceed: Boolean = true,
+) : CompanionTransport {
     val calls = mutableListOf<String>()
     val sentTexts = mutableListOf<String>()
     /** 每一次 sendAttachments 原样记下来：只留最后一次的值会让「id 累加」这种错看不出来。 */
@@ -999,11 +1216,12 @@ private class AttachmentTransport(negotiated: Boolean = true) : CompanionTranspo
         sentTexts += text
     }
 
-    override suspend fun sendAttachments(uploadIds: List<String>, clientMsgId: String) {
+    override suspend fun sendAttachments(uploadIds: List<String>, clientMsgId: String): Boolean {
         calls += "sendAttachments"
         attachmentIds = uploadIds
         this.clientMsgId = clientMsgId
         attachmentEvents += uploadIds to clientMsgId
+        return attachmentsSucceed
     }
 
     override suspend fun disconnect() = Unit
@@ -1016,7 +1234,11 @@ private class AttachmentTransport(negotiated: Boolean = true) : CompanionTranspo
  * 它存在的唯一理由是把「调用过」和「发完了」这两件事分开：如果实现只是顺序调两个方法
  * （或把发布 `launch` 出去不等它），这条用例会在 `gate.complete` 之前就看见 `sendText`。
  */
-private class GatedAttachmentTransport(private val gate: CompletableDeferred<Unit>) : CompanionTransport {
+private class GatedAttachmentTransport(
+    private val gate: CompletableDeferred<Unit>,
+    /** 发布完成后回给调用方的结果（终评 I-3）：false = 没能落进房间。 */
+    private val result: Boolean = true,
+) : CompanionTransport {
     val calls = mutableListOf<String>()
     val sentTexts = mutableListOf<String>()
 
@@ -1025,9 +1247,10 @@ private class GatedAttachmentTransport(private val gate: CompletableDeferred<Uni
     override val events: kotlinx.coroutines.flow.Flow<CompanionEvent> =
         kotlinx.coroutines.flow.MutableSharedFlow()
     override suspend fun connect(session: SessionResponse) = Unit
-    override suspend fun sendAttachments(uploadIds: List<String>, clientMsgId: String) {
+    override suspend fun sendAttachments(uploadIds: List<String>, clientMsgId: String): Boolean {
         calls += "sendAttachments"
         gate.await()
+        return result
     }
 
     override fun sendText(text: String) {

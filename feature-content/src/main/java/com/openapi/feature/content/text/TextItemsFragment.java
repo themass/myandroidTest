@@ -40,7 +40,6 @@ import com.openapi.feature.content.text.SaveTextTask;
 import com.openapi.core.legacyui.base.CommonFragmentActivity;
 import com.openapi.core.legacyui.features.LoadableFragment;
 import com.openapi.feature.content.R;
-import com.openapi.feature.content.databinding.LayoutTextitemsBinding;
 
 
 /**
@@ -59,10 +58,13 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> implements M
     @Override
     protected void bindViews(View view) {
         super.bindViews(view);
-        LayoutTextitemsBinding b = LayoutTextitemsBinding.bind(view);
-        webView = b.tvView;
-        svText = b.svText;
-        myFavoriteView = b.myFavoriteview;
+        // 不用 ViewBinding：LoadableFragment 的 fragment 根是 layout_search_load_list_view（LinearLayout），
+        // layout_textitems 是 inflate 到 @id/content 里的下一层；Binding.bind(view) 会把根强转成
+        // layout_textitems 的 RelativeLayout → ClassCastException，详情页第一帧就崩。
+        // findViewById 递归找子 id，不吃这个层级差。
+        webView = view.findViewById(R.id.tv_view);
+        svText = view.findViewById(R.id.sv_text);
+        myFavoriteView = view.findViewById(R.id.my_favoriteview);
     }
 
     @Override
