@@ -607,6 +607,9 @@ fun CompanionRoute(
                             // 测试语音 rig 走生产注入路径：PCM 从远端音频轨回调共用的
                             // 下游入口进 transport，下游电平→嘴型与真通话完全同路。
                             audioInjector = chatViewModel::injectLabAudioPcm16k,
+                            // 主题背景色穿透到引擎舞台（Live2D 的 GL 清屏色），
+                            // 换主题不再「还是大黑色」。
+                            theme = callTheme,
                         )
                         }
                         if (actionTrayOpen) {

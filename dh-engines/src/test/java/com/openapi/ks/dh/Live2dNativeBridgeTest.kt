@@ -26,7 +26,11 @@ class Live2dNativeBridgeTest {
     private val I = Int::class.javaPrimitiveType!!
     private val S = String::class.java
 
-    /** The 19 native methods the stock libchatwaifu-live2d.so exports. */
+    /**
+     * The 20 native methods the fork-built libchatwaifu-live2d.so exports: the stock 19
+     * plus [live2d-fork] `nativeSetBackgroundColor` (背景色注入，见
+     * scripts/dh-lab/build-live2d-native.sh + live2d-native-fork.patch).
+     */
     private val nativeSurface: List<Pair<String, Array<Class<*>>>> = listOf(
         "nativeOnStart" to emptyArray(),
         "nativeOnPause" to emptyArray(),
@@ -47,6 +51,7 @@ class Live2dNativeBridgeTest {
         "nativeAutoBlinkEyes" to arrayOf<Class<*>>(Z),
         "nativeProjectMouthForm" to arrayOf<Class<*>>(F),
         "nativeProjectMouthOpenY" to arrayOf<Class<*>>(F),
+        "nativeSetBackgroundColor" to arrayOf<Class<*>>(F, F, F),
     )
 
     /** Java bridge methods JNI_OnLoad resolves on the upstream class — missing = load throws. */

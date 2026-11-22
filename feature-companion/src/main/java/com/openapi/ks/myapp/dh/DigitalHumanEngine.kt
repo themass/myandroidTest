@@ -36,4 +36,12 @@ interface DigitalHumanEngine : AvatarRenderer {
      * false = 引擎听 Mouth 指令，rig 把 PCM 折算成幅度发过去（Simple / Live2D）。
      */
     val pcmDriven: Boolean get() = false
+
+    /**
+     * 舞台背景色（ARGB）。GL 系引擎（Live2D）把它推进 native 当每帧清屏色——
+     * GLSurfaceView 不画 Compose 背景，主题色不透进去就永远是大黑底（真机验收
+     * 2026-11-22）。Compose/WebView 引擎的画面本来就叠在页面背景上或自带背景，
+     * 默认空实现即「无需处理」。
+     */
+    fun setBackground(argb: Int) {}
 }

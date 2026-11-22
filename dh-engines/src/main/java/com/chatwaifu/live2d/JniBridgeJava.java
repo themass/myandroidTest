@@ -71,6 +71,13 @@ public class JniBridgeJava {
 
     public static native void nativeProjectMouthOpenY(float value);
 
+    /**
+     * [chatwaifu-fork] 第 20 个导出：通话页主题色作为每帧 glClearColor（r,g,b ∈ 0..1）。
+     * 只有 scripts/dh-lab/build-live2d-native.sh 的 fork 构建导出这个符号——上游库存
+     * .so 没有它，调用会 UnsatisfiedLinkError（Live2dRuntime 里 runCatching 兜住）。
+     */
+    public static native void nativeSetBackgroundColor(float r, float g, float b);
+
     // Java bridge (method IDs JNI_OnLoad resolves) ----------------------------
 
     public static void SetContext(Context context) {

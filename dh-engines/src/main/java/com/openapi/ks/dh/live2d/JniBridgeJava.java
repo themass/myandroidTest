@@ -70,6 +70,8 @@ public class JniBridgeJava {
 
     public static void nativeProjectMouthOpenY(float value) { com.chatwaifu.live2d.JniBridgeJava.nativeProjectMouthOpenY(value); }
 
+    public static void nativeSetBackgroundColor(float r, float g, float b) { com.chatwaifu.live2d.JniBridgeJava.nativeSetBackgroundColor(r, g, b); }
+
     // Java (forwarded to the mirror — JNI_OnLoad caches IDs on the mirror) ---
 
     public static void SetContext(Context context) {

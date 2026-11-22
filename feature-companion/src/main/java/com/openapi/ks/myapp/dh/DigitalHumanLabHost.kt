@@ -76,6 +76,12 @@ fun DigitalHumanLabHost(
      * null（聊天页/调试舞台）= 直接用 bridge 直喂。
      */
     audioInjector: ((ByteArray) -> Boolean)? = null,
+    /**
+     * 通话页主题。GL 系引擎（Live2D）把背景色推进 native 当每帧清屏色——页面渐变
+     * 画在 Compose 层，GLSurfaceView 把它整个盖住，不透进去就是大黑底。null =
+     * 无主题（聊天页/调试舞台），引擎保持各自默认背景。
+     */
+    theme: com.openapi.ks.myapp.companion.CallTheme? = null,
 ) {
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
@@ -209,6 +215,17 @@ fun DigitalHumanLabHost(
     LaunchedEffect(remotePcm, engine) {
         val flow = remotePcm ?: return@LaunchedEffect
         flow.collect { if (bridge.current().pcmDriven) bridge.onRemotePcm(it) }
+    }
+
+    // 主题 → 舞台背景：折成一色推给认识的引擎（Live2D 进 native 清屏色，其余 no-op）。
+    // 引擎换实例（下拉切引擎）后旧的去重记录作废——新实例还没收到过主题色，必须重推。
+    var lastStageArgb by remember { mutableStateOf<Pair<DigitalHumanEngine, Int>?>(null) }
+    LaunchedEffect(theme, engine) {
+        val argb = theme?.let { stageClearColorArgb(it.topArgb, it.midArgb, it.bottomArgb) }
+        val last = lastStageArgb?.takeIf { it.first === engine }?.second
+        val push = stageBackgroundPush(argb, last) ?: return@LaunchedEffect
+        engine.setBackground(push)
+        lastStageArgb = engine to push
     }
 
     Box(modifier = modifier.fillMaxSize()) {
