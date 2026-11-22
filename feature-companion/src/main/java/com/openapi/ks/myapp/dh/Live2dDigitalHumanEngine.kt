@@ -44,6 +44,20 @@ class Live2dDigitalHumanEngine(
     /** 触点互动状态（(服装,脸红,kani,凉鞋)）；release 后重建引擎会回到初始态——与画面一致。 */
     private var reaction = Live2dTouchReactionState()
 
+    /**
+     * 主题色在 buildGlView 之前也可能先到（通话页先组合主题、后挂 View），
+     * 存一份在 createView 成功后补推；native 侧每帧读，晚一帧无感。
+     */
+    private var pendingBackgroundArgb: Int? = null
+
+    override fun setBackground(argb: Int) {
+        pendingBackgroundArgb = argb
+        runtime?.takeIf { viewCreated }?.let { rt ->
+            val (r, g, b) = argbToNormRgb(argb)
+            rt.setBackground(r, g, b)
+        }
+    }
+
     override fun bind(spec: AvatarSpec) {
         // Lab 默认模型；后续可把 AvatarSpec.assetKey 映射到目录名。
     }
@@ -119,6 +133,8 @@ class Live2dDigitalHumanEngine(
         // pre-facade adapter did.
         val view = runtime(context).createView(context) ?: return null
         viewCreated = true
+        // 主题色先于 View 到达时存过 → 挂上立刻补一帧，避免开场黑底闪一下。
+        pendingBackgroundArgb?.let { setBackground(it) }
         return view
     }
 

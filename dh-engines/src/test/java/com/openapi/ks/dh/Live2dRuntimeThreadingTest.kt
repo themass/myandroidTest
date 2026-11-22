@@ -69,6 +69,13 @@ class Live2dRuntimeThreadingTest {
     }
 
     @Test
+    fun `setBackground 同样走调度（glClearColor 每帧在 GL 线程读，写入不能跨线程裸调）`() {
+        val d = RecordingDispatcher()
+        runtime(d).setBackground(0.1f, 0.2f, 0.3f)
+        assertEquals(1, d.posted.size)
+    }
+
+    @Test
     fun `release 之后不再投递`() {
         val d = RecordingDispatcher()
         val rt = runtime(d)

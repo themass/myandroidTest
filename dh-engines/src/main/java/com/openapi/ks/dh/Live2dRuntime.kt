@@ -187,6 +187,22 @@ class Live2dRuntime internal constructor(
         }
     }
 
+    /**
+     * 舞台背景色（0..1 sRGB）→ fork .so 的每帧 `glClearColor`（上游写死黑，主题色
+     * 永远透不出来——真机验收 2026-11-22「换背景色没效果」）。
+     *
+     * 只有 [Live2dNativeLoader] 加载的 fork 构建（scripts/dh-lab/build-live2d-native.sh）
+     * 导出该符号；误装回上游库存 .so 时 JNI 是 UnsatisfiedLinkError，runCatching 吞掉
+     * 保持黑底，不影响其余渲染。写入与逐帧读取都在 GL 线程（dispatcher 串行），无竞争。
+     */
+    fun setBackground(r: Float, g: Float, b: Float) {
+        if (!started || released) return
+        val d = dispatcher ?: return
+        runCatching {
+            d.post { runCatching { JniBridgeJava.nativeSetBackgroundColor(r, g, b) } }
+        }
+    }
+
     fun release() {
         if (released) return
         released = true
