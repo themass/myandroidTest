@@ -25,10 +25,12 @@ internal class ExoKernel(context: Context, private val callbacks: KernelCallback
     private val player = ExoPlayer.Builder(context).build()
     private var starts = false
     private var aspect = 0f
+    private var isBuffering = false
 
     init {
         player.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(state: Int) {
+                isBuffering = state == Player.STATE_BUFFERING
                 if (state == Player.STATE_READY && !starts) {
                     starts = true
                     callbacks.onReady(this@ExoKernel)
@@ -80,6 +82,7 @@ internal class ExoKernel(context: Context, private val callbacks: KernelCallback
     override val duration: Long get() = player.duration.coerceAtLeast(0)
     override val playing: Boolean get() = ready && player.isPlaying
     override val ready: Boolean get() = starts
+    override val buffering: Boolean get() = isBuffering
     override val ratio: Float get() = aspect
 }
 
@@ -94,6 +97,7 @@ internal class IjkKernel(context: Context, private val callbacks: KernelCallback
     private val player = IjkMediaPlayer()
     private var aspect = 0f
     private var prepared = false
+    private var isBuffering = false
 
     init {
         player.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 1L)
@@ -103,7 +107,13 @@ internal class IjkKernel(context: Context, private val callbacks: KernelCallback
             callbacks.onReady(this@IjkKernel)
         }
         player.setOnInfoListener { _, what, _ ->
-            if (what == IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) callbacks.onFirstFrame(this@IjkKernel)
+            // seek 后精确对齐要重载分片，期间 currentPosition 会短暂报 0：
+            // 把 START/END 报出来，Host 据此钉住 UI 位置（真机：拖进度条弹回 0:00）
+            when (what) {
+                IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START -> callbacks.onFirstFrame(this@IjkKernel)
+                IMediaPlayer.MEDIA_INFO_BUFFERING_START -> isBuffering = true
+                IMediaPlayer.MEDIA_INFO_BUFFERING_END -> isBuffering = false
+            }
             false
         }
         player.setOnCompletionListener { callbacks.onEnded(this@IjkKernel) }
@@ -144,6 +154,8 @@ internal class IjkKernel(context: Context, private val callbacks: KernelCallback
 
     override fun seekTo(ms: Long) {
         if (!prepared) return
+        // 精确 seek 的缓冲窗口从发起就开始了（START 消息可能慢半拍），先置位
+        isBuffering = true
         runCatching { player.seekTo(ms.coerceAtLeast(0)) }
     }
 
@@ -164,6 +176,7 @@ internal class IjkKernel(context: Context, private val callbacks: KernelCallback
     override val duration: Long get() = if (prepared) player.duration.coerceAtLeast(0) else 0L
     override val playing: Boolean get() = prepared && runCatching { player.isPlaying }.getOrDefault(false)
     override val ready: Boolean get() = prepared
+    override val buffering: Boolean get() = isBuffering
     override val ratio: Float get() = aspect
 }
 
@@ -177,6 +190,7 @@ internal class SystemKernel(private val context: Context, private val callbacks:
     private var aspect = 0f
     private var prepared = false
     private var speed = 1f
+    private var isBuffering = false
 
     init {
         player.setOnPreparedListener {
@@ -189,7 +203,11 @@ internal class SystemKernel(private val context: Context, private val callbacks:
             true
         }
         player.setOnInfoListener { _, what, _ ->
-            if (what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) callbacks.onFirstFrame(this@SystemKernel)
+            when (what) {
+                MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START -> callbacks.onFirstFrame(this@SystemKernel)
+                MediaPlayer.MEDIA_INFO_BUFFERING_START -> isBuffering = true
+                MediaPlayer.MEDIA_INFO_BUFFERING_END -> isBuffering = false
+            }
             false
         }
         player.setOnVideoSizeChangedListener { _, width, height ->
@@ -225,6 +243,7 @@ internal class SystemKernel(private val context: Context, private val callbacks:
 
     override fun seekTo(ms: Long) {
         if (!prepared) return
+        isBuffering = true
         runCatching { player.seekTo(ms.coerceAtLeast(0).toInt()) }
     }
 
@@ -251,5 +270,6 @@ internal class SystemKernel(private val context: Context, private val callbacks:
     override val duration: Long get() = if (prepared) runCatching { player.duration.toLong() }.getOrDefault(0L) else 0L
     override val playing: Boolean get() = prepared && runCatching { player.isPlaying }.getOrDefault(false)
     override val ready: Boolean get() = prepared
+    override val buffering: Boolean get() = isBuffering
     override val ratio: Float get() = aspect
 }

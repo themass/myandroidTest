@@ -345,7 +345,12 @@ internal class KernelHost(private val context: Context) {
 
     private fun syncFromActive() {
         val player = active?.player ?: return
-        if (player.playing) position = player.position
+        position = playerPositionOrHold(
+            held = position,
+            playerPosition = player.position,
+            playing = player.playing,
+            buffering = player.buffering,
+        )
         if (player.duration > 0) duration = player.duration
         if (player.ratio > 0f && player.ratio != ratio) {
             ratio = player.ratio
@@ -395,6 +400,22 @@ internal class KernelHost(private val context: Context) {
         /** 交接后旧内核保留多久；这期间新内核报错可以直接退回 */
         const val RETIRE_GRACE_MS = 5000L
     }
+}
+
+/**
+ * 每 tick 的位置同步：什么时候能信内核、什么时候必须钉住不动。
+ *
+ * 真机回归（2026-11-22 用户点名「拖动进度条弹回 0」）：IJK 开着精确 seek，
+ * 落点前的缓冲窗口里 `currentPosition` 直接报 0——UI 于是显示 0:00，几秒后又跳回
+ * 拖到的 41 分。用户以为拖回开头了。规则：播放中 + 缓冲中 + 内核报 0 而位置不在开头
+ * → 这是假 0，钉住上一次的位置（ seek 已把它预置成目标点）；其余照旧跟内核。
+ * 拖到开头的合法 0 不受影响（held 也是 0，钉不钉一样）。
+ * 暂停时保持原语义：不信内核读数，钉住 held（seekTo 预置的目标点）。
+ */
+internal fun playerPositionOrHold(held: Long, playerPosition: Long, playing: Boolean, buffering: Boolean): Long = when {
+    !playing -> held
+    buffering && playerPosition == 0L && held > 0L -> held
+    else -> playerPosition
 }
 
 /**
