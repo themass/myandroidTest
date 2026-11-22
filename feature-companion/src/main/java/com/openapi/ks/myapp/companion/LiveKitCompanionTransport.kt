@@ -195,6 +195,16 @@ class LiveKitCompanionTransport(
     private var mouthSink: AudioTrackSink? = null
     private var mouthTrack: AudioTrack? = null
 
+    /**
+     * 远端 PCM 诊断窗口（10s 聚合）。以前是 sink 闭包里的局部变量；
+     * lab rig 的注入与真音轨现在共用 [feedRemotePcm] 这一个入口，计数只能放字段——
+     * 聚合窗口必须把两条来源一起算，否则 rig 证据会割裂真机口径。
+     */
+    private var remotePcmCallbacks = 0L
+    private var remotePcmWindowStartedAt = 0L
+    private var remotePcmRawSum = 0.0
+    private var remotePcmLevelMax = 0f
+
     /** 已挂上的本地采集 sink（驱动 [selfLevel]）。 */
     private var selfSink: AudioTrackSink? = null
     private var selfTrack: AudioTrack? = null
@@ -227,6 +237,10 @@ class LiveKitCompanionTransport(
         firstRemotePcmLogged = false
         firstAudio.reset()
         firstLocalPcmLogged = false
+        remotePcmCallbacks = 0L
+        remotePcmWindowStartedAt = 0L
+        remotePcmRawSum = 0.0
+        remotePcmLevelMax = 0f
         logInfo("attempt=$activeAttemptId event=connect_start")
         _connection.value = TransportConnection.CONNECTING
         _lastConnectionError.value = null
@@ -720,12 +734,6 @@ class LiveKitCompanionTransport(
         detachMouthSink()
         android.util.Log.i(TAG, "attachMouthSink: 已挂上远端音频轨 sid=${track.sid}")
 
-        // Reduce diagnostics to one first-frame event and a ten-second aggregate.
-        var callbacks = 0L
-        var windowStartedAt = SystemClock.elapsedRealtime()
-        var rawSum = 0.0
-        var levelMax = 0f
-
         val sink = object : AudioTrackSink {
             override fun onData(
                 data: ByteBuffer,
@@ -735,65 +743,7 @@ class LiveKitCompanionTransport(
                 frames: Int,
                 absoluteCaptureTimestampMs: Long,
             ) {
-                if (bitsPerSample != 16) {
-                    if (callbacks == 0L) {
-                        android.util.Log.w(TAG, "onData: bitsPerSample=$bitsPerSample 非 16-bit，已跳过")
-                    }
-                    return
-                }
-                // 只取前若干帧算 RMS：整块算没必要，够判断「这一刻响不响」即可。
-                val limit = minOf(frames, RMS_WINDOW_FRAMES) * numberOfChannels
-                if (limit <= 0) return
-                val buf = data.duplicate().order(ByteOrder.LITTLE_ENDIAN)
-                var sum = 0.0
-                var n = 0
-                for (i in 0 until limit) {
-                    if (buf.remaining() < 2) break
-                    val sample = buf.short.toDouble()
-                    sum += sample * sample
-                    n++
-                }
-                if (n == 0) return
-                val rms = sqrt(sum / n) / Short.MAX_VALUE
-                val level = (rms / FULL_SCALE_RMS).coerceIn(0.0, 1.0).toFloat() * LEVEL_CEILING
-                _mouthLevel.value = level
-                val nowMono = SystemClock.elapsedRealtime()
-                // §12.3：PCM 存活传感器。不分配；与口型同路径。
-                degrade.onPcm(nowMono)
-                if (_remotePcm.subscriptionCount.value > 0) {
-                    com.openapi.ks.myapp.dh.PcmConvert.toMono16k(data, bitsPerSample, sampleRate, numberOfChannels, frames)
-                        ?.let { _remotePcm.tryEmit(it) }
-                }
-
-                // §9.4：远端首帧就是"这句话的 t0"。没有这一步，所有 `before` /
-                // `after` 锚点都解不出来，表现 cue 会挂在队列里直到 2 秒后过期。
-                // 只在有待标定的时间线时才做，省掉稳态下每帧一次的无用计算。
-                if (speech.timebasePendingId() != null) {
-                    speech.onAudioFrame(
-                        now = nowMono,
-                        captureTs = absoluteCaptureTimestampMs,
-                    )
-                    speechWake.trySend(Unit)
-                }
-
-                callbacks++
-                rawSum += rms
-                levelMax = maxOf(levelMax, level)
-                if (callbacks == 1L && !firstRemotePcmLogged) {
-                    firstRemotePcmLogged = true
-                    logInfo("attempt=$activeAttemptId event=remote_pcm_first frames=$frames channels=$numberOfChannels rate=$sampleRate rms=${"%.4f".format(rms)}")
-                }
-                if (firstAudio.onFrame(rms)) {
-                    logInfo("attempt=$activeAttemptId event=remote_pcm_first_audio rms=${"%.4f".format(rms)}")
-                }
-                val now = SystemClock.elapsedRealtime()
-                if (now - windowStartedAt >= PCM_LOG_INTERVAL_MS) {
-                    logInfo("attempt=$activeAttemptId event=remote_pcm_summary samples=$callbacks meanRms=${"%.4f".format(rawSum / callbacks)} maxLevel=${"%.3f".format(levelMax)} windowMs=${now - windowStartedAt}")
-                    callbacks = 0L
-                    rawSum = 0.0
-                    levelMax = 0f
-                    windowStartedAt = now
-                }
+                feedRemotePcm(data, bitsPerSample, sampleRate, numberOfChannels, frames, absoluteCaptureTimestampMs)
             }
         }
         val result = runCatching { audio.addSink(sink) }
@@ -815,6 +765,98 @@ class LiveKitCompanionTransport(
         mouthTrack = null
         remoteAudio = null
         _mouthLevel.value = 0f
+    }
+
+    /**
+     * 远端 PCM 的**唯一**下游入口：真音轨 sink 的 `onData` 与 lab rig 的
+     * [injectLabAudioPcm16k] 都汇到这里——电平提取（→ [mouthLevel]）、PCM 转发
+     * （→ [remotePcm]）、降级传感器、首帧/聚合日志、语音时间线标定全走同一段代码。
+     *
+     * 这是刻意的：mock 注入的验收判据是「下游与真通话不可区分」，如果 rig 有自己的
+     * 喂电平旁路，它测到的就只是旁路自己。「不许旁路」钉的就是这里只有一份。
+     */
+    private fun feedRemotePcm(
+        data: java.nio.ByteBuffer,
+        bitsPerSample: Int,
+        sampleRate: Int,
+        numberOfChannels: Int,
+        frames: Int,
+        absoluteCaptureTimestampMs: Long,
+    ) {
+        val rms = rmsOf(data, bitsPerSample, frames, numberOfChannels)
+        if (rms == null) {
+            if (remotePcmCallbacks == 0L && bitsPerSample != 16) {
+                android.util.Log.w(TAG, "onData: bitsPerSample=$bitsPerSample 非 16-bit，已跳过")
+            }
+            return
+        }
+        val level = (rms / FULL_SCALE_RMS).coerceIn(0.0, 1.0).toFloat() * LEVEL_CEILING
+        _mouthLevel.value = level
+        val nowMono = SystemClock.elapsedRealtime()
+        // §12.3：PCM 存活传感器。不分配；与口型同路径。
+        degrade.onPcm(nowMono)
+        if (_remotePcm.subscriptionCount.value > 0) {
+            com.openapi.ks.myapp.dh.PcmConvert.toMono16k(data, bitsPerSample, sampleRate, numberOfChannels, frames)
+                ?.let { _remotePcm.tryEmit(it) }
+        }
+
+        // §9.4：远端首帧就是"这句话的 t0"。没有这一步，所有 `before` /
+        // `after` 锚点都解不出来，表现 cue 会挂在队列里直到 2 秒后过期。
+        // 只在有待标定的时间线时才做，省掉稳态下每帧一次的无用计算。
+        if (speech.timebasePendingId() != null) {
+            speech.onAudioFrame(
+                now = nowMono,
+                captureTs = absoluteCaptureTimestampMs,
+            )
+            speechWake.trySend(Unit)
+        }
+
+        // 诊断收敛成一条首帧事件 + 十秒聚合。
+        remotePcmCallbacks++
+        remotePcmRawSum += rms
+        remotePcmLevelMax = maxOf(remotePcmLevelMax, level)
+        if (remotePcmCallbacks == 1L && !firstRemotePcmLogged) {
+            firstRemotePcmLogged = true
+            logInfo("attempt=$activeAttemptId event=remote_pcm_first frames=$frames channels=$numberOfChannels rate=$sampleRate rms=${"%.4f".format(rms)}")
+        }
+        if (firstAudio.onFrame(rms)) {
+            logInfo("attempt=$activeAttemptId event=remote_pcm_first_audio rms=${"%.4f".format(rms)}")
+        }
+        if (remotePcmWindowStartedAt == 0L) remotePcmWindowStartedAt = nowMono
+        if (nowMono - remotePcmWindowStartedAt >= PCM_LOG_INTERVAL_MS) {
+            logInfo("attempt=$activeAttemptId event=remote_pcm_summary samples=$remotePcmCallbacks meanRms=${"%.4f".format(remotePcmRawSum / remotePcmCallbacks)} maxLevel=${"%.3f".format(remotePcmLevelMax)} windowMs=${nowMono - remotePcmWindowStartedAt}")
+            remotePcmCallbacks = 0L
+            remotePcmRawSum = 0.0
+            remotePcmLevelMax = 0f
+            remotePcmWindowStartedAt = nowMono
+        }
+    }
+
+    /**
+     * dh-lab 测试语音 rig 的注入入口（[com.openapi.ks.myapp.dh.CompanionLabAudioInjector]
+     * 的实现方）。把 rig 读出的 16kHz mono s16le PCM 块当成「远端轨刚回调的一帧」
+     * 直接送 [feedRemotePcm]——从电平往下（mouthLevel → bridge.onMouthLevel →
+     * Live2dRuntime.setMouth 的 GL 投递 → ParamMouthOpenY）与真通话**完全同路**。
+     *
+     * 不经 Room、不经 sink 注册：房间可能根本没连（LiveKit 配额耗尽时也能跑 rig），
+     * 但共用入口只有一份，rig 拿不到任何生产路径之外的能力。
+     * 时间戳按块序号现算——rig 没有真实采集时刻，而时间线标定只在有 pending cue
+     * 时才读它，rig 场景下恒为空。
+     */
+    override fun injectLabAudioPcm16k(batch: ByteArray): Boolean {
+        if (batch.isEmpty() || batch.size % 2 != 0) return false
+        val buf = ByteBuffer
+            .wrap(batch.copyOf()) // feedRemotePcm 里 duplicate 读取，不给共享内存
+            .order(ByteOrder.LITTLE_ENDIAN)
+        feedRemotePcm(
+            data = buf,
+            bitsPerSample = 16,
+            sampleRate = 16_000,
+            numberOfChannels = 1,
+            frames = batch.size / 2,
+            absoluteCaptureTimestampMs = SystemClock.elapsedRealtime(),
+        )
+        return true
     }
 
     /**

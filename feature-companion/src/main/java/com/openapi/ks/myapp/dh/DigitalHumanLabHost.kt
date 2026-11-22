@@ -68,6 +68,14 @@ fun DigitalHumanLabHost(
      * 长按不做脉冲——长按的即时反馈就是轮盘本身弹出来。
      */
     onLongPressed: (() -> Unit)? = null,
+    /**
+     * dh-lab 测试语音 rig 的**生产注入路径**：把 PCM 块送进远端音频轨回调共用的
+     * 下游入口（[com.openapi.ks.myapp.companion.CompanionTransport.injectLabAudioPcm16k]
+     * 的实现方，通话页由 CompanionRoute 接 `chatViewModel::injectLabAudioPcm16k`）。
+     * 返回 false = 这条连接没有可注入通路（Fake 替身），rig 降级回 bridge 直喂。
+     * null（聊天页/调试舞台）= 直接用 bridge 直喂。
+     */
+    audioInjector: ((ByteArray) -> Boolean)? = null,
 ) {
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
@@ -148,7 +156,11 @@ fun DigitalHumanLabHost(
                     return
                 }
                 rigScope.launch {
-                    val n = DhTestAudio.play(file, bridge, motion)
+                    // 有 VM 注入通道时优先走它：PCM 从远端音频轨回调共用的下游入口
+                    // 进 transport（电平提取 → mouthLevel → bridge → setMouth），
+                    // 与真通话同路。返回 false（Fake 替身/无通路）时 rig 内部降级
+                    // 回 bridge 直喂——聊天页没有 VM 注入通道也是这条路。
+                    val n = DhTestAudio.play(file, bridge, motion, audioInjector)
                     Log.i("DhTestAudio", "played ${clip}: ${n} bytes -> ${bridge.current().id}")
                 }
             }

@@ -165,6 +165,16 @@ interface CompanionTransport {
     fun setMicEnabled(enabled: Boolean) = Unit
 
     /**
+     * dh-lab 测试语音 rig 的注入入口（仅 debug 构建有调用方）：把 16kHz 单声道
+     * PCM16LE 的一小块（~10ms）从**远端音频轨回调的同一个入口**送进来——电平提取、
+     * [mouthLevel]、[remotePcm]、降级传感器全部原路复现，不为此开旁路接口。
+     *
+     * 返回 false = 这条连接没有可注入的音频通路（替身/未初始化），调用方自行降级。
+     * 默认 false：没有音频轨的替身连「她在说话」都不该假装，更不该假装收得到测试音。
+     */
+    fun injectLabAudioPcm16k(batch: ByteArray): Boolean = false
+
+    /**
      * 待确认动作的回执**不在这里**：它是用户的决定，走 HTTP
      * `POST /v1/actions/{id}/confirm`（[CompanionApi.confirmAction]），
      * 带鉴权、幂等与错误码，失败要让用户看见。
