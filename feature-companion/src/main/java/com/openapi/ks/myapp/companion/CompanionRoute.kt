@@ -356,6 +356,14 @@ fun CompanionRoute(
         // 长按她 → 动作托盘（贴在舞台上的一层薄纱）。只在数字人引擎舞台生效，
         // 「原来的形象」分层立绘保持原样不受影响。
         var actionTrayOpen by rememberSaveable { mutableStateOf(false) }
+        // Live2D 多形象（用户 2026-11-23「demo里有好几个形象，是否可以都集成建立可切换」）：
+        // 偏好持久化，托盘「换形象」行在设备上真实存在的模型里循环。
+        var live2dModel by remember { mutableStateOf(dhPrefs.live2dModel) }
+        // 当前在岗的引擎实例快照（LabHost 在切引擎/切形象时更新，销毁时回 null）。
+        // 换装行与换形象行直接调它——引擎内部状态不可观察，靠这个引用把托盘和引擎接上。
+        var stageEngine by remember { mutableStateOf<com.openapi.ks.myapp.dh.DigitalHumanEngine?>(null) }
+        // 换装/换形象后 +1：托盘行尾的当前值需要重组才刷新（引擎状态不是 Compose state）。
+        var wardrobeTick by remember { mutableIntStateOf(0) }
         val uiScope = rememberCoroutineScope()
         // 重型引擎的素材没下好时，点菜单先下载；下载成功后**重查引擎可用性**再换舞台——
         // 素材下齐但 native 缺失时不换（否则舞台上静默退回 Simple）。Simple / 原形象不受影响。
@@ -610,9 +618,19 @@ fun CompanionRoute(
                             // 主题背景色穿透到引擎舞台（Live2D 的 GL 清屏色），
                             // 换主题不再「还是大黑色」。
                             theme = callTheme,
+                            // Live2D 多形象：偏好持久化的模型目录名；变化时 LabHost
+                            // 原地换引擎实例（先 release 再 create）。
+                            live2dModel = live2dModel,
+                            onEngineChanged = { stageEngine = it },
+                            // Simple 舞台形象回退（投诉 2026-11-23「只有一个字」）：
+                            // 没有旧格式形象包但有分层立绘的角色，舞台画立绘不画字。
+                            simpleFallback = if (avatarFiles == null) layeredPack else null,
                         )
                         }
                         if (actionTrayOpen) {
+                            val wardrobe = stageEngine?.wardrobeRows().orEmpty()
+                            val model = stageEngine?.modelLabel()
+                            val present = com.openapi.ks.myapp.dh.live2dPresentModels(context)
                             AvatarActionTray(
                                 actions = avatarActions(),
                                 onActionClick = { action ->
@@ -620,6 +638,23 @@ fun CompanionRoute(
                                     actionTrayOpen = false
                                 },
                                 onDismiss = { actionTrayOpen = false },
+                                // 换装行：点一行推进一根轴、托盘不关——四轴循环换着看。
+                                wardrobeRows = wardrobe,
+                                onWardrobeClick = { axis ->
+                                    stageEngine?.advanceWardrobe(axis)
+                                    wardrobeTick++
+                                },
+                                modelLabel = model,
+                                onModelSwitch = if (present.size > 1 && model != null) {
+                                    {
+                                        val next = com.openapi.ks.myapp.dh.Live2dModels.next(model, present)
+                                        live2dModel = next
+                                        dhPrefs.live2dModel = next
+                                        wardrobeTick++
+                                    }
+                                } else null,
+                                modelSwitchHint = "只推了这一个形象",
+                                refreshTick = wardrobeTick,
                             )
                         }
                         }

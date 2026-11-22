@@ -44,12 +44,12 @@ class AvatarStageTransformTest {
     fun `gesture log names the broken link in the pinch chain`() {
         // 「捏合没反应」三连环：手指到没到 → 状态机动没动。文案是设备侧 logcat
         // 唯一的判据（adb 注入多指不成 gesture，只能真手指 + 这一行定性）。
-        val moved = stageGestureLog(2, true, 1f, 2f, 0f, 0f)
+        val moved = stageGestureLog(2, true, 1f, 2f, 0f, 0f, tap = false, longPress = false)
         assertTrue(moved.contains("fingers=2"))
         assertTrue(moved.contains("twoFinger=true"))
         assertTrue(moved.contains("moved=true"))
         // 两指到了但 scale 纹丝不动 → moved=false，问题在步进/事件流而非手势层缺席。
-        assertTrue(stageGestureLog(2, true, 1f, 1f, 0f, 0f).contains("moved=false"))
+        assertTrue(stageGestureLog(2, true, 1f, 1f, 0f, 0f, tap = false, longPress = false).contains("moved=false"))
     }
 
     @Test

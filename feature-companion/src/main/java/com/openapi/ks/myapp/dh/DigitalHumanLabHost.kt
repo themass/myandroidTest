@@ -10,7 +10,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,6 +21,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -32,7 +32,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
@@ -41,7 +40,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.AvatarTouch
 import com.openapi.ks.myapp.avatar.AvatarTouchKind
+import com.openapi.ks.myapp.avatar.LayeredAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatar
+import com.openapi.ks.myapp.avatar.TouchResult
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -82,6 +83,24 @@ fun DigitalHumanLabHost(
      * 无主题（聊天页/调试舞台），引擎保持各自默认背景。
      */
     theme: com.openapi.ks.myapp.companion.CallTheme? = null,
+    /**
+     * Live2D 多形象（用户 2026-11-23「demo里有好几个形象，是否可以都集成建立可切换」）：
+     * cacheRoot(LIVE2D) 下的模型目录名（白名单见 [Live2dModels]）。变化时 Live2D 引擎
+     * 原地重建（release 旧的再 create，禁两个 native 叠加）。非 Live2D 引擎忽略。
+     */
+    live2dModel: String = "ATRI",
+    /**
+     * 当前引擎实例的快照（换形象/换装托盘直接调 wardrobeRows()/advanceWardrobe()/
+     * modelLabel()）。引擎销毁时回 null。null 参数 = 调用方不需要（聊天页/调试舞台）。
+     */
+    onEngineChanged: ((DigitalHumanEngine?) -> Unit)? = null,
+    /**
+     * Simple 舞台的形象回退（真机投诉 2026-11-23「simple 没有形象，只有一个字」）：
+     * 角色没有旧格式形象包（avatarFiles==null）却有分层立绘时，把分层立绘喂进
+     * Simple 舞台，而不是退回首字占位圆。分层立绘自绘互动波纹（[LayeredAvatar]），
+     * 捏合缩放与长按托盘仍由舞台判定器管（onTap 传 null = 单指事件落给分层立绘）。
+     */
+    simpleFallback: com.openapi.ks.myapp.avatar.LayeredAvatarPack? = null,
 ) {
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
@@ -93,6 +112,8 @@ fun DigitalHumanLabHost(
 
     var swapping by remember { mutableStateOf(false) }
 
+    // 不 key live2dModel：bridge 不 key initial（见下），多造的那个实例没人接管会直接泄漏。
+    // 换形象由下面的 LaunchedEffect(live2dModel) 走 replaceWith，与切引擎同一条路径。
     val initial = remember(effectiveEngineId) {
         val row = DhEngineRegistry.available(context).firstOrNull { it.id == effectiveEngineId }
         if (row?.available == true) DhEngineRegistry.create(context, effectiveEngineId)
@@ -130,7 +151,6 @@ fun DigitalHumanLabHost(
     }
     val haptics = LocalHapticFeedback.current
     val tappedNow by androidx.compose.runtime.rememberUpdatedState(onTapped)
-    val longPressedNow by androidx.compose.runtime.rememberUpdatedState(onLongPressed)
 
     // 激活即上膛：正常销毁走 markClean；native crash 让标记残留 → 下次冷启动熔断。
     // release 仍只归 DisposableEffect(Unit)/replaceWith 管——切换时 bridge.current()
@@ -198,7 +218,7 @@ fun DigitalHumanLabHost(
         val row = DhEngineRegistry.available(context).firstOrNull { it.id == target }
         if (row?.available != true) return@LaunchedEffect
         swapping = true
-        val next = bridge.replaceWith { DhEngineRegistry.create(context, target) }
+        val next = bridge.replaceWith { createLabEngine(context, target, live2dModel) }
         spec?.let { next.bind(it) }
         engine = next
         swapping = false
@@ -206,6 +226,40 @@ fun DigitalHumanLabHost(
 
     LaunchedEffect(spec) {
         spec?.let { bridge.current().bind(it) }
+    }
+
+    // 换形象（托盘「换形象」行 → 偏好 → 参数）：Live2D 引擎实例里烧着模型目录名，
+    // 换模型 = 换实例。先 release 旧的再 create（禁两个 native 叠加，与切引擎同一条铁律）。
+    // 首跳也要跑：注册表造的实例永远是默认 ATRI，持久偏好存别的形象时要换过去。
+    // 拿本 effect 捕获的那个引擎实例去比（切引擎后引擎 effect 与这个 effect 同帧重启、
+    // 引擎 effect 先跑——此时 last 已同步为新实例的模型；stale 校验兜并发切换）。
+    // 候选先验 availability：模型目录没推上设备就不换，画面保持旧形象而不是黑屏。
+    LaunchedEffect(live2dModel, engine) {
+        val current = bridge.current()
+        if (current.id != DhEngineId.LIVE2D) return@LaunchedEffect
+        val currentModel = (current as? Live2dDigitalHumanEngine)?.modelLabel() ?: return@LaunchedEffect
+        if (live2dModel == currentModel) return@LaunchedEffect
+        val candidate = Live2dDigitalHumanEngine(modelDirName = live2dModel)
+        if (!candidate.availability(context).available) {
+            candidate.release()
+            return@LaunchedEffect
+        }
+        if (bridge.current() !== current) {
+            // 探测期间引擎被切走（例如切到 Duix）：这个候选不能顶替别的引擎。
+            candidate.release()
+            return@LaunchedEffect
+        }
+        swapping = true
+        val next = bridge.replaceWith { candidate }
+        spec?.let { next.bind(it) }
+        engine = next
+        swapping = false
+    }
+
+    // 当前引擎实例发布给调用方（换形象/换装托盘直接调 wardrobeRows/advanceWardrobe）。
+    DisposableEffect(engine) {
+        onEngineChanged?.invoke(bridge.current())
+        onDispose { onEngineChanged?.invoke(null) }
     }
     LaunchedEffect(mouthLevel, engine) {
         val flow = mouthLevel ?: return@LaunchedEffect
@@ -231,15 +285,52 @@ fun DigitalHumanLabHost(
     Box(modifier = modifier.fillMaxSize()) {
         when (val e = engine) {
             is SimpleDigitalHumanEngine -> {
-                SimpleAvatar(
-                    renderer = e.renderer,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .avatarStageTransform(stage)
-                        .avatarStageLayer(stage)
-                        .graphicsLayer { scaleX = tapScale; scaleY = tapScale },
-                    mouthLevel = mouthLevel,
-                )
+                if (simpleFallback != null && spec == null) {
+                    // 真机投诉 2026-11-23「simple 没有形象，只有一个字」：这个角色的
+                    // 形象是分层立绘、没有旧格式形象包，Simple 舞台退回首字占位圆。
+                    // 回退成分层立绘——它自带部位触点波纹与嘴型驱动，单指事件不被舞台
+                    // 截走（onTap=null），捏合/长按仍归舞台判定器。
+                    var mouthNow by remember { mutableFloatStateOf(0f) }
+                    LaunchedEffect(mouthLevel) { mouthLevel?.collect { mouthNow = it } }
+                    LayeredAvatar(
+                        pack = simpleFallback,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .avatarStageTransform(
+                                stage,
+                                onTap = null,
+                                onLongPress = onLongPressed?.let { { it() } },
+                            )
+                            .avatarStageLayer(stage),
+                        mouthLevel = { mouthNow },
+                        onTapped = { region -> tappedNow?.invoke(region) },
+                    )
+                } else {
+                    SimpleAvatar(
+                        renderer = e.renderer,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .avatarStageTransform(
+                                stage,
+                                // Simple 的触点判定在渲染器里（renderer.onTouch 认部位），
+                                // 这里只把归一化坐标转成 TAP 喂进去；Handled 才上报 agent。
+                                onTap = { off ->
+                                    val result = bridge.onAvatarTouch(
+                                        AvatarTouch(off.x, off.y, AvatarTouchKind.TAP),
+                                    )
+                                    if (result is TouchResult.Handled) {
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        tapPressed = true
+                                        tappedNow?.invoke(result.region ?: stageTapRegion(off.x, off.y))
+                                    }
+                                },
+                                onLongPress = onLongPressed?.let { { it() } },
+                            )
+                            .avatarStageLayer(stage)
+                            .graphicsLayer { scaleX = tapScale; scaleY = tapScale },
+                        mouthLevel = mouthLevel,
+                    )
+                }
             }
             // Duix / Live2D / Tao：Android View 视口
             // key(e)：AndroidView 的 factory 只在首次组合时执行。Live2D→Duix 这类
@@ -248,14 +339,27 @@ fun DigitalHumanLabHost(
             else -> key(e) {
                 val view = remember(e) { e.createView(context) }
                 if (view != null) {
-                    // 手势层盖在引擎视口上；变换直接写 View 自身的 scale/translation——
-                    // Compose 的 graphicsLayer 到不了 AndroidView 里的 View。update 里
-                    // 读 stage 的快照状态，state 一变就重执行。
+                    // 变换直接写 View 自身的 scale/translation——Compose 的 graphicsLayer
+                    // 到不了 AndroidView 里的 View。update 里读 stage 的快照状态，state
+                    // 一变就重执行。手势（捏合/拖图/轻触/长按）全在 avatarStageTransform
+                    // 这一个判定器里——以前另有一层 Main pass 的 tap/长按覆盖 Box，与
+                    // 托盘薄纱一起把第二根手指吃掉，捏合缩放必死（2026-11-23 投诉）。
+                    // VRM 例外：WebView 自己吃触摸（页面内单指拖动 = 视线跟随），
+                    // onTap 传 null = 单指事件原样透传，双指缩放仍生效。
                     AndroidView(
                         factory = { view },
                         modifier = Modifier
                             .fillMaxSize()
-                            .avatarStageTransform(stage),
+                            .avatarStageTransform(
+                                stage,
+                                onTap = if (e.id == DhEngineId.VRM) null else { off ->
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    tapPressed = true
+                                    bridge.onAvatarTouch(AvatarTouch(off.x, off.y, AvatarTouchKind.TAP))
+                                    tappedNow?.invoke(stageTapRegion(off.x, off.y))
+                                },
+                                onLongPress = onLongPressed?.let { { it() } },
+                            ),
                         update = { v ->
                             // 触摸脉冲乘在引擎 View 自身的 scale 上（与双指缩放同源，
                             // Compose 图层到不了这个 View，见 AvatarStageTransform 注释）。
@@ -286,34 +390,6 @@ fun DigitalHumanLabHost(
                     }
                 }
             }
-        }
-
-        // 点她一下（GL/TextureView 引擎）：引擎 View 自己不回单点触摸，这里补上。
-        // 事件顺序：缩放/拖动层在 Initial pass 先看手指（双指、放大拖拽被它吃掉），
-        // 剩下的单点轻触由这层在 Main pass 认成 tap——捏合时多点按下不会误判成点击。
-        // 长按同一层认领：抬手前被认成长按的就不是轻触，tap 与长按天然互斥。
-        // VRM 例外：WebView 自己吃触摸（页面内单指拖动 = 视线跟随），这层会把它整个吃掉。
-        if (engine.id != DhEngineId.SIMPLE && engine.id != DhEngineId.VRM) {
-            Box(
-                Modifier
-                    .matchParentSize()
-                    .pointerInput(engine) {
-                        detectTapGestures(
-                            onTap = { offset ->
-                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                tapPressed = true
-                                val nx = offset.x / size.width
-                                val ny = offset.y / size.height
-                                // 触点互动进引擎：Live2D 在这里做「摸头脸红 / 点身体换装」
-                                // （onTouch 纯状态机 → native 表情），不支持的引擎回 Ignored
-                                // 无副作用。区域语义与 stageTapRegion 上报同源。
-                                bridge.onAvatarTouch(AvatarTouch(nx, ny, AvatarTouchKind.TAP))
-                                tappedNow?.invoke(stageTapRegion(nx, ny))
-                            },
-                            onLongPress = { longPressedNow?.invoke() },
-                        )
-                    },
-            )
         }
 
         // 放大后的「复位」小胶囊：捏合跑偏或想看全貌时一键回 1x 居中。
@@ -357,3 +433,14 @@ fun DigitalHumanLabHost(
         }
     }
 }
+
+/**
+ * 切引擎时的统一构造口：Live2D 走带模型的构造器（注册表工厂永远是默认 ATRI），
+ * 其余引擎走注册表。偏好里的形象名先过 [Live2dModels.sanitize] 白名单。
+ */
+private fun createLabEngine(context: android.content.Context, id: DhEngineId, live2dModel: String): DigitalHumanEngine =
+    if (id == DhEngineId.LIVE2D) {
+        Live2dDigitalHumanEngine(modelDirName = Live2dModels.sanitize(live2dModel))
+    } else {
+        DhEngineRegistry.create(context, id)
+    }

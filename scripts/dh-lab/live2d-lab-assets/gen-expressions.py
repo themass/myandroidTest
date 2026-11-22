@@ -1,27 +1,33 @@
 #!/usr/bin/env python3
 """生成 live2d-lab-assets 的组合表情（exp3）与 ATRI.model3.json 表情注册表。
 
-demo #2b：触点反应有四个持久 toggle 维度——
-  服装: none / bikini(Param17=30) / pajamas(Param18=30)   （demo #2 语义：点躯干循环）
-  脸红: ParamCheek=1                                        （摸头）
-  手:   Param38 kani=30                                     （#2b：点手）
-  脚:   Param19 凉鞋=30                                     （#2b：点脚）
+v2（真机投诉 2026-11-23「点击头和脚只能点一次，再点就没反应了」后重设计）：
+触点反应的四根**循环轴**——
+  上衣: 日常 / bikini(Param17=30) / pajamas(Param18=30) / pumpkin(Param9=30,
+        衣服-睡衣-南瓜裤) / blood(Param36=30, 血衣)                    （点躯干循环）
+  鞋:   赤脚 / sandal(Param19=30) / leather(Param20=30, 衣服-皮鞋)      （点脚循环）
+  手持: 空手 / kani(Param38=30) / bird(Param37=30) / pillow(Param39=30) （点手循环）
+  表情: 正常 / blush(ParamCheek=1) / white(Param22=30, 白眼)           （点头顶循环）
 
-表情名 = [服装_]blush?_crab?_sandal?，全空为 "base"；与 Kotlin 侧
+旧语义（toggle 挂上/摘掉）被换掉：第二次点把状态还原，机器看是变化、用户看是
+「没反应」。循环语义下每次点击都进一个新的可见状态。
+
+表情名 = top?_shoes?_held?_face?，全空为 "base"；与 Kotlin 侧
 Live2dTouchReaction.expressionFor 必须同序同名（Live2dTouchReactionTest 钉死）。
-3×2×2×2 = 24 个组合，vendored 表情管理器同时只激活一个表情，所以每个组合
-必须自带全部已激活维度的参数。
+5×3×4×3 = 180 个组合，vendored 表情管理器同时只激活一个表情，所以每个组合
+必须自带全部已激活维度的参数。各轴 token 全局互不相同 → 180 个名字两两不同。
 
 数值纪律：只允许上游 expression1–16.exp3.json 里对同一 atri_8.moc3 已验证过的
-(Id,Value)——这里用到的 (17,30)(18,30)(19,30)(38,30)(Cheek,1) 全部在列，无发明值。
+(Id,Value)（2026-11-23 盘点：16 个文件的参数与 cdi3 中文标签逐一对过）。
+头饰类参数（Param4-7 发饰、Param23-30 hdj）上游没有已验证值，不进这里。
 
 淡入淡出：exp3 不写 FadeInTime/FadeOutTime 时 CubismExpressionMotion 用默认
 DefaultFadeTime=1.0s（CubismExpressionMotion.cpp:24），触点反馈「按了像没按」。
-每个组合显式写 FADE_SECONDS（0.2s）：按下即变，观感从「交叉淡化的慢切换」变成
-「响应」；换装同值（要的就是立刻看到，不用另开一档）。
+每个组合显式写 FADE_SECONDS（0.2s）：按下即变。
 """
 import json
 import os
+import glob
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 EXP_DIR = os.path.join(HERE, "expressions")
@@ -29,42 +35,64 @@ MODEL3 = os.path.join(HERE, "ATRI.model3.json")
 
 FADE_SECONDS = 0.2
 
-COMBOS = [
-    (costume, blush, crab, sandal)
-    for costume in (None, "bikini", "pajamas")
-    for blush in (False, True)
-    for crab in (False, True)
-    for sandal in (False, True)
-]
-
-PARAMS = {
+# 词缀顺序与 Kotlin expressionFor 一致：上衣 → 鞋 → 手持 → 表情。
+TOPS = {
     "bikini": ("Param17", 30),
     "pajamas": ("Param18", 30),
-    "blush": ("ParamCheek", 1),
-    "crab": ("Param38", 30),
+    "pumpkin": ("Param9", 30),
+    "blood": ("Param36", 30),
+}
+SHOES = {
     "sandal": ("Param19", 30),
+    "leather": ("Param20", 30),
+}
+HELD = {
+    "kani": ("Param38", 30),
+    "bird": ("Param37", 30),
+    "pillow": ("Param39", 30),
+}
+FACES = {
+    "blush": ("ParamCheek", 1),
+    "white": ("Param22", 30),
 }
 
+AXES = (
+    ("top", [None] + list(TOPS)),
+    ("shoes", [None] + list(SHOES)),
+    ("held", [None] + list(HELD)),
+    ("face", [None] + list(FACES)),
+)
+PARAMS = {**TOPS, **SHOES, **HELD, **FACES}
 
-def expression_name(costume, blush, crab, sandal):
-    parts = [p for p in (costume, "blush" if blush else None,
-                         "crab" if crab else None, "sandal" if sandal else None) if p]
-    return "_".join(parts) if parts else "base"
+
+def expression_name(active):
+    return "_".join(active) if active else "base"
 
 
 def main():
     os.makedirs(EXP_DIR, exist_ok=True)
+    # v1 的 24 个老名字（crab 等）不在新名空间里——清掉防止设备上堆死资产。
+    for f in glob.glob(os.path.join(EXP_DIR, "*.exp3.json")):
+        os.remove(f)
+
     names = []
-    for costume, blush, crab, sandal in COMBOS:
-        name = expression_name(costume, blush, crab, sandal)
-        names.append(name)
-        activated = [c for c in (costume, "blush" if blush else None,
-                                 "crab" if crab else None, "sandal" if sandal else None) if c]
-        params = [{"Id": PARAMS[k][0], "Value": PARAMS[k][1], "Blend": "Add"} for k in activated]
+    def cross(i, active):
+        if i == len(AXES):
+            names.append((tuple(active), expression_name(active)))
+            return
+        for token in AXES[i][1]:
+            if token is None:
+                cross(i + 1, active)
+            else:
+                cross(i + 1, active + [token])
+    cross(0, [])
+
+    for active, name in names:
+        params = [{"Id": PARAMS[k][0], "Value": PARAMS[k][1], "Blend": "Add"} for k in active]
         doc = {
             "Type": "Live2D Expression",
-            "Comment": "lab 触点互动组合表情（生成器 gen-expressions.py，勿手改）："
-                       + (name if activated else "初始态（参数清空）"),
+            "Comment": "lab 触点互动组合表情 v2（生成器 gen-expressions.py，勿手改）："
+                       + (name if active else "初始态（参数清空）"),
             "FadeInTime": FADE_SECONDS,
             "FadeOutTime": FADE_SECONDS,
             "Parameters": params,
@@ -79,7 +107,7 @@ def main():
     with open(MODEL3) as f:
         model3 = json.load(f)
     model3["FileReferences"]["Expressions"] = [
-        {"Name": n, "File": f"expressions/{n}.exp3.json"} for n in names
+        {"Name": n, "File": f"expressions/{n}.exp3.json"} for _, n in names
     ]
     with open(MODEL3, "w") as f:
         json.dump(model3, f, ensure_ascii=False, indent="\t")

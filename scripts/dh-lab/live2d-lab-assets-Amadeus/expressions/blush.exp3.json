@@ -1,0 +1,13 @@
+{
+	"Type": "Live2D Expression",
+	"Comment": "lab 触点互动（多形象最小层，生成器建、勿手改）：blush",
+	"FadeInTime": 0.2,
+	"FadeOutTime": 0.2,
+	"Parameters": [
+		{
+			"Id": "ParamCheek",
+			"Value": 1,
+			"Blend": "Add"
+		}
+	]
+}

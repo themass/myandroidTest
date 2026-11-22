@@ -18,6 +18,18 @@ interface DigitalHumanEngine : AvatarRenderer {
     fun availability(context: Context): DhEngineAvailability
 
     /**
+     * 换装托盘能推进的轴（当前值可见）。空表 = 这个引擎没有换装层。
+     * Live2D ATRI 给满四轴；Amadeus/Yuuka 只给有已验证资产的脸轴。
+     */
+    fun wardrobeRows(): List<Live2dWardrobeRow> = emptyList()
+
+    /** 托盘点一行：推进该轴并让画面换到对应组合表情。 */
+    fun advanceWardrobe(axis: Live2dWardrobeAxis) {}
+
+    /** 多形象引擎的当前形象名（托盘「换形象」行显示）；单形象引擎 null。 */
+    fun modelLabel(): String? = null
+
+    /**
      * Duix 等需要 16kHz mono PCM16LE 驱动口型时覆写；默认空实现。
      * 出声仍由 LiveKit，SDK 侧应静音（只驱动）。
      */
