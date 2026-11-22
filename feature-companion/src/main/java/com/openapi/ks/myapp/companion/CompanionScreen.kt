@@ -329,6 +329,7 @@ fun CompanionScreen(
                     onShareMessage = { shareText(context, it) },
                     onSpeakMessage = { speakText(context, it) },
                     onEditMessage = { id, _ -> viewModel.beginEdit(id) },
+                    onRetryImage = viewModel::retryImage,
                 )
 
                 state.incomingCall?.let { kind ->
@@ -636,6 +637,8 @@ fun CompanionMessageArea(
     onShareMessage: (String) -> Unit = {},
     onSpeakMessage: (String) -> Unit = {},
     onEditMessage: (Long, String) -> Unit = { _, _ -> },
+    /** 灰占位上点一下：给那条消息的第 [Int] 张图重新换一次签名 URL。 */
+    onRetryImage: (Long, Int) -> Unit = { _, _ -> },
 ) {
     Column(modifier) {
         val items = remember(messages) { companionItems(messages) }
@@ -675,6 +678,9 @@ fun CompanionMessageArea(
                     MessageAction.Edit -> if (message.text.isNotBlank()) {
                         onEditMessage(message.id, message.text)
                     }
+                    // 灰占位上点一下：重新换一次签名 URL。chatkit 的失败占位本来就画了重试图标，
+                    // 「对话」页接了它，这里以前咽进 else -> Unit——点了没反应的死 affordance（终评 I-4）。
+                    is MessageAction.RetryImage -> onRetryImage(message.id, action.index)
                     else -> Unit
                 }
             },

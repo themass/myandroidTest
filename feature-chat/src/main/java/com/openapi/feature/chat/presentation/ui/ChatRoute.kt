@@ -49,6 +49,7 @@ import com.openapi.common.ui.permission.PermissionOutcome
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.openapi.common.ui.permission.Permissions
+import com.openapi.common.media.MAX_MESSAGE_IMAGES
 import com.openapi.feature.chat.R
 
 /**
@@ -80,7 +81,13 @@ fun ChatRoute(
     // 点开播放的那条视频；null = 没有播放页
     var playingVideo by remember { mutableStateOf<com.openapi.chatkit.model.MessagePart.Video?>(null) }
 
-    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
+    // 9 张是与服务端 `SendBody.attachments` 同源的硬上限（真值在 :common 的
+    // [MAX_MESSAGE_IMAGES]）。`maxItems` 只是**建议**：厂商 ROM 的选择器可以不认，
+    // 超了会一路漏进草稿托盘——由 [ComposerActions.addDraft] 的第二道闸挡下
+    // （终评 I-1：以前本页没有这道闸，选 12 张要先把 12 张的上传流量花完再吃一个 422）。
+    val imagePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(maxItems = MAX_MESSAGE_IMAGES),
+    ) { uris ->
         // 只对第一张进入编辑：多选时其余图片照常加入草稿，避免一次弹多个编辑器
         if (uris.isNotEmpty()) {
             viewModel.onImagesPicked(context, listOf(uris.first()), openEditor = { file, bitmap ->

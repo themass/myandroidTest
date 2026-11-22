@@ -41,4 +41,11 @@ interface ChatStrings {
     fun videoNotMp4(): String
     /** 单次粗定位没拿到结果（超时、GPS 关、无服务）。 */
     fun locationFailed(): String
+    /**
+     * 草稿托盘里的图片已经到 [max] 张，这张进不去。
+     *
+     * 必须有：选择器的 `maxItems` 只是**建议**，厂商 ROM 的选择器可以不认，
+     * 那时图会一路加到草稿里、上传花完钱再被服务端的 422 打回来。
+     */
+    fun imageLimitReached(max: Int): String
 }

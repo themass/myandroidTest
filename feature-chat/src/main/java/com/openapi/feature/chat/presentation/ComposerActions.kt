@@ -32,9 +32,27 @@ internal class ComposerActions(private val state: MutableStateFlow<ChatUiState>)
         state.update { it.copy(error = null) }
     }
 
-    fun addDraft(kind: MessageKind, staged: StagedAttachment) {
+    /**
+     * 放进草稿托盘。
+     *
+     * 图片在这里有第二道数量闸：选择器的 `maxItems` 只是**建议**（厂商 ROM 的选择器会不认），
+     * 而这条路上没有别的地方挡得住——服务端确实按 9 裁（`SendBody.attachments`），但那发生在
+     * 附件**已经传完**之后，用户先把流量花完再吃一个 422。上限与服务端同源，
+     * 见 [com.openapi.common.media.MAX_MESSAGE_IMAGES]。
+     *
+     * 返回 false 表示「因为到顶了所以没放进去」：这里不写 [ChatUiState.error]，
+     * 因为文案归 [ChatStrings] 端口，而端口在调用方（[SendActions]）手里——
+     * 与 `attachmentPicked` 把 `StageOutcome.Rejected` 翻成错误提示是同一个分工。
+     */
+    fun addDraft(kind: MessageKind, staged: StagedAttachment): Boolean {
+        if (kind == MessageKind.IMAGE &&
+            state.value.drafts.count { it.kind == MessageKind.IMAGE } >= com.openapi.common.media.MAX_MESSAGE_IMAGES
+        ) {
+            return false
+        }
         val draft = DraftAttachment(id = "draft-${System.nanoTime()}", kind = kind, staged = staged)
         state.update { it.copy(drafts = it.drafts + draft) }
+        return true
     }
 
     fun removeDraft(id: String) {

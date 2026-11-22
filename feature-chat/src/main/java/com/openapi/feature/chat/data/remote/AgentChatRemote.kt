@@ -335,23 +335,52 @@ class AgentChatRemote(
     /**
      * 把服务端错误翻译成一句人话。
      *
-     * `/v1` 的错误体是 `{"detail": {"code": "...", "reason": "..."}}`，只报 HTTP 码对定位没用：
-     * 401 是登录过期、409 是「回合进行中」、422 是内容被拒，三者的处理方式完全不同。
+     * `/v1` 的错误体有两种形状，都得认：
+     * - 业务自己抛的：`{"detail": {"code": "...", "reason": "..."}}`；
+     * - pydantic 在校验阶段拦下的（**请求还没进业务**）：`{"detail": [ {"type": "too_long",
+     *   "loc": ["body","attachments"], "ctx": {"max_length": 9, "actual_length": 10}} ]}`。
+     *
+     * 只报 HTTP 码对定位没用：401 是登录过期、409 是「回合进行中」、422 是内容被拒，三者的处理方式完全不同。
+     * 422 还要再分一层——附件超上限是唯一一种「用户自己就能改好」的 422，而它恰好发生在
+     * 图片**已经传完**之后（上传花的流量和电都回不来了），所以这一句必须把上限数字给出来。
      */
     private fun failure(status: Int, body: String): Failure {
         val detail = runCatching { JSONObject(body).optJSONObject("detail") }.getOrNull()
         val code = detail?.optString("code")?.takeIf { it.isNotEmpty() }
         val reason = detail?.optString("reason")?.takeIf { it.isNotEmpty() }
+        val attachmentLimit = if (status == 422) attachmentCountExceeded(body) else null
         val message = when {
             reason != null -> reason
             status == 401 -> "登录已过期，请重新登录"
             status == 409 -> "上一轮回复还没结束"
+            attachmentLimit != null -> "一条消息最多 $attachmentLimit 张图片，请减少后重试"
+            status == 422 -> "消息内容不符合要求，请调整后重试"
             status == 503 -> "服务暂时不可用，请稍后重试"
             else -> "请求失败（HTTP $status）"
         }
         LogUtil.w("$TAG /v1 失败 status=$status code=$code body=${body.take(200)}")
         return Failure(message, status, code)
     }
+
+    /**
+     * 从 pydantic 的校验错误里认出「附件条数超上限」，回上限数字；不是这一种就返回 null。
+     *
+     * 数字取自服务端（`ctx.max_length`，即 `policy.MAX_MESSAGE_ATTACHMENTS`）而不是本地常量：
+     * 服务端哪天调了这个数，端上这句话跟着变，不会出现「提示 9 张、实际按 8 张裁」。
+     */
+    private fun attachmentCountExceeded(body: String): Int? = runCatching {
+        val errors = JSONObject(body).optJSONArray("detail") ?: return@runCatching null
+        for (i in 0 until errors.length()) {
+            val err = errors.optJSONObject(i) ?: continue
+            if (err.optString("type") != "too_long") continue
+            // loc 是 ["body", "attachments"]：附件之外还可能有别的 list 上限，别把话认错
+            val loc = err.optJSONArray("loc") ?: continue
+            if (loc.optString(loc.length() - 1) != "attachments") continue
+            val max = err.optJSONObject("ctx")?.optInt("max_length", -1) ?: -1
+            if (max > 0) return@runCatching max
+        }
+        null
+    }.getOrNull()
 
     private fun JSONObject.toSession(): AgentSessionVo = AgentSessionVo(
         id = optLong("id", 0L),

@@ -3,6 +3,7 @@ package com.openapi.feature.chat.data.remote
 import androidx.test.core.app.ApplicationProvider
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -103,6 +104,62 @@ class AgentChatRemoteUploadTest {
         assertEquals(401, f.status)
         assertNull(f.code)
         assertEquals(1, translateLogs().size)
+    }
+
+    // ------------------------------------------------ 422：附件超上限必须说得出数字（终评 I-1）
+
+    /**
+     * 服务端把「附件条数超上限」拦在 pydantic 校验层，错误体是**数组**形状
+     * （`detail: [{type: too_long, loc: [body, attachments], ctx: {max_length, actual_length}}]`），
+     * 没有 `reason` 可取。以前这一句会掉成兜底的「请求失败（HTTP 422）」——
+     * 而这一刻用户已经为 12 张图付完了上传流量，最需要知道的就是那个数字。
+     *
+     * body 是服务端实际回的内容（`tests/test_clear_and_attachments.py` 里同一份断言钉着它），
+     * 不是这里编的：数字取自 `ctx.max_length`，所以服务端改了上限这句话会自动跟着变。
+     */
+    @Test
+    fun attachmentCountOverTheCapBecomesASentenceWithTheNumber() {
+        server.reply(
+            422,
+            """{"detail":[{"type":"too_long","loc":["body","attachments"],""" +
+                """"msg":"List should have at most 9 items after validation, not 10",""" +
+                """"ctx":{"field_type":"List","max_length":9,"actual_length":10}}]}""",
+        )
+
+        val f = uploadFailure()
+        val message = f.message.orEmpty()
+
+        assertTrue("这句话里必须带上限数字，实际=「$message」", message.contains("9"))
+        assertTrue("要说得出是图片太多，实际=「$message」", message.contains("图片"))
+        assertEquals(422, f.status)
+        assertEquals("422 也要走翻译（有 warn 日志）", 1, translateLogs().size)
+    }
+
+    /**
+     * 同样是 422，但不是超上限（`upload_rejected` 这类业务拒绝，或 too_long 挂在别的字段上）：
+     * 不能把「图片太多」这句谎话套上去。没有 reason 时走一条通用的 422 话术。
+     */
+    @Test
+    fun aFortyTwoTwoThatIsNotTheAttachmentCapDoesNotClaimTooManyImages() {
+        server.reply(422, """{"detail":[{"type":"string_too_long","loc":["body","text"],"ctx":{"max_length":4000}}]}""")
+
+        val f = uploadFailure()
+        val message = f.message.orEmpty()
+
+        assertFalse("认错对象就会误导用户：「$message」", message.contains("图片"))
+        assertFalse("不该再掉回裸 HTTP 码", message.contains("HTTP 422"))
+        assertEquals(422, f.status)
+    }
+
+    /** 422 + 空 body：还是不能报裸 HTTP 码。 */
+    @Test
+    fun anEmptyBodiedFortyTwoTwoStillGetsASentence() {
+        server.reply(422, "")
+
+        val f = uploadFailure()
+
+        assertFalse("不该再掉回裸 HTTP 码：「${f.message.orEmpty()}」", f.message.orEmpty().contains("HTTP"))
+        assertEquals(422, f.status)
     }
 
     // ------------------------------------------------ 本地判定：message 用异常自带的，不翻译成话术

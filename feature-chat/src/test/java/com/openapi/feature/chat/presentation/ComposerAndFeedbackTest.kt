@@ -68,6 +68,59 @@ class ComposerAndFeedbackTest {
         assertFalse(state.value.drafts.any { it.id == firstId })
     }
 
+    /**
+     * 终评 I-1：图片草稿的数量闸。
+     *
+     * 钉三件事：
+     * 1. 到第 9 张为止都能进（上限本身没被抄成一个别的数字）；
+     * 2. 第 10 张**进不去**，而且 `addDraft` 把「因为到顶所以没进」这个事实**回出来**——
+     *    回不出来的话调用方就没法报错，用户只会看到图被吞了；
+     * 3. 闸只管图片：文件/视频/位置不受这条规则牵连（服务端裁的是 attachments，
+     *    而「文件」走的是 legacy 逐条接口，把 9 张的额度算在文件上是另一种错）。
+     *
+     * 为什么必须在**这里**拦而不是只靠选择器的 `maxItems`：那是建议值，厂商 ROM 的
+     * 选择器会不认；只靠它的话，超出的图要先把上传流量花完，再被服务端的 422 打回来。
+     */
+    @Test
+    fun imageDraftsStopAtTheCapAndSaySo() {
+        val state = MutableStateFlow(ChatUiState())
+        val composer = ComposerActions(state)
+        fun add(i: Int, kind: MessageKind = MessageKind.IMAGE) =
+            composer.addDraft(kind, StagedAttachment(file = java.io.File("/tmp/$i"), displayName = "$i", sizeBytes = 1L))
+
+        for (i in 1..com.openapi.common.media.MAX_MESSAGE_IMAGES) {
+            assertTrue("第 $i 张应该能进", add(i))
+        }
+        assertEquals(com.openapi.common.media.MAX_MESSAGE_IMAGES, state.value.drafts.size)
+
+        assertFalse("第 10 张必须被拦下", add(10))
+        assertEquals("拦下就是没进", com.openapi.common.media.MAX_MESSAGE_IMAGES, state.value.drafts.size)
+
+        // 删掉一张之后又能进：闸数的是**当前**张数，不是一次会话的累计
+        composer.removeDraft(state.value.drafts.first().id)
+        assertTrue("腾出位置后要能再进", add(11))
+    }
+
+    /** 闸只数图片：文件与视频各有自己的规则，不能被图片的 9 张牵连。 */
+    @Test
+    fun theImageCapDoesNotAffectFilesOrVideos() {
+        val state = MutableStateFlow(
+            ChatUiState(
+                drafts = (1..com.openapi.common.media.MAX_MESSAGE_IMAGES).map {
+                    DraftAttachment(
+                        id = "d$it",
+                        kind = MessageKind.IMAGE,
+                        staged = StagedAttachment(file = java.io.File("/tmp/i$it.jpg"), displayName = "i$it.jpg", sizeBytes = 1L),
+                    )
+                },
+            ),
+        )
+        val composer = ComposerActions(state)
+        assertTrue("图片满格时文件照样能进", composer.addDraft(MessageKind.FILE, StagedAttachment(file = java.io.File("/tmp/a.txt"), displayName = "a.txt", sizeBytes = 1L)))
+        assertTrue("图片满格时视频照样能进", composer.addDraft(MessageKind.VIDEO, StagedAttachment(file = java.io.File("/tmp/a.mp4"), displayName = "a.mp4", sizeBytes = 1L)))
+        assertEquals(com.openapi.common.media.MAX_MESSAGE_IMAGES + 2, state.value.drafts.size)
+    }
+
     @Test
     fun likeAndDislikeAreMutuallyExclusive() {
         val state = MutableStateFlow(ChatUiState())
