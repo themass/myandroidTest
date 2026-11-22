@@ -134,6 +134,9 @@ public class JniBridgeJava {
     }
 
     public static void OnLoadOneExpression(String expressionName, int index) {
+        // lab 验收通道：证明 native 真的从 model3.json 注册了这个表情
+        // （lab 清单写错位置时这里一个都不会出现；demo #2 的表情资产回归锚点）。
+        android.util.Log.i("Live2dTouch", "expression registered: " + expressionName + " #" + index);
         if (_callback != null) {
             _callback.onLoadOneExpression(expressionName, index);
         }
