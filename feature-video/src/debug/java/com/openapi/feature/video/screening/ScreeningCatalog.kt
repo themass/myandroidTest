@@ -23,14 +23,8 @@ internal val reels = listOf(
     Reel("sky", "蓝调之间", "日落之后、天黑之前。", .86f),
 ).associateBy(Reel::id)
 
-internal val channels = listOf(
-    Channel("野外放映", "电影", "ridge", .86f, listOf("ridge", "forest", "snow", "road", "sea", "sky")),
-    Channel("夜行电台", "夜色", "night", 1.32f, listOf("night", "city", "sky")),
-    Channel("海边来信", "自定义", "sea", 1.25f, listOf("sea", "sky", "road")),
-    Channel("城市侧写", "夜色", "city", .82f, listOf("city", "night", "road")),
-    Channel("森林来客", "自定义", "forest", .96f, listOf("forest", "ridge", "snow")),
-    Channel("白色地平线", "电影", "snow", 1.22f, listOf("snow", "sky", "ridge")),
-)
+// 写死的「样例频道」已删：没有任何生产者会造出 sample://channel/ 条目，
+// 真频道全部走服务端（channel.json / items.json）。随包 assets 只剩本地样片库一种用途。
 internal val samples = Channel("本地样片", "离线样片库", "road", 1f, reels.keys.toList())
 internal const val SAMPLE_MS = 12_000L
 
