@@ -21,9 +21,9 @@ internal class ScreeningChannelPage(
 
 /**
  * 首页一张卡点下去该去哪。服务端推荐位五种都可能出现，页面按这个分流而不是猜。
- * WEB 和 CONFIG 都是「交回原路由 ConfigActionJump」，只是语义分开：
- * WEB = http(s) 链接进 WebView，CONFIG = `video://config?channel=` 这类配置频道
- * 进旧频道页（hsex_all 那批夜色卡；items.json 查不到这种 channelType，别拿它发请求）。
+ * WEB 现在只剩「拿不出频道 key 的纯网页」：外链文章页、内核不认的 .flv 这类，
+ * 交回原路由 ConfigActionJump 进 WebView。CONFIG = `video://config?channel=` 这类配置频道
+ * 进旧频道页（hsex_all 那批夜色卡；下一刀接内页列子频道）。
  */
 internal enum class FeedRoute { CHANNEL, ALBUM, PLAY, WEB, CONFIG }
 
@@ -41,15 +41,22 @@ internal val RemoteEntry.isGroupEntry: Boolean
         sampleCoverAsset() != null || key.startsWith(SAMPLE_CHANNEL_KEY_PREFIX)
 
 /**
- * 一个推荐位在页面上怎么响应：图集/真频道入口进内页，外链和配置频道走原路由，其余直接播。
- * 可播媒体外链排在 WEB 之前——WebView 不播 HLS，塞进去就是黑屏；放映场内核（Exo/IJK）能直接播。
- * 其余外链和 CONFIG 必须排在频道/播放之前——原逻辑（`ConfigActionJump`）对它们没有别的去处。
+ * 一个推荐位在页面上怎么响应：图集/真频道入口进内页，配置频道走原路由，其余直接播。
+ * 可播媒体外链排最前——WebView 不播 HLS，塞进去就是黑屏；放映场内核（Exo/IJK）能直接播。
+ * 「有频道 key 就进内页」排在其余外链之前（用户拍板 B 线：客户端全收）：
+ * 外链频道卡（param 是真频道 key）以前掉回 WebView，用户从频道点进去「往里点就变旧 UI」
+ * 的根因就在这。探针实测服务端 items.json 认这批 key（hsexhsex.men、badnews_all 各 30 行
+ * 可播条目）；查不到行的频道（se8成人动漫）errno 也是 0 空列表，由内页诚实空态 +
+ * [webFallbackUrl] 「在网页里打开」兜底，不拿旧页面填空。CONFIG 暂时保留旧路由：
+ * 夜色卡拿 channel 发 items.json 是 0 行（hsex_all 只是 channelType 列），要等
+ * 内页接上 channel.json 列子频道才能吸收，不能先砍。
  */
 internal fun routeOf(entry: RemoteEntry): FeedRoute = when {
     entry.isImageCard -> FeedRoute.ALBUM
     isPlayableMediaUrl(entry.actionUrl) -> FeedRoute.PLAY
-    isWebAction(entry.actionUrl) -> FeedRoute.WEB
     isConfigAction(entry.actionUrl) -> FeedRoute.CONFIG
+    !entry.videoChannelKey().isNullOrEmpty() -> FeedRoute.CHANNEL
+    isWebAction(entry.actionUrl) -> FeedRoute.WEB
     entry.isGroupEntry -> FeedRoute.CHANNEL
     else -> FeedRoute.PLAY
 }

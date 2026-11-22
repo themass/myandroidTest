@@ -110,6 +110,15 @@ internal fun RemoteEntry.videoChannelKey(): String? =
     param?.takeIf { it.isNotBlank() } ?: channelParam
 
 /**
+ * 内页吸收外链频道卡（B 线）后的退路：频道 key 在 items.json 查不到片单时，
+ * 页面给一个「在网页里打开」，回到这类卡原来的 WebView 去处。
+ * 只有本来就是 http(s) 的卡有退路；videoList1:// 这类内部频道没有网页，返回 null，
+ * 页面就不画按钮（不许拿 actionUrl 硬塞 WebView）。
+ */
+internal fun RemoteEntry.webFallbackUrl(): String? =
+    actionUrl.takeIf { isWebAction(it) }
+
+/**
  * 稳定 id：进度、收藏、弹幕分窗都要用它。
  * 服务端 id 最优先（换地址不变），其次 actionUrl（地址就是它的身份），最后退到序号。
  */

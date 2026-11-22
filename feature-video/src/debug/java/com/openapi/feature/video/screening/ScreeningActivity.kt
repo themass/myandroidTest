@@ -155,8 +155,10 @@ private fun ScreeningHome(activity: ScreeningActivity) {
             detail = entry.description,
             coverUrl = entry.imageUrl,
             coverAsset = entry.sampleCoverAsset(),
-            // 原页面 VideoChannelListFragment.getUrl 用的是 vo.param；外链频道卡没有它就没有内页
-            channelParam = entry.videoChannelKey()?.takeIf { !isWebAction(entry.actionUrl) },
+            // 原页面 VideoChannelListFragment.getUrl 用的是 vo.param。外链频道卡以前在这里
+            // 被置空（掉回 WebView 就不用内页取数了）；B 线吸收后必须把 key 传下去，
+            // 内页才拿它发 items.json。没有 key 的入口（样例频道）照旧走样片兜底。
+            channelParam = entry.videoChannelKey(),
             sample = sampleChannelFor(entry),
         )
     }
