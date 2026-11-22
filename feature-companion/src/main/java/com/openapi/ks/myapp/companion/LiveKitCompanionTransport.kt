@@ -433,11 +433,12 @@ class LiveKitCompanionTransport(
     private fun sendHello(current: Room, protocolLink: CompanionProtocolLink) {
         val bytes = protocolLink.helloBytes() ?: return
         scope.launch {
-            current.localParticipant
-                .publishData(bytes, DataPublishReliability.RELIABLE, ProtocolCatalog.TOPIC_CTL)
-                .onFailure {
-                    logWarn("attempt=$activeAttemptId event=hello_publish_failed type=${it.javaClass.simpleName}")
-                }
+            sendGuard {
+                current.localParticipant
+                    .publishData(bytes, DataPublishReliability.RELIABLE, ProtocolCatalog.TOPIC_CTL)
+            }.onFailure {
+                logWarn("attempt=$activeAttemptId event=hello_publish_failed type=${it.javaClass.simpleName}")
+            }
                 .onSuccess {
                     logInfo("attempt=$activeAttemptId event=hello_sent ep=${protocolLink.epoch}")
                 }
@@ -483,8 +484,11 @@ class LiveKitCompanionTransport(
     override fun sendText(text: String) {
         val current = room ?: return
         scope.launch {
-            current.localParticipant.sendText(text, StreamTextOptions(topic = TEXT_IN_TOPIC))
-                .onFailure { bus.emit(CompanionEvent.Error("发送失败：${it.message}")) }
+            // sendGuard：sendText 在 data channel 未建立时抛 RoomException 而非返回
+            // failure，裸链 .onFailure 会漏（真机通话页曾因此整 app 重启，见 RoomSendGuard）。
+            sendGuard {
+                current.localParticipant.sendText(text, StreamTextOptions(topic = TEXT_IN_TOPIC))
+            }.onFailure { bus.emit(CompanionEvent.Error("发送失败：${it.message}")) }
         }
     }
 
@@ -576,8 +580,11 @@ class LiveKitCompanionTransport(
             // 未协商出 v2：老服务端只认文本流。
             val payload = JSONObject().put("v", 1).put("type", "touch").put("region", region).toString()
             scope.launch {
-                current.localParticipant.sendText(payload, StreamTextOptions(topic = TOPIC_TOUCH))
-                    .onFailure { /* 见上：触摸上报失败保持静默 */ }
+                // sendGuard 不是摆设：channel 没建立时 sendText 直接抛，
+                // .onFailure 接不到——真机上每点一次形象 app 就自杀重启一次。
+                sendGuard {
+                    current.localParticipant.sendText(payload, StreamTextOptions(topic = TOPIC_TOUCH))
+                }.onFailure { /* 见上：触摸上报失败保持静默 */ }
             }
             return
         }
