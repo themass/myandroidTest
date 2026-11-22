@@ -17,6 +17,10 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import kotlin.math.hypot
 
+/** 捏合诊断（用户报告「双手放大缩小不见了」2026-11-22）：adb 注入多指不成 gesture，
+ *  只有真手指能定性——这个 tag 每次手势收尾一行，`adb logcat -s DhStage` 即判。 */
+private const val STAGE_LOG_TAG = "DhStage"
+
 /** 放大上限：4x 够看清唇形，再多 TextureView 就开始糊。 */
 private const val MAX_SCALE = 4f
 
@@ -50,6 +54,24 @@ fun stageStep(
     val newOffset = clampStageOffset(c - (c - offset) * ratio + pan, next, viewportSize)
     return next to newOffset
 }
+
+/**
+ * 一次手势结束时的诊断行。三个问题一行答完（用户 2026-11-22「双手放大缩小不见了」）：
+ * 手势层看到几个手指（`fingers`）→ 认成两指了吗（`twoFingerSeen`）→
+ * 状态机真的动了吗（`moved`）。false/false = 事件根本没到这层（被上层吃掉）；
+ * true/false = 两指到了但步进没生效；true/true 而屏幕不变 = 变换没写到 View。
+ */
+fun stageGestureLog(
+    maxFingers: Int,
+    twoFingerSeen: Boolean,
+    startScale: Float,
+    endScale: Float,
+    startOffset: Float,
+    endOffset: Float,
+): String =
+    "gesture fingers=$maxFingers twoFinger=$twoFingerSeen " +
+        "scale ${"%.2f".format(startScale)}->${"%.2f".format(endScale)} " +
+        "moved=${startScale != endScale || startOffset != endOffset}"
 
 class AvatarStageTransformState internal constructor() {
     var scale by mutableFloatStateOf(1f)
@@ -100,14 +122,21 @@ fun Modifier.avatarStageTransform(
                 val vw = viewport.width.toFloat()
                 val vh = viewport.height.toFloat()
                 if (vw <= 0f || vh <= 0f) return@awaitEachGesture
+                // 诊断账本（DhStage）：手势收尾一行，定性「捏合没反应」断在哪一环。
+                val startScale = state.scale
+                val startOffset = state.offsetX + state.offsetY
+                var maxFingers = 0
+                var twoFingerSeen = false
                 while (true) {
                     // Initial pass：先于子 View（引擎）看到事件，决定吃不吃。
                     val event = awaitPointerEvent(PointerEventPass.Initial)
                     val pressed = event.changes.filter { it.pressed }
                     if (pressed.isEmpty()) break
+                    maxFingers = maxOf(maxFingers, pressed.size)
                     val twoFinger = pressed.size >= 2
                     val dragWhenZoomed = pressed.size == 1 && zoomedNow.value
                     if (twoFinger || dragWhenZoomed) {
+                        twoFingerSeen = twoFingerSeen || twoFinger
                         val centroidX = pressed.map { it.position.x }.average().toFloat()
                         val centroidY = pressed.map { it.position.y }.average().toFloat()
                         var panX = 0f
@@ -138,6 +167,16 @@ fun Modifier.avatarStageTransform(
                         state.scale = sx
                         event.changes.forEach { if (it.pressed) it.consume() }
                     }
+                }
+                if (maxFingers >= 2) {
+                    android.util.Log.i(
+                        STAGE_LOG_TAG,
+                        stageGestureLog(
+                            maxFingers, twoFingerSeen,
+                            startScale, state.scale,
+                            startOffset, state.offsetX + state.offsetY,
+                        ),
+                    )
                 }
             }
         }

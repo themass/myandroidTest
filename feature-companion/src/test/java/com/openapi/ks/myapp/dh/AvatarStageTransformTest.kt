@@ -1,6 +1,7 @@
 package com.openapi.ks.myapp.dh
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AvatarStageTransformTest {
@@ -37,6 +38,18 @@ class AvatarStageTransformTest {
     fun `zooming back to 1 recenters pan automatically`() {
         val atEdge = clampStageOffset(999f, scale = 2f, viewportSize = 1000f)
         assertEquals(0f, clampStageOffset(atEdge, scale = 1f, viewportSize = 1000f), 0f)
+    }
+
+    @Test
+    fun `gesture log names the broken link in the pinch chain`() {
+        // 「捏合没反应」三连环：手指到没到 → 状态机动没动。文案是设备侧 logcat
+        // 唯一的判据（adb 注入多指不成 gesture，只能真手指 + 这一行定性）。
+        val moved = stageGestureLog(2, true, 1f, 2f, 0f, 0f)
+        assertTrue(moved.contains("fingers=2"))
+        assertTrue(moved.contains("twoFinger=true"))
+        assertTrue(moved.contains("moved=true"))
+        // 两指到了但 scale 纹丝不动 → moved=false，问题在步进/事件流而非手势层缺席。
+        assertTrue(stageGestureLog(2, true, 1f, 1f, 0f, 0f).contains("moved=false"))
     }
 
     @Test
