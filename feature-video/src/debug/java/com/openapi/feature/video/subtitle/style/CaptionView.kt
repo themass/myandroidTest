@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
@@ -50,6 +51,12 @@ internal fun CaptionOverlay(
         color = Color(style.colorArgb),
         fontSize = fontSp.sp,
         textAlign = TextAlign.Center,
+    )
+    // 无底衬时叠一层深色描边（和弹幕同一手法：先描边再填色），压亮画面也读得清。
+    val strokeArgb = captionStrokeArgbOf(style)
+    val strokeColor = if (strokeArgb != 0) Color(strokeArgb) else null
+    val strokeStyle = textStyle.copy(
+        drawStyle = Stroke(width = with(density) { fontSp.sp.toPx() } * 0.09f),
     )
     val background = Color(0xFF000000).copy(alpha = style.backgroundAlpha)
 
@@ -98,9 +105,11 @@ internal fun CaptionOverlay(
                     Modifier.fillMaxWidth().height(lineHeightDp).clipToBounds()
                         .background(background),
                 ) {
-                    BasicText(
+                    StrokedText(
                         cue,
-                        style = textStyle.copy(textAlign = TextAlign.Start),
+                        // 走字那行按起点左对齐，描边层跟正文同一套排版参数
+                        textStyle.copy(textAlign = TextAlign.Start),
+                        strokeColor, strokeStyle.copy(textAlign = TextAlign.Start),
                         maxLines = 1,
                         softWrap = false,
                         modifier = Modifier.graphicsLayer {
@@ -117,7 +126,7 @@ internal fun CaptionOverlay(
                     contentAlignment = Alignment.TopStart,
                 ) {
                     Box(Modifier.graphicsLayer { translationY = -plan.travel * progress }) {
-                        BasicText(cue, modifier = Modifier.fillMaxWidth(), style = textStyle, softWrap = true)
+                        StrokedText(cue, textStyle, strokeColor, strokeStyle, maxLines = Int.MAX_VALUE, softWrap = true, modifier = Modifier.fillMaxWidth())
                     }
                 }
             }
@@ -126,9 +135,29 @@ internal fun CaptionOverlay(
                     Modifier.clip(RoundedCornerShape(5.dp)).background(background)
                         .padding(horizontal = 9.dp, vertical = 4.dp),
                 ) {
-                    BasicText(cue, style = textStyle, maxLines = style.maxLines)
+                    StrokedText(cue, textStyle, strokeColor, strokeStyle, maxLines = style.maxLines, softWrap = true)
                 }
             }
         }
+    }
+}
+
+/**
+ * 描边叠两层画正文：无描边（有底衬的预设）就是单层的 [BasicText]，和改前逐像素一致；
+ * 有描边时先画描边层再画填色层，和弹幕同一手法。
+ */
+@Composable
+private fun StrokedText(
+    cue: String,
+    style: TextStyle,
+    strokeColor: Color?,
+    strokeStyle: TextStyle,
+    maxLines: Int,
+    softWrap: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier) {
+        if (strokeColor != null) BasicText(cue, style = strokeStyle, maxLines = maxLines, softWrap = softWrap)
+        BasicText(cue, style = style, maxLines = maxLines, softWrap = softWrap)
     }
 }
