@@ -411,10 +411,12 @@ internal class KernelHost(private val context: Context) {
  * → 这是假 0，钉住上一次的位置（ seek 已把它预置成目标点）；其余照旧跟内核。
  * 拖到开头的合法 0 不受影响（held 也是 0，钉不钉一样）。
  * 暂停时保持原语义：不信内核读数，钉住 held（seekTo 预置的目标点）。
+ * 真机二次复验（同晚）：IJK 精确 seek 期间 currentPosition 不是恒 0，会报几百毫秒的
+ * 小值——所以规则是「缓冲期间位置只进不退」（p < held 就钉住），而不是只挡正好 0。
  */
 internal fun playerPositionOrHold(held: Long, playerPosition: Long, playing: Boolean, buffering: Boolean): Long = when {
     !playing -> held
-    buffering && playerPosition == 0L && held > 0L -> held
+    buffering && playerPosition < held -> held
     else -> playerPosition
 }
 
