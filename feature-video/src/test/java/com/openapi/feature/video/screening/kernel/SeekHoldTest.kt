@@ -20,6 +20,15 @@ class SeekHoldTest {
     }
 
     @Test
+    fun `seek 缓冲期间内核报小值（精确 seek 假进度）同样钉住`() {
+        // 真机：IJK accurate seek 期间 currentPosition 报几百毫秒——缓冲期位置只进不退
+        assertEquals(
+            2_475_773L,
+            playerPositionOrHold(held = 2_475_773L, playerPosition = 342L, playing = true, buffering = true),
+        )
+    }
+
+    @Test
     fun `缓冲结束照常跟随内核位置`() {
         assertEquals(
             2_478_900L,
