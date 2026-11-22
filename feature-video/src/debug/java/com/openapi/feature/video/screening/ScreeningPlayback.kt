@@ -2,6 +2,7 @@ package com.openapi.feature.video.screening
 
 import android.content.Context
 import android.net.Uri
+import android.os.SystemClock
 import android.provider.OpenableColumns
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -53,6 +54,7 @@ import com.openapi.feature.video.subtitle.style.captionPresets
 import com.openapi.feature.video.subtitle.style.captionPresetIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -102,6 +104,17 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     val id = source.key
     // 两套内核各占一格画面槽，换内核在播放中途完成，见 KernelHost
     val host = remember { KernelHost(context) }
+    // 实时字幕：引擎在后台并行重解一路静音音频喂火山流式识别，只吃能重解的地址（见 realtimeMediaUrl）。
+    // cacheFile 是样片落盘路径——asset:// 只有播放内核认识，重解要真实文件路径。
+    var cacheFile by remember { mutableStateOf<File?>(null) }
+    val realtimeUrl = remember(source.key, cacheFile) {
+        realtimeMediaUrl(source.uri?.toString(), source.uri?.scheme, cacheFile?.absolutePath)
+    }
+    var realtimeText by remember { mutableStateOf("") }
+    // "" = 没有消息；否则依次为加载中/失败原因，字幕面板的实时字幕条目直接显示它
+    var realtimeStatus by remember { mutableStateOf("") }
+    val realtimeRunner = remember { RealtimeSubtitleRunner(context) }
+    DisposableEffect(realtimeRunner) { onDispose { realtimeRunner.stop() } }
     LaunchedEffect(source) {
         // IJK / 系统内核吃不了 asset://，随包的样片先落到 cache 再交给内核
         val file = withContext(Dispatchers.IO) {
@@ -122,6 +135,8 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
             // 网络片总长度这时还不知道，先按存的进度起播，host 拿到 duration 自己会夹
             startMs = if (initial <= 0L) 0L else if (source.asset != null) initial.coerceAtMost(SAMPLE_MS) else initial,
         )
+        // 样片落盘的缓存文件同时是实时字幕的重解地址：asset:// 只有内核认识，提取器只认路径
+        cacheFile = file
     }
     var position by remember { mutableLongStateOf(initial) }
     var width by remember { mutableLongStateOf(if (source.asset != null) SAMPLE_MS else 0L) }
@@ -144,11 +159,47 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     var serverCaptionName by remember { mutableStateOf("") }
     var serverBusy by remember { mutableStateOf<Long?>(null) }
     var offset by remember { mutableIntStateOf(0) }
+    DisposableEffect(realtimeRunner) { onDispose { realtimeRunner.stop() } }
     // 字幕样式：预设序号，跟着这个播放器偏好走（和收藏同一个 prefs）
     var presetIndex by remember { mutableIntStateOf(captionPresetIndex(store.getInt("caption-style", 0))) }
     val captionStyle = captionPresets[presetIndex].style
     var info by remember { mutableStateOf("") }
     var speed by remember { mutableFloatStateOf(1f) }
+    // 实时字幕会话：开/关走 captionSource==4（顶部字幕键和「关闭字幕」都能关）；跳转或重开就重启会话——
+    // 识别引擎是并行重解音频，不会跟播放器的进度条跳转，跳了就按新位置重连一路。
+    // 放在 speed 声明之后：判定要按倍速折算墙钟推进量。
+    LaunchedEffect(captionSource, realtimeUrl) {
+        realtimeRunner.stop()
+        if (captionSource != 4) return@LaunchedEffect
+        val url = realtimeUrl ?: return@LaunchedEffect
+        realtimeRunner.onLoading = { realtimeStatus = "正在连接识别服务…" }
+        realtimeRunner.onText = {
+            realtimeText = it
+            if (realtimeStatus.isNotEmpty()) realtimeStatus = ""
+        }
+        realtimeRunner.onError = { realtimeStatus = "识别失败：$it" }
+        realtimeRunner.onStopped = { realtimeStatus = "识别已停止，可以再开一次" }
+        realtimeText = ""
+        realtimeStatus = "正在连接识别服务…"
+        realtimeRunner.start(url, host.positionNow(), { host.playing }, { host.positionNow() })
+        try {
+            var prevPos = host.positionNow()
+            var prevElapsed = SystemClock.elapsedRealtime()
+            while (isActive) {
+                delay(500)
+                val pos = host.positionNow()
+                val now = SystemClock.elapsedRealtime()
+                if (realtimeSeekJumped(prevPos, pos, prevElapsed, now, speed, host.playing)) {
+                    realtimeText = ""
+                    realtimeRunner.start(url, pos, { host.playing }, { host.positionNow() })
+                }
+                prevPos = pos
+                prevElapsed = now
+            }
+        } finally {
+            realtimeRunner.stop()
+        }
+    }
     var danmaku by remember { mutableStateOf(false) }
     // 弹幕来源：没有服务端时默认本地样例；假服务端做离线链路演示；在线弹幕走真 HTTP 收发
     var danmakuSource by remember { mutableStateOf(DANMAKU_SAMPLE) }
@@ -268,6 +319,8 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
         1 -> demo?.at(position, offset).orEmpty()
         2 -> captions?.at(position, offset).orEmpty()
         3 -> serverCaption?.at(position, offset).orEmpty()
+        // 实时识别：partial 文本滚动刷新，样式走同一套 CaptionStyle；延时对它没有意义（没有轨可对）
+        4 -> realtimeText
         else -> ""
     }
     val seekBlock: @Composable () -> Unit = {
@@ -394,6 +447,20 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                                     }
                                 }
                             }
+                        }
+                        // 实时识别字幕：没有现成字幕轨的片子现场认。只支持能重新解码音频的地址；
+                        // 手机里挑的文件（content://）拿不到路径就不能重解，如实写清楚而不是隐藏。
+                        if (realtimeUrl != null) {
+                            Setting(
+                                "实时识别字幕",
+                                if (captionSource == 4 && realtimeStatus.isNotEmpty()) realtimeStatus
+                                else "边播边认，不用字幕文件（识别用内置密钥，会耗流量）",
+                                captionSource == 4,
+                            ) {
+                                if (captionSource == 4) { captionSource = 0 } else { captionSource = 4; offset = 0 }
+                            }
+                        } else {
+                            Text("实时识别字幕：这个片源在手机上（没有可读地址），暂时不能现场识别；在线地址可以用。", color = Muted, fontSize = 12.sp)
                         }
                         Setting("导入本地字幕", "打开系统文件选择器，支持 SRT / WebVTT") {
                             // 同时允许 octet-stream：很多 srt 在系统库里没有注册成文本类型，只给 text/*
