@@ -28,6 +28,6 @@ internal object Live2dMouthTrace {
         else -> false
     }
 
-    /** 记录后的新状态：(lastLogMs, wasOpen)。 */
-    fun advanced(nowMs: Long, openness: Float): Pair<Long, Boolean> = nowMs to openness >= FLOOR
+    /** 记录后的新状态：(lastLogMs, wasOpen)。括号是必须的：`a to b >= c` 会解析成 `(a to b) >= c`。 */
+    fun advanced(nowMs: Long, openness: Float): Pair<Long, Boolean> = nowMs to (openness >= FLOOR)
 }

@@ -68,11 +68,12 @@ class DhTestAudioInjectorTest {
         val f = wavFile(data)
         val batches = mutableListOf<ByteArray>()
         try {
-            val n = DhTestAudio.play(f, bridge) { batches += it.copyOf(); true }
+            val n = DhTestAudio.play(f, bridge, injector = { batches += it.copyOf(); true })
             assertEquals(data.size, n)
             assertEquals(5, batches.size)
             assertEquals(640, batches[0].size)
-            assertEquals(data.toList(), batches.flatten().map { it.toInt() and 0xff })
+            // ByteArray 不是 Iterable<Byte>：flatten 用不了，flatMap 到 List<Byte> 再比。
+            assertEquals(data.toList(), batches.flatMap { it.toList() })
             // 「不许旁路」：bridge 侧完全静默（手势都没有——没传 motionId）。
             assertTrue("bridge 不该收 PCM: ${engine.pcm.size}", engine.pcm.isEmpty())
             assertTrue("bridge 不该收命令: ${engine.commands}", engine.commands.isEmpty())
@@ -89,7 +90,7 @@ class DhTestAudioInjectorTest {
         val f = wavFile(data)
         var injectCalls = 0
         try {
-            val n = DhTestAudio.play(f, bridge) { injectCalls++; false }
+            val n = DhTestAudio.play(f, bridge, injector = { injectCalls++; false })
             assertEquals(data.size, n)
             assertEquals("只探测一次", 1, injectCalls)
             assertEquals(3, engine.pcm.size)
@@ -104,10 +105,10 @@ class DhTestAudioInjectorTest {
         val f = wavFile(data)
         var injectCalls = 0
         try {
-            val n = DhTestAudio.play(f, bridge) {
+            val n = DhTestAudio.play(f, bridge, injector = {
                 injectCalls++
                 injectCalls <= 2 // 第 3 批起被拒
-            }
+            })
             assertEquals(data.size, n)
             assertEquals(3, injectCalls)
             assertEquals("剩余 3 批落 bridge", 3, engine.pcm.size)
