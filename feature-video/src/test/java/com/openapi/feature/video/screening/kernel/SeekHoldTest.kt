@@ -1,6 +1,8 @@
 package com.openapi.feature.video.screening.kernel
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -41,6 +43,57 @@ class SeekHoldTest {
         assertEquals(
             2_475_773L,
             playerPositionOrHold(held = 2_475_773L, playerPosition = 5_000L, playing = false, buffering = false),
+        )
+    }
+
+    // —— 落点判定（awaitingSeekAfter）：全部用例来自探针真机日志（2026-11-22） ——
+
+    private val target = 4_087_836L // 真机：拖到 68:07.836
+
+    @Test
+    fun `假读数=目标值本身（IJK 缓存期）不能算落点`() {
+        // 探针实测：seekTo 后头三拍 p==目标值本身——信任窗内一律不落点
+        assertTrue(
+            awaitingSeekAfter(awaiting = true, playing = true, sinceIssuedMs = 400L, playerPosition = target, target = target),
+        )
+    }
+
+    @Test
+    fun `信任窗内报 0 继续等`() {
+        assertTrue(
+            awaitingSeekAfter(awaiting = true, playing = true, sinceIssuedMs = 1_000L, playerPosition = 0L, target = target),
+        )
+    }
+
+    @Test
+    fun `过信任窗后真落点解除等待`() {
+        assertFalse(
+            awaitingSeekAfter(awaiting = true, playing = true, sinceIssuedMs = 6_000L, playerPosition = target + 40L, target = target),
+        )
+    }
+
+    @Test
+    fun `向后拖时拖前旧读数不算落点（上界挡住弹回）`() {
+        // 从 68 分拖到 40 分：seek 刚发出时读数还是 68 分——过窗后也不许命中，否则进度条弹回旧位置
+        assertFalse(
+            awaitingSeekAfter(awaiting = false, playing = true, sinceIssuedMs = 0L, playerPosition = target, target = target),
+        )
+        assertTrue(
+            awaitingSeekAfter(awaiting = true, playing = true, sinceIssuedMs = 4_000L, playerPosition = 2_460_000L, target = target),
+        )
+    }
+
+    @Test
+    fun `落点永不追上有兜底：30 秒后放回跟内核（不永远钉死）`() {
+        assertFalse(
+            awaitingSeekAfter(awaiting = true, playing = true, sinceIssuedMs = 31_000L, playerPosition = 0L, target = target),
+        )
+    }
+
+    @Test
+    fun `暂停时不做落点判定`() {
+        assertTrue(
+            awaitingSeekAfter(awaiting = true, playing = false, sinceIssuedMs = 6_000L, playerPosition = target, target = target),
         )
     }
 }
