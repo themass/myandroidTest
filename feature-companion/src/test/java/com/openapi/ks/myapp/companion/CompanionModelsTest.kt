@@ -63,6 +63,64 @@ class CompanionModelsTest {
         assertEquals("create_reminder", action.action)
     }
 
+    // ------------------------------------------------------- 历史图片附件
+    // 服务端已核实的形状：历史条目里的 attachments 是 meta.attachments 原样回带，
+    // 每项 {"upload_id": "01J…", "kind": "image", "name": "a.jpg"}。
+
+    @Test
+    fun `a history item keeps the image upload ids the server echoes back`() {
+        val item = CompanionHistoryItem.from(
+            JSONObject(
+                """{"role":"user","content":"看这张","attachments":
+                   [{"upload_id":"01JABC","kind":"image","name":"a.jpg"}]}""",
+            ),
+        )
+        assertEquals("user", item.role)
+        assertEquals("看这张", item.text)
+        assertEquals(listOf("01JABC"), item.attachmentIds)
+    }
+
+    @Test
+    fun `a history item without the attachments field parses as no attachments`() {
+        // 老数据（附件功能之前的历史）不带这个字段：解析成空列表，不是 null、更不是崩。
+        val item = CompanionHistoryItem.from(JSONObject("""{"role":"assistant","content":"我在"}"""))
+        assertEquals("我在", item.text)
+        assertEquals(emptyList<String>(), item.attachmentIds)
+    }
+
+    @Test
+    fun `an empty attachments array parses as no attachments`() {
+        val item = CompanionHistoryItem.from(
+            JSONObject("""{"role":"user","content":"没有图","attachments":[]}"""),
+        )
+        assertEquals(emptyList<String>(), item.attachmentIds)
+    }
+
+    @Test
+    fun `attachment entries without an upload id are skipped, not guessed`() {
+        // 一项缺 upload_id（服务端字段缺失/坏数据）只跳过那一项，同一批里正常的照常收下。
+        val item = CompanionHistoryItem.from(
+            JSONObject(
+                """{"role":"user","content":"两张",
+                   "attachments":[{"kind":"image","name":"no-id.jpg"},{"upload_id":"01JOK","kind":"image"}]}""",
+            ),
+        )
+        assertEquals(listOf("01JOK"), item.attachmentIds)
+    }
+
+    @Test
+    fun `only upload ids are kept, the kind and name are not turned into paths`() {
+        // 换签名 URL 要的是 id；kind/name 这一层不参与渲染（URL 现换现用，不落缓存）。
+        val item = CompanionHistoryItem.from(
+            JSONObject(
+                """{"role":"user","content":"两张",
+                   "attachments":[{"upload_id":"u1","kind":"image","name":"a.jpg"},
+                                  {"upload_id":"u2","kind":"file","name":"b.pdf"}]}""",
+            ),
+        )
+        assertEquals(listOf("u1", "u2"), item.attachmentIds)
+    }
+
     @Test
     fun `character detail reads the opening line and alternate greetings`() {
         val detail = CharacterDetail.from(

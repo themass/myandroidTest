@@ -49,6 +49,20 @@ data class CompanionMessage(
      * 列表里的位置会随删除而变，用下标当 id 会让「删除第 3 条」在下一条消息到达后删错人。
      */
     val id: Long = 0L,
+    /**
+     * 这条消息的图片**渲染源**：本地图路径（乐观消息，刚选好还没回来）或签名 URL（历史）。
+     *
+     * 空串是一个**哨兵**，表示「这张图换不到地址」（404 / 登录失效 / 响应坏了）：位置要留着，
+     * 用户才知道这里本来有一张图、点它去重试；少一格会变成「图片凭空少了一张」。渲染层
+     * 由 chatkit 的 `surfaceVariant` 底画成灰占位，不需要陪伴页自己的组件。
+     */
+    val images: List<String> = emptyList(),
+    /**
+     * 服务端给的图片附件 id（`upload_id`），与 [images] 逐位对应；本条消息自己发的图也有。
+     *
+     * 留着它才有「重试换源」的可能——签名 URL 只活几百秒，过期后唯一能重新换取的凭据就是这个 id。
+     */
+    val attachmentIds: List<String> = emptyList(),
 )
 
 data class CompanionUiState(
@@ -90,7 +104,12 @@ data class CompanionUiState(
 
     /**
      * 是否应该显示"对方正在输入"。最后一条是她的空消息且还在流式接收，就是等待首字阶段。
+     *
+     * 「空」指**既没字也没图**：图片消息本来就可能一个字都没有（她在发一张照片），
+     * 那时下面挂一条永远不消失的「对方正在输入…」等于说她还在说话——她已经说完了。
      */
     val awaitingReply: Boolean
-        get() = messages.lastOrNull()?.let { it.role == MessageRole.ASSISTANT && it.text.isEmpty() } == true
+        get() = messages.lastOrNull()?.let {
+            it.role == MessageRole.ASSISTANT && it.text.isEmpty() && it.images.isEmpty()
+        } == true
 }

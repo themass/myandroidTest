@@ -1,5 +1,6 @@
 package com.openapi.ks.myapp.companion
 
+import com.openapi.common.media.MediaUploader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -31,6 +32,17 @@ interface CompanionApi {
      * 和同一个角色说过的话。不调用它的话，页面关掉重开就是空的——历史其实一直在写。
      */
     suspend fun history(sessionId: Long, limit: Int = 30): List<CompanionHistoryItem>
+    /**
+     * 按 upload_id 换一个**短期签名 GET URL**（服务端给 300 秒），用来渲染历史里的图片附件。
+     *
+     * 只带 id 回来、URL 现换，是因为签名 URL 生命周期极短：落进模型或缓存就是给用户留一张坏图。
+     * 拿不到就返回 null（未登录、404、响应坏了、断网）——一张图换不到地址只让那一张退化成
+     * 空路径（灰占位），不能让一张图把整页历史拖垮。URL 是 bearer secret：不进日志。
+     *
+     * 与「对话」页打的是同一套 `GET /v1/uploads/{id}`，实现委托 :common 的
+     * [com.openapi.common.media.MediaUploader]，不在这里再写一遍 okhttp。
+     */
+    suspend fun attachmentUrl(uploadId: String): String?
     suspend fun characters(limit: Int = 20, offset: Int = 0): CharacterPage
     suspend fun character(id: String): CharacterDetail
     /** 记忆按角色隔离：必须带 roleId，否则读到的是「不属于任何角色」的空空间。 */
@@ -71,6 +83,12 @@ class HttpCompanionApi(
     private val client: OkHttpClient = defaultClient(),
 ) : CompanionApi {
 
+    /**
+     * 换签名 URL 的实现提公在 :common 的 [MediaUploader]（「对话」页打的是同一个
+     * `/v1/uploads/{id}`）。复用外面的 [client]，不另建连接池，也不在这里再写一遍 okhttp。
+     */
+    private val mediaUploader = MediaUploader(baseUrl, tokenProvider, client)
+
     override suspend fun createSession(characterId: String): SessionResponse {
         // 建 LiveKit 房间与聊天会话是两种资源，前者在 /v1/voice 下
         val json = call("POST", "/v1/voice/sessions", JSONObject().put("character_id", characterId))
@@ -104,11 +122,18 @@ class HttpCompanionApi(
         val json = call("GET", "/v1/sessions/$sessionId/messages?limit=$limit")
         val items = json.optJSONArray("items") ?: return emptyList()
         // 服务端是按新→旧返回的（实测先 assistant 再 user），界面上要正序
-        return (0 until items.length()).map { i ->
-            val o = items.getJSONObject(i)
-            CompanionHistoryItem(role = o.optString("role"), text = o.optString("content"))
-        }.filter { it.text.isNotBlank() }.reversed()
+        return (0 until items.length()).mapNotNull { i ->
+            // optJSONObject：条目不是对象（坏数据）时跳过，而不是抛出一个 JSONException 把整页历史弄没
+            items.optJSONObject(i)?.let { CompanionHistoryItem.from(it) }
+        }.filter {
+            // 没字也没附件的行没有可画的东西，照旧隐藏。但**只有附件**的行必须留下：
+            // 「对话」页和陪伴页读的是同一段历史，那边能发纯图消息，在这儿丢掉就等于
+            // 用户自己发的图片在这边凭空消失。
+            it.text.isNotBlank() || it.attachmentIds.isNotEmpty()
+        }.reversed()
     }
+
+    override suspend fun attachmentUrl(uploadId: String): String? = mediaUploader.signedUrl(uploadId)
 
     override suspend fun characters(limit: Int, offset: Int): CharacterPage {
         val json = call("GET", "/v1/characters?limit=$limit&offset=$offset")
