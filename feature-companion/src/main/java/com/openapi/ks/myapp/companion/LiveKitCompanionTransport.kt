@@ -12,6 +12,7 @@ import com.openapi.ks.myapp.companion.protocol.BargeInGate
 import com.openapi.ks.myapp.companion.protocol.CompanionProtocolLink
 import com.openapi.ks.myapp.companion.protocol.CueGapBaseline
 import com.openapi.ks.myapp.companion.protocol.Decision
+import com.openapi.ks.myapp.companion.protocol.FirstAudioDetector
 import com.openapi.ks.myapp.companion.protocol.DegradeController
 import com.openapi.ks.myapp.companion.protocol.PresentationCue
 import com.openapi.ks.myapp.companion.protocol.ProtocolCatalog
@@ -92,6 +93,7 @@ class LiveKitCompanionTransport(
     @Volatile private var activeAttemptId: String = "none"
     @Volatile private var connectStartedAtMs: Long = 0L
     @Volatile private var firstRemotePcmLogged = false
+    private val firstAudio = FirstAudioDetector(REMOTE_FIRST_AUDIO_RMS)
     @Volatile private var firstLocalPcmLogged = false
 
     /** 最近一次麦克风意图。房间还没建好时先存着，连上后补偿执行。 */
@@ -210,6 +212,7 @@ class LiveKitCompanionTransport(
         activeAttemptId = UUID.randomUUID().toString().take(8)
         connectStartedAtMs = SystemClock.elapsedRealtime()
         firstRemotePcmLogged = false
+        firstAudio.reset()
         firstLocalPcmLogged = false
         logInfo("attempt=$activeAttemptId event=connect_start")
         _connection.value = TransportConnection.CONNECTING
@@ -695,6 +698,9 @@ class LiveKitCompanionTransport(
                     firstRemotePcmLogged = true
                     logInfo("attempt=$activeAttemptId event=remote_pcm_first frames=$frames channels=$numberOfChannels rate=$sampleRate rms=${"%.4f".format(rms)}")
                 }
+                if (firstAudio.onFrame(rms)) {
+                    logInfo("attempt=$activeAttemptId event=remote_pcm_first_audio rms=${"%.4f".format(rms)}")
+                }
                 val now = SystemClock.elapsedRealtime()
                 if (now - windowStartedAt >= PCM_LOG_INTERVAL_MS) {
                     logInfo("attempt=$activeAttemptId event=remote_pcm_summary samples=$callbacks meanRms=${"%.4f".format(rawSum / callbacks)} maxLevel=${"%.3f".format(levelMax)} windowMs=${now - windowStartedAt}")
@@ -1155,6 +1161,8 @@ class LiveKitCompanionTransport(
          * 视觉上是抽搐而不是说话。
          */
         const val FULL_SCALE_RMS = 0.6
+        /** 引导静音 rms≈0.0025、真声 >0.1（生产实测），首能量帧判据卡在两者之间。 */
+        const val REMOTE_FIRST_AUDIO_RMS = 0.02
 
         /**
          * 电平上限。留 0.9 而不是 1.0：满幅时把嘴型顶死会失去「还在说」的余地，
