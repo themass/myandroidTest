@@ -23,10 +23,19 @@ class SeekHoldTest {
 
     @Test
     fun `seek 缓冲期间内核报小值（精确 seek 假进度）同样钉住`() {
-        // 真机：IJK accurate seek 期间 currentPosition 报几百毫秒——缓冲期位置只进不退
+        // 真机：IJK accurate seek 期间 currentPosition 报几百毫秒——缓冲期位置钉住
         assertEquals(
             2_475_773L,
             playerPositionOrHold(held = 2_475_773L, playerPosition = 342L, playing = true, buffering = true),
+        )
+    }
+
+    @Test
+    fun `向后拖缓冲期间内核报拖前高位，不能弹回旧位置`() {
+        // 真机 23:04 复验：从 68 分拖回 20 分，缓冲期内核报的还是拖前的 68 分高位
+        assertEquals(
+            1_200_000L,
+            playerPositionOrHold(held = 1_200_000L, playerPosition = 4_087_836L, playing = true, buffering = true),
         )
     }
 

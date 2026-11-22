@@ -441,19 +441,14 @@ internal class KernelHost(private val context: Context) {
  * 每 tick 的位置同步：什么时候能信内核、什么时候必须钉住不动。
  *
  * 真机回归（2026-11-22 用户点名「拖动进度条弹回 0」）：IJK 开着精确 seek，
- * 落点前的缓冲窗口里 `currentPosition` 直接报 0——UI 于是显示 0:00，几秒后又跳回
- * 拖到的 41 分。用户以为拖回开头了。规则：播放中 + 缓冲中 + 内核报 0 而位置不在开头
- * → 这是假 0，钉住上一次的位置（ seek 已把它预置成目标点）；其余照旧跟内核。
- * 拖到开头的合法 0 不受影响（held 也是 0，钉不钉一样）。
- * 暂停时保持原语义：不信内核读数，钉住 held（seekTo 预置的目标点）。
- * 真机二次复验（同晚）：IJK 精确 seek 期间 currentPosition 不是恒 0，会报几百毫秒的
- * 小值——所以规则是「缓冲期间位置只进不退」（p < held 就钉住），而不是只挡正好 0。
+ * 落点前的缓冲窗口里 `currentPosition` 报的全是假读数——恒 0、几百毫秒小值、
+ * 缓存的目标值本身（见 [awaitingSeekAfter] 探针取证）。向后拖（同晚 23:04 复验）
+ * 报的还是拖前的陈旧高位，UI 直接弹回旧位置——方向不分，一律不信：
+ * **缓冲期（含 seek 未落点）画面本来就是停的，位置跟着冻结就是对的**；
+ * 只有「播放中且不在缓冲」才跟内核读数。拖到开头的合法 0 不受影响（held 同为 0）。
  */
-internal fun playerPositionOrHold(held: Long, playerPosition: Long, playing: Boolean, buffering: Boolean): Long = when {
-    !playing -> held
-    buffering && playerPosition < held -> held
-    else -> playerPosition
-}
+internal fun playerPositionOrHold(held: Long, playerPosition: Long, playing: Boolean, buffering: Boolean): Long =
+    if (playing && !buffering) playerPosition else held
 
 /** seek 落点判定的容差：真机假读数在几百毫秒级，落点偏差在几十毫秒级，取 1.5s 分隔两头 */
 internal const val SEEK_LANDING_SLACK_MS = 1500L
