@@ -1,6 +1,8 @@
 package com.openapi.ks.myapp.dh
 
 import androidx.compose.runtime.Immutable
+import com.openapi.ks.myapp.avatar.AvatarRegion
+import kotlin.math.abs
 
 /**
  * 点数字人舞台时的区域划分（纯函数，JVM 可测）。
@@ -11,6 +13,25 @@ import androidx.compose.runtime.Immutable
 internal fun stageTapRegion(nx: Float, ny: Float): String {
     val y = ny.coerceIn(0f, 1f)
     return if (y < 0.42f) "head" else "body"
+}
+
+/**
+ * Live2D 全身立绘的细分区（demo #2b）：头 / 躯干 / 手 / 脚。
+ *
+ * 阈值来自真机截图实测（两张不同服装的截图测量一致，说明分区与服装无关）：
+ * ATRI 立绘占 norm_y≈0.10–0.73；头是 0.42 以上的窄条；0.42–0.57 手臂向两侧
+ * 展开（最宽到 x 0.33/0.71）；0.57 以下收窄成双腿直到脚。横向手判据取
+ * |x−0.5|≥0.12：躯干中列宽约 ±0.1，臂展尖端在 ±0.17 以外，留了余量。
+ */
+internal fun live2dTapZone(nx: Float, ny: Float): String {
+    val x = nx.coerceIn(0f, 1f)
+    val y = ny.coerceIn(0f, 1f)
+    return when {
+        y < 0.42f -> AvatarRegion.HEAD
+        y >= 0.57f -> AvatarRegion.FOOT
+        abs(x - 0.5f) >= 0.12f -> AvatarRegion.HAND
+        else -> AvatarRegion.BODY
+    }
 }
 
 /** 点击脉冲的时长与缩放参数。 */

@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.openapi.ks.myapp.avatar.AvatarSpec
+import com.openapi.ks.myapp.avatar.AvatarTouch
+import com.openapi.ks.myapp.avatar.AvatarTouchKind
 import com.openapi.ks.myapp.avatar.SimpleAvatar
 import kotlinx.coroutines.launch
 import java.io.File
@@ -66,6 +68,20 @@ fun DigitalHumanLabHost(
      * 长按不做脉冲——长按的即时反馈就是轮盘本身弹出来。
      */
     onLongPressed: (() -> Unit)? = null,
+    /**
+     * dh-lab 测试语音 rig 的**生产注入路径**：把 PCM 块送进远端音频轨回调共用的
+     * 下游入口（[com.openapi.ks.myapp.companion.CompanionTransport.injectLabAudioPcm16k]
+     * 的实现方，通话页由 CompanionRoute 接 `chatViewModel::injectLabAudioPcm16k`）。
+     * 返回 false = 这条连接没有可注入通路（Fake 替身），rig 降级回 bridge 直喂。
+     * null（聊天页/调试舞台）= 直接用 bridge 直喂。
+     */
+    audioInjector: ((ByteArray) -> Boolean)? = null,
+    /**
+     * 通话页主题。GL 系引擎（Live2D）把背景色推进 native 当每帧清屏色——页面渐变
+     * 画在 Compose 层，GLSurfaceView 把它整个盖住，不透进去就是大黑底。null =
+     * 无主题（聊天页/调试舞台），引擎保持各自默认背景。
+     */
+    theme: com.openapi.ks.myapp.companion.CallTheme? = null,
 ) {
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
@@ -146,7 +162,11 @@ fun DigitalHumanLabHost(
                     return
                 }
                 rigScope.launch {
-                    val n = DhTestAudio.play(file, bridge, motion)
+                    // 有 VM 注入通道时优先走它：PCM 从远端音频轨回调共用的下游入口
+                    // 进 transport（电平提取 → mouthLevel → bridge → setMouth），
+                    // 与真通话同路。返回 false（Fake 替身/无通路）时 rig 内部降级
+                    // 回 bridge 直喂——聊天页没有 VM 注入通道也是这条路。
+                    val n = DhTestAudio.play(file, bridge, motion, audioInjector)
                     Log.i("DhTestAudio", "played ${clip}: ${n} bytes -> ${bridge.current().id}")
                 }
             }
@@ -195,6 +215,17 @@ fun DigitalHumanLabHost(
     LaunchedEffect(remotePcm, engine) {
         val flow = remotePcm ?: return@LaunchedEffect
         flow.collect { if (bridge.current().pcmDriven) bridge.onRemotePcm(it) }
+    }
+
+    // 主题 → 舞台背景：折成一色推给认识的引擎（Live2D 进 native 清屏色，其余 no-op）。
+    // 引擎换实例（下拉切引擎）后旧的去重记录作废——新实例还没收到过主题色，必须重推。
+    var lastStageArgb by remember { mutableStateOf<Pair<DigitalHumanEngine, Int>?>(null) }
+    LaunchedEffect(theme, engine) {
+        val argb = theme?.let { stageClearColorArgb(it.topArgb, it.midArgb, it.bottomArgb) }
+        val last = lastStageArgb?.takeIf { it.first === engine }?.second
+        val push = stageBackgroundPush(argb, last) ?: return@LaunchedEffect
+        engine.setBackground(push)
+        lastStageArgb = engine to push
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -247,6 +278,7 @@ fun DigitalHumanLabHost(
                                 DhEngineId.DUIX -> "Duix 无画面（缺模型或未编入）"
                                 DhEngineId.LIVE2D -> "Live2D 无画面（未编入）"
                                 DhEngineId.TAO_AVATAR -> "Tao 无画面（机型/未编入）"
+                                DhEngineId.VRM -> "VRM 无画面（未下载模型）"
                                 else -> "引擎无画面"
                             },
                             color = Color.White.copy(alpha = 0.6f),
@@ -260,7 +292,8 @@ fun DigitalHumanLabHost(
         // 事件顺序：缩放/拖动层在 Initial pass 先看手指（双指、放大拖拽被它吃掉），
         // 剩下的单点轻触由这层在 Main pass 认成 tap——捏合时多点按下不会误判成点击。
         // 长按同一层认领：抬手前被认成长按的就不是轻触，tap 与长按天然互斥。
-        if (engine.id != DhEngineId.SIMPLE) {
+        // VRM 例外：WebView 自己吃触摸（页面内单指拖动 = 视线跟随），这层会把它整个吃掉。
+        if (engine.id != DhEngineId.SIMPLE && engine.id != DhEngineId.VRM) {
             Box(
                 Modifier
                     .matchParentSize()
@@ -269,9 +302,13 @@ fun DigitalHumanLabHost(
                             onTap = { offset ->
                                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                 tapPressed = true
-                                tappedNow?.invoke(
-                                    stageTapRegion(offset.x / size.width, offset.y / size.height),
-                                )
+                                val nx = offset.x / size.width
+                                val ny = offset.y / size.height
+                                // 触点互动进引擎：Live2D 在这里做「摸头脸红 / 点身体换装」
+                                // （onTouch 纯状态机 → native 表情），不支持的引擎回 Ignored
+                                // 无副作用。区域语义与 stageTapRegion 上报同源。
+                                bridge.onAvatarTouch(AvatarTouch(nx, ny, AvatarTouchKind.TAP))
+                                tappedNow?.invoke(stageTapRegion(nx, ny))
                             },
                             onLongPress = { longPressedNow?.invoke() },
                         )

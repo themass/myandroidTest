@@ -66,7 +66,14 @@ internal class HttpDanmakuSource(
     override suspend fun post(clientMessageId: String, atMs: Long, text: String): Result<TimedComment> {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return Result.failure(IllegalArgumentException("弹幕不能为空"))
-        val body = gson.toJson(PostBody(clientMessageId, atMs, trimmed))
+        // 服务端 clientMsgId 列宽 128：超长的 key（url 型 contentId 拼出来的）收成定长 hex，
+        // 同一个原 id 永远映成同一个值，[DanmakuFeed] 的重试幂等不受影响。
+        val wireId = if (clientMessageId.length > MAX_SEGMENT_LEN) {
+            "h" + sha256Hex(clientMessageId).substring(0, 16)
+        } else {
+            clientMessageId
+        }
+        val body = gson.toJson(PostBody(wireId, atMs, trimmed))
         // 整段都包进 runCatchingTransport：约定 post 的失败一律走 Result.failure，
         // 只有取消例外（DanmakuFeed.finish 直接在调用栈上等这条 suspend 链）
         return runCatchingTransport {
@@ -121,7 +128,20 @@ internal class HttpDanmakuSource(
 
     /** `…/{namespace}/{contentId}/{editionId}/comments`，时间轴的每一段命名空间互不串。 */
     private fun timelinePath(): String =
-        "${endpoint.baseUrl.trimEnd('/')}/${timelineKey.namespace}/${timelineKey.contentId}/${timelineKey.editionId}/comments"
+        "${endpoint.baseUrl.trimEnd('/')}/${pathSegment(timelineKey.namespace)}/${pathSegment(timelineKey.contentId)}/${pathSegment(timelineKey.editionId)}/comments"
+
+    /**
+     * URL path 段的安全形态。contentId 是客户端的稳定 key，可能是 `file:content://…`、
+     * `url:https://…` 这种带 `/` 甚至超长的值，直接拼进 path 会把路径段撑爆（服务端按 4 段路由）。
+     * 安全字符集内且不长过服务端列宽的照原样透传（`srv:123` 仍是人眼可读的 key）；
+     * 其余哈希成定长 hex 段：同一个 key 永远同一结果，服务端只认这个段，不需要知道原文。
+     */
+    private fun pathSegment(value: String): String =
+        if (value.length in 1..MAX_SEGMENT_LEN && SEGMENT_SAFE.matches(value)) {
+            value
+        } else {
+            "h" + sha256Hex(value).substring(0, 16)
+        }
 
     private fun CommentDto.toDomain() = TimedComment(id, atMs, text, author = author ?: "")
 
@@ -170,7 +190,21 @@ internal class HttpDanmakuSource(
         @JvmField var atMs: Long,
         @JvmField var text: String,
     )
+
+    private companion object {
+        /** 与服务端 TimelineController 的 path 段字符集一致：落在这个集合里的 key 原样透传。 */
+        val SEGMENT_SAFE = Regex("^[A-Za-z0-9][A-Za-z0-9._:-]*$")
+
+        /** 服务端 contentId 列宽（varchar(128)）；超长的 key 走哈希而不是被服务端拒绝。 */
+        const val MAX_SEGMENT_LEN = 128
+    }
 }
+
+/** SHA-256 小写 hex。JVM 与 Android 都自带 java.security，不引新依赖。 */
+private fun sha256Hex(value: String): String =
+    java.security.MessageDigest.getInstance("SHA-256")
+        .digest(value.toByteArray())
+        .joinToString("") { "%02x".format(it) }
 
 /** base url 与路径前缀：默认项目 api host，换环境只改这里。 */
 internal data class DanmakuEndpoint(val baseUrl: String = Constants.getUrl("/timeline/v1"))

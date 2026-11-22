@@ -40,6 +40,14 @@ internal class ScreeningFeedStore(context: Context) {
     suspend fun videos(channelParam: String, start: Int = 0, keyword: String = ""): Page<RemoteEntry> =
         page(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, start, channelParam, keyword))
 
+    /**
+     * 配置频道的子频道列表（`video/channel.json`）。夜色配置频道卡（hsex_all 这类）
+     * 发 items.json 查不到片单，旧页面 VideoChannleActivity 是先在这里列出「18禁 / hsex.men」
+     * 再下钻的；内页吸收这批卡后走的是同一个接口。
+     */
+    suspend fun subchannels(channelParam: String, start: Int = 0): Page<RemoteEntry> =
+        page(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNLE_URL, start, channelParam))
+
     /** 图集列表（图片频道）。 */
     suspend fun albums(channelParam: String, start: Int = 0): Page<RemoteEntry> =
         page(Constants.getUrlWithParam(Constants.API_IMG_CHANNLE_URL, start, channelParam))

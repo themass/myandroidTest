@@ -2,6 +2,7 @@ package com.openapi.feature.video.screening
 
 import android.content.Context
 import android.net.Uri
+import android.os.SystemClock
 import android.provider.OpenableColumns
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -16,9 +17,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,11 +33,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -53,6 +61,7 @@ import com.openapi.feature.video.subtitle.style.captionPresets
 import com.openapi.feature.video.subtitle.style.captionPresetIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -102,6 +111,17 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     val id = source.key
     // 两套内核各占一格画面槽，换内核在播放中途完成，见 KernelHost
     val host = remember { KernelHost(context) }
+    // 实时字幕：引擎在后台并行重解一路静音音频喂火山流式识别，只吃能重解的地址（见 realtimeMediaUrl）。
+    // cacheFile 是样片落盘路径——asset:// 只有播放内核认识，重解要真实文件路径。
+    var cacheFile by remember { mutableStateOf<File?>(null) }
+    val realtimeUrl = remember(source.key, cacheFile) {
+        realtimeMediaUrl(source.uri?.toString(), source.uri?.scheme, cacheFile?.absolutePath)
+    }
+    var realtimeText by remember { mutableStateOf("") }
+    // "" = 没有消息；否则依次为加载中/失败原因，字幕面板的实时字幕条目直接显示它
+    var realtimeStatus by remember { mutableStateOf("") }
+    val realtimeRunner = remember { RealtimeSubtitleRunner(context) }
+    DisposableEffect(realtimeRunner) { onDispose { realtimeRunner.stop() } }
     LaunchedEffect(source) {
         // IJK / 系统内核吃不了 asset://，随包的样片先落到 cache 再交给内核
         val file = withContext(Dispatchers.IO) {
@@ -122,6 +142,8 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
             // 网络片总长度这时还不知道，先按存的进度起播，host 拿到 duration 自己会夹
             startMs = if (initial <= 0L) 0L else if (source.asset != null) initial.coerceAtMost(SAMPLE_MS) else initial,
         )
+        // 样片落盘的缓存文件同时是实时字幕的重解地址：asset:// 只有内核认识，提取器只认路径
+        cacheFile = file
     }
     var position by remember { mutableLongStateOf(initial) }
     var width by remember { mutableLongStateOf(if (source.asset != null) SAMPLE_MS else 0L) }
@@ -144,14 +166,52 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     var serverCaptionName by remember { mutableStateOf("") }
     var serverBusy by remember { mutableStateOf<Long?>(null) }
     var offset by remember { mutableIntStateOf(0) }
+    DisposableEffect(realtimeRunner) { onDispose { realtimeRunner.stop() } }
     // 字幕样式：预设序号，跟着这个播放器偏好走（和收藏同一个 prefs）
     var presetIndex by remember { mutableIntStateOf(captionPresetIndex(store.getInt("caption-style", 0))) }
     val captionStyle = captionPresets[presetIndex].style
     var info by remember { mutableStateOf("") }
     var speed by remember { mutableFloatStateOf(1f) }
-    var danmaku by remember { mutableStateOf(false) }
-    // 弹幕来源：没有服务端时默认本地样例；假服务端做离线链路演示；在线弹幕走真 HTTP 收发
-    var danmakuSource by remember { mutableStateOf(DANMAKU_SAMPLE) }
+    // 实时字幕会话：开/关走 captionSource==4（顶部字幕键和「关闭字幕」都能关）；跳转或重开就重启会话——
+    // 识别引擎是并行重解音频，不会跟播放器的进度条跳转，跳了就按新位置重连一路。
+    // 放在 speed 声明之后：判定要按倍速折算墙钟推进量。
+    LaunchedEffect(captionSource, realtimeUrl) {
+        realtimeRunner.stop()
+        if (captionSource != 4) return@LaunchedEffect
+        val url = realtimeUrl ?: return@LaunchedEffect
+        realtimeRunner.onLoading = { realtimeStatus = "正在连接识别服务…" }
+        realtimeRunner.onText = {
+            realtimeText = it
+            if (realtimeStatus.isNotEmpty()) realtimeStatus = ""
+        }
+        realtimeRunner.onError = { realtimeStatus = "识别失败：$it" }
+        realtimeRunner.onStopped = { realtimeStatus = "识别已停止，可以再开一次" }
+        realtimeText = ""
+        realtimeStatus = "正在连接识别服务…"
+        realtimeRunner.start(url, host.positionNow(), { host.playing }, { host.positionNow() })
+        try {
+            var prevPos = host.positionNow()
+            var prevElapsed = SystemClock.elapsedRealtime()
+            while (isActive) {
+                delay(500)
+                val pos = host.positionNow()
+                val now = SystemClock.elapsedRealtime()
+                if (realtimeSeekJumped(prevPos, pos, prevElapsed, now, speed, host.playing)) {
+                    realtimeText = ""
+                    realtimeRunner.start(url, pos, { host.playing }, { host.positionNow() })
+                }
+                prevPos = pos
+                prevElapsed = now
+            }
+        } finally {
+            realtimeRunner.stop()
+        }
+    }
+    var danmaku by remember { mutableStateOf(serverVideoId != null) }
+    // 弹幕来源：正式默认在线——服务端条目一进来就挂真时间轴（弹幕默认开着，互联网惯例）；
+    // 随包样片/手机文件没有服务端轴，退回本地样例且默认关。
+    // 假服务端只留在「更多 → 弹幕设置」里做离线链路联调，不再当默认（用户点名弹幕要正式样式）。
+    var danmakuSource by remember { mutableStateOf(if (serverVideoId != null) DANMAKU_ONLINE else DANMAKU_SAMPLE) }
     val danmakuToken = remember { { PreferenceUtils.getPrefString(context, NetConfig.tokenHeader(), null) } }
     val feed = remember(danmakuSource, id) {
         DanmakuFeed(
@@ -206,6 +266,20 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
         position = host.position
         if (host.duration > 0) width = host.duration
     }
+    fun sendDanmaku() {
+        val text = danmakuDraft.trim()
+        if (text.isEmpty()) return
+        // 发送时刻取按下这一刻的播放位置（和主流播放器口径一致），发完就清空，连发不用二次编辑
+        val at = host.positionNow()
+        danmakuDraft = ""
+        scope.launch { feed.send(at, text) }
+    }
+    // 续播提示：从存档位置进来时说明一句「已续播」，并可一键回从头——
+    // 用户点名「开头 10+ 秒被跳」：跳是续播没错，但要让用户看得见、可反悔。
+    var resumeHinted by remember { mutableStateOf(initial > 0L) }
+    LaunchedEffect(resumeHinted) {
+        if (resumeHinted) { delay(6000); resumeHinted = false }
+    }
     fun jump(delta: Long) {
         host.seekTo((host.position + delta).coerceIn(0, width)); refresh(); interaction++
     }
@@ -224,8 +298,9 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
         }
     }
     LaunchedEffect(host) { while (true) { refresh(); delay(125) } }
-    LaunchedEffect(full, playing, locked, panel, interaction) {
-        if (full && playing && !locked && panel == null && chrome) { delay(3500); chrome = false }
+    LaunchedEffect(full, playing, locked, panel, interaction, danmakuDraft) {
+        // 正在打弹幕就不收走带：发送栏挂在走带上，收了等于把输入框藏起来
+        if (full && playing && !locked && panel == null && chrome && danmakuDraft.isEmpty()) { delay(3500); chrome = false }
     }
     val picker = rememberLauncherForActivityResult(OpenDocument()) { uri ->
         uri?.let {
@@ -268,6 +343,8 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
         1 -> demo?.at(position, offset).orEmpty()
         2 -> captions?.at(position, offset).orEmpty()
         3 -> serverCaption?.at(position, offset).orEmpty()
+        // 实时识别：partial 文本滚动刷新，样式走同一套 CaptionStyle；延时对它没有意义（没有轨可对）
+        4 -> realtimeText
         else -> ""
     }
     val seekBlock: @Composable () -> Unit = {
@@ -308,8 +385,12 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
             ).forEachIndexed { index, (name, picture) ->
                 Column(
                     Modifier.weight(1f).heightIn(min = if (iconOnly) 40.dp else 51.dp).clip(Tile).clickable {
-                        if (index == 0 && captionSource != 0) { captionSource = 0; info = "字幕已关闭" }
-                        else { info = ""; panel = if (index == 1) "倍速" else name }
+                        when {
+                            index == 0 && captionSource != 0 -> { captionSource = 0; info = "字幕已关闭" }
+                            // 弹幕键按互联网惯例直接开/关（和字幕键同款手感）；来源与重试收进「更多 → 弹幕设置」。
+                            index == 2 -> { info = ""; danmaku = !danmaku }
+                            else -> { info = ""; panel = if (index == 1) "倍速" else name }
+                        }
                     },
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -331,6 +412,38 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 discovery.discover { devices = it; scanning = false }
             }) {
                 Icon(Icons.Default.Cast, null, Modifier.size(17.dp)); Text(" 电视投屏")
+            }
+        }
+    }
+    // 画面内发送栏（互联网播放器惯例）：弹幕开着时贴在走带下方，胶囊输入框 + 发送键，回车即发。
+    val danmakuSendRow: @Composable () -> Unit = {
+        Row(
+            Modifier.fillMaxWidth().padding(top = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(Modifier.weight(1f).clip(RoundedCornerShape(18.dp)).background(Color.White.copy(alpha = .14f))) {
+                if (danmakuDraft.isEmpty()) {
+                    Text("发个弹幕见证当下", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp))
+                }
+                BasicTextField(
+                    value = danmakuDraft,
+                    onValueChange = { danmakuDraft = it.take(40) },
+                    singleLine = true,
+                    cursorBrush = SolidColor(Mint),
+                    textStyle = TextStyle(color = White, fontSize = 13.sp),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                    keyboardActions = KeyboardActions(onSend = { sendDanmaku() }),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 9.dp),
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            FilledTonalButton(
+                onClick = { sendDanmaku() },
+                enabled = danmakuDraft.isNotBlank(),
+                shape = RoundedCornerShape(18.dp),
+            ) {
+                Icon(Icons.AutoMirrored.Filled.Send, "发送弹幕", Modifier.size(15.dp))
+                Text("发送", fontSize = 13.sp, modifier = Modifier.padding(start = 4.dp))
             }
         }
     }
@@ -395,6 +508,20 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                                 }
                             }
                         }
+                        // 实时识别字幕：没有现成字幕轨的片子现场认。只支持能重新解码音频的地址；
+                        // 手机里挑的文件（content://）拿不到路径就不能重解，如实写清楚而不是隐藏。
+                        if (realtimeUrl != null) {
+                            Setting(
+                                "实时识别字幕",
+                                if (captionSource == 4 && realtimeStatus.isNotEmpty()) realtimeStatus
+                                else "边播边认，不用字幕文件（识别用内置密钥，会耗流量）",
+                                captionSource == 4,
+                            ) {
+                                if (captionSource == 4) { captionSource = 0 } else { captionSource = 4; offset = 0 }
+                            }
+                        } else {
+                            Text("实时识别字幕：这个片源在手机上（没有可读地址），暂时不能现场识别；在线地址可以用。", color = Muted, fontSize = 12.sp)
+                        }
                         Setting("导入本地字幕", "打开系统文件选择器，支持 SRT / WebVTT") {
                             // 同时允许 octet-stream：很多 srt 在系统库里没有注册成文本类型，只给 text/*
                             // 会让选择器把它们过滤掉；给 */* 又会让华为选择器停在「图片」分区
@@ -423,49 +550,31 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                             speed = value; host.setSpeed(value); panel = null
                         }
                     }
-                    "弹幕" -> {
+                    "弹幕设置" -> {
+                        // 开/关走播放页的弹幕键或下面这一条；这里只调来源。正式默认在线（服务端条目）。
                         Setting("关闭弹幕", "立即清屏，不影响字幕和播放", !danmaku) { danmaku = false }
                         // 来源切换：两个来源实现同一个 TimedCommentSource，渲染和车道调度完全共用
-                        Setting("本地样例弹幕", "随包内置，无需网络", danmaku && danmakuSource == DANMAKU_SAMPLE) {
-                            danmakuSource = DANMAKU_SAMPLE; danmaku = true
-                        }
-                        Setting("服务端弹幕", "链路演示：分窗拉取、发送回显、重试、撤回（假服务端，接口与真服务端一致）", danmaku && danmakuSource == DANMAKU_SERVER) {
-                            danmakuSource = DANMAKU_SERVER; danmaku = true
-                        }
-                        Setting("在线弹幕", "真 HTTP 收发：分窗分页拉取、幂等发送、撤回（服务端未就绪时显示错误，可切回本地）", danmaku && danmakuSource == DANMAKU_ONLINE) {
+                        Setting("在线弹幕", if (serverVideoId != null) "默认：登录后发送，所有人共用这条时间轴" else "随包样片没有服务端时间轴，这里看不到弹幕", danmaku && danmakuSource == DANMAKU_ONLINE) {
                             danmakuSource = DANMAKU_ONLINE; danmaku = true
                         }
-                        if (danmaku) {
-                            OutlinedTextField(
-                                value = danmakuDraft,
-                                onValueChange = { danmakuDraft = it.take(40) },
-                                placeholder = { Text("发一条弹幕，贴在 ${time(host.positionNow())}") },
-                                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                                singleLine = true,
-                            )
-                            danmakuState.outgoing.lastOrNull()?.let { mine ->
-                                val label = when (mine.state) {
-                                    SendState.Sending -> "发送中"
-                                    SendState.Sent -> "已发送"
-                                    SendState.Failed -> "发送失败：${mine.error ?: "未知原因"}"
-                                    SendState.Retracted -> "已撤回"
-                                }
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("「${mine.text}」 $label", color = if (mine.state == SendState.Failed) Peach else Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
-                                    if (mine.state == SendState.Failed) TextButton(onClick = { scope.launch { feed.retry(mine.clientMessageId) } }) { Text("重试") }
-                                    if (mine.state == SendState.Sent) TextButton(onClick = { scope.launch { feed.retract(mine.clientMessageId) } }) { Text("撤回") }
-                                }
+                        Setting("本地样例弹幕", "离线演示用：随包内置，无需网络", danmaku && danmakuSource == DANMAKU_SAMPLE) {
+                            danmakuSource = DANMAKU_SAMPLE; danmaku = true
+                        }
+                        Setting("链路自测弹幕", "开发用：内置假服务端，验证拉取/发送/重试/撤回链路", danmaku && danmakuSource == DANMAKU_SERVER) {
+                            danmakuSource = DANMAKU_SERVER; danmaku = true
+                        }
+                        danmakuState.outgoing.lastOrNull()?.let { mine ->
+                            val label = when (mine.state) {
+                                SendState.Sending -> "发送中"
+                                SendState.Sent -> "已发送"
+                                SendState.Failed -> "发送失败：${mine.error ?: "未知原因"}"
+                                SendState.Retracted -> "已撤回"
                             }
-                            TextButton(
-                                enabled = danmakuDraft.isNotBlank(),
-                                onClick = {
-                                    // 发送时刻固定为打开输入时的播放位置，避免打字时视频在走贴错场景
-                                    val at = host.positionNow()
-                                    val text = danmakuDraft
-                                    danmakuDraft = ""
-                                    scope.launch { feed.send(at, text) }
-                                },
-                            ) { Text("发送，贴在 ${time(host.positionNow())}") }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("「${mine.text}」 $label", color = if (mine.state == SendState.Failed) Peach else Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                                if (mine.state == SendState.Failed) TextButton(onClick = { scope.launch { feed.retry(mine.clientMessageId) } }) { Text("重试") }
+                                if (mine.state == SendState.Sent) TextButton(onClick = { scope.launch { feed.retract(mine.clientMessageId) } }) { Text("撤回") }
+                            }
                         }
                         Text(
                             "弹幕跟着媒体时钟走：暂停就停住，倍速会一起变快变慢，拖进度条立刻换成那个位置的弹幕。" +
@@ -476,6 +585,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                     "更多" -> {
                         Setting("适应画面", "保留原始比例", !fill) { fill = false }
                         Setting("填满画面", "可能裁掉画面边缘", fill) { fill = true }
+                        Setting("弹幕设置", if (danmaku) "弹幕来源与发送状态" else "当前已关闭", panel == "弹幕设置") { panel = "弹幕设置" }
                     }
                     // 内核不在这开面板：用户不选内核，失败时 KernelHost 自动换另一个顶上去（无感）。
                     "电视投屏" -> {
@@ -574,6 +684,23 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                         }
                     },
             )
+            // 续播说明（用户点名「开头 10+ 秒被跳」）：从存档位置进来就说清「已续播」并给一键从头，
+            // 6 秒自收；位置太短的存档根本不会进来（ScreeningActivity 的 RESUME_MIN_MS 阈值）。
+            if (resumeHinted && !locked) {
+                Row(
+                    Modifier.align(Alignment.TopCenter).padding(top = if (full) 96.dp else 8.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(Color.Black.copy(alpha = .72f))
+                        .padding(horizontal = 12.dp, vertical = 7.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("已从 ${time(initial)} 续播", color = White, fontSize = 12.sp)
+                    TextButton(
+                        onClick = { resumeHinted = false; host.seekTo(0); refresh() },
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                    ) { Text("从头播放", color = Mint, fontSize = 12.sp) }
+                }
+            }
             // 弹幕占上半区：底部永远留给字幕和控件，二者不互相压
             if (danmaku && !locked) {
                 DanmakuOverlay(
@@ -660,6 +787,8 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                         seekBlock()
                         // 影院态底部只要走带+图标工具台（设计稿）：收藏/投屏留在信息态
                         toolsRow(true)
+                        // 弹幕开着就把发送栏挂在最底下（互联网播放器惯例：进度条→工具→输入行）
+                        if (danmaku) danmakuSendRow()
                     }
                 }
             }
@@ -706,6 +835,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 HorizontalDivider(color = Lift)
                 Spacer(Modifier.height(10.dp))
                 toolsRow(false)
+                if (danmaku) danmakuSendRow()
                 Box(Modifier.fillMaxWidth().padding(top = 10.dp), contentAlignment = Alignment.CenterEnd) { favorRow() }
                 error?.let { message -> Text(message, color = Peach, modifier = Modifier.padding(top = 12.dp)) }
             }

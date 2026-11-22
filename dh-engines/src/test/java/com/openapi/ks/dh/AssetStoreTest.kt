@@ -233,4 +233,16 @@ class AssetStoreTest {
             duix.map { AssetStore.markerRelativePath(it) },
         )
     }
+
+    @Test
+    fun manifest_vrm_pins_the_three_vrm_sample_model_as_a_file() {
+        val vrm = AssetManifest.assetsFor(EngineAssets.VRM)
+
+        assertEquals(
+            listOf("https://raw.githubusercontent.com/pixiv/three-vrm/dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm"),
+            vrm.map { it.url },
+        )
+        assertEquals(listOf("models/VRM1_Constraint_Twist_Sample.vrm"), vrm.map { it.relativePath })
+        assertEquals(listOf(AssetSpec.Kind.FILE), vrm.map { it.kind })
+    }
 }

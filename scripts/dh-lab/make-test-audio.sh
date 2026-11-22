@@ -65,8 +65,28 @@ say_wav fast "板凳宽扁担长板凳没有扁担长扁担没有板凳宽" 300
 # 6) 语气起伏：问句+感叹，验证口型不是单调开合
 say_wav tone "真的吗？太好了！我们一起把三个引擎都跑通吧。"
 
+# 7) 合成包络（envclip）：口型同步的**硬判据**素材——不靠肉眼。
+#    包络：1s 静默 →(0.4s 开 / 0.2s 合)×5 → 1s 静默（共 5s，220Hz 正弦，峰值 0.45）。
+#    峰值 0.45 是算过的：正弦 rms=0.45/√2≈0.318 → mouthLevel=0.318/0.6(实测满幅)*0.9≈0.48，
+#    离满幅和地板都远，落在轨迹日志最容易核对的区间。嘴型日志的值-时间对应逐段
+#    贴住这个包络 = 「动的确实是嘴、链路没丢帧」的机器可核对证据。
+echo "== envclip (1s 静默→(0.4s 开/0.2s 合)x5→1s 静默, 220Hz)"
+ffmpeg -hide_banner -loglevel error -y \
+  -f lavfi -i "aevalsrc=exprs='0.45*sin(2*PI*220*t)*(between(t\,1\,1.4)+between(t\,1.6\,2)+between(t\,2.2\,2.6)+between(t\,2.8\,3.2)+between(t\,3.4\,3.8))':s=16000:d=5" \
+  -c:a pcm_s16le "$OUT/envclip.wav"
+
+# 8) 慢包络（envslow）：**截图通道**专用的 envclip。adb screencap 一张 ~450ms，
+#    400ms 的开口窗口对它来说是欠采样（开口帧与闭合帧各拍到一半，帧差糊成噪声）。
+#    这里把包络放大到 2.5s 开/1.5s 合：每个开口段能拍到 5+ 帧连续张嘴、
+#    每个闭合段 3 帧闭嘴——嘴部 ROI 帧差与包络的对应才肉眼可核。
+#    电平判据（0.45 峰值）与 envclip 完全一致，只是节奏放慢。
+echo "== envslow (1s 静默→(2.5s 开/1.5s 合)x2→1s 静默, 220Hz)"
+ffmpeg -hide_banner -loglevel error -y \
+  -f lavfi -i "aevalsrc=exprs='0.45*sin(2*PI*220*t)*(between(t\,1\,3.5)+between(t\,5\,7.5))':s=16000:d=10" \
+  -c:a pcm_s16le "$OUT/envslow.wav"
+
 # 校验：每个文件必须非静音（mean_volume > -60dB）且时长符合预期下限，防止再产出静音/丢段文件
-CHECKS="sentence 2 vowels 6 long 20 pauses 3 fast 2 tone 3"
+CHECKS="sentence 2 vowels 6 long 20 pauses 3 fast 2 tone 3 envclip 4.5 envslow 9.5"
 fail=0
 set -- $CHECKS
 while [ $# -gt 0 ]; do

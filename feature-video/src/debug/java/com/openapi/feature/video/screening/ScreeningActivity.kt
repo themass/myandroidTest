@@ -155,19 +155,40 @@ private fun ScreeningHome(activity: ScreeningActivity) {
             detail = entry.description,
             coverUrl = entry.imageUrl,
             coverAsset = entry.sampleCoverAsset(),
-            // 原页面 VideoChannelListFragment.getUrl 用的是 vo.param；外链频道卡没有它就没有内页
-            channelParam = entry.videoChannelKey()?.takeIf { !isWebAction(entry.actionUrl) },
+            // 原页面 VideoChannelListFragment.getUrl 用的是 vo.param。外链频道卡以前在这里
+            // 被置空（掉回 WebView 就不用内页取数了）；B 线吸收后必须把 key 传下去，
+            // 内页才拿它发 items.json。没有 key 的入口（样例频道）照旧走样片兜底。
+            channelParam = entry.videoChannelKey(),
             sample = sampleChannelFor(entry),
+            // 夜色配置频道卡（hsex_all 这类）进去先列子频道，点一行再下钻片单
+            kind = videoChannelPageKind(entry),
+            // 片单查不到时给的回网页退路；内部频道卡没有网页，为 null 就不画按钮
+            webFallback = entry.webFallbackUrl(),
         )
     }
-    /** 外链/配置频道卡：交回原路由（`ConfigActionJump` 按 scheme 分流 WebView 或旧频道页）。 */
-    val openWeb: (RemoteEntry) -> Unit = { entry ->
-        CoreEvents.postConfigAction(ConfigActionEvent(activity, entry.actionUrl, entry.title, HashMap()))
+    /** http(s) 地址交回原路由（`ConfigActionJump` 按 scheme 分流 WebView）。 */
+    val openUrl: (String, String) -> Unit = { url, title ->
+        CoreEvents.postConfigAction(ConfigActionEvent(activity, url, title, HashMap()))
     }
+    /** 外链卡：交回原路由。 */
+    val openWeb: (RemoteEntry) -> Unit = { entry -> openUrl(entry.actionUrl, entry.title) }
     val openGallery: (RemoteEntry?) -> Unit = { entry ->
         forward = true
         galleryChannel = entry?.galleryChannelParam()
         gallery = true
+    }
+    /**
+     * 按 routeOf 派发一张卡的点击：内页里的行和首页网格走同一套判定，
+     * 子频道行下钻开新内页、可播行进播放器、纯网页行交回 WebView——
+     * 点深任何一层都不掉旧页面（B 线：客户端全收）。
+     */
+    val openRoute: (RemoteEntry) -> Unit = { entry ->
+        when (routeOf(entry)) {
+            FeedRoute.PLAY -> openEntry(entry)
+            FeedRoute.CHANNEL -> openChannel(entry)
+            FeedRoute.ALBUM -> openGallery(entry)
+            FeedRoute.WEB -> openWeb(entry)
+        }
     }
     BackHandler(channelPage != null && selection == null) { forward = false; channelPage = null }
     val motion = remember { MotionPlan(isReduceMotion(activity)) }
@@ -193,7 +214,12 @@ private fun ScreeningHome(activity: ScreeningActivity) {
             when (target) {
                 is PlayScreen -> key(target.source) {
                     holder.SaveableStateProvider(target.source.key) {
-                        ScreeningPlayback(activity, target.source, target.channel, progress[target.source.key] ?: 0L,
+                        // 进度兜底现读 prefs（真机 2026-11-23）：progress 这张内存表只有列表页
+                        // items 就位那一刻才灌 prefs，冷启动没经过列表页就进片会漏掉存档——
+                        // prefs 存着 1:58，冷启动却从头播。缺就现取一次（阈值判定在 storedProgress）。
+                        val entryKey = target.source.key
+                        val resumeAt = progress[entryKey] ?: storedProgress(preferences, entryKey).also { progress[entryKey] = it }
+                        ScreeningPlayback(activity, target.source, target.channel, resumeAt,
                             onExit = { forward = false; selection = null }, onSave = { position ->
                                 progress[target.source.key] = position
                                 preferences.edit().putLong(progressKey(target.source.key), position).apply()
@@ -209,13 +235,19 @@ private fun ScreeningHome(activity: ScreeningActivity) {
                     val param = target.page.channelParam
                     val pagePager = remember(target.page) {
                         FeedPager(feedScope) { start ->
-                            if (param != null) store.videos(param, start)
-                            else ScreeningFeedStore.Page(sampleReels(target.page.sample), null, false)
+                            when {
+                                // 夜色配置频道页：先列子频道（channel.json），点一行再下钻片单
+                                param != null && target.page.kind == ScreeningPageKind.SUBCHANNELS ->
+                                    store.subchannels(param, start)
+                                param != null -> store.videos(param, start)
+                                else -> ScreeningFeedStore.Page(sampleReels(target.page.sample), null, false)
+                            }
                         }
                     }
                     Library(target.page, progress, preferences, pagePager,
-                        back = { forward = false; channelPage = null }, openEntry = openEntry,
-                        onFile = { source -> selection = source })
+                        back = { forward = false; channelPage = null }, openEntry = openRoute,
+                        onFile = { source -> selection = source },
+                        onWeb = { url, title -> openUrl(url, title) })
                 }
                 else -> holder.SaveableStateProvider("channels") {
                     HomeTabs(store, feedScope, homeTab, { homeTab = it },
@@ -450,7 +482,6 @@ private fun ChannelsFeed(
                             FeedRoute.CHANNEL -> onChannel(entry)
                             FeedRoute.ALBUM -> onGallery(entry)
                             FeedRoute.WEB -> onWeb(entry)
-                            FeedRoute.CONFIG -> onWeb(entry)
                         }
                     }) {
                         EntryCover(entry, Modifier.matchParentSize())
@@ -472,8 +503,7 @@ private fun ChannelsFeed(
                                     FeedRoute.CHANNEL -> onChannel(entry)
                                     FeedRoute.ALBUM -> onGallery(entry)
                                     FeedRoute.WEB -> onWeb(entry)
-                                    FeedRoute.CONFIG -> onWeb(entry)
-                                }
+                                        }
                             }, shape = RoundedCornerShape(9.dp), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)) {
                                 Icon(Icons.Default.PlayArrow, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp))
                                 Text(if (entry.isGroupEntry) "看这个频道" else "看预告", fontSize = 14.sp)
@@ -503,8 +533,7 @@ private fun ChannelsFeed(
                                         FeedRoute.CHANNEL -> onChannel(entry)
                                         FeedRoute.ALBUM -> onGallery(entry)
                                         FeedRoute.WEB -> onWeb(entry)
-                                        FeedRoute.CONFIG -> onWeb(entry)
-                                    }
+                                                }
                                 }) {
                                 EntryCover(entry, Modifier.matchParentSize())
                                 Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent, Ink))))
@@ -537,8 +566,13 @@ private data class PlayScreen(val source: ScreeningSource, val channel: String)
 /** 进度存的键：所有条目（样例和真实）都按 [RemoteEntry.key] 存，一条规则。 */
 private fun progressKey(entryKey: String) = "position:$entryKey"
 
-private fun storedProgress(preferences: android.content.SharedPreferences, entryKey: String): Long =
-    preferences.getLong(progressKey(entryKey), if (entryKey == sampleReelKey("ridge")) 4200L else 0L)
+/** 续播阈值（用户点名「开头 10+ 秒被跳」）：只瞥了几秒不值得跳过片头，低于它就当没看过，从头播。 */
+private const val RESUME_MIN_MS = 5_000L
+
+private fun storedProgress(preferences: android.content.SharedPreferences, entryKey: String): Long {
+    val stored = preferences.getLong(progressKey(entryKey), 0L)
+    return if (stored >= RESUME_MIN_MS) stored else 0L
+}
 
 @Composable
 internal fun Cover(id: String, modifier: Modifier = Modifier) {
@@ -574,6 +608,8 @@ private fun Library(
     back: () -> Unit,
     openEntry: (RemoteEntry) -> Unit,
     onFile: (ScreeningSource) -> Unit,
+    /** 片单为空时的网页退路（page.webFallback 非 null 才画按钮）。 */
+    onWeb: (String, String) -> Unit = { _, _ -> },
     embedded: Boolean = false,
 ) {
     val context = LocalContext.current
@@ -638,7 +674,10 @@ private fun Library(
                 }
             }
             Row(Modifier.fillMaxWidth().padding(top = 9.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("全部视频", Modifier.weight(1f), fontSize = 19.sp, fontWeight = FontWeight.Black)
+                Text(
+                    if (page.kind == ScreeningPageKind.SUBCHANNELS) "子频道" else "全部视频",
+                    Modifier.weight(1f), fontSize = 19.sp, fontWeight = FontWeight.Black,
+                )
                 IconButton(onClick = { poster = !poster }) { Icon(if (poster) Icons.Default.ViewList else Icons.Default.GridView, if (poster) "切换列表视图" else "切换海报视图") }
             }
             FilterRow(listOf("全部", "未观看"), filter) { filter = it }
@@ -648,7 +687,32 @@ private fun Library(
                 ListSkeleton(Modifier.padding(top = 8.dp), rowHeight = 64.dp)
             }
         }
-        if (!pager.loading && shown.isEmpty()) item { Text("这一页没有内容。切回「全部」或者返回上一个频道。", Modifier.padding(14.dp), color = Muted) }
+        if (!pager.loading && shown.isEmpty()) item {
+            // 空态要诚实（取到了 0 条就说 0 条），并给一条能走的路：
+            // 外链频道卡被内页吸收后（B 线），片单查不到的频道退回它自己的网页，
+            // 而不是掉回旧列表页；子频道页查不到就说这个配置频道还没有子频道。
+            Column(Modifier.padding(14.dp)) {
+                Text(
+                    when {
+                        page.kind == ScreeningPageKind.SUBCHANNELS -> "这个频道服务端还没配子频道。"
+                        filter == "未观看" -> "这一页没有内容。切回「全部」或者返回上一个频道。"
+                        else -> "这个频道服务端还没上片单。"
+                    },
+                    color = Muted,
+                )
+                if (page.webFallback != null && page.kind == ScreeningPageKind.VIDEOS) {
+                    Spacer(Modifier.height(10.dp))
+                    Row(
+                        Modifier.fillMaxWidth().clip(Tile).background(Lift)
+                            .clickable { onWeb(page.webFallback, page.title) }.padding(11.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Default.PlayArrow, null, tint = Mint)
+                        Text("在网页里打开", Modifier.padding(start = 8.dp), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    }
+                }
+            }
+        }
         if (poster) items(shown.chunked(3)) { row ->
             // 海报视图与首页网格同一档：三列，一屏多装一半
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

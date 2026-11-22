@@ -1,0 +1,128 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "atri_8.moc3",
+		"Textures": [
+			"atri_8.4096/texture_00.png",
+			"atri_8.4096/texture_01.png"
+		],
+		"Physics": "atri_8.physics3.json",
+		"DisplayInfo": "atri_8.cdi3.json",
+		"Expressions": [
+			{
+				"Name": "base",
+				"File": "expressions/base.exp3.json"
+			},
+			{
+				"Name": "sandal",
+				"File": "expressions/sandal.exp3.json"
+			},
+			{
+				"Name": "crab",
+				"File": "expressions/crab.exp3.json"
+			},
+			{
+				"Name": "crab_sandal",
+				"File": "expressions/crab_sandal.exp3.json"
+			},
+			{
+				"Name": "blush",
+				"File": "expressions/blush.exp3.json"
+			},
+			{
+				"Name": "blush_sandal",
+				"File": "expressions/blush_sandal.exp3.json"
+			},
+			{
+				"Name": "blush_crab",
+				"File": "expressions/blush_crab.exp3.json"
+			},
+			{
+				"Name": "blush_crab_sandal",
+				"File": "expressions/blush_crab_sandal.exp3.json"
+			},
+			{
+				"Name": "bikini",
+				"File": "expressions/bikini.exp3.json"
+			},
+			{
+				"Name": "bikini_sandal",
+				"File": "expressions/bikini_sandal.exp3.json"
+			},
+			{
+				"Name": "bikini_crab",
+				"File": "expressions/bikini_crab.exp3.json"
+			},
+			{
+				"Name": "bikini_crab_sandal",
+				"File": "expressions/bikini_crab_sandal.exp3.json"
+			},
+			{
+				"Name": "bikini_blush",
+				"File": "expressions/bikini_blush.exp3.json"
+			},
+			{
+				"Name": "bikini_blush_sandal",
+				"File": "expressions/bikini_blush_sandal.exp3.json"
+			},
+			{
+				"Name": "bikini_blush_crab",
+				"File": "expressions/bikini_blush_crab.exp3.json"
+			},
+			{
+				"Name": "bikini_blush_crab_sandal",
+				"File": "expressions/bikini_blush_crab_sandal.exp3.json"
+			},
+			{
+				"Name": "pajamas",
+				"File": "expressions/pajamas.exp3.json"
+			},
+			{
+				"Name": "pajamas_sandal",
+				"File": "expressions/pajamas_sandal.exp3.json"
+			},
+			{
+				"Name": "pajamas_crab",
+				"File": "expressions/pajamas_crab.exp3.json"
+			},
+			{
+				"Name": "pajamas_crab_sandal",
+				"File": "expressions/pajamas_crab_sandal.exp3.json"
+			},
+			{
+				"Name": "pajamas_blush",
+				"File": "expressions/pajamas_blush.exp3.json"
+			},
+			{
+				"Name": "pajamas_blush_sandal",
+				"File": "expressions/pajamas_blush_sandal.exp3.json"
+			},
+			{
+				"Name": "pajamas_blush_crab",
+				"File": "expressions/pajamas_blush_crab.exp3.json"
+			},
+			{
+				"Name": "pajamas_blush_crab_sandal",
+				"File": "expressions/pajamas_blush_crab_sandal.exp3.json"
+			}
+		]
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": [
+				"ParamMouthForm",
+				"ParamMouthOpenY"
+			]
+		}
+	]
+}

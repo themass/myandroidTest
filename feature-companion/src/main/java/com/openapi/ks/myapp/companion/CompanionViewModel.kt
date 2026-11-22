@@ -627,6 +627,14 @@ class CompanionViewModel(
     /** 她的声音的真 PCM（16k 单声道），供 Duix / Tao 口型使用。 */
     val remotePcm: kotlinx.coroutines.flow.Flow<ByteArray> get() = transport.remotePcm
 
+    /**
+     * dh-lab 测试语音 rig 的注入口：把这帧 16k mono PCM16LE 从**真远端音频轨回调的
+     * 同一个下游入口**送进形象链（电平提取 → mouthLevel → bridge → setMouth）。
+     * transport 是私有字段，rig 只能从这里进——这也保证 rig 摸不到 send/connect 等
+     * 房间能力。返回 false = 当前替身没有音频通路，调用方降级到旧的 bridge 直喂路径。
+     */
+    fun injectLabAudioPcm16k(batch: ByteArray): Boolean = transport.injectLabAudioPcm16k(batch)
+
     /** 用户自己的音量 0..1（本地麦克风采集轨）。驱动通话页底部波形。 */
     val selfLevel: StateFlow<Float> get() = transport.selfLevel
 

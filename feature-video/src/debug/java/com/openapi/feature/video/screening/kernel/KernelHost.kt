@@ -38,6 +38,16 @@ internal class KernelHost(private val context: Context) {
         private set
     /** 用户想要的状态。内核还没起播时 [playing] 是 false，但交接要以这个为准 */
     private var wantPlaying = false
+    /**
+     * 发出 seek 后到内核位置真的追上落点之前为 true。
+     * IJK 的 BUFFERING_END 比精确 seek 落点早到好几秒（真机日志：END 22:34:39.8、
+     * ACCURATE_SEEK_COMPLETE 22:34:44.8），这期间 `buffering` 已经是 false 但
+     * `currentPosition` 还报 0——只信 buffering 就会漏出 0:00。
+     */
+    private var awaitingSeek = false
+    /** seek 发出时刻与目标点：落点判定要「发出后过信任延迟窗、且读数落进目标 ± 容差」 */
+    private var seekIssuedAt = 0L
+    private var seekTarget = 0L
     /** 正在后台准备新内核，控件可以置灰并显示「换内核…」 */
     var switching by mutableStateOf(false)
         private set
@@ -140,6 +150,7 @@ internal class KernelHost(private val context: Context) {
         position = startMs
         playing = true
         wantPlaying = true
+        awaitingSeek = false
         fallbackTried = false
         releaseAll()
         active = spawn(kernel).also { start(it, startMs) }
@@ -164,6 +175,9 @@ internal class KernelHost(private val context: Context) {
     fun seekTo(ms: Long) {
         val target = ms.coerceAtLeast(0)
         position = target
+        seekTarget = target
+        seekIssuedAt = SystemClock.elapsedRealtime()
+        awaitingSeek = true
         active?.player?.seekTo(target)
     }
 
@@ -345,7 +359,22 @@ internal class KernelHost(private val context: Context) {
 
     private fun syncFromActive() {
         val player = active?.player ?: return
-        if (player.playing) position = player.position
+        val playerPosition = player.position
+        position = playerPositionOrHold(
+            held = position,
+            playerPosition = playerPosition,
+            playing = player.playing,
+            buffering = player.buffering || awaitingSeek,
+        )
+        // 落点判定：见 [awaitingSeekAfter]。IJK 在 seekTo 后会有一小段「假读数=目标值本身」
+        // 的缓存期（探针实测 ~400ms），落点窗口会被它立刻命中——判定前先过信任延迟窗。
+        awaitingSeek = awaitingSeekAfter(
+            awaiting = awaitingSeek,
+            playing = player.playing,
+            sinceIssuedMs = SystemClock.elapsedRealtime() - seekIssuedAt,
+            playerPosition = playerPosition,
+            target = seekTarget,
+        )
         if (player.duration > 0) duration = player.duration
         if (player.ratio > 0f && player.ratio != ratio) {
             ratio = player.ratio
@@ -395,6 +424,55 @@ internal class KernelHost(private val context: Context) {
         /** 交接后旧内核保留多久；这期间新内核报错可以直接退回 */
         const val RETIRE_GRACE_MS = 5000L
     }
+}
+
+/**
+ * 每 tick 的位置同步：什么时候能信内核、什么时候必须钉住不动。
+ *
+ * 真机回归（2026-11-22 用户点名「拖动进度条弹回 0」）：IJK 开着精确 seek，
+ * 落点前的缓冲窗口里 `currentPosition` 报的全是假读数——恒 0、几百毫秒小值、
+ * 缓存的目标值本身（见 [awaitingSeekAfter] 探针取证）。向后拖（同晚 23:04 复验）
+ * 报的还是拖前的陈旧高位，UI 直接弹回旧位置——方向不分，一律不信：
+ * **缓冲期（含 seek 未落点）画面本来就是停的，位置跟着冻结就是对的**；
+ * 只有「播放中且不在缓冲」才跟内核读数。拖到开头的合法 0 不受影响（held 同为 0）。
+ */
+internal fun playerPositionOrHold(held: Long, playerPosition: Long, playing: Boolean, buffering: Boolean): Long =
+    if (playing && !buffering) playerPosition else held
+
+/** seek 落点判定的容差：真机假读数在几百毫秒级，落点偏差在几十毫秒级，取 1.5s 分隔两头 */
+internal const val SEEK_LANDING_SLACK_MS = 1500L
+
+/** seek 发出后的信任延迟窗：见 [awaitingSeekAfter]，压掉 IJK 的假缓存读数 */
+internal const val SEEK_TRUST_DELAY_MS = 2000L
+
+/** 落点等待上限：超时宁可回到跟内核读数（位置小跳），也不能永远钉死 */
+internal const val SEEK_FAILSAFE_MS = 30_000L
+
+/**
+ * seek 落点判定：[awaiting] 什么时候可以解除（解除后 [playerPositionOrHold] 恢复跟内核）。
+ *
+ * 探针取证（2026-11-22，真机日志）两段假读数都要挡：
+ * 1. seekTo 刚发出，IJK 的 Java 层 currentPosition 直接返回缓存的目标值本身（~400ms）——
+ *    所以发出后 [SEEK_TRUST_DELAY_MS] 内不认任何落点；
+ * 2. BUFFERING_END 比 ACCURATE_SEEK_COMPLETE 早 ~5s，这期间读数报 0——落在窗口外，继续等。
+ * 真落点 = 过信任窗后读数进入 target ± [SEEK_LANDING_SLACK_MS]；上界必须有，
+ * 否则向后拖时拖前的旧位置会被当成落点直接弹回去。
+ * 暂停时不判（暂停读数不可信）；[SEEK_FAILSAFE_MS] 兜底：永远追不上宁可回到跟内核
+ * （位置小跳一下），也不能把进度条钉死。
+ */
+internal fun awaitingSeekAfter(
+    awaiting: Boolean,
+    playing: Boolean,
+    sinceIssuedMs: Long,
+    playerPosition: Long,
+    target: Long,
+): Boolean = when {
+    !awaiting -> false
+    !playing -> true
+    sinceIssuedMs > SEEK_FAILSAFE_MS -> false
+    sinceIssuedMs < SEEK_TRUST_DELAY_MS -> true
+    playerPosition in (target - SEEK_LANDING_SLACK_MS)..(target + SEEK_LANDING_SLACK_MS) -> false
+    else -> true
 }
 
 /**

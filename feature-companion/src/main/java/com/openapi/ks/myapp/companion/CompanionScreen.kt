@@ -134,6 +134,8 @@ fun CompanionScreen(
     onOpenCharacters: () -> Unit = {},
     /** 打开个性化页面（记忆、重要日子、她的主动性）。 */
     onOpenProfile: () -> Unit = {},
+    /** 打开「AI 对你的档案」（Markdown 档案，按角色隔离，可编辑）。 */
+    onOpenProfileDoc: () -> Unit = {},
     /** 打开抽屉。与「对话」页一致。 */
     onMenuClick: (() -> Unit)? = null,
 ) {
@@ -276,6 +278,7 @@ fun CompanionScreen(
                     onToggleAvatar = viewModel::toggleAvatarExpanded,
                     onCharacters = onOpenCharacters,
                     onProfile = onOpenProfile,
+                    onProfileDoc = onOpenProfileDoc,
                     onToggleOutput = viewModel::toggleOutput,
                     onOpenCall = onOpenCall,
                 )
@@ -390,6 +393,7 @@ private fun CompanionTopBar(
     onToggleAvatar: () -> Unit,
     onCharacters: () -> Unit,
     onProfile: () -> Unit,
+    onProfileDoc: () -> Unit,
     onToggleOutput: () -> Unit,
     onOpenCall: () -> Unit,
 ) {
@@ -506,6 +510,13 @@ private fun CompanionTopBar(
                         onClick = {
                             menuOpen = false
                             onProfile()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("AI 对我的档案") },
+                        onClick = {
+                            menuOpen = false
+                            onProfileDoc()
                         },
                     )
                     DropdownMenuItem(

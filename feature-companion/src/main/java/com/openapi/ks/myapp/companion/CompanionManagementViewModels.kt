@@ -147,6 +147,128 @@ class MemoryViewModel(private val api: CompanionApi, private val roleId: String)
     }
 }
 
+// ---- 用户档案（Markdown 长文）----
+
+data class ProfileDocState(
+    /** 可查档案的角色列表（档案按角色隔离，先选角色再看档案）。 */
+    val characters: List<CharacterSummary> = emptyList(),
+    val charactersLoading: Boolean = false,
+    /** 当前选中的角色 id；null 表示还没选过（默认选中列表第一个 / 会话角色）。 */
+    val roleId: String? = null,
+    val doc: ProfileDoc? = null,
+    val docLoading: Boolean = false,
+    /** 编辑框里的当前文本；null 表示尚未载入（界面显示加载中，不显示空编辑器）。 */
+    val draft: String? = null,
+    val saving: Boolean = false,
+    /** 刚保存成功的提示（短暂显示后由界面清掉）。 */
+    val savedHint: Boolean = false,
+    val error: String? = null,
+)
+
+/**
+ * 档案页：每 (用户, 角色) 一份 Markdown。角色切换时换 [roleId] 重新拉取；
+ * 编辑在 [draft] 上进行，「保存」整篇覆盖，失败回滚到服务端版本。
+ */
+class ProfileDocViewModel(
+    private val api: CompanionApi,
+    /** 会话里正在聊的角色：优先选中它（档案入口就在它的聊天页菜单里）。 */
+    private val currentCharacterId: String,
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(ProfileDocState())
+    val state: StateFlow<ProfileDocState> = _state.asStateFlow()
+
+    init {
+        load()
+    }
+
+    fun load() {
+        _state.update { it.copy(charactersLoading = true) }
+        viewModelScope.launch {
+            try {
+                val page = api.characters(limit = PAGE_SIZE, offset = 0)
+                // 优先选中会话角色；列表里没有（老服务端/被删）就退回列表第一个
+                val roleId = page.items.firstOrNull { it.id == currentCharacterId }?.id
+                    ?: page.items.firstOrNull()?.id
+                _state.update {
+                    it.copy(
+                        characters = page.items,
+                        charactersLoading = false,
+                        roleId = roleId,
+                    )
+                }
+                if (roleId != null) loadDoc(roleId) else _state.update { it.copy(docLoading = false) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _state.update { it.copy(charactersLoading = false, error = e.message ?: "加载失败") }
+            }
+        }
+    }
+
+    fun selectRole(roleId: String) {
+        if (roleId == _state.value.roleId) return
+        _state.update { it.copy(roleId = roleId, doc = null, draft = null, error = null) }
+        loadDoc(roleId)
+    }
+
+    private fun loadDoc(roleId: String) {
+        _state.update { it.copy(docLoading = true, error = null) }
+        viewModelScope.launch {
+            try {
+                // 拉文档同时把草稿初始化为服务端内容：编辑器一载入就有可编辑的文本
+                val doc = api.profileDoc(roleId)
+                _state.update { it.copy(doc = doc, draft = doc.markdown, docLoading = false) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _state.update { it.copy(docLoading = false, error = e.message ?: "加载失败") }
+            }
+        }
+    }
+
+    fun onDraftChange(text: String) {
+        _state.update { it.copy(draft = text, savedHint = false) }
+    }
+
+    /** 保存：整篇覆盖。成功后记下提示；失败回滚草稿到服务端版本并给错误。 */
+    fun save() {
+        val st = _state.value
+        val roleId = st.roleId ?: return
+        val draft = st.draft ?: return
+        if (st.saving) return
+        _state.update { it.copy(saving = true, error = null, savedHint = false) }
+        viewModelScope.launch {
+            try {
+                api.updateProfileDoc(roleId, draft)
+                _state.update {
+                    it.copy(
+                        saving = false,
+                        savedHint = true,
+                        // 版本与来源以服务端为准：重新拉一次，拿到新的 version/source
+                        doc = runCatching { api.profileDoc(roleId) }.getOrNull(),
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // 回滚草稿到服务端版本：别让用户以为改成功了
+                _state.update {
+                    it.copy(saving = false, error = e.message ?: "保存失败", draft = st.doc?.markdown)
+                }
+            }
+        }
+    }
+
+    fun dismissSavedHint() {
+        _state.update { it.copy(savedHint = false) }
+    }
+
+    private companion object {
+        const val PAGE_SIZE = 50
+    }
+}
+
 // ---- 偏好 ----
 
 data class SettingsState(

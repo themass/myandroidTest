@@ -69,6 +69,22 @@ class Live2dRuntime internal constructor(
     private var released = false
     private var gazeCaptured = false
 
+    /**
+     * 改 Cubism 场景的 JNI 调用（expression / mouth / gaze 触点）必须与
+     * `nativeOnDrawFrame` **同线程**执行：vendored `libchatwaifu-live2d.so` 无内部锁，
+     * 跨线程改场景真机直接 SIGSEGV（2026-11-22 通话页 GLThread drawFrame fault addr 0x14；
+     * 2026-11-20 引擎切换 release 崩溃同族——那次只修了拆除路径）。
+     *
+     * 生产实现 = `GLSurfaceView.queueEvent`（块排队进 GL 线程事件队列，与逐帧绘制天然
+     * 串行）；JVM 测试注入 [JniDispatcher] 记录器验证投递语义，不触真 JNI。
+     */
+    private var dispatcher: JniDispatcher? = null
+
+    /** 投递「改场景的 JNI 调用」到 GL 线程；见 [Live2dRuntime.dispatcher]。 */
+    internal fun interface JniDispatcher {
+        fun post(block: () -> Unit)
+    }
+
     fun availability(): EngineStatus = when {
         released -> EngineStatus(false, REASON_RELEASED)
         !env.modelsReady() -> EngineStatus(false, REASON_NOT_DOWNLOADED)
@@ -111,6 +127,9 @@ class Live2dRuntime internal constructor(
         val modelPath = File(root, modelDirName).absolutePath + File.separator
         JniBridgeJava.nativeProjectChangeTo(modelPath, modelJsonName)
         JniBridgeJava.nativeAutoBlinkEyes(true)
+        // view 还没挂上就允许 setExpression 等调用（先建 view 后触发的顺序在通话页成立），
+        // 此刻起所有场景变更走 GL 队列；queueEvent 在 surface 未创建时也会排队给 GL 线程。
+        dispatcher = JniDispatcher { block -> view.queueEvent(block) }
         started = true
         surface = view
         return view
@@ -119,7 +138,11 @@ class Live2dRuntime internal constructor(
     /** Mouth openness 0..1 → Cubism ParamMouthOpenY. */
     fun setMouth(v: Float) {
         if (!started || released) return
-        runCatching { JniBridgeJava.nativeProjectMouthOpenY(v.coerceIn(0f, 1f)) }
+        val at = v.coerceIn(0f, 1f)
+        val d = dispatcher ?: return
+        runCatching {
+            d.post { runCatching { JniBridgeJava.nativeProjectMouthOpenY(at) } }
+        }
     }
 
     /**
@@ -131,26 +154,53 @@ class Live2dRuntime internal constructor(
     fun setGaze(nx: Float, ny: Float) {
         if (!started || released) return
         val v = surface ?: return
+        val d = dispatcher ?: return
         val w = v.width.toFloat()
         val h = v.height.toFloat()
         if (w <= 0f || h <= 0f) return
         val x = (0.5f + nx.coerceIn(-1f, 1f) * 0.5f) * w
         val y = (0.5f - ny.coerceIn(-1f, 1f) * 0.5f) * h
+        // 像素换算留在调用线程（读 view 尺寸是安全的），JNI 进 GL 队列。
+        // began 与 moved 在同一个投递块里，保序不依赖两次排队的相对次序。
+        val needCapture = !gazeCaptured
         runCatching {
-            // Cubism only tracks a drag after a press ("captured"); press once and never release
-            // (a release would run the tap hit-test and fire motions).
-            if (!gazeCaptured) {
-                JniBridgeJava.nativeOnTouchesBegan(x, y)
-                gazeCaptured = true
+            d.post {
+                runCatching {
+                    // Cubism only tracks a drag after a press ("captured"); press once and never release
+                    // (a release would run the tap hit-test and fire motions).
+                    if (needCapture) {
+                        gazeCaptured = true
+                        JniBridgeJava.nativeOnTouchesBegan(x, y)
+                    }
+                    JniBridgeJava.nativeOnTouchesMoved(x, y)
+                }
             }
-            JniBridgeJava.nativeOnTouchesMoved(x, y)
         }
     }
 
     /** Applies a named expression (e.g. "Angry", "Smile") if the model defines it. */
     fun setExpression(name: String) {
         if (!started || released || name.isEmpty()) return
-        runCatching { JniBridgeJava.nativeApplyExpression(name) }
+        val d = dispatcher ?: return
+        runCatching {
+            d.post { runCatching { JniBridgeJava.nativeApplyExpression(name) } }
+        }
+    }
+
+    /**
+     * 舞台背景色（0..1 sRGB）→ fork .so 的每帧 `glClearColor`（上游写死黑，主题色
+     * 永远透不出来——真机验收 2026-11-22「换背景色没效果」）。
+     *
+     * 只有 [Live2dNativeLoader] 加载的 fork 构建（scripts/dh-lab/build-live2d-native.sh）
+     * 导出该符号；误装回上游库存 .so 时 JNI 是 UnsatisfiedLinkError，runCatching 吞掉
+     * 保持黑底，不影响其余渲染。写入与逐帧读取都在 GL 线程（dispatcher 串行），无竞争。
+     */
+    fun setBackground(r: Float, g: Float, b: Float) {
+        if (!started || released) return
+        val d = dispatcher ?: return
+        runCatching {
+            d.post { runCatching { JniBridgeJava.nativeSetBackgroundColor(r, g, b) } }
+        }
     }
 
     fun release() {
@@ -209,7 +259,9 @@ class Live2dRuntime internal constructor(
 
         /**
          * JVM-test seam: no native library and no real GL. [viewBuilder] records the host Context
-         * and resolved Activity that [createView] hands to the GL path.
+         * and resolved Activity that [createView] hands to the GL path. [started] pre-arms the
+         * runtime without buildGlView; [jniDispatcher] captures posted scene-mutation blocks so
+         * threading can be asserted without JNI ([Live2dRuntimeThreadingTest]).
          */
         internal fun forTest(
             modelsReady: Boolean,
@@ -218,6 +270,8 @@ class Live2dRuntime internal constructor(
             modelJsonName: String = "$DEFAULT_MODEL_DIR.model3.json",
             cacheRoot: File? = null,
             viewBuilder: ViewBuilder? = null,
+            started: Boolean = false,
+            jniDispatcher: JniDispatcher? = null,
         ): Live2dRuntime = Live2dRuntime(
             env = object : Env {
                 override fun modelsReady() = modelsReady
@@ -227,7 +281,10 @@ class Live2dRuntime internal constructor(
             modelDirName = modelDirName,
             modelJsonName = modelJsonName,
             viewBuilder = viewBuilder,
-        )
+        ).apply {
+            this.started = started
+            this.dispatcher = jniDispatcher
+        }
     }
 }
 

@@ -75,7 +75,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 
 /** 陪伴界面里能去的页面。聊天是主页面，其余三个从顶部进入。 */
-enum class CompanionPage { CHAT, CHARACTERS, MEMORY, SETTINGS }
+enum class CompanionPage { CHAT, CHARACTERS, MEMORY, PROFILE_DOC, SETTINGS }
 
 /**
  * 陪伴界面的完整装配：聊天主页面 + 角色列表 / 记忆 / 偏好三个子页面。
@@ -101,6 +101,8 @@ fun CompanionRoute(
      */
     launchCallOnOpen: Boolean = false,
     onLaunchCallHandled: () -> Unit = {},
+    /** 全屏通话覆盖层的挂起状态上报：宿主据此关掉抽屉滑动（VRM 舞台手势要完整序列）。 */
+    onCallActiveChanged: (Boolean) -> Unit = {},
 ) {
     val context = LocalContext.current.applicationContext
     val tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.common.net.http.NetConfig.tokenHeader(), null) }
@@ -148,6 +150,11 @@ fun CompanionRoute(
     // 所以不走 CompanionPage 那套"切换页面"的状态。
     val uiState by chatViewModel.state.collectAsStateWithLifecycle()
     val inCall = uiState.callActive
+    DisposableEffect(inCall) {
+        onCallActiveChanged(inCall)
+        // 离开陪伴页（切标签）时组合退出，兜底复位，别让宿主以为通话还挂着。
+        onDispose { onCallActiveChanged(false) }
+    }
 
     // 进通话先要有录音权限：没有就申请；用户拒绝也照样进，只是以静音形态进（她能说，你只能看/打字）。
     // 用一个待办动作区分「拒绝后该继续做什么」——申请前不知道回调回来对应哪件事。
@@ -224,6 +231,7 @@ fun CompanionRoute(
                     onOpenCall = openCall,
                     onOpenCharacters = { page = CompanionPage.CHARACTERS },
                     onOpenProfile = { page = CompanionPage.MEMORY },
+                    onOpenProfileDoc = { page = CompanionPage.PROFILE_DOC },
                     onMenuClick = onMenuClick,
                 )
             }
@@ -259,6 +267,22 @@ fun CompanionRoute(
                     onAddEvent = vm::addEvent,
                     onSuppressProfile = vm::suppressProfile,
                     onDeleteProfile = vm::deleteProfile,
+                    onBack = { page = CompanionPage.CHAT },
+                )
+            }
+
+            CompanionPage.PROFILE_DOC -> {
+                val vm: ProfileDocViewModel = viewModel(
+                    factory = viewModelFactory { initializer { ProfileDocViewModel(api, characterId) } },
+                )
+                val state by vm.state.collectAsStateWithLifecycle()
+                ProfileDocScreen(
+                    state = state,
+                    onRetry = vm::load,
+                    onSelectRole = vm::selectRole,
+                    onDraftChange = vm::onDraftChange,
+                    onSave = vm::save,
+                    onDismissSavedHint = vm::dismissSavedHint,
                     onBack = { page = CompanionPage.CHAT },
                 )
             }
@@ -580,6 +604,12 @@ fun CompanionRoute(
                             onTapped = chatViewModel::onAvatarTapped,
                             // 长按她：动作托盘弹出；选了可点动作 = 把文案当用户的话发出去。
                             onLongPressed = { actionTrayOpen = true },
+                            // 测试语音 rig 走生产注入路径：PCM 从远端音频轨回调共用的
+                            // 下游入口进 transport，下游电平→嘴型与真通话完全同路。
+                            audioInjector = chatViewModel::injectLabAudioPcm16k,
+                            // 主题背景色穿透到引擎舞台（Live2D 的 GL 清屏色），
+                            // 换主题不再「还是大黑色」。
+                            theme = callTheme,
                         )
                         }
                         if (actionTrayOpen) {

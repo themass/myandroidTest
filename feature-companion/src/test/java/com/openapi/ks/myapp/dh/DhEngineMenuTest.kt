@@ -61,6 +61,17 @@ class DhEngineMenuTest {
     }
 
     @Test
+    fun vrm_menu_row_shows_experiment_label() {
+        val rows = dhEngineMenuRows(
+            listOf(DhEngineAvailability(DhEngineId.VRM, available = false, reason = "未下载", needsDownload = true)),
+        )
+        val vrm = rows.first { it.id == DhEngineId.VRM }
+        assertEquals("VRM (实验)", vrm.label)
+        assertTrue(vrm.switches)
+        assertEquals("未下载", vrm.detail)
+    }
+
+    @Test
     fun menu_keeps_download_pending_engine_switchable_but_device_blocked_one_not() {
         val rows = dhEngineMenuRows(
             listOf(

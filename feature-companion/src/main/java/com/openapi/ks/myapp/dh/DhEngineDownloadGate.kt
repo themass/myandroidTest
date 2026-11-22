@@ -32,6 +32,7 @@ fun DhEngineId.assets(): EngineAssets? = when (this) {
     DhEngineId.DUIX -> EngineAssets.DUIX
     DhEngineId.LIVE2D -> EngineAssets.LIVE2D
     DhEngineId.TAO_AVATAR -> EngineAssets.TAO
+    DhEngineId.VRM -> EngineAssets.VRM
 }
 
 /**

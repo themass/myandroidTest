@@ -41,7 +41,8 @@ internal data class TimedComment(val id: Int, val atMs: Long, val text: String, 
 /** 一条弹幕横向走完全程需要的**媒体时间**；变速时整体等比缩短或拉长，不用单独处理。 */
 private const val TRAVEL_MS = 6500L
 
-private val DanmakuStyle = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Bold)
+/** 正式观感：字号对齐主流播放器（约 15sp 粗体白字 + 深色描边），描边保证压在亮画面上也读得清。 */
+private val DanmakuStyle = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold)
 private val DanmakuStroke = DanmakuStyle.copy(drawStyle = Stroke(width = 3f))
 
 /** 排好车道、量好宽度的一条弹幕，之后每帧只算 x。 */

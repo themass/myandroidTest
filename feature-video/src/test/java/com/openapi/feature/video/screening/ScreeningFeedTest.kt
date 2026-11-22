@@ -169,16 +169,21 @@ class ScreeningFeedTest {
     }
 
     @Test
-    fun `外链卡路由到 WEB，不进播放器也不发空 channel`() {
-        val web = remoteEntry(1L, 0, "成人动漫", null, null, 1.2f,
-            "https://exex.j8olo.cc/page/shipin/15", false, dataType = 5, param = "se8成人动漫")!!
-        assertEquals(FeedRoute.WEB, routeOf(web))
-        // 原页面里这类卡点下去是 WebView；放映场不许把它判给 CHANNEL/PLAY
+    fun `外链卡路由：有频道 key 进内页吸收，没有的才交回 WEB`() {
+        // 外链频道卡（param 有真频道 key）：B 线吸收，进放映场内页。
+        // 探针实测 items.json 认这批 key（hsexhsex.men 返回 30 条可播条目），
+        // 查不到行的频道（se8成人动漫）也返回 errno0 + 空列表，由内页诚实空态兜底。
+        val channel = remoteEntry(1L, 0, "成人动漫", null, null, 1.2f,
+            "https://exex.j8olo.cc/page/shipin/15", false, dataType = 5, param = "hsexhsex.men")!!
+        assertEquals(FeedRoute.CHANNEL, routeOf(channel))
+        // 原页面里这类卡点下去是 WebView；旧分流让用户「往里点就掉旧 UI」的根因就在这
+        // 内部频道卡一直是 CHANNEL，不受影响
         assertEquals(FeedRoute.CHANNEL, routeOf(remoteEntry(2L, 0, "内部频道", null, null, 1f,
             "videoList1://video/list?channel=movie_1", false, dataType = 5)!!))
-        // 网页壳不播 HLS/MKV；内核也不认的 .flv 继续走 WEB，比进播放器黑屏强
+        // 拿不出频道 key 的纯网页还是 WEB：内页没接口可发，不许发空 channel=
         assertEquals(FeedRoute.WEB, routeOf(remoteEntry(3L, 0, "网页视频页", null, null, 1f,
             "https://ddys.io/movie/2024.html", false, dataType = 2)!!))
+        // 网页壳不播 HLS/MKV；内核也不认的 .flv 继续走 WEB，比进播放器黑屏强
         assertEquals(FeedRoute.WEB, routeOf(remoteEntry(6L, 0, "flv 流", null, null, 1f,
             "https://cdn.example/a.flv", false, dataType = 2)!!))
         assertEquals(FeedRoute.ALBUM, routeOf(remoteEntry(4L, 0, "册子", null, null, 1f,
@@ -211,12 +216,34 @@ class ScreeningFeedTest {
     }
 
     @Test
-    fun `带 channel 参数的可播外链仍是频道入口不误伤`() {
-        // 外链频道卡（param 有值、路径不是媒体文件）维持 WEB 原路由
+    fun `外链频道卡被内页吸收后仍是入口，且留网页兜底`() {
+        // 外链频道卡（param 有值、路径不是媒体文件）：进内页，右上角保持入口样式
         val channel = remoteEntry(1L, 0, "成人动漫", null, null, 1.2f,
             "https://exex.j8olo.cc/page/shipin/15", false, dataType = 5, param = "se8成人动漫")!!
-        assertEquals(FeedRoute.WEB, routeOf(channel))
+        assertEquals(FeedRoute.CHANNEL, routeOf(channel))
         assertTrue(channel.isGroupEntry)
+        // 内页取不到片单时的兜底：这条原本是网页，页面要能「在网页里打开」
+        assertEquals("https://exex.j8olo.cc/page/shipin/15", channel.webFallbackUrl())
+        // 内部频道卡没有网页可回退：兜底是 null，页面不许瞎放按钮
+        val inner = remoteEntry(2L, 0, "内部频道", null, null, 1f,
+            "videoList1://video/list?channel=movie_1", false, dataType = 5)!!
+        assertEquals(FeedRoute.CHANNEL, routeOf(inner))
+        assertNull(inner.webFallbackUrl())
+    }
+
+    @Test
+    fun `外链 param 是网页地址就不算频道 key`() {
+        // 探针实测：items.json 的条目行 param 常是网页地址（https://hsex.men/video-1259457.htm），
+        // 说的是「这条的网页在哪」，不是「这是个频道」。拿它发 items.json 只会查到 0 行。
+        val row = remoteEntry(1L, 0, "猎战狂徒", null, null, 1f,
+            "https://bad.news/t/5806345", false, dataType = 5, param = "https://bad.news/t/5806345")!!
+        assertNull(row.videoChannelKey())
+        // 于是它不是频道入口，是网页：routeOf 交回 WEB（旧页面本来就是 WebView）
+        assertEquals(FeedRoute.WEB, routeOf(row))
+        // 真频道 key（标签串，不是 URL）照旧算数
+        val card = remoteEntry(2L, 0, "成人动漫", null, null, 1f,
+            "https://exex.j8olo.cc/page/shipin/15", false, dataType = 5, param = "hsexhsex.men")!!
+        assertEquals("hsexhsex.men", card.videoChannelKey())
     }
 
     // ---- 播放区横滑快进退：方向与档位是纯函数，钉住「右滑快进 30s 一档」 ----
@@ -251,15 +278,38 @@ class ScreeningFeedTest {
     }
 
     @Test
-    fun `配置频道卡路由到 CONFIG：交回原路由，绝不在内页发取片单接口`() {
-        // 夜色分类实测全是这种卡（hsex_all 只是 channelType 列，items.json 查不到 → 10000）
+    fun `夜色配置频道卡被内页吸收：进内页列子频道，不发片单接口`() {
+        // 夜色分类实测全是这种卡。hsex_all 只是 channelType 列：拿它发 items.json 是 0 行，
+        // 发 channel.json 才列得出子频道（探针实测 18禁 / hsex.men 两行）。
+        // 所以吸收的正确姿势不是「内页直接取片单」，而是内页先列子频道（SUBCHANNELS）。
         val cfg = remoteEntry(1L, 0, "hsex最好的自拍", null, null, 1f,
             "video://config?channel=hsex_all", false, dataType = 5)!!
-        assertEquals(FeedRoute.CONFIG, routeOf(cfg))
+        assertEquals(FeedRoute.CHANNEL, routeOf(cfg))
         // 它是入口不是直播：isGroupEntry 必须为真，否则会被判给 PLAY
         assertTrue(cfg.isGroupEntry)
+        assertEquals(ScreeningPageKind.SUBCHANNELS, videoChannelPageKind(cfg))
         // 图集判定优先：dataType=6 就算带 channel 也先进图集
         assertEquals(FeedRoute.ALBUM, routeOf(remoteEntry(2L, 0, "册子", null, null, 1f,
             "video://config?channel=x", false, dataType = 6)!!))
+    }
+
+    @Test
+    fun `普通频道页取片单，只有配置频道取子频道`() {
+        // 外链频道卡（param 有真 key）：内页直接 items.json
+        assertEquals(ScreeningPageKind.VIDEOS, videoChannelPageKind(remoteEntry(1L, 0, "成人动漫", null, null, 1f,
+            "https://exex.j8olo.cc/page/shipin/15", false, dataType = 5, param = "hsexhsex.men")!!))
+        // 内部频道卡同样取片单
+        assertEquals(ScreeningPageKind.VIDEOS, videoChannelPageKind(remoteEntry(2L, 0, "内部频道", null, null, 1f,
+            "videoList1://video/list?channel=movie_1", false, dataType = 5)!!))
+    }
+
+    @Test
+    fun `子频道行能继续下钻成片单页`() {
+        // channel.json 实测行：actionUrl 是相对路径（baseurl 拼完变外链），param 是子频道标签。
+        // 点它应当再开一层新内页（items.json 发子频道 key），不是掉回旧页面。
+        val sub = remoteEntry(1L, 0, "hsex.men", null, null, 1f,
+            "https://hsex.tv/list-1.htm", false, dataType = 5, param = "hsexhsex.men")!!
+        assertEquals(FeedRoute.CHANNEL, routeOf(sub))
+        assertEquals(ScreeningPageKind.VIDEOS, videoChannelPageKind(sub))
     }
 }

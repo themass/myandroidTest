@@ -1,0 +1,13 @@
+{
+	"Type": "Live2D Expression",
+	"Comment": "lab 触点互动组合表情（生成器 gen-expressions.py，勿手改）：blush",
+	"FadeInTime": 0.2,
+	"FadeOutTime": 0.2,
+	"Parameters": [
+		{
+			"Id": "ParamCheek",
+			"Value": 1,
+			"Blend": "Add"
+		}
+	]
+}

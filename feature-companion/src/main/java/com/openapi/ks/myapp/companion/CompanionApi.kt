@@ -55,6 +55,13 @@ interface CompanionApi {
      * 整页也不会因为这块读不到而失败。
      */
     suspend fun profile(roleId: String, includeHistory: Boolean = false): List<ProfileEntry> = emptyList()
+    /**
+     * AI 对你的档案（Markdown 长文）。服务端按 (用户, 角色) 存一份；读不到时服务端
+     * 返回空 markdown + null version，据此显示空态而不是报错。
+     */
+    suspend fun profileDoc(roleId: String): ProfileDoc
+    /** 用户改写档案：整篇覆盖（服务端版本号 +1，AI 下一批以新内容为底稿）。 */
+    suspend fun updateProfileDoc(roleId: String, markdown: String)
     suspend fun suppressProfileEntry(roleId: String, id: String) = Unit
     suspend fun deleteProfileEntry(roleId: String, id: String) = Unit
     suspend fun events(roleId: String, includePast: Boolean = false): List<TimelineEventItem>
@@ -163,6 +170,13 @@ class HttpCompanionApi(
         // 画像同样按角色隔离：不传 role_id 读到的是用户级空间（空的）
         val json = call("GET", "/v1/memory/profile?role_id=${enc(roleId)}&include_history=$includeHistory")
         return json.optJSONArray("items").toList { ProfileEntry.from(it) }
+    }
+
+    override suspend fun profileDoc(roleId: String): ProfileDoc =
+        ProfileDoc.from(call("GET", "/v1/memory/profile_doc?role_id=${enc(roleId)}"))
+
+    override suspend fun updateProfileDoc(roleId: String, markdown: String) {
+        call("PUT", "/v1/memory/profile_doc?role_id=${enc(roleId)}", JSONObject().put("markdown", markdown))
     }
 
     override suspend fun suppressProfileEntry(roleId: String, id: String) {

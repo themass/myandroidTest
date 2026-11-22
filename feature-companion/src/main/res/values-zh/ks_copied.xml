@@ -45,6 +45,13 @@
     <string name="companion_profile_hint">这是她归纳出来的对你的了解。标了「猜测」的是她猜的，没有经过你确认。你可以让她别再提某一条，或者直接忘掉。</string>
     <string name="companion_profile_guess">猜测，未经确认</string>
     <string name="companion_profile_stop">别再提</string>
+    <!-- AI 对你的档案（Markdown 长文，按角色隔离，可编辑） -->
+    <string name="companion_profile_doc_title">AI 对我的档案</string>
+    <string name="companion_profile_doc_maintained_by_ai">由她维护——你们聊得越多越准</string>
+    <string name="companion_profile_doc_edited_by_you">你最近改过</string>
+    <string name="companion_profile_doc_edit_hint">编辑档案</string>
+    <string name="companion_profile_doc_save">保存</string>
+    <string name="companion_profile_doc_saved">已保存</string>
     <!-- 输入区选图/拍照 -->
     <string name="companion_attach_more">发图片</string>
     <string name="companion_attach_album">相册</string>

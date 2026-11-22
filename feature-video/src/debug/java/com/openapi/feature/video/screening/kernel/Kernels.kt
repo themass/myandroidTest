@@ -39,6 +39,11 @@ internal interface KernelPlayer {
     val position: Long
     val duration: Long
     val playing: Boolean
+    /**
+     * 正在缓冲（seek 后重载分片也算）。seek 落点前内核的 position 会短暂报 0，
+     * UI 靠它决定「钉住不动」而不是拿 0 当真值（真机：拖进度条弹回 0:00）。
+     */
+    val buffering: Boolean
     /** 已经准备完、可以接受 seek/起播。准备中为 false，[playing] 此时一定是 false。 */
     val ready: Boolean
     /** 宽高比（含像素比），未知时返回 0。 */

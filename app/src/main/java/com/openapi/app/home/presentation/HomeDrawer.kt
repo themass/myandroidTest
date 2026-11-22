@@ -162,3 +162,14 @@ internal fun DrawerSectionTitle(@StringRes title: Int) {
         modifier = Modifier.padding(start = 28.dp, top = 12.dp, bottom = 4.dp),
     )
 }
+
+/**
+ * 抽屉滑动开关（纯函数，HomeDrawerGestureTest 钉住）：
+ * 对话标签（按住录音）与通话覆盖层（WebView 单指拖动）里禁止滑动开抽屉；
+ * 抽屉已打开时任何界面都能滑动关闭。
+ */
+internal fun drawerSwipeEnabled(
+    currentIsChat: Boolean,
+    drawerOpen: Boolean,
+    callVisible: Boolean,
+): Boolean = drawerOpen || (currentIsChat.not() && callVisible.not())

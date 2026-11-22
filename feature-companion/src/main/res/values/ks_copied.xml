@@ -45,6 +45,13 @@
     <string name="companion_profile_hint">This is what she has gathered about you. Anything marked as a guess hasn\'t been confirmed. You can ask her to stop bringing something up, or forget it.</string>
     <string name="companion_profile_guess">A guess, not confirmed</string>
     <string name="companion_profile_stop">Stop mentioning</string>
+    <!-- AI 对你的档案（Markdown 长文，按角色隔离，可编辑） -->
+    <string name="companion_profile_doc_title">What she knows about you</string>
+    <string name="companion_profile_doc_maintained_by_ai">Maintained by her — updates as you talk</string>
+    <string name="companion_profile_doc_edited_by_you">Last edited by you</string>
+    <string name="companion_profile_doc_edit_hint">Edit the profile</string>
+    <string name="companion_profile_doc_save">Save</string>
+    <string name="companion_profile_doc_saved">Saved</string>
     <!-- 输入区选图/拍照 -->
     <string name="companion_attach_more">Add a photo</string>
     <string name="companion_attach_album">Album</string>
