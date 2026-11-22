@@ -38,6 +38,13 @@ internal class KernelHost(private val context: Context) {
         private set
     /** 用户想要的状态。内核还没起播时 [playing] 是 false，但交接要以这个为准 */
     private var wantPlaying = false
+    /**
+     * 发出 seek 后到内核位置真的追上落点之前为 true。
+     * IJK 的 BUFFERING_END 比精确 seek 落点早到好几秒（真机日志：END 22:34:39.8、
+     * ACCURATE_SEEK_COMPLETE 22:34:44.8），这期间 `buffering` 已经是 false 但
+     * `currentPosition` 还报 0——只信 buffering 就会漏出 0:00。
+     */
+    private var awaitingSeek = false
     /** 正在后台准备新内核，控件可以置灰并显示「换内核…」 */
     var switching by mutableStateOf(false)
         private set
@@ -140,6 +147,7 @@ internal class KernelHost(private val context: Context) {
         position = startMs
         playing = true
         wantPlaying = true
+        awaitingSeek = false
         fallbackTried = false
         releaseAll()
         active = spawn(kernel).also { start(it, startMs) }
@@ -164,6 +172,7 @@ internal class KernelHost(private val context: Context) {
     fun seekTo(ms: Long) {
         val target = ms.coerceAtLeast(0)
         position = target
+        awaitingSeek = true
         active?.player?.seekTo(target)
     }
 
@@ -345,12 +354,22 @@ internal class KernelHost(private val context: Context) {
 
     private fun syncFromActive() {
         val player = active?.player ?: return
+        val playerPosition = player.position
         position = playerPositionOrHold(
             held = position,
-            playerPosition = player.position,
+            playerPosition = playerPosition,
             playing = player.playing,
-            buffering = player.buffering,
+            buffering = player.buffering || awaitingSeek,
         )
+        // 内核报出的位置落进落点窗口才算真落点，恢复信任。
+        // 上界同样必须有：向后拖时 seek 还没被内核处理，读数仍是拖前的旧位置，
+        // 只写下界会让它立刻误判落点、弹回旧位置。
+        // 只看播放中的读数：暂停时内核位置本来就不可信（保持原语义钉住 held）。
+        if (
+            awaitingSeek && player.playing &&
+            playerPosition >= position - SEEK_LANDING_SLACK_MS &&
+            playerPosition <= position + SEEK_LANDING_SLACK_MS
+        ) awaitingSeek = false
         if (player.duration > 0) duration = player.duration
         if (player.ratio > 0f && player.ratio != ratio) {
             ratio = player.ratio
@@ -399,6 +418,9 @@ internal class KernelHost(private val context: Context) {
 
         /** 交接后旧内核保留多久；这期间新内核报错可以直接退回 */
         const val RETIRE_GRACE_MS = 5000L
+
+        /** seek 落点判定的容差：真机假读数在几百毫秒级，落点偏差在几十毫秒级，取 1.5s 分隔两头 */
+        const val SEEK_LANDING_SLACK_MS = 1500L
     }
 }
 
