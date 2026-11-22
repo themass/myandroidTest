@@ -105,9 +105,13 @@ internal fun isConfigAction(actionUrl: String?): Boolean =
  * 视频频道内页取数用的 key。原页面 `VideoChannelListFragment.getUrl` 传的是 `vo.param`：
  * 服务端真实频道行（如 `param='se8成人动漫'`）的 actionUrl 是外链、不带 `channel=`，
  * 真正的频道标识只在 param 里。param 没有才退回 actionUrl 解析值（`videoList1://…?channel=`）。
+ *
+ * param 本身是 http(s) 地址的不算频道 key：探针实测片单条目行（items.json 的 rows）
+ * param 常是这条的网页地址（`https://bad.news/t/5806345`），说的是「它的网页在哪」，
+ * 不是「这是个频道」。拿它去发 items.json 只会查到 0 行，还会让外链条目被误判成频道入口。
  */
 internal fun RemoteEntry.videoChannelKey(): String? =
-    param?.takeIf { it.isNotBlank() } ?: channelParam
+    param?.takeIf { it.isNotBlank() && !isWebAction(it) } ?: channelParam
 
 /**
  * 内页吸收外链频道卡（B 线）后的退路：频道 key 在 items.json 查不到片单时，

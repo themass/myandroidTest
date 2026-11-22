@@ -231,6 +231,21 @@ class ScreeningFeedTest {
         assertNull(inner.webFallbackUrl())
     }
 
+    @Test
+    fun `外链 param 是网页地址就不算频道 key`() {
+        // 探针实测：items.json 的条目行 param 常是网页地址（https://hsex.men/video-1259457.htm），
+        // 说的是「这条的网页在哪」，不是「这是个频道」。拿它发 items.json 只会查到 0 行。
+        val row = remoteEntry(1L, 0, "猎战狂徒", null, null, 1f,
+            "https://bad.news/t/5806345", false, dataType = 5, param = "https://bad.news/t/5806345")!!
+        assertNull(row.videoChannelKey())
+        // 于是它不是频道入口，是网页：routeOf 交回 WEB（旧页面本来就是 WebView）
+        assertEquals(FeedRoute.WEB, routeOf(row))
+        // 真频道 key（标签串，不是 URL）照旧算数
+        val card = remoteEntry(2L, 0, "成人动漫", null, null, 1f,
+            "https://exex.j8olo.cc/page/shipin/15", false, dataType = 5, param = "hsexhsex.men")!!
+        assertEquals("hsexhsex.men", card.videoChannelKey())
+    }
+
     // ---- 播放区横滑快进退：方向与档位是纯函数，钉住「右滑快进 30s 一档」 ----
 
     @Test
