@@ -103,11 +103,22 @@ fun CompanionRoute(
     onLaunchCallHandled: () -> Unit = {},
 ) {
     val context = LocalContext.current.applicationContext
+    val tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.common.net.http.NetConfig.tokenHeader(), null) }
     val api = remember(context) {
         HttpCompanionApi(
             baseUrl = CompanionConfig.baseUrl,
-            tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.common.net.http.NetConfig.tokenHeader(), null) },
+            tokenProvider = tokenProvider,
         )
+    }
+    // 图片上传：打的是与 `HttpCompanionApi.attachmentUrl` 同一套 `/v1/uploads`，实现
+    // 在 :common 的 MediaUploader。没有它就没有发送路径——ViewModel 拿不到上传入口时
+    // 会明确报错而不是把一条只有文本的半发消息发出去。
+    //
+    // 这里另建一个 MediaUploader 而不是向 api 要：api 没有暴露它的 client，为这一个
+    // 方法开一条公共口子，比多一个连接池更糟。
+    val imageUploader = remember(context) {
+        val uploader = com.openapi.common.media.MediaUploader(CompanionConfig.baseUrl, tokenProvider)
+        CompanionViewModel.ImageUploader { file, mime -> uploader.upload(file, mime) }
     }
 
     var page by rememberSaveable { mutableStateOf(CompanionPage.CHAT) }
@@ -123,6 +134,7 @@ fun CompanionRoute(
                 CompanionViewModel(
                     api = api,
                     transportFactory = { provider -> CompanionTransports.create(context, provider) },
+                    mediaUploader = imageUploader,
                 )
             }
         },

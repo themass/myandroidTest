@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withContext
+import java.io.File
 
 /**
  * 角色扮演界面的状态持有者。
@@ -36,6 +38,8 @@ class CompanionViewModel(
     private val transportFactory: (String) -> CompanionTransport = { FakeCompanionTransport() },
     /** 收件箱轮询间隔。主动消息不需要秒级到达，30 秒一次够用且省电。 */
     private val inboxPollMillis: Long = DEFAULT_INBOX_POLL_MILLIS,
+    /** 图片上传入口。null = 这一路没接上（没有后端时也不该假装能传）。 */
+    private val mediaUploader: ImageUploader? = null,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CompanionUiState())
@@ -48,6 +52,10 @@ class CompanionViewModel(
     private var startupJob: Job? = null
     private var inboxJob: Job? = null
     private var connectionJob: Job? = null
+    /** 图片协商结果的镜像订阅。换线路（[adoptTransport]）后必须重新接上新实现。 */
+    private var imageSupportJob: Job? = null
+    /** 正在跑的「逐张上传 → attachments → 文本」这一串。换会话时作废。 */
+    private var sendJob: Job? = null
 
     /**
      * 当前正在用的房间实现与它对应的 provider。
@@ -98,6 +106,10 @@ class CompanionViewModel(
         this.activeCaseId = caseId
         _state.update { it.copy(connection = CompanionConnection.CONNECTING, error = null) }
         startupJob?.cancel()
+        // 新一通会话开始了：还在途的那串「上传 → attachments → 文本」属于上一个房间，
+        // 让它跑完只会把一条消息发进一个已经不存在的房间里。
+        sendJob?.cancel()
+        sendJob = null
         startupJob = viewModelScope.launch {
             try {
                 val session = when {
@@ -112,6 +124,7 @@ class CompanionViewModel(
                 // 以前这里按「是不是 LiveKitCompanionTransport」分三种顺序——那是把实现
                 // 细节泄漏进 ViewModel，多一家实现就要再加一个分支。
                 observeConnection()
+                observeImageSupport()
                 listen()
                 transport.connect(session)
                 startInboxPolling()
@@ -129,16 +142,155 @@ class CompanionViewModel(
         }
     }
 
+    /**
+     * 用户选好了一张图（相册多选或拍照回来）。
+     *
+     * 只登记，不上传：用户可能选完就退出去，也可能连着选七八张再改主意。上传发生在
+     * 点「发送」那一刻（见 [send]），失败的图留在待发条里等他重试。
+     *
+     * 去重按绝对路径：同一条路径重复进来是选择器/暂存层重入，不是用户又选了一张。
+     */
+    fun addPendingImage(file: File) {
+        _state.update { st ->
+            if (st.pendingImages.any { it.path == file.absolutePath }) return@update st
+            if (st.pendingImages.size >= MAX_PENDING_IMAGES) {
+                // 选择器一次最多给 9 张，走到这里说明是**第二次**打开选择器。这张必须
+                // 说得出为什么没进去：悄悄吞掉一张图，用户只会觉得「我明明选了」。
+                return@update st.copy(error = MAX_IMAGES_MESSAGE.format(MAX_PENDING_IMAGES))
+            }
+            st.copy(pendingImages = st.pendingImages + PendingImage(file, file.absolutePath))
+        }
+    }
+
+    /**
+     * 用户从待发条里划掉一张。
+     *
+     * 顺手删掉暂存文件：这张图没有任何消息引用它了，留着就是永久占盘的垃圾。
+     * 发送成功那条路**不**删——乐观气泡的 `images` 用的正是这些本地路径，删了
+     * 用户刚发出去的那条消息立刻变成一张坏图。
+     */
+    fun removePendingImage(path: String) {
+        _state.update { st -> st.copy(pendingImages = st.pendingImages.filterNot { it.path == path }) }
+        runCatching { File(path).delete() }
+    }
+
+    /**
+     * 相册多选或拍照回来的 uri：读出来、摆正、压成待发文件，进待发条。
+     *
+     * 为什么现在就落盘而不是等发送时：选择器给的 `content://` uri 的读权限随选择器会话
+     * 失效，用户选完图去回个消息再回来点发送，原图就打不开了。解码+压缩放 IO 线程，
+     * 一次选九张原图在手机上是几百毫秒到几秒的主线程卡顿。
+     *
+     * 单张读不出来就跳过那一张（其余照常进待发条）：这里还没有「发送」这个动作，
+     * 为一张坏图把用户选的其他图一起丢掉反而更糟。
+     */
+    fun onImagesPicked(context: android.content.Context, uris: List<android.net.Uri>) {
+        if (uris.isEmpty()) return
+        viewModelScope.launch {
+            val dir = java.io.File(context.filesDir, ATTACHMENT_DIR).apply { mkdirs() }
+            for (uri in uris) {
+                val stamp = nextStagingStamp()
+                val file = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    com.openapi.common.media.MediaStager.stageImage(context, uri, dir, stamp)
+                } ?: continue
+                addPendingImage(file)
+            }
+        }
+    }
+
+    /**
+     * 暂存文件名用的时间戳。
+     *
+     * 必须是**单调递增**的：一次多选里九张图落在同一毫秒很常见，都用
+     * `currentTimeMillis()` 的话后一张会盖掉前一张，用户看到的是「选了九张只剩一张」。
+     */
+    private var lastStagingStamp = 0L
+    private fun nextStagingStamp(): Long {
+        val now = System.currentTimeMillis()
+        lastStagingStamp = if (now > lastStagingStamp) now else lastStagingStamp + 1
+        return lastStagingStamp
+    }
+
+    /**
+     * 发送。
+     *
+     * 带图的那条路是**一次全有或全无**：逐张上传，全部成功才把 attachments 和文本发出去；
+     * 任何一张失败就整条中止、图留在待发条里等用户再按一次。半发（文本进去了、图没有）
+     * 的形态是「她回了一句『图我看到了』而界面上根本没有图」，比整条没发出去更难解释。
+     *
+     * 出站顺序是契约的一部分：`sendAttachments` 先、`sendText` 后，服务端才能把这两条
+     * 挂成一条消息，然后让文本触发她的回合。
+     */
     fun send() {
         val current = _state.value
         if (!current.canSend) return
         val text = current.input.trim()
+        val pending = current.pendingImages
+        if (pending.isEmpty()) {
+            deliver(text, emptyList(), emptyList())
+            return
+        }
+        val uploader = mediaUploader
+        if (uploader == null || !_state.value.imageSupported) {
+            // 只有「+」在没协商成时不出现，正常走不到这里；走到就说明服务端的口径在
+            // 这条会话里变了（重连换了一个不支持图片的 agent）。宁可停下来说清楚，
+            // 也不要把文本单独发出去——那正是上面说的半发。
+            _state.update { it.copy(error = UPLOAD_UNSUPPORTED_MESSAGE) }
+            return
+        }
+        // 上传期间把发送键按住：canSend 里的 uploading 是唯一的重入闸，
+        // 一条消息发两遍会让服务端收到两组附件、她的回合被触发两次。
+        _state.update { it.copy(uploading = true, error = null) }
+        // 循环走的是**点发送那一刻**的快照（[pending]）：这条消息的内容在那一刻就定了，
+        // 输入区在上传期间也不接受改图（见 CompanionComposer 的 uploading）。
+        sendJob = viewModelScope.launch {
+            val ids = ArrayList<String>(pending.size)
+            var failed = false
+            for (image in pending) {
+                val uploaded = runCatching { uploader.upload(image.file, MIME_JPEG) }
+                    .onFailure { logUploadFailure(image, it) }
+                    .getOrNull()
+                if (uploaded == null) {
+                    failed = true
+                    break
+                }
+                ids += uploaded
+            }
+            if (failed) {
+                _state.update { it.copy(uploading = false, error = UPLOAD_FAILED_MESSAGE) }
+                return@launch
+            }
+            deliver(text, pending.map { it.path }, ids)
+        }
+    }
+
+    /**
+     * 上传失败记一行原因（哪一张、什么异常），供「为什么传不上去」有处可查。
+     *
+     * [runCatching] 不是随手加的护栏：`android.util.Log` 在普通 JVM 单测里是未 mock
+     * 的桩，调用就抛。诊断日志如果能把用户看得见的错误提示一起带下水，那它就不是
+     * 诊断日志——这条路径上「用户知道图还在、能重试」比这一行日志重要。
+     */
+    private fun logUploadFailure(image: PendingImage, error: Throwable) {
+        runCatching {
+            android.util.Log.w(TAG, "图片上传失败 path=${image.path} type=${error.javaClass.simpleName}")
+        }
+    }
+
+    /** 文本（以及可选的一组已上传附件）真正进房间，并落下乐观气泡。 */
+    private fun deliver(text: String, localPaths: List<String>, uploadIds: List<String>) {
+        if (uploadIds.isNotEmpty()) {
+            attachmentSeq += 1
+            transport.sendAttachments(uploadIds, "att-${System.currentTimeMillis()}-$attachmentSeq")
+        }
         transport.sendText(text)
         _state.update {
             it.copy(
                 input = "",
+                uploading = false,
+                pendingImages = emptyList(),
                 messages = it.messages +
-                    newMessage(MessageRole.USER, text) +
+                    newMessage(MessageRole.USER, text, images = localPaths, attachmentIds = uploadIds) +
                     // 先占位，收到 TextDelta 往里追加；TurnDone 时关掉 streaming。
                     newMessage(MessageRole.ASSISTANT, "", streaming = true),
             )
@@ -334,6 +486,25 @@ class CompanionViewModel(
         }
     }
 
+    /**
+     * 图片协商结果（`media.image`）镜像进界面。
+     *
+     * 为什么在 ViewModel 里镜像一份而不是让界面直接读 transport：界面拿到的是
+     * [CompanionViewModel]，不该为了一个按钮去认识传输层；而且换线路时
+     * [adoptTransport] 会换掉实现，界面那一侧没有重新订阅的机会，会一直看着旧房间的答案。
+     *
+     * 协商比连接晚（hello 发出去、ack 晚几百毫秒到），所以它是会变的：谈成之前「+」
+     * 就是不出现，不要先给一个按下去什么都不会发生的入口。
+     */
+    private fun observeImageSupport() {
+        imageSupportJob?.cancel()
+        imageSupportJob = viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            transport.imageSupported.collect { supported ->
+                _state.update { it.copy(imageSupported = supported) }
+            }
+        }
+    }
+
     /** 展开/收起形象区。默认收起。 */
     fun toggleAvatarExpanded() {
         _state.update { it.copy(avatarExpanded = !it.avatarExpanded) }
@@ -421,6 +592,8 @@ class CompanionViewModel(
         inboxJob = null
         connectionJob?.cancel()
         connectionJob = null
+        imageSupportJob?.cancel()
+        imageSupportJob = null
     }
 
     fun dismissIncomingCall() {
@@ -652,6 +825,13 @@ class CompanionViewModel(
         }
     }
 
+    /**
+     * attachments 的 `client_msg_id` 里的自增位。`att-<epochMillis>-<seq>`：
+     * 毫秒会撞（连点两次发送、或同一毫秒内两条都发出去），seq 保证服务端拿到
+     * 的是两个不同的幂等键——不然第二组附件会被当作第一组的重发直接丢掉。
+     */
+    private var attachmentSeq = 0L
+
     /** 没有后端时给一个本地会话，让界面照常可用。 */
     private fun offlineSession(characterId: String) = SessionResponse(
         sessionId = "local",
@@ -666,10 +846,56 @@ class CompanionViewModel(
         startupJob?.cancel()
         inboxJob?.cancel()
         connectionJob?.cancel()
+        imageSupportJob?.cancel()
+        // 上传跑到一半页面没了：这一串要作废，否则协程在 viewModelScope 里也迟早会
+        // 走到 deliver()，把一条用户已经看不见的消息发进房间。
+        sendJob?.cancel()
+        sendJob = null
         viewModelScope.launch { transport.disconnect() }
     }
 
     companion object {
         const val DEFAULT_INBOX_POLL_MILLIS = 30_000L
+
+        /** 一条消息最多带几张图。与服务端与「对话」页的同一道闸保持一致。 */
+        const val MAX_PENDING_IMAGES = 9
+
+        /** 选中的图暂存在 `filesDir` 下的这个目录（FileProvider 已授权 files 根目录）。 */
+        const val ATTACHMENT_DIR = "companion_attachments"
+
+        /**
+         * 部分图片上传失败（设计 §7「继续发成功部分/取消」在本页的等价实现：都不发）。
+         * 「已保留待重发」是这句话的重点——用户得知道图还在，再按一次发送就行。
+         */
+        const val UPLOAD_FAILED_MESSAGE = "部分图片上传失败，已保留待重发"
+
+        /** 房间不支持图片（协商变了）：图传不了，也不该只把文本单独发出去。 */
+        const val UPLOAD_UNSUPPORTED_MESSAGE = "当前连接不支持图片，请重新进入对话后再试"
+
+        /** 第二次打开选择器又选了图、但条数已经到顶。不说清楚就像图被吞了。 */
+        const val MAX_IMAGES_MESSAGE = "一条消息最多 %1\$d 张图片"
+
+        /**
+         * 暂存文件一律是 JPEG：[com.openapi.common.media.MediaStager] 统一按 EXIF 摆正后
+         * 重编码成 `img_*.jpg`，拍照那条路（相机直接写的也是 jpg）同理。写死而不是按扩展名
+         * 猜：猜错一个 mime 服务端会直接 415，而这里根本没有能猜错的东西。
+         */
+        private const val MIME_JPEG = "image/jpeg"
+
+        private const val TAG = "CompanionViewModel"
+    }
+
+    /**
+     * 图片上传的入口。测试给一个假实现就能钉住「第几张会失败」，不必起 HTTP。
+     *
+     * 形状与 `:common` 的 `MediaUploader.upload` 一致（失败抛异常）：调用方要区分
+     * 「这张传失败了」和「整条别发」，把它塞进返回值里会让成功路径也要判一次 null。
+     *
+     * `fun interface` 是为了接线处能直接给一个 lambda——生产接线就是
+     * `MediaUploader::upload` 那一层，不值得为它写一个类。
+     */
+    fun interface ImageUploader {
+        /** @throws Exception 服务端拒绝、断网、未登录 */
+        suspend fun upload(file: File, mime: String): String
     }
 }

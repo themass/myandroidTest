@@ -45,4 +45,12 @@
     <string name="companion_profile_hint">This is what she has gathered about you. Anything marked as a guess hasn\'t been confirmed. You can ask her to stop bringing something up, or forget it.</string>
     <string name="companion_profile_guess">A guess, not confirmed</string>
     <string name="companion_profile_stop">Stop mentioning</string>
+    <!-- 输入区选图/拍照 -->
+    <string name="companion_attach_more">Add a photo</string>
+    <string name="companion_attach_album">Album</string>
+    <string name="companion_attach_camera">Camera</string>
+    <string name="companion_attach_thumbnail">Photo waiting to be sent</string>
+    <string name="companion_attach_remove">Remove this photo</string>
+    <string name="companion_camera_rationale">Camera permission is needed to take photos to send to her</string>
+    <string name="companion_camera_denied">Camera permission not granted, can\'t take a photo</string>
 </resources>

@@ -16,6 +16,7 @@ import com.openapi.ks.myapp.companion.protocol.DegradeController
 import com.openapi.ks.myapp.companion.protocol.PresentationCue
 import com.openapi.ks.myapp.companion.protocol.ProtocolCatalog
 import com.openapi.ks.myapp.companion.protocol.ProtocolCodec
+import com.openapi.ks.myapp.companion.protocol.ProtocolHandshake
 import com.openapi.ks.myapp.companion.protocol.ScheduledCue
 import com.openapi.ks.myapp.companion.protocol.SpeechRegistry
 import io.livekit.android.LiveKit
@@ -50,6 +51,7 @@ import java.util.UUID
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import livekit.org.webrtc.AudioTrackSink
+import org.json.JSONArray
 import org.json.JSONObject
 import java.nio.ByteOrder
 import java.nio.ByteBuffer
@@ -200,6 +202,17 @@ class LiveKitCompanionTransport(
 
     override val events: Flow<CompanionEvent> = bus.asSharedFlow()
 
+    /**
+     * `media.image` 谈成了没有——决定输入区的「+」出不出现在用户面前。
+     *
+     * 只有这一处写它的值，写它的四个时刻都是「现在还不知道 / 知道了」这两件事之一：
+     * 收到 `hello_ack`（知道），以及 [connect] 重建 link、`RoomEvent.Reconnected` 清掉
+     * 协商表、[disconnect] 断开（三条都是不知道——留着上一条连接的答案，等于让用户
+     * 对着一个按下去什么都不会发生的「+」等）。
+     */
+    private val _imageSupported = MutableStateFlow(false)
+    override val imageSupported: StateFlow<Boolean> = _imageSupported.asStateFlow()
+
     /** 房间事件到界面状态的唯一来源：重连/重连成功都必须上报，否则通话页只能永远显示「正在接通」。 */
     override val connection: StateFlow<TransportConnection> = _connection.asStateFlow()
 
@@ -221,6 +234,9 @@ class LiveKitCompanionTransport(
         // 当成回退丢掉。identity 用来判 dst 是不是指我，现在还不知道，等连上再看。
         val protocolLink = CompanionProtocolLink(identity = null)
         link = protocolLink
+        // 新连接上的协商结果还不知道：先收回「不能发图」，等 hello_ack 到了再说。
+        // 留着上一条连接的答案，会让用户在一个不支持图片的服务端面前按一个按不动的「+」。
+        _imageSupported.value = false
         logInfo("attempt=$activeAttemptId event=room_created elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
 
         // SDK events are not replayed: subscribe before starting the signal handshake.
@@ -278,6 +294,10 @@ class LiveKitCompanionTransport(
                         // 少了这一步，对端从 0 重发的消息全被当作 stale 丢掉——表现是
                         // 「重连之后她突然不理我了」，而两端日志都干净。
                         protocolLink.onReconnected()
+                        // 协商结果随 onReconnected 一起作废了：在新一轮 hello_ack 到之前，
+                        // 「能不能发图」是不知道的，先把入口收回去，别让用户对着一个
+                        // 按下去什么都不会发生的「+」等。
+                        _imageSupported.value = false
                         bargeGate.reset()
                         // 时间线属于旧连接上的那几段音频：全部作废，墓碑保留
                         // （`speech_id` 不复用，留着无害，还能挡住迟到的 begin）。
@@ -569,6 +589,59 @@ class LiveKitCompanionTransport(
     }
 
     /**
+     * 一组刚上传好的图片进房间：`cmp.in` 的 `control.input`，`kind="attachments"`。
+     *
+     * 与 [sendTouch] 同一个事件类型、不同 `kind`——服务端本来就按 `args.kind` 分派，
+     * 没必要为图片再开一个 `t`（协议目录两端各写一份，多一项就多一处可能不同步的地方）。
+     *
+     * **没有旧版回退通道**：v1 的服务端压根不认 `upload_ids`，退化成文本流只会发出去一串
+     * 谁也不读的 id。没握手到 v2、或 `media.image` 没谈成，就记一条 warn 然后什么都不做
+     * ——界面上的「+」在这种连接下本来就不出现，走到这里说明状态在通话中间变了，
+     * 让它留在日志里可查，而不是假装成功。
+     */
+    override fun sendAttachments(uploadIds: List<String>, clientMsgId: String) {
+        if (uploadIds.isEmpty()) return
+        val current = room ?: return
+        val protocolLink = link
+        val negotiatedImage = protocolLink?.negotiator?.canReceive(ProtocolHandshake.CAP_MEDIA_IMAGE) == true
+        if (protocolLink == null || !protocolLink.isV2 || !negotiatedImage) {
+            logWarn(
+                "attempt=$activeAttemptId event=attachments_skipped ids=${uploadIds.size} " +
+                    "v2=${protocolLink?.isV2} negotiated=$negotiatedImage",
+            )
+            return
+        }
+        // JSONArray 手动装：Android 的 org.json 没有 `JSONArray(Collection)` 这个构造器
+        // （那是桌面版 org.json 的），`putJSONArray` 同样不存在。逐个 put 出来的字节
+        // 与它们完全一样。
+        val idsJson = JSONArray()
+        uploadIds.forEach { idsJson.put(it) }
+        val args = JSONObject()
+            .put("kind", "attachments")
+            .put("upload_ids", idsJson)
+            .put("client_msg_id", clientMsgId)
+        val bytes = protocolLink.outgoing(
+            topic = ProtocolCatalog.TOPIC_IN,
+            eventType = "control.input",
+            args = args,
+        )
+        if (bytes == null) {
+            logWarn("attempt=$activeAttemptId event=attachments_encode_failed ids=${uploadIds.size}")
+            return
+        }
+        scope.launch {
+            runCatching {
+                current.localParticipant
+                    .publishData(bytes, DataPublishReliability.RELIABLE, ProtocolCatalog.TOPIC_IN)
+            }.onSuccess {
+                logInfo("attempt=$activeAttemptId event=attachments_sent ids=${uploadIds.size} clientMsgId=$clientMsgId")
+            }.onFailure {
+                logWarn("attempt=$activeAttemptId event=attachments_publish_failed type=${it.javaClass.simpleName}")
+            }
+        }
+    }
+
+    /**
      * §10.1：用户开口打断。先本地作废时间线，再发 ``control.barge_in``。
      *
      * 不等服务端确认——音频截断由服务端 ``interrupt`` 负责，端侧只需同步视觉。
@@ -611,6 +684,9 @@ class LiveKitCompanionTransport(
         _mouthLevel.value = 0f
         bargeGate.reset()
         speech.onReconnected()      // 断开了：时间线与队列都没有意义了
+        // 房间没了，协商结果也就没了：不收回，界面会拿着上一条连接的「能发图」
+        // 继续显示「+」，下一次发送只会失败。
+        _imageSupported.value = false
         room?.disconnect()
         room = null
         scope.cancel()
@@ -966,13 +1042,23 @@ class LiveKitCompanionTransport(
         when (eventType) {
             "control.hello_ack" -> {
                 link?.onAck(args)
-                val ack = link?.negotiator?.ack
+                // 协商结果一次读到底：`link` 是 @Volatile，房间事件与发送协程都会碰它，
+                // 同一个分支里读三次可能读到三条不同的连接上。
+                val negotiator = link?.negotiator
+                val ack = negotiator?.ack
                 logInfo(
                     "attempt=$activeAttemptId event=hello_ack sid=${ack?.sid} compat=${ack?.compat} caps=${ack?.caps?.size ?: 0}",
                 )
                 if (ack == null) {
                     logWarn("attempt=$activeAttemptId event=hello_ack_unusable")
                 }
+                // 协商结果决定输入区的「+」出不出现在用户面前，所以要打日志：线上判断
+                // 「为什么这人的图片入口不见了」只有这一条线索。
+                val image = negotiator?.canReceive(ProtocolHandshake.CAP_MEDIA_IMAGE) == true
+                if (image != _imageSupported.value) {
+                    logInfo("attempt=$activeAttemptId event=media_image_supported value=$image")
+                }
+                _imageSupported.value = image
             }
             "presentation.emotion" -> {
                 val emotion = PresentationCue.parseEmotion(args) ?: return

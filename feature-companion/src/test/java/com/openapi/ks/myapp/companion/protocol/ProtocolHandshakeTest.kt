@@ -198,6 +198,34 @@ class ProtocolHandshakeTest {
         assertTrue(ProtocolHandshake.CLIENT_CAPS.size >= 5)
     }
 
+    /**
+     * 图片消息（P1）的协商位。
+     *
+     * 名字必须与服务端 `SERVER_CAPS` **逐字**一致——差一个字符不会报错，只会让交集里
+     * 少这一项，于是「media.image」永远是 0，客户端的「+」入口永远不出现，而两边日志
+     * 都是干净的（§7 交集取低版本的经典坑）。改这边要同步改
+     * `companion/agent/protocol/handshake.py`。
+     */
+    @Test
+    fun `图片能力以 media image 这个名字报上去`() {
+        assertEquals(1, ProtocolHandshake.CLIENT_CAPS["media.image"])
+        assertEquals(1, ProtocolHandshake.helloArgs().getJSONObject("caps").getInt("media.image"))
+    }
+
+    /** 谈成了才支持；服务端把它压成 0（灰度关闭）时这一项必须算未启用。 */
+    @Test
+    fun `media image 按协商结果决定而不是按客户端自己认识`() {
+        val on = ProtocolHandshake.parseAck(ackJson(caps = JSONObject().put("media.image", 1)))!!
+        assertTrue(ProtocolHandshake.supports(on, "media.image"))
+        val off = ProtocolHandshake.parseAck(ackJson(caps = JSONObject().put("media.image", 0)))!!
+        assertFalse("服务端给 0 就是关掉了", ProtocolHandshake.supports(off, "media.image"))
+        val missing = ProtocolHandshake.parseAck(ackJson(caps = JSONObject()))!!
+        assertFalse("老服务端根本不知道这一项", ProtocolHandshake.supports(missing, "media.image"))
+        // v1 连接上任何 cmp 能力都不作数（与上面那条 v1 用例同一条规则）。
+        val v1 = ProtocolHandshake.parseAck(ackJson(caps = JSONObject().put("media.image", 1), compat = "v1"))!!
+        assertFalse(ProtocolHandshake.supports(v1, "media.image"))
+    }
+
     @Test
     fun `握手超时是 3 秒`() {
         assertEquals(3_000L, ProtocolHandshake.ACK_TIMEOUT_MS)

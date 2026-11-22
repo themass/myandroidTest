@@ -1,6 +1,7 @@
 package com.openapi.ks.myapp.companion
 
 import com.openapi.ks.myapp.avatar.ProactiveKind
+import java.io.File
 
 /**
  * 她**怎么回**。这是"输出形式"，不是"能不能语音"。
@@ -25,6 +26,16 @@ enum class CompanionConnection {
 }
 
 enum class MessageRole { USER, ASSISTANT }
+
+/**
+ * 选好但**还没发出去**的一张图。
+ *
+ * 落盘成文件而不是抱着 `content://` uri：选择器给的 uri 读权限随会话失效，
+ * 用户选完去回了个微信再回来点发送，拿到的就是一张读不出来的图。
+ * [path] 是 [file] 的绝对路径，单独留一份给渲染层（coil 直接吃字符串），
+ * 免得 UI 层去碰 `File`。
+ */
+data class PendingImage(val file: File, val path: String)
 
 data class CompanionMessage(
     val role: MessageRole,
@@ -95,8 +106,20 @@ data class CompanionUiState(
     val incomingCall: ProactiveKind? = null,
     /** 形象区是否展开。默认收起——那个占屏 42% 的大框用户根本不知道是什么。 */
     val avatarExpanded: Boolean = false,
+    /** 选好还没发出去的图；发送成功后清空，上传失败时原样留着待重发。 */
+    val pendingImages: List<PendingImage> = emptyList(),
+    /** 「+」入口是否可用：由 hello_ack 是否谈成 `media.image` 决定。 */
+    val imageSupported: Boolean = false,
+    /** 图片正在上传：这一段时间输入区的发送键要按住。 */
+    val uploading: Boolean = false,
 ) {
-    val canSend: Boolean get() = input.isNotBlank() && connection == CompanionConnection.CONNECTED
+    /**
+     * 能不能发。**只有图不算能发**（裁定：companion 的回合由文本触发，纯图消息 P1 不做，
+     * 见设计 §5 时序）——只发图她不会回，用户只会对着一条没有回音的消息干等。
+     * 上传进行中也不许再点：一条消息发两遍比发不出去更糟。
+     */
+    val canSend: Boolean
+        get() = input.isNotBlank() && connection == CompanionConnection.CONNECTED && !uploading
 
     /** 当前是否有待确认的动作。有的话输入区要让位给确认按钮。 */
     val pendingConfirmation: String?

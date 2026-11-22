@@ -1,5 +1,10 @@
 package com.openapi.ks.myapp.companion
 
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -30,13 +35,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CameraAlt
+import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Phone
@@ -70,16 +82,25 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.openapi.chatkit.input.ActionPanel
 import com.openapi.chatkit.message.ChatMessageList
 import com.openapi.chatkit.model.ChatItem
+import com.openapi.chatkit.model.ComposerAction
 import com.openapi.chatkit.model.MessageAction
 import com.openapi.chatkit.model.MessagePart
 import com.openapi.chatkit.model.Sender
+import com.openapi.chatkit.theme.ChatKit
 import com.openapi.chatkit.theme.ChatKitTheme
+import com.openapi.common.ui.permission.PermissionGateway
+import com.openapi.common.ui.permission.PermissionOutcome
+import com.openapi.common.ui.permission.Permissions
 import com.openapi.feature.companion.R
 import com.openapi.ks.myapp.avatar.AvatarCommand
 import com.openapi.ks.myapp.avatar.AvatarEventMapper
@@ -87,6 +108,7 @@ import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.ProactiveKind
 import com.openapi.ks.myapp.avatar.SimpleAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
+import java.io.File
 
 /**
  * 陪伴页：和「对话」页长得像一家人，但有自己的角色形象与语音能力。
@@ -138,6 +160,63 @@ fun CompanionScreen(
 
     // 绑定素材：先用本地已有的（离线也能看）或内置默认，再向服务端同步。
     val context = androidx.compose.ui.platform.LocalContext.current.applicationContext
+
+    // ---------------------------------------------------------- 选图 / 拍照
+    //
+    // 两个 launcher 都是**组合期注册**的（`rememberLauncherForActivityResult` 的唯一
+    // 合法时机），点击事件只负责 launch。照搬「对话」页 ChatRoute 的那一段，两处要一起
+    // 改的行为：一次最多 9 张（服务端与「对话」页同一道闸）、
+    // ImageOnly（视频/PDF 不该从图片入口进来）。
+    //
+    // Photo Picker 不需要任何存储权限——这是它比自绘相册列表好的一点，也是这里不申请
+    // READ_MEDIA_IMAGES 的原因（见 :common 的 Permissions.readImages 的注释）。
+    val activity = LocalActivity.current
+    val scope = rememberCoroutineScope()
+    val imagePicker = rememberLauncherForActivityResult(
+        // 参数名是 maxItems（androidx.activity 1.11 的签名；超出条数由 picker 自己拦）。
+        ActivityResultContracts.PickMultipleVisualMedia(maxItems = CompanionViewModel.MAX_PENDING_IMAGES),
+    ) { uris -> viewModel.onImagesPicked(context, uris) }
+    // 拍照的输出地址。TakePicture 只回一个 boolean：图在哪个文件完全由我们给出去的
+    // uri 决定，所以这个 uri 必须留到回调里再取。
+    var cameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+        val uri = cameraUri
+        cameraUri = null
+        if (saved && uri != null) viewModel.onImagesPicked(context, listOf(uri))
+    }
+    val launchCamera = {
+        // authority 常量必须与 :app 清单里的 `<provider android:authorities
+        // ="com.openapi.ks.chat.fileprovider">`（app/src/main/AndroidManifest.xml）
+        // 一字不差：不一致时 FileProvider 直接抛 IllegalArgumentException，
+        // 表现是「点拍摄什么也没发生」。files-path 已在 file_provider_paths.xml 授权。
+        val file = java.io.File(context.filesDir, "camera/photo_${System.currentTimeMillis()}.jpg")
+        file.parentFile?.mkdirs()
+        val uri = FileProvider.getUriForFile(context, "com.openapi.ks.chat.fileprovider", file)
+        cameraUri = uri
+        camera.launch(uri)
+    }
+    // 显式写 `() -> Unit`：`Toast.show()` 回 Void、`scope.launch` 回 Job，
+    // 让 Kotlin 自己推断的话这两个分支会合成 Any，接不进 ComposerAction 的 ()->Unit。
+    val takePhoto: () -> Unit = {
+        if (PermissionGateway.isGranted(context, Permissions.CAMERA)) {
+            launchCamera()
+        } else {
+            val host = activity as? ComponentActivity
+            if (host == null) {
+                android.widget.Toast.makeText(context, R.string.companion_camera_denied, android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                scope.launch {
+                    when (PermissionGateway.of(host).request(Permissions.camera(context.getString(R.string.companion_camera_rationale)))) {
+                        PermissionOutcome.Granted -> launchCamera()
+                        is PermissionOutcome.Denied ->
+                            android.widget.Toast.makeText(context, R.string.companion_camera_denied, android.widget.Toast.LENGTH_SHORT).show()
+                        is PermissionOutcome.PermanentlyDenied -> PermissionGateway.goToSettings(host)
+                    }
+                }
+            }
+        }
+    }
+
     val avatarSync = remember(context) { buildAvatarSync(context) }
     var portraitFile by remember(characterId) { mutableStateOf<java.io.File?>(null) }
     LaunchedEffect(renderer, characterId) {
@@ -273,8 +352,16 @@ fun CompanionScreen(
                 CompanionComposer(
                     input = state.input,
                     canSend = state.canSend,
+                    imageSupported = state.imageSupported,
+                    pendingImages = state.pendingImages,
+                    uploading = state.uploading,
                     onInputChange = viewModel::onInputChange,
                     onSend = viewModel::send,
+                    onPickAlbum = {
+                        imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    },
+                    onTakePhoto = takePhoto,
+                    onRemoveImage = viewModel::removePendingImage,
                 )
             }
         }
@@ -785,82 +872,194 @@ private fun ErrorBar(message: String, onDismiss: () -> Unit) {
 /**
  * 输入区（方案 A：与「对话」页同一套视觉语言）。
  *
- * 白卡 + 无边框 `BasicTextField` + 有字才出现的橙色圆形发送按钮。
- * 「语音回答」与「通话」已经移到顶栏，这一行只剩输入本身。
+ * 白卡 + 无边框 `BasicTextField` + 有字才出现的橙色圆形发送按钮，左边一个描边圆形的
+ * 「+」（相册/拍摄）。
+ *
+ * 「+」只有 [imageSupported] 为真时才画：协商没谈成 `media.image` 时图片根本发不出去，
+ * 留一个按下去毫无反应的入口比不出现更糟。
  *
  * 为什么不用 chatkit 的 `ChatComposer`：那是带录音/转写/草稿/「+」面板的完整组件，
  * 需要 `ComposerState/ComposerAction/VoiceActions` 一整套回调，而陪伴侧的麦克风链路
  * 才刚在通话页补上，接进来等于一个按不动的语音按钮。等语音链路稳定后再评估。
+ * 只有「+」面板本身复用 chatkit 的 [ActionPanel] 与 [ComposerAction]——两端要长得像
+ * 一家人，这块没有陪伴侧的特殊语义，不值得再画一份。
  */
 @Composable
 private fun CompanionComposer(
     input: String,
     canSend: Boolean,
+    imageSupported: Boolean,
+    pendingImages: List<PendingImage>,
+    uploading: Boolean,
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
+    onPickAlbum: () -> Unit,
+    onTakePhoto: () -> Unit,
+    onRemoveImage: (String) -> Unit,
 ) {
     val sendEnabled = canSend
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 10.dp)
-            .shadow(elevation = 8.dp, shape = ComposerShape, clip = false)
-            .background(Color.White, ComposerShape)
-            .border(
-                width = 1.dp,
-                color = Color(0x14000000),
-                shape = ComposerShape,
-            )
-            .padding(start = 14.dp, end = 10.dp, top = 9.dp, bottom = 9.dp),
-    ) {
-        Row(verticalAlignment = Alignment.Bottom) {
-            BasicTextField(
-                value = input,
-                onValueChange = onInputChange,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(vertical = 8.dp),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    color = Color(0xFF2B2622),
-                    fontSize = 15.sp,
-                ),
-                cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFFC2410C)),
-                maxLines = 4,
-                decorationBox = { inner ->
-                    Box {
-                        if (input.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.companion_input_hint),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontSize = 15.sp,
-                                color = Color(0xFFB3AEA8),
-                                modifier = Modifier.padding(vertical = 8.dp),
-                            )
-                        }
-                        inner()
+    // 「+」展开的面板。选完图/拍完照就收起：用户下一步的注意力在待发条和发送键上。
+    var showActions by remember { mutableStateOf(false) }
+    val composerActions = listOf(
+        ComposerAction(
+            id = "album",
+            label = stringResource(R.string.companion_attach_album),
+            icon = Icons.Outlined.PhotoLibrary,
+        ) {
+            showActions = false
+            onPickAlbum()
+        },
+        ComposerAction(
+            id = "camera",
+            label = stringResource(R.string.companion_attach_camera),
+            icon = Icons.Outlined.CameraAlt,
+        ) {
+            showActions = false
+            onTakePhoto()
+        },
+    )
+    Column(Modifier.fillMaxWidth()) {
+        if (pendingImages.isNotEmpty()) {
+            PendingImageStrip(pendingImages, onRemove = onRemoveImage, enabled = !uploading)
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 10.dp)
+                .shadow(elevation = 8.dp, shape = ComposerShape, clip = false)
+                .background(Color.White, ComposerShape)
+                .border(
+                    width = 1.dp,
+                    color = Color(0x14000000),
+                    shape = ComposerShape,
+                )
+                .padding(start = 10.dp, end = 10.dp, top = 9.dp, bottom = 9.dp),
+        ) {
+            Row(verticalAlignment = Alignment.Bottom) {
+                // 「+」：与发送按钮同尺寸的圆形，但用**描边**而不是实心——一行里两个橙色
+                // 实心圆会互相抢注意力，看起来像两个都能发送。
+                if (imageSupported) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .border(width = 1.5.dp, color = Color(0x33C2410C), shape = CircleShape)
+                            .clickable(enabled = !uploading) { showActions = !showActions },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = if (showActions) Icons.Filled.Close else Icons.Outlined.Add,
+                            contentDescription = stringResource(R.string.companion_attach_more),
+                            tint = Color(0xFFC2410C),
+                            modifier = Modifier.size(18.dp),
+                        )
                     }
-                },
-            )
-            Spacer(Modifier.size(8.dp))
-            // 发送按钮：有字才出现（缩放进出），空输入时整块收起，不留一个灰疙瘩。
-            AnimatedVisibility(
-                visible = input.isNotBlank(),
-                enter = scaleIn(spring(dampingRatio = 0.7f)) + fadeIn(),
-                exit = scaleOut(spring(dampingRatio = 0.7f)) + fadeOut(),
-            ) {
+                    Spacer(Modifier.size(6.dp))
+                }
+                BasicTextField(
+                    value = input,
+                    onValueChange = onInputChange,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(vertical = 8.dp),
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(
+                        color = Color(0xFF2B2622),
+                        fontSize = 15.sp,
+                    ),
+                    cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFFC2410C)),
+                    maxLines = 4,
+                    decorationBox = { inner ->
+                        Box {
+                            if (input.isEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.companion_input_hint),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontSize = 15.sp,
+                                    color = Color(0xFFB3AEA8),
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                )
+                            }
+                            inner()
+                        }
+                    },
+                )
+                Spacer(Modifier.size(8.dp))
+                // 发送按钮：有字才出现（缩放进出），空输入时整块收起，不留一个灰疙瘩。
+                // 「只有图没有字」本来就到不了这里——canSend 在这种组合下是 false（纯图
+                // 消息 P1 不做），所以这里不需要为它单独画一个按钮形态。
+                AnimatedVisibility(
+                    visible = input.isNotBlank(),
+                    enter = scaleIn(spring(dampingRatio = 0.7f)) + fadeIn(),
+                    exit = scaleOut(spring(dampingRatio = 0.7f)) + fadeOut(),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(if (sendEnabled) Color(0xFFC2410C) else Color(0xFFE7DED6))
+                            .clickable(enabled = sendEnabled) { onSend() },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowUpward,
+                            contentDescription = stringResource(R.string.companion_send),
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+            }
+        }
+        if (showActions) {
+            Box(Modifier.fillMaxWidth().background(ChatKit.colors.surfaceVariant)) {
+                ActionPanel(actions = composerActions)
+            }
+        }
+    }
+}
+
+/**
+ * 待发条：选好还没发出去的图，输入框上方一条横向缩略图。
+ *
+ * 36dp 是为了**不**跟消息气泡里的收纳盒争尺寸——这一条的任务是「让你确认选对了、
+ * 能划掉错的」，不是预览大图。要细看请发出去之后点气泡里的图。
+ *
+ * [enabled] 关的是删除按钮：上传已经开始，这一组就是那条正在发的消息的附件了，
+ * 中途抽掉一张会让「上传的集合」和「发出去的集合」对不上。
+ */
+@Composable
+private fun PendingImageStrip(images: List<PendingImage>, onRemove: (String) -> Unit, enabled: Boolean) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 0.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        items(images, key = { it.path }) { image ->
+            Box(Modifier.padding(top = 6.dp, end = 6.dp)) {
+                AsyncImage(
+                    model = File(image.path),
+                    contentDescription = stringResource(R.string.companion_attach_thumbnail),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                )
                 Box(
                     modifier = Modifier
-                        .size(38.dp)
+                        .align(Alignment.TopEnd)
+                        .offset(x = 5.dp, y = (-5).dp)
+                        .size(18.dp)
                         .clip(CircleShape)
-                        .background(if (sendEnabled) Color(0xFFC2410C) else Color(0xFFE7DED6))
-                        .clickable(enabled = sendEnabled) { onSend() },
+                        .background(Color.Black.copy(alpha = 0.55f))
+                        .clickable(enabled = enabled) { onRemove(image.path) },
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.ArrowUpward,
-                        contentDescription = stringResource(R.string.companion_send),
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.companion_attach_remove),
                         tint = Color.White,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(11.dp),
                     )
                 }
             }

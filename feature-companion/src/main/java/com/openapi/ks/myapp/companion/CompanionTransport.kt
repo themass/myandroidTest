@@ -127,6 +127,40 @@ interface CompanionTransport {
     fun sendTouch(region: String) = Unit
 
     /**
+     * 这条连接能不能发图片消息：`hello_ack` 的交集里 `media.image` 还在不在。
+     *
+     * 用 [StateFlow] 而不是普通 `Boolean`，因为协商发生在**连接之后**（hello 发出去、
+     * ack 晚几百毫秒到），界面打开时还不知道答案。ViewModel 像接 [connection] 那样接它，
+     * 谈成了「+」自己就出来；没谈成（老服务端 / 灰度关闭 / 还没握手）就一直不出现。
+     *
+     * 默认 false：没有协议协商能力的替身不该假装服务端收得了图——那等于给用户一个
+     * 按下去什么都不会发生的「+」。
+     */
+    val imageSupported: StateFlow<Boolean>
+        get() = noImageSupport
+
+    /**
+     * 把刚上传好的图片 id 交给房间（协议 `control.input`，`kind="attachments"`）。
+     *
+     * 与 [sendText] 是**两条独立的出站消息**，调用方必须**先**调本方法再调 [sendText]：
+     * attachments 先到，服务端才有一条消息可以挂图；文本后到，才触发她的回合。少了前一条，
+     * 她会说「图我看到了」而界面上根本没有图。
+     *
+     * 但**调用顺序只是必要条件，不是线上顺序的保证**：真实实现与 [sendText] 一样，都是
+     * 在自己的 scope 上 `launch` 一个发布协程，两个协程排队由调度器决定。要真正钉死
+     * 「attachments 在文本之前落到房间」，得让发送路径汇到同一条串行通道上（单线程
+     * dispatcher 或发送队列）——那是对既有 [sendText] 的改动，不在本次范围内。
+     * 服务端按 `client_msg_id` 挂图，不依赖两条消息到达的先后，所以这里的风险面是
+     * 「文本先被处理、图稍后补上」，需要真机 + Task 5 一起验（见任务报告）。
+     *
+     * [clientMsgId] 是这一组附件的幂等键（`att-<epochMillis>-<seq>`）：重连补发、
+     * 或用户重复触发时，服务端凭它认得出「这是同一组」，不会挂两遍。
+     *
+     * 默认空实现：没有数据通道的替身没有这条路径（发送侧的闸在 `imageSupported`）。
+     */
+    fun sendAttachments(uploadIds: List<String>, clientMsgId: String) = Unit
+
+    /**
      * 开关本地麦克风。默认空实现：没有音频能力的替身不该假装能开麦。
      * 真实实现由 SDK 负责发布/取消发布音轨，调用方只表达意图。
      */
@@ -160,6 +194,9 @@ private val emptyPcm: Flow<ByteArray> = kotlinx.coroutines.flow.emptyFlow()
 
 /** [CompanionTransport.selfBands] 的默认值：没有采集就没有频谱。 */
 private val noBands: StateFlow<FloatArray> = MutableStateFlow(FloatArray(0)).asStateFlow()
+
+/** [CompanionTransport.imageSupported] 的默认值：没谈成协议就是不能发图。 */
+private val noImageSupport: StateFlow<Boolean> = MutableStateFlow(false).asStateFlow()
 
 /**
  * 测试与离线开发用的替身：逐词吐出一段固定回复，并在开头发一个情绪事件。

@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.setMain
 import com.openapi.ks.myapp.avatar.ProactiveKind
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -603,6 +604,270 @@ class CompanionViewModelTest {
         assertEquals("没连上就不该加气泡", emptyList<MessageRole>(), vm.state.value.messages.map { it.role })
         vm.stopListening()
     }
+
+    // ------------------------------------------------------ 图片消息：发送侧
+
+    /**
+     * 协议契约（设计 §5 时序）里最要命的一条就是**顺序**：`control.input` 的 attachments
+     * 先到、文本后到，服务端才能把这两条挂成一条消息。反过来发，文本会先触发回合，
+     * agent 开口时图片还没登记——表现是「她回了一句『图我看到了』但其实没有图」。
+     *
+     * 顺序在这里是可以确定断言的：`sendAttachments` 与 `sendText` 都是同步的接口方法，
+     * 替身把每一次调用按到达顺序记进同一个 [calls] 序列，上传全成功时这条序列就是
+     * 「房间里实际收到的先后」。
+     */
+    @Test
+    fun `picked images are uploaded, then an attachments event goes out before the text`() = runTest(dispatcher) {
+        val first = pendingFile("img_1.jpg")
+        val second = pendingFile("img_2.jpg")
+        val transport = AttachmentTransport()
+        val uploader = FakeImageUploader()
+        val vm = imageVm(transport, uploader)
+
+        vm.start("linche")
+        runCurrent()
+        vm.addPendingImage(first)
+        vm.addPendingImage(second)
+        vm.onInputChange("看这两张")
+        vm.send()
+        runCurrent()
+
+        assertEquals("两张图各传一次，按选定顺序", listOf("img_1.jpg", "img_2.jpg"), uploader.uploaded)
+        assertEquals("attachments 必须先于文本（服务端靠这个把它们挂成一条消息）",
+            listOf("sendAttachments", "sendText"), transport.calls)
+        assertEquals(listOf("u1", "u2"), transport.attachmentIds)
+        assertTrue(
+            "client_msg_id 形状 att-<epochMillis>-<seq>，实际=${transport.clientMsgId}",
+            Regex("^att-\\d+-\\d+$").matches(transport.clientMsgId),
+        )
+        assertEquals("文本照常走 lk.chat", listOf("看这两张"), transport.sentTexts)
+
+        val optimistic = vm.state.value.messages.last { it.role == MessageRole.USER }
+        assertEquals("乐观消息先用本地路径出图", listOf(first.absolutePath, second.absolutePath), optimistic.images)
+        assertEquals("服务端 id 要留住（签名 URL 过期后靠它重试）", listOf("u1", "u2"), optimistic.attachmentIds)
+        assertEquals("发完输入框要清空", "", vm.state.value.input)
+        assertEquals("待发条要清掉", emptyList<PendingImage>(), vm.state.value.pendingImages)
+        vm.stopListening()
+    }
+
+    /**
+     * Review Focus 4：第二张传失败时**整条不发**。半发的形态是「她收到一句『看这张』
+     * 却没有图」，比整条没发出去更糟，也更难解释。
+     *
+     * 三条都要钉住：文本没进房间、待发条原样留着（用户点一次发送就能重试）、
+     * 错误提示出来了（否则用户以为发出去了，只会等她回话）。
+     */
+    @Test
+    fun `a failed upload aborts the whole message and keeps the pending images`() = runTest(dispatcher) {
+        val first = pendingFile("img_1.jpg")
+        val second = pendingFile("img_2.jpg")
+        val third = pendingFile("img_3.jpg")
+        val transport = AttachmentTransport()
+        val uploader = FakeImageUploader(failOn = "img_2.jpg")
+        val vm = imageVm(transport, uploader)
+
+        vm.start("linche")
+        runCurrent()
+        vm.addPendingImage(first)
+        vm.addPendingImage(second)
+        vm.addPendingImage(third)
+        vm.onInputChange("看这三张")
+        vm.send()
+        runCurrent()
+
+        // 第三张压根没被碰过：失败之后循环就断了，不是「继续传完再决定发不发」。
+        assertEquals("第二张失败就该停住，第三张不必再传", listOf("img_1.jpg", "img_2.jpg"), uploader.uploaded)
+        assertEquals("半发是不行的：一条都不许进房间", emptyList<String>(), transport.calls)
+        assertEquals("待发图要原样留着待重发", 3, vm.state.value.pendingImages.size)
+        assertTrue(
+            "要给用户一条人话（实际 error=${vm.state.value.error}）",
+            vm.state.value.error?.contains("部分图片上传失败") == true,
+        )
+        assertEquals("输入框不能白丢", "看这三张", vm.state.value.input)
+        assertTrue("闸口要重新放开，否则重试按钮永远按不动", vm.state.value.canSend)
+        vm.stopListening()
+    }
+
+    /**
+     * **裁定**：纯图消息 P1 不做（设计 §5 时序）——companion 的回合由文本触发，
+     * 只发图她不会回，用户会对着一条没有回音的消息等。所以只有图时发送键必须是死的。
+     */
+    @Test
+    fun `images without any text are not sendable`() = runTest(dispatcher) {
+        val vm = imageVm(AttachmentTransport(), FakeImageUploader())
+
+        vm.start("linche")
+        runCurrent()
+        vm.addPendingImage(pendingFile("img_1.jpg"))
+
+        assertEquals("房间是连着的，闸口关的不是连接", CompanionConnection.CONNECTED, vm.state.value.connection)
+        assertTrue("只有图，不该能发", vm.state.value.pendingImages.isNotEmpty())
+        assertFalse(vm.state.value.canSend)
+
+        vm.onInputChange("   ")
+        assertFalse("空白的文本也不算话", vm.state.value.canSend)
+
+        vm.onInputChange("看这张")
+        assertTrue("配上文本就能发了", vm.state.value.canSend)
+        vm.stopListening()
+    }
+
+    /**
+     * `media.image` 没谈成（老服务端、或还没握手到）时，「+」这个入口本身就是个谎：
+     * 用户选了图、点了发送，最后什么都不会发生。所以入口的可见性由协商结果决定，
+     * 界面只读这一个标志。两边都断言：没谈成 = false，谈成 = true。
+     */
+    @Test
+    fun `the attachment entry follows the media image negotiation`() = runTest(dispatcher) {
+        // 默认替身没有音频/协商能力，等价于「服务端还没跟上」。
+        val plain = CompanionViewModel(
+            api = null,
+            transportFactory = { FakeCompanionTransport(reply = "") },
+            mediaUploader = FakeImageUploader(),
+            inboxPollMillis = 60_000,
+        )
+        plain.start("linche")
+        runCurrent()
+        assertFalse("没协商到 media.image 就不该出现「+」", plain.state.value.imageSupported)
+        plain.stopListening()
+
+        val negotiated = AttachmentTransport(negotiated = true)
+        val vm = imageVm(negotiated, FakeImageUploader())
+        vm.start("linche")
+        runCurrent()
+        assertTrue(vm.state.value.imageSupported)
+        vm.stopListening()
+    }
+
+    /** 重发同一条消息时 client_msg_id 必须换一个（服务端拿它做幂等，重复会被当同一条丢掉）。 */
+    @Test
+    fun `each send gets its own client_msg_id`() = runTest(dispatcher) {
+        val transport = AttachmentTransport()
+        val uploader = FakeImageUploader()
+        val vm = imageVm(transport, uploader)
+
+        vm.start("linche")
+        runCurrent()
+        vm.addPendingImage(pendingFile("img_1.jpg"))
+        vm.onInputChange("第一张")
+        vm.send()
+        runCurrent()
+        val firstId = transport.clientMsgId
+
+        vm.addPendingImage(pendingFile("img_2.jpg"))
+        vm.onInputChange("第二张")
+        vm.send()
+        runCurrent()
+
+        assertTrue("每条消息一个 id，实际=$firstId / ${transport.clientMsgId}",
+            firstId != transport.clientMsgId)
+        // 两次发送各自一条 attachments 事件、各自一组 id：id 不是一路累加下去的，
+        // 否则第二次的图片会被服务端挂到第一次那条消息上。
+        assertEquals(2, transport.attachmentEvents.size)
+        assertEquals(listOf("u1"), transport.attachmentEvents[0].first)
+        assertEquals(listOf("u2"), transport.attachmentEvents[1].first)
+        assertEquals(firstId, transport.attachmentEvents[0].second)
+        assertEquals(transport.clientMsgId, transport.attachmentEvents[1].second)
+        vm.stopListening()
+    }
+
+    /**
+     * 上传还在途时再按一次发送，不许把同一条消息发两遍：那样服务端会收到两组附件、
+     * 她的回合被触发两次，界面上却是同一条气泡——用户看到「我发了一次，她回了两次」。
+     *
+     * 断言的是**出站次数**而不是 `canSend` 的取值：闸口按住了但代码还是走了一遍，
+     * 在这里一样会露出来。
+     */
+    @Test
+    fun `a second send while images are still uploading does not double-send`() = runTest(dispatcher) {
+        val transport = AttachmentTransport()
+        val uploader = FakeImageUploader(slowMillis = 1_000)
+        val vm = imageVm(transport, uploader)
+
+        vm.start("linche")
+        runCurrent()
+        vm.addPendingImage(pendingFile("img_1.jpg"))
+        vm.onInputChange("看这张")
+        vm.send()
+        // 只推进 500ms：第一张还在传，上传协程没结束。
+        advanceTimeBy(500)
+        runCurrent()
+
+        assertFalse("上传期间闸口必须关着", vm.state.value.canSend)
+        vm.send()
+        vm.send()
+        runCurrent()
+
+        assertEquals("一条都没发出去（都还没传完）", emptyList<String>(), transport.calls)
+        // 让第一串跑完：只该发一次。
+        advanceTimeBy(2_000)
+        runCurrent()
+        assertEquals("传完之后只发一遍", listOf("sendAttachments", "sendText"), transport.calls)
+        assertEquals(1, uploader.uploaded.size)
+        vm.stopListening()
+    }
+}
+
+/** 发送侧测试共用的 ViewModel：一条会记调用顺序的房间 + 一个假上传。 */
+private fun imageVm(transport: AttachmentTransport, uploader: FakeImageUploader) = CompanionViewModel(
+    api = null,
+    transportFactory = { transport },
+    mediaUploader = uploader,
+    inboxPollMillis = 60_000,
+)
+
+/** 一个真实存在的待发图片文件（上传替身不读内容，只要路径与名字）。 */
+private fun pendingFile(name: String) =
+    java.io.File(System.getProperty("java.io.tmpdir"), name).apply { writeText("fake-jpeg") }
+
+/** 假上传：按文件名回一个稳定的 id，`failOn` 那张抛异常（模拟服务端拒绝/断网）。 */
+private class FakeImageUploader(
+    private val failOn: String? = null,
+    /** 每张挂起多久：配合 `advanceTimeBy` 造出「上传还在途」的那个时刻。 */
+    private val slowMillis: Long = 0,
+) : CompanionViewModel.ImageUploader {
+    val uploaded = mutableListOf<String>()
+    override suspend fun upload(file: java.io.File, mime: String): String {
+        uploaded += file.name
+        if (slowMillis > 0) kotlinx.coroutines.delay(slowMillis)
+        if (file.name == failOn) throw com.openapi.common.media.MediaUploadException("上传失败（HTTP 503）", 503)
+        return "u${uploaded.size}"
+    }
+}
+
+/**
+ * 记录出站调用**顺序**的替身：`calls` 就是「房间按什么顺序收到了什么」，
+ * 发送顺序这条契约只有在这里才看得见。
+ *
+ * 默认按「`media.image` 已谈成」装配——它是发送路径的替身，不协商图片的话测的就不是
+ * 发送路径了。协商位本身那条（谈不成时「+」不出现）单独有用例。
+ */
+private class AttachmentTransport(negotiated: Boolean = true) : CompanionTransport {
+    val calls = mutableListOf<String>()
+    val sentTexts = mutableListOf<String>()
+    /** 每一次 sendAttachments 原样记下来：只留最后一次的值会让「id 累加」这种错看不出来。 */
+    val attachmentEvents = mutableListOf<Pair<List<String>, String>>()
+    var attachmentIds: List<String> = emptyList()
+    var clientMsgId: String = ""
+
+    override val imageSupported: kotlinx.coroutines.flow.StateFlow<Boolean> =
+        kotlinx.coroutines.flow.MutableStateFlow(negotiated)
+    override val events: kotlinx.coroutines.flow.Flow<CompanionEvent> =
+        kotlinx.coroutines.flow.MutableSharedFlow()
+    override suspend fun connect(session: SessionResponse) = Unit
+    override fun sendText(text: String) {
+        calls += "sendText"
+        sentTexts += text
+    }
+
+    override fun sendAttachments(uploadIds: List<String>, clientMsgId: String) {
+        calls += "sendAttachments"
+        attachmentIds = uploadIds
+        this.clientMsgId = clientMsgId
+        attachmentEvents += uploadIds to clientMsgId
+    }
+
+    override suspend fun disconnect() = Unit
 }
 
 /** 记录 sendText 文案的传输替身：动作发送路径的唯一证据就在「房间收到了什么」。 */
