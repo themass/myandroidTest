@@ -1,6 +1,8 @@
 package com.openapi.ks.myapp.dh
 
 import com.openapi.ks.myapp.avatar.AvatarCommand
+import com.openapi.ks.myapp.avatar.AvatarTouch
+import com.openapi.ks.myapp.avatar.TouchResult
 
 /**
  * Facade：把通话音频与协议指令接到当前引擎。
@@ -31,6 +33,12 @@ class DigitalHumanBridge(
     fun onAvatarCommand(cmd: AvatarCommand) {
         engine.dispatch(cmd)
     }
+
+    /**
+     * 舞台认出的手指事件 → 当前引擎（触点互动的唯一入口，切换后自动跟到新引擎）。
+     * 返回值留给调用方做本地反馈判断；不认识的引擎回 [TouchResult.Ignored]。
+     */
+    fun onAvatarTouch(event: AvatarTouch): TouchResult = engine.onTouch(event)
 
     fun onMouthLevel(level: Float) {
         engine.dispatch(AvatarCommand.Mouth(level))

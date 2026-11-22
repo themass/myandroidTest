@@ -1,0 +1,7 @@
+{
+	"Type": "Live2D Expression",
+	"Comment": "摸头反馈：脸颊泛红（同上游 expression1 的参数值）。",
+	"Parameters": [
+		{ "Id": "ParamCheek", "Value": 1, "Blend": "Add" }
+	]
+}

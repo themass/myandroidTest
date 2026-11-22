@@ -127,6 +127,18 @@ if echo " $ENGINES " | grep -q " live2d "; then
     ra "rm -rf $DATA/files/dh-engines/live2d/ATRI"
     ra "mkdir -p $DATA/files/dh-engines/live2d/ATRI && cp -R $local_stage/. $DATA/files/dh-engines/live2d/ATRI/"
     echo "== live2d/ATRI 已推送（无 marker：ATRI 不在清单里，靠目录存在判定）"
+    # lab 触点互动覆盖层（demo #2）：带 Expressions 的 model3.json + 六个 exp3。
+    # 顺序不能在上面的整目录推送之前——rm -rf 会把覆盖层一起清掉。
+    LAB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/live2d-lab-assets"
+    if [ -f "$LAB_DIR/ATRI.model3.json" ]; then
+      lab_stage="$DEVICE_TMP/live2d-lab-assets"
+      "${ADB[@]}" shell "rm -rf '$lab_stage' && mkdir -p '$lab_stage'"
+      "${ADB[@]}" push "$LAB_DIR/." "$lab_stage/" >/dev/null
+      ra "mkdir -p $DATA/files/dh-engines/live2d/ATRI && cp -R $lab_stage/. $DATA/files/dh-engines/live2d/ATRI/"
+      echo "== live2d/ATRI lab 覆盖层（model3.json+expressions）已推送"
+    else
+      echo "!! 跳过 lab 覆盖层：缺 $LAB_DIR（触点互动表情不会注册）"
+    fi
   else
     echo "!! 跳过 Live2D：把 ATRI 模型目录放到 $PACKS/ATRI/ 再运行"
   fi

@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.openapi.ks.myapp.avatar.AvatarSpec
+import com.openapi.ks.myapp.avatar.AvatarTouch
+import com.openapi.ks.myapp.avatar.AvatarTouchKind
 import com.openapi.ks.myapp.avatar.SimpleAvatar
 import kotlinx.coroutines.launch
 import java.io.File
@@ -271,9 +273,13 @@ fun DigitalHumanLabHost(
                             onTap = { offset ->
                                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                 tapPressed = true
-                                tappedNow?.invoke(
-                                    stageTapRegion(offset.x / size.width, offset.y / size.height),
-                                )
+                                val nx = offset.x / size.width
+                                val ny = offset.y / size.height
+                                // 触点互动进引擎：Live2D 在这里做「摸头脸红 / 点身体换装」
+                                // （onTouch 纯状态机 → native 表情），不支持的引擎回 Ignored
+                                // 无副作用。区域语义与 stageTapRegion 上报同源。
+                                bridge.onAvatarTouch(AvatarTouch(nx, ny, AvatarTouchKind.TAP))
+                                tappedNow?.invoke(stageTapRegion(nx, ny))
                             },
                             onLongPress = { longPressedNow?.invoke() },
                         )

@@ -1,0 +1,7 @@
+{
+	"Type": "Live2D Expression",
+	"Comment": "换装·泳装（同上游 expression4 的参数值）。",
+	"Parameters": [
+		{ "Id": "Param17", "Value": 30, "Blend": "Add" }
+	]
+}

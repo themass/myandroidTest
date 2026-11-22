@@ -1,0 +1,8 @@
+{
+	"Type": "Live2D Expression",
+	"Comment": "睡衣+脸红组合（同上一条的理由）。",
+	"Parameters": [
+		{ "Id": "Param18", "Value": 30, "Blend": "Add" },
+		{ "Id": "ParamCheek", "Value": 1, "Blend": "Add" }
+	]
+}

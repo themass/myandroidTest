@@ -1,0 +1,7 @@
+{
+	"Type": "Live2D Expression",
+	"Comment": "换装·睡衣（同上游 expression3 的参数值）。",
+	"Parameters": [
+		{ "Id": "Param18", "Value": 30, "Blend": "Add" }
+	]
+}
