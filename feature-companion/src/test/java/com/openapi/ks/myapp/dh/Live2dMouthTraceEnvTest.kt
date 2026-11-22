@@ -91,7 +91,7 @@ class Live2dMouthTraceEnvTest {
             assertEquals(TouchResult.Handled(AvatarRegion.HEAD), tap)
             val msgs = ShadowLog.getLogsForTag("Live2dTouch").map { it.msg }
             assertTrue("嘴型记录在", msgs.any { it.startsWith("mouth v=0.400") })
-            assertTrue("触点记录在", msgs.any { it.startsWith("tap region=HEAD") })
+            assertTrue("触点记录在", msgs.any { it.startsWith("tap region=${AvatarRegion.HEAD}") })
         } finally { engine.release() }
     }
 }
