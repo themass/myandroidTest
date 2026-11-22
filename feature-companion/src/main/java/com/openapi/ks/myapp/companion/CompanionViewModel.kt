@@ -108,8 +108,14 @@ class CompanionViewModel(
         startupJob?.cancel()
         // 新一通会话开始了：还在途的那串「上传 → attachments → 文本」属于上一个房间，
         // 让它跑完只会把一条消息发进一个已经不存在的房间里。
+        //
+        // `uploading` 必须在这里归零，不能指望被取消的协程自己清：它的两个清零点
+        // （失败分支、deliver）都在协程**内部**，取消到不了它们。协程还没轮到跑就被取消时，
+        // 它一行都没执行——`uploading` 会一直是 true，`canSend` 从此恒为 false，
+        // 发送区死到路由销毁这个 ViewModel 为止。
         sendJob?.cancel()
         sendJob = null
+        _state.update { it.copy(uploading = false) }
         startupJob = viewModelScope.launch {
             try {
                 val session = when {
@@ -227,7 +233,10 @@ class CompanionViewModel(
         val text = current.input.trim()
         val pending = current.pendingImages
         if (pending.isEmpty()) {
-            deliver(text, emptyList(), emptyList())
+            // 纯文本保持**同步**发出去，不进协程：它没有任何要等的东西，而一进协程，
+            // 连点两次就会在第一个协程跑起来之前把同一句话发出去两遍。
+            // 带图的那条路才需要协程（上传与 `await` 发布都是挂起点），见下面。
+            sendTextNow(text, emptyList(), emptyList())
             return
         }
         val uploader = mediaUploader
@@ -247,9 +256,17 @@ class CompanionViewModel(
             val ids = ArrayList<String>(pending.size)
             var failed = false
             for (image in pending) {
-                val uploaded = runCatching { uploader.upload(image.file, MIME_JPEG) }
-                    .onFailure { logUploadFailure(image, it) }
-                    .getOrNull()
+                // `try/catch` 而不是 `runCatching`：后者会把 CancellationException 也吞成
+                // 「这张传失败了」，于是换角色取消掉这条协程时，用户看到的是一句
+                // 「部分图片上传失败」——他没点失败，也没得可重试。取消必须原样往外抛。
+                val uploaded = try {
+                    uploader.upload(image.file, MIME_JPEG)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    logUploadFailure(image, e)
+                    null
+                }
                 if (uploaded == null) {
                     failed = true
                     break
@@ -261,6 +278,40 @@ class CompanionViewModel(
                 return@launch
             }
             deliver(text, pending.map { it.path }, ids)
+        }
+    }
+
+    /**
+     * 带图的出站：先**等 attachments 真正发布完成**，再发文本。
+     *
+     * 等的是「已落进房间」这个事实，不是「我们调用过」：服务端的 pending 槽只活到
+     * 下一次用户回合，文本抢跑一次，图片就落到下一条消息上去
+     * （见 [CompanionTransport.sendAttachments]）。
+     */
+    private suspend fun deliver(text: String, localPaths: List<String>, uploadIds: List<String>) {
+        attachmentSeq += 1
+        transport.sendAttachments(uploadIds, "att-${System.currentTimeMillis()}-$attachmentSeq")
+        sendTextNow(text, localPaths, uploadIds)
+    }
+
+    /**
+     * 文本进房间，并落下乐观气泡。
+     *
+     * **同步**：纯文本那条路不该为了「统一」而进协程——一进协程，连点两次就会在第一个
+     * 协程跑起来之前把同一句话发出去两遍（带图那条有 `uploading` 当闸，纯文本没有）。
+     */
+    private fun sendTextNow(text: String, localPaths: List<String>, uploadIds: List<String>) {
+        transport.sendText(text)
+        _state.update {
+            it.copy(
+                input = "",
+                uploading = false,
+                pendingImages = emptyList(),
+                messages = it.messages +
+                    newMessage(MessageRole.USER, text, images = localPaths, attachmentIds = uploadIds) +
+                    // 先占位，收到 TextDelta 往里追加；TurnDone 时关掉 streaming。
+                    newMessage(MessageRole.ASSISTANT, "", streaming = true),
+            )
         }
     }
 
@@ -277,35 +328,26 @@ class CompanionViewModel(
         }
     }
 
-    /** 文本（以及可选的一组已上传附件）真正进房间，并落下乐观气泡。 */
-    private fun deliver(text: String, localPaths: List<String>, uploadIds: List<String>) {
-        if (uploadIds.isNotEmpty()) {
-            attachmentSeq += 1
-            transport.sendAttachments(uploadIds, "att-${System.currentTimeMillis()}-$attachmentSeq")
-        }
-        transport.sendText(text)
-        _state.update {
-            it.copy(
-                input = "",
-                uploading = false,
-                pendingImages = emptyList(),
-                messages = it.messages +
-                    newMessage(MessageRole.USER, text, images = localPaths, attachmentIds = uploadIds) +
-                    // 先占位，收到 TextDelta 往里追加；TurnDone 时关掉 streaming。
-                    newMessage(MessageRole.ASSISTANT, "", streaming = true),
-            )
-        }
-    }
-
     /**
      * 长按动作轮盘的发送：把动作文案（「摸了摸她的头」）当作用户的话直接发出去。
      *
      * 与 [send] 同一条出站链路（sendText + 用户气泡 + 流式占位），区别只有两点：
-     * 文案不经输入框（输入框可能是空的，也不该被动作文案覆盖），闸口只看连接
-     * 状态（输入框有无内容与此无关）。她的回话沿同一事件流回来，字幕照常滚动。
+     * 文案不经输入框（输入框可能是空的，也不该被动作文案覆盖），闸口不看输入框
+     * 有无内容。她的回话沿同一事件流回来，字幕照常滚动。
+     *
+     * **但它不能绕过 [CompanionUiState.uploading]**：那条路是 `send()` 的闸，不是输入框的闸。
+     * 上传在途时从这里发一条纯文本出去，正是本任务要防的半条消息形状——attachments 还在
+     * 路上，而服务端的 pending 槽只活到下一次用户回合，图会挂到这条动作文案上去。
+     * 不走 [deliver] 是因为那条会清空输入框与待发条，而动作文案既不该覆盖草稿、
+     * 也不该把用户选好的图一起发掉。
      */
     fun sendActionText(text: String) {
         if (_state.value.connection != CompanionConnection.CONNECTED) return
+        if (_state.value.uploading) {
+            // 不说清楚就是「点了没反应」：用户看不到输入区为什么按不动。
+            _state.update { it.copy(error = UPLOAD_IN_PROGRESS_MESSAGE) }
+            return
+        }
         transport.sendText(text)
         _state.update {
             it.copy(
@@ -871,6 +913,12 @@ class CompanionViewModel(
 
         /** 房间不支持图片（协商变了）：图传不了，也不该只把文本单独发出去。 */
         const val UPLOAD_UNSUPPORTED_MESSAGE = "当前连接不支持图片，请重新进入对话后再试"
+
+        /**
+         * 图片还在传，动作文案不能插队（见 [sendActionText]）。
+         * 点了没反应是最糟的反馈——动作托盘已经收起来了，用户只会以为这一下没点到。
+         */
+        const val UPLOAD_IN_PROGRESS_MESSAGE = "图片正在发送，稍等一下再发"
 
         /** 第二次打开选择器又选了图、但条数已经到顶。不说清楚就像图被吞了。 */
         const val MAX_IMAGES_MESSAGE = "一条消息最多 %1\$d 张图片"

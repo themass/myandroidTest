@@ -1,5 +1,6 @@
 package com.openapi.ks.myapp.companion
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -806,6 +807,144 @@ class CompanionViewModelTest {
         assertEquals(1, uploader.uploaded.size)
         vm.stopListening()
     }
+
+    /**
+     * 评审 Important 2：上传途中换角色（`start()` 重入取消 `sendJob`）之后，发送键必须还能用。
+     *
+     * `uploading` 的清零点全在被取消的那条协程**内部**（失败分支与 `deliver()`），取消本身
+     * 到不了它们。这一条钉的是最干净的那个窗口：`send()` 刚把 `uploading` 置 true、协程还
+     * 没轮到跑，`start()` 就把它取消了——协程一行都没执行，什么都不会把它归零，
+     * `canSend` 从此恒为 false，发送区死到路由销毁这个 ViewModel 为止。
+     */
+    @Test
+    fun `switching characters while an upload is in flight releases the send button`() = runTest(dispatcher) {
+        val transport = AttachmentTransport()
+        val uploader = FakeImageUploader(slowMillis = 1_000)
+        val vm = imageVm(transport, uploader)
+
+        vm.start("linche")
+        runCurrent()
+        vm.addPendingImage(pendingFile("img_1.jpg"))
+        vm.onInputChange("看这张")
+        vm.send()
+        // 不给它跑的机会：uploading 已经 true，协程还排在队列里。
+        assertTrue("先确认闸口已经关上了", vm.state.value.uploading)
+
+        // 换角色：走 start() 的重入路径（同角色会因为已 CONNECTED 早退，绕不开）。
+        vm.start("another")
+        runCurrent()
+
+        assertFalse("被取消的上传不能把闸口永久按住", vm.state.value.uploading)
+        assertEquals("属于上一个房间的那条消息不许发出去", emptyList<String>(), transport.calls)
+        vm.onInputChange("新角色的第一句话")
+        assertTrue("闸口要重新放开，否则发送键再也按不动", vm.state.value.canSend)
+        vm.stopListening()
+    }
+
+    /**
+     * 评审 Important 2 的另一半：上传**已经跑起来**之后再换角色。
+     *
+     * 协程被取消时，图没传完不等于「上传失败」，此时报「部分图片上传失败，已保留待重发」
+     * 是句谎话（用户没点失败、也没得可重试，他只是换了个角色）。这一条钉的是：
+     * 取消既不留下闸口，也不留下错误提示。
+     */
+    @Test
+    fun `cancelling an in-flight upload does not report a fake upload failure`() = runTest(dispatcher) {
+        val transport = AttachmentTransport()
+        val uploader = FakeImageUploader(slowMillis = 1_000)
+        val vm = imageVm(transport, uploader)
+
+        vm.start("linche")
+        runCurrent()
+        vm.addPendingImage(pendingFile("img_1.jpg"))
+        vm.onInputChange("看这张")
+        vm.send()
+        advanceTimeBy(500)
+        runCurrent()
+        assertTrue("先确认上传真的已经在跑", vm.state.value.uploading)
+
+        vm.start("another")
+        runCurrent()
+
+        assertFalse("闸口要放开", vm.state.value.uploading)
+        assertNull(
+            "换角色不是上传失败，别报一句谎（实际 error=${vm.state.value.error}）",
+            vm.state.value.error,
+        )
+        assertEquals("取消掉的那条不许发出去", emptyList<String>(), transport.calls)
+        vm.stopListening()
+    }
+
+    /**
+     * 评审 Important 3：动作轮盘的发送不能绕过上传闸。
+     *
+     * `sendActionText` 只看连接状态，上传窗口期内它会发出一条纯文字回合，而 attachments
+     * 事件还在路上——正是本任务要防的半条消息形状，服务端的 pending 槽还会把图挂错回合。
+     */
+    @Test
+    fun `an action wheel send during an upload does not start a text-only turn`() = runTest(dispatcher) {
+        val transport = AttachmentTransport()
+        val uploader = FakeImageUploader(slowMillis = 1_000)
+        val vm = imageVm(transport, uploader)
+
+        vm.start("linche")
+        runCurrent()
+        vm.addPendingImage(pendingFile("img_1.jpg"))
+        vm.onInputChange("看这张")
+        vm.send()
+        advanceTimeBy(500)
+        runCurrent()
+
+        assertTrue("先确认上传真的还在途", vm.state.value.uploading)
+        vm.sendActionText("摸了摸她的头")
+        runCurrent()
+
+        assertEquals("上传途中不许有任何出站（动作文案也算）", emptyList<String>(), transport.calls)
+        assertFalse("动作文案不该变成气泡", vm.state.value.messages.any { it.text == "摸了摸她的头" })
+        // 上传跑完之后，原来那条带图的消息照常发出去，而且只发一遍。
+        advanceTimeBy(2_000)
+        runCurrent()
+        assertEquals(listOf("sendAttachments", "sendText"), transport.calls)
+        assertEquals(listOf("看这张"), transport.sentTexts)
+        vm.stopListening()
+    }
+
+    /**
+     * 评审 Important 1：attachments 必须**真的发完了**，文本才许发出去。
+     *
+     * 「调用顺序正确」不够：真实实现如果像 [sendText] 那样把发布 `launch` 成独立协程，
+     * 两条协程谁先落到房间由调度器决定，而服务端的 pending 槽只活到**下一次**用户回合——
+     * 文本抢跑一次，图片就挂到下一条消息上去。所以契约钉的是「attachments 发布完成之前，
+     * `sendText` 一次都不许被调用」。
+     */
+    @Test
+    fun `text is not sent until the attachments publish has actually completed`() = runTest(dispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        val transport = GatedAttachmentTransport(gate)
+        val vm = CompanionViewModel(
+            api = null,
+            transportFactory = { transport },
+            mediaUploader = FakeImageUploader(),
+            inboxPollMillis = 60_000,
+        )
+
+        vm.start("linche")
+        runCurrent()
+        vm.addPendingImage(pendingFile("img_1.jpg"))
+        vm.onInputChange("看这张")
+        vm.send()
+        runCurrent()
+
+        assertEquals("attachments 要先发出去", listOf("sendAttachments"), transport.calls)
+        assertEquals("发布还没完成时，文本一次都不许发", emptyList<String>(), transport.sentTexts)
+        gate.complete(Unit)
+        runCurrent()
+
+        assertEquals("发布完成后文本才发", listOf("看这张"), transport.sentTexts)
+        assertEquals(listOf("sendAttachments", "sendText"), transport.calls)
+        assertFalse("发完闸口要放开", vm.state.value.uploading)
+        vm.stopListening()
+    }
 }
 
 /** 发送侧测试共用的 ViewModel：一条会记调用顺序的房间 + 一个假上传。 */
@@ -860,11 +999,40 @@ private class AttachmentTransport(negotiated: Boolean = true) : CompanionTranspo
         sentTexts += text
     }
 
-    override fun sendAttachments(uploadIds: List<String>, clientMsgId: String) {
+    override suspend fun sendAttachments(uploadIds: List<String>, clientMsgId: String) {
         calls += "sendAttachments"
         attachmentIds = uploadIds
         this.clientMsgId = clientMsgId
         attachmentEvents += uploadIds to clientMsgId
+    }
+
+    override suspend fun disconnect() = Unit
+}
+
+/**
+ * attachments 发布**不会立刻完成**的替身：[sendAttachments] 挂起直到 [gate] 被 complete，
+ * 模拟真实实现里那次 `publishData` 往返。
+ *
+ * 它存在的唯一理由是把「调用过」和「发完了」这两件事分开：如果实现只是顺序调两个方法
+ * （或把发布 `launch` 出去不等它），这条用例会在 `gate.complete` 之前就看见 `sendText`。
+ */
+private class GatedAttachmentTransport(private val gate: CompletableDeferred<Unit>) : CompanionTransport {
+    val calls = mutableListOf<String>()
+    val sentTexts = mutableListOf<String>()
+
+    override val imageSupported: kotlinx.coroutines.flow.StateFlow<Boolean> =
+        kotlinx.coroutines.flow.MutableStateFlow(true)
+    override val events: kotlinx.coroutines.flow.Flow<CompanionEvent> =
+        kotlinx.coroutines.flow.MutableSharedFlow()
+    override suspend fun connect(session: SessionResponse) = Unit
+    override suspend fun sendAttachments(uploadIds: List<String>, clientMsgId: String) {
+        calls += "sendAttachments"
+        gate.await()
+    }
+
+    override fun sendText(text: String) {
+        calls += "sendText"
+        sentTexts += text
     }
 
     override suspend fun disconnect() = Unit

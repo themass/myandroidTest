@@ -598,8 +598,12 @@ class LiveKitCompanionTransport(
      * 谁也不读的 id。没握手到 v2、或 `media.image` 没谈成，就记一条 warn 然后什么都不做
      * ——界面上的「+」在这种连接下本来就不出现，走到这里说明状态在通话中间变了，
      * 让它留在日志里可查，而不是假装成功。
+     *
+     * 这里**直接 `publishData` 而不是 `scope.launch`**：返回即「已落进房间」，调用方才能
+     * 等它返回再发文本（见 [CompanionTransport.sendAttachments]）。`scope.launch` 的写法
+     * 与 [sendText] 各自一条协程，谁先到达由调度器决定，文本抢跑一次，图就落到下一条消息上。
      */
-    override fun sendAttachments(uploadIds: List<String>, clientMsgId: String) {
+    override suspend fun sendAttachments(uploadIds: List<String>, clientMsgId: String) {
         if (uploadIds.isEmpty()) return
         val current = room ?: return
         val protocolLink = link
@@ -629,15 +633,13 @@ class LiveKitCompanionTransport(
             logWarn("attempt=$activeAttemptId event=attachments_encode_failed ids=${uploadIds.size}")
             return
         }
-        scope.launch {
-            runCatching {
-                current.localParticipant
-                    .publishData(bytes, DataPublishReliability.RELIABLE, ProtocolCatalog.TOPIC_IN)
-            }.onSuccess {
-                logInfo("attempt=$activeAttemptId event=attachments_sent ids=${uploadIds.size} clientMsgId=$clientMsgId")
-            }.onFailure {
-                logWarn("attempt=$activeAttemptId event=attachments_publish_failed type=${it.javaClass.simpleName}")
-            }
+        runCatching {
+            current.localParticipant
+                .publishData(bytes, DataPublishReliability.RELIABLE, ProtocolCatalog.TOPIC_IN)
+        }.onSuccess {
+            logInfo("attempt=$activeAttemptId event=attachments_sent ids=${uploadIds.size} clientMsgId=$clientMsgId")
+        }.onFailure {
+            logWarn("attempt=$activeAttemptId event=attachments_publish_failed type=${it.javaClass.simpleName}")
         }
     }
 

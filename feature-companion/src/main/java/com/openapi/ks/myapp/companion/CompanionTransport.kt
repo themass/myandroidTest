@@ -142,23 +142,21 @@ interface CompanionTransport {
     /**
      * 把刚上传好的图片 id 交给房间（协议 `control.input`，`kind="attachments"`）。
      *
-     * 与 [sendText] 是**两条独立的出站消息**，调用方必须**先**调本方法再调 [sendText]：
-     * attachments 先到，服务端才有一条消息可以挂图；文本后到，才触发她的回合。少了前一条，
-     * 她会说「图我看到了」而界面上根本没有图。
+     * 与 [sendText] 是**两条独立的出站消息**：attachments 先到，服务端才有一条消息可以挂图；
+     * 文本后到，才触发她的回合。少了前一条，她会说「图我看到了」而界面上根本没有图。
      *
-     * 但**调用顺序只是必要条件，不是线上顺序的保证**：真实实现与 [sendText] 一样，都是
-     * 在自己的 scope 上 `launch` 一个发布协程，两个协程排队由调度器决定。要真正钉死
-     * 「attachments 在文本之前落到房间」，得让发送路径汇到同一条串行通道上（单线程
-     * dispatcher 或发送队列）——那是对既有 [sendText] 的改动，不在本次范围内。
-     * 服务端按 `client_msg_id` 挂图，不依赖两条消息到达的先后，所以这里的风险面是
-     * 「文本先被处理、图稍后补上」，需要真机 + Task 5 一起验（见任务报告）。
+     * **必须是 `suspend`，而且调用方必须 `await` 到它返回再发文本。** 这条契约钉的是
+     * 「attachments 真正落进房间」这个事实，不是「我们先调用了它」：把两个发布各自
+     * `launch` 到线程池上（[sendText] 现在的样子），谁先到达由调度器决定，而服务端的
+     * pending 槽只活到**下一次**用户回合——文本抢跑一次，图片就落到下一条消息上去。
+     * 等发布完成再发文本，顺序才是真的。
      *
      * [clientMsgId] 是这一组附件的幂等键（`att-<epochMillis>-<seq>`）：重连补发、
      * 或用户重复触发时，服务端凭它认得出「这是同一组」，不会挂两遍。
      *
-     * 默认空实现：没有数据通道的替身没有这条路径（发送侧的闸在 `imageSupported`）。
+     * 默认空实现：没有数据通道的替身没有这条路径（发送侧的闸在 [imageSupported]）。
      */
-    fun sendAttachments(uploadIds: List<String>, clientMsgId: String) = Unit
+    suspend fun sendAttachments(uploadIds: List<String>, clientMsgId: String) = Unit
 
     /**
      * 开关本地麦克风。默认空实现：没有音频能力的替身不该假装能开麦。
