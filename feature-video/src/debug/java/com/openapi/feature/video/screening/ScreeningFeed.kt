@@ -90,16 +90,24 @@ internal fun isPlayableMediaUrl(actionUrl: String?): Boolean {
 }
 
 /**
- * 配置频道卡：`video://config?channel=hsex_all`（夜色分类全是这种）。
- *
- * 原逻辑把 `video://` 路由到 `VideoChannleActivity`，它先拿 `channel` 调
- * `channel.json`（列子频道：18禁 / hsex.men），点子频道才用 `param` 调 items.json 取片单。
- * 放映场以前把这种 channel 直接发给 items.json——`hsex_all` 只是 channelType 列、
- * 不是 channel 列，服务端查不到行直接报 errno 10000（就是用户看到的「网络问题」）。
- * 所以这类卡必须交回原路由，不在放映场内页里自己取数。
+ * 第一层要列子频道（channel.json）的配置频道 scheme。原路由（`ConfigActionJump.configMap`）
+ * 把 `video://` 交 `VideoChannleActivity`、`teleplay://` 交 `TeleplayActivity`（内部同一个
+ * VideoChannleBodyFragment）、`movie://` 交 `MovieChannleActivity`——三者先 `/video/channel.json`
+ * 列子频道、下一层才 items.json 取片单。放映场以前只认 `video://`，teleplay/movie 的
+ * channel 值（channelType 列）被直接发去 items.json，查不到行（errno/0 行）——就是「点进去没内容」。
  */
+private val SUBCHANNEL_SCHEMES = setOf("video", "teleplay", "movie")
 internal fun isConfigAction(actionUrl: String?): Boolean =
-    schemeOf(actionUrl) == "video" && !channelParamOf(actionUrl).isNullOrEmpty()
+    schemeOf(actionUrl) in SUBCHANNEL_SCHEMES && !channelParamOf(actionUrl).isNullOrEmpty()
+
+/**
+ * 声音馆（`sound://`）和文字馆（`text://`）：放映场没有对应页（音频播放器/文字阅读器不在
+ * 这个模块的现有形状里），交回原分发（`ConfigActionJump` → 旧 `SoundChannleActivity` /
+ * `TextChannleActivity`）。以前这两个 scheme 被当视频频道去发 items.json，两头落空。
+ * 新模块做出对应的 Compose 页后，这里再收回来。
+ */
+private val LEGACY_ONLY_SCHEMES = setOf("sound", "text")
+internal fun isLegacyOnlyAction(actionUrl: String?): Boolean = schemeOf(actionUrl) in LEGACY_ONLY_SCHEMES
 
 /**
  * 视频频道内页取数用的 key。原页面 `VideoChannelListFragment.getUrl` 传的是 `vo.param`：

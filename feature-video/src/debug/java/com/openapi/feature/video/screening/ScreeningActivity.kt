@@ -150,6 +150,12 @@ private fun ScreeningHome(activity: ScreeningActivity) {
     }
     val openChannel: (RemoteEntry) -> Unit = { entry ->
         forward = true
+        // 取数键分层级（对齐旧页面）：第一层列子频道用 actionUrl 里的 channel=
+        // （VideoChannleBodyFragment 就是拿 CONFIG_PARAM 的 channel 发 channel.json）；
+        // 片单页才用 param 优先（VideoChannelListFragment.getUrl 用 vo.param）。
+        // 以前不分层，config 卡的 param（若有）会顶掉 channelType 键，第一层就查空。
+        val kind = videoChannelPageKind(entry)
+        val fetchKey = if (kind == ScreeningPageKind.SUBCHANNELS) entry.channelParam else entry.videoChannelKey()
         channelPage = ScreeningChannelPage(
             title = entry.title,
             detail = entry.description,
@@ -159,10 +165,10 @@ private fun ScreeningHome(activity: ScreeningActivity) {
             // 原页面 VideoChannelListFragment.getUrl 用的是 vo.param。外链频道卡以前在这里
             // 被置空（掉回 WebView 就不用内页取数了）；B 线吸收后必须把 key 传下去，
             // 内页才拿它发 items.json。（旧「样例频道」兜底已随写死样例频道一并清掉。）
-            channelParam = entry.videoChannelKey(),
+            channelParam = fetchKey,
             sample = null,
             // 夜色配置频道卡（hsex_all 这类）进去先列子频道，点一行再下钻片单
-            kind = videoChannelPageKind(entry),
+            kind = kind,
             // 片单查不到时给的回网页退路；内部频道卡没有网页，为 null 就不画按钮
             webFallback = entry.webFallbackUrl(),
         )

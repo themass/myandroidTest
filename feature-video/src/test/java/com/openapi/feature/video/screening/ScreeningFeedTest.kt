@@ -312,4 +312,55 @@ class ScreeningFeedTest {
         assertEquals(FeedRoute.CHANNEL, routeOf(sub))
         assertEquals(ScreeningPageKind.VIDEOS, videoChannelPageKind(sub))
     }
+
+    // ---- 协议分发全表回归（用户报「全被识别成视频列表」，对着 ConfigActionJump 的表钉） ----
+
+    @Test
+    fun `teleplay 和 movie 走子频道层，不发片单接口`() {
+        // 旧路由：teleplay:// → TeleplayActivity（内部就是 VideoChannleBodyFragment）、
+        // movie:// → MovieChannleActivity，第一层都发 /video/channel.json。
+        // 放映场以前只认 video://，这两种被发去 items.json（channelType 值查不到行）。
+        assertTrue(isConfigAction("teleplay://config?channel=tv_all"))
+        assertTrue(isConfigAction("movie://config?channel=dy_all"))
+        val tv = remoteEntry(1L, 0, "teleplay", null, null, 1f, "teleplay://config?channel=tv_all", false, dataType = 5)!!
+        assertEquals(FeedRoute.CHANNEL, routeOf(tv))
+        assertEquals(ScreeningPageKind.SUBCHANNELS, videoChannelPageKind(tv))
+        val movie = remoteEntry(2L, 0, "movie", null, null, 1f, "movie://config?channel=dy_all", false, dataType = 5)!!
+        assertEquals(ScreeningPageKind.SUBCHANNELS, videoChannelPageKind(movie))
+        // 不带 channel 的直链不算配置频道（和 video:// 同规则）
+        assertFalse(isConfigAction("movie://play?id=1"))
+    }
+
+    @Test
+    fun `sound 和 text 交回原分发，不进视频内页`() {
+        // 旧路由：sound:// → SoundChannleActivity（/sound/channel.json→/sound/items.json+音频播放器）、
+        // text:// → TextChannleActivity（/text/*）。放映场没有对应页；以前这两种被当视频频道
+        // 发 items.json，点进去两头落空。交回 WEB 分支（openWeb 发 ConfigActionEvent，原分发接住）。
+        assertTrue(isLegacyOnlyAction("sound://config?channel=nvyou"))
+        assertTrue(isLegacyOnlyAction("text://config?channel=小说"))
+        assertFalse(isLegacyOnlyAction("video://config?channel=nvyou"))
+        val sound = remoteEntry(7L, 0, "好听的音乐", null, null, 1f, "sound://config?channel=nvyou", false, dataType = 5)!!
+        assertEquals(FeedRoute.WEB, routeOf(sound))
+        val text = remoteEntry(11L, 0, "好看的文字", null, null, 1f, "text://config?channel=小说", false, dataType = 5)!!
+        assertEquals(FeedRoute.WEB, routeOf(text))
+    }
+
+    @Test
+    fun `videoList 和 videoList1 走片单层（和旧 VideoListShowActivity 同一接口）`() {
+        // 旧路由把 videoList/videoList1 都交 VideoListShowActivity → /video/channel/items.json，
+        // 没有子频道层。放映场对它们就该 VIDEOS；判错成 SUBCHANNELS 反而查空。
+        val vl = remoteEntry(2L, 0, "testlist", null, null, 1f, "videoList://config?channel=testlist", false, dataType = 5)!!
+        assertEquals(FeedRoute.CHANNEL, routeOf(vl))
+        assertEquals(ScreeningPageKind.VIDEOS, videoChannelPageKind(vl))
+        val vl1 = remoteEntry(3L, 0, "电影分类", null, null, 1f, "videoList1://video/list?channel=movie_1", false, dataType = 5)!!
+        assertEquals(ScreeningPageKind.VIDEOS, videoChannelPageKind(vl1))
+    }
+
+    @Test
+    fun `img 图集卡优先进图集层（img channel 复用相册接口族）`() {
+        // img:// 的 /img/channel.json + /img/items/img.json 就是放映场相册层的同一接口族，
+        // 已在 ALBUM 分支接住（这条钉住顺序：scheme=img 的 dataType 兜底不能让 sound/text 误进图集）。
+        val img = remoteEntry(8L, 0, "好看的图片", null, null, 1f, "img://config?channel=porn_sex", false, dataType = 5)!!
+        assertEquals(FeedRoute.ALBUM, routeOf(img))
+    }
 }
