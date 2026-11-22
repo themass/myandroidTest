@@ -154,12 +154,13 @@ private fun ScreeningHome(activity: ScreeningActivity) {
             title = entry.title,
             detail = entry.description,
             coverUrl = entry.imageUrl,
-            coverAsset = entry.sampleCoverAsset(),
+            // 随包封面 asset 只有「本地样片库」页头用得上（localPage 构造）；服务端条目没有。
+            coverAsset = null,
             // 原页面 VideoChannelListFragment.getUrl 用的是 vo.param。外链频道卡以前在这里
             // 被置空（掉回 WebView 就不用内页取数了）；B 线吸收后必须把 key 传下去，
-            // 内页才拿它发 items.json。没有 key 的入口（样例频道）照旧走样片兜底。
+            // 内页才拿它发 items.json。（旧「样例频道」兜底已随写死样例频道一并清掉。）
             channelParam = entry.videoChannelKey(),
-            sample = sampleChannelFor(entry),
+            sample = null,
             // 夜色配置频道卡（hsex_all 这类）进去先列子频道，点一行再下钻片单
             kind = videoChannelPageKind(entry),
             // 片单查不到时给的回网页退路；内部频道卡没有网页，为 null 就不画按钮
@@ -585,7 +586,7 @@ internal fun Cover(id: String, modifier: Modifier = Modifier) {
 /** 一张卡的封面：远程地址走 Glide，随包 asset 走 assets，都没有就纯色底。 */
 @Composable
 internal fun EntryCover(entry: RemoteEntry, modifier: Modifier = Modifier) {
-    val asset = entry.sampleCoverAsset() ?: entry.assetId()
+    val asset = entry.assetId()
     when {
         !entry.imageUrl.isNullOrBlank() -> RemoteCover(entry.imageUrl, modifier)
         asset != null -> Cover(asset, modifier)

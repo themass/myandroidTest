@@ -61,8 +61,7 @@ internal fun videoChannelPageKind(entry: RemoteEntry): ScreeningPageKind =
  */
 internal val RemoteEntry.isGroupEntry: Boolean
     get() = !videoChannelKey().isNullOrEmpty() ||
-        (isWebAction(actionUrl) && !isPlayableMediaUrl(actionUrl)) || isConfigAction(actionUrl) ||
-        sampleCoverAsset() != null || key.startsWith(SAMPLE_CHANNEL_KEY_PREFIX)
+        (isWebAction(actionUrl) && !isPlayableMediaUrl(actionUrl)) || isConfigAction(actionUrl)
 
 /**
  * 一个推荐位在页面上怎么响应：图集/真频道入口进内页，其余直接播或交回 WebView。
@@ -83,13 +82,6 @@ internal fun routeOf(entry: RemoteEntry): FeedRoute = when {
     entry.isGroupEntry -> FeedRoute.CHANNEL
     else -> FeedRoute.PLAY
 }
-
-/** 样例频道卡的 key 前缀（见 `ScreeningSampleFeed`）。 */
-private const val SAMPLE_CHANNEL_KEY_PREFIX = "sample:channel:"
-
-/** 样例频道卡的封面 asset 名；真实条目返回 null。 */
-internal fun RemoteEntry.sampleCoverAsset(): String? =
-    key.takeIf { it.startsWith(SAMPLE_CHANNEL_KEY_PREFIX) }?.removePrefix(SAMPLE_CHANNEL_KEY_PREFIX)
 
 /**
  * 卡片右上角的时长：只有随包 12 秒样片能给得出真值。
