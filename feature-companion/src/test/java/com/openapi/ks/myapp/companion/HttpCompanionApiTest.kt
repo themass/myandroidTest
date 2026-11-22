@@ -203,4 +203,64 @@ class HttpCompanionApiTest {
         assertTrue(req.url.toString().endsWith("/v1/memory/events/e1"))
         assertEquals("done", JSONObject(fake.bodies.single()).getString("status"))
     }
+
+    // -------------------------------------------------------------- 历史附件
+
+    @Test
+    fun `history returns oldest first and keeps the upload ids of image attachments`() {
+        // 服务端实测按新→旧返回，且 meta.attachments 原样回带。
+        val fake = Fake(
+            body = """{"items":[
+                      {"role":"assistant","content":"看到了","attachments":
+                        [{"upload_id":"01JOK","kind":"image","name":"a.jpg"}]},
+                      {"role":"user","content":"看这张"}]}""",
+        )
+        val items = runBlocking { api(fake).history(42L) }
+        assertTrue(fake.seen.single().url.toString().endsWith("/v1/sessions/42/messages?limit=30"))
+        assertEquals("user", items[0].role)
+        assertEquals(emptyList<String>(), items[0].attachmentIds)
+        assertEquals("assistant", items[1].role)
+        assertEquals(listOf("01JOK"), items[1].attachmentIds)
+    }
+
+    @Test
+    fun `an image-only history row survives while an empty row is still dropped`() {
+        // 「对话」页和陪伴页共用同一段历史，那边能发纯图消息：文字为空但有附件的行
+        // 不能按老规矩丢掉（否则图片在那边发的、这边看不见）。没字又没附件的行照旧隐藏。
+        val fake = Fake(
+            body = """{"items":[
+                      {"role":"user","content":"","attachments":[{"upload_id":"u1","kind":"image"}]},
+                      {"role":"user","content":"   "}]}""",
+        )
+        val items = runBlocking { api(fake).history(7L) }
+        assertEquals(1, items.size)
+        assertEquals(listOf("u1"), items.single().attachmentIds)
+    }
+
+    @Test
+    fun `attachment url comes from the shared uploads endpoint with the bearer token`() {
+        // 委托 :common 的 MediaUploader：路径 /v1/uploads/{id}，GET，带 Bearer。
+        val fake = Fake(body = """{"url":"https://cdn.example.test/a.jpg?sig=x"}""")
+        val url = runBlocking { api(fake).attachmentUrl("u42") }
+        assertEquals("https://cdn.example.test/a.jpg?sig=x", url)
+        val req = fake.seen.single()
+        assertEquals("GET", req.method)
+        assertEquals("https://example.test/v1/uploads/u42", req.url.toString())
+        assertEquals("Bearer tok", req.header("Authorization"))
+    }
+
+    @Test
+    fun `a refused or broken attachment url is null, never an exception`() {
+        // 一张图换不到 URL 只让那一张退化成空路径，不能把整页历史拖垮。
+        assertNull(runBlocking { api(Fake(code = 404)).attachmentUrl("u1") })
+        assertNull(runBlocking { api(Fake(body = "not json")).attachmentUrl("u1") })
+        assertNull(runBlocking { api(Fake(body = """{"upload_id":"u1"}""")).attachmentUrl("u1") })
+    }
+
+    @Test
+    fun `no token means no network call for an attachment url`() {
+        val fake = Fake()
+        assertNull(runBlocking { api(fake, token = null).attachmentUrl("u1") })
+        assertTrue(fake.seen.isEmpty())
+    }
 }

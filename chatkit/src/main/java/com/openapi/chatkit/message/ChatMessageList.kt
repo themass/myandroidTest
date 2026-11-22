@@ -74,6 +74,22 @@ import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.theme.ChatKit
 
 /**
+ * 「长按一张附件，要不要弹菜单」的判定：多选进行中不弹；**调用方没给这个附件任何动作时也不弹**。
+ *
+ * 后面这条是必须的：[AttachmentActionSheet] 是无条件渲染的，actions 为空时会画出一个只有遮罩
+ * 和拖条的零行面板——长按看起来「弹了个空抽屉」，比不响应更让人以为界面坏了。
+ * `attachmentActions` 默认就是空实现（陪伴页这类不配附件菜单的调用方），而纯图片消息里附件长按
+ * 是唯一的长按入口（图片挂在 `onAttachmentLongPress` 上，行级长按只给文字/位置气泡），
+ * 所以这条边不守就直接暴露给用户。
+ *
+ * 提出来放在外面是为了能被测试钉住（[AttachmentMenuGateTest]）：这个判断坐在组合里就观察不到
+ * 「没有弹层」——ModalBottomSheet 的把手没有稳定的语义节点。与
+ * [com.openapi.chatkit.message.parts.imageArrangement] 同一个提取理由。
+ */
+internal fun shouldOpenAttachmentMenu(selectionActive: Boolean, actions: List<AttachmentActionKind>): Boolean =
+    !selectionActive && actions.isNotEmpty()
+
+/**
  * 消息列表：新消息或流式增量到达时自动滚到底部。长按消息弹出操作菜单（见 [MessageMenu]）。
  *
  * @param avatar 头像插槽，可选；App 不再传（消息不显示头像）
@@ -211,7 +227,13 @@ fun ChatMessageList(
                         text = text,
                         onAction = { action -> handleAction(item, action) },
                         onLongPress = { anchor -> if (!selection.active) menu = MenuTarget(item, anchor) },
-                        onAttachmentLongPress = { target -> if (!selection.active) attachment = target },
+                        // 只有调用方真的给了动作才记下这次长按，见 [shouldOpenAttachmentMenu]
+                        // （没有它，不配附件菜单的调用方长按一张图会弹出一个零行的空面板）。
+                        onAttachmentLongPress = { target ->
+                            if (shouldOpenAttachmentMenu(selection.active, attachmentActions(target))) {
+                                attachment = target
+                            }
+                        },
                         selectionActive = selection.active,
                         footerActions = footerActions(item),
                         // 多选时把 overlay 收掉：它不在消息行内部，点它不会切换选中。

@@ -7,6 +7,8 @@ import com.openapi.ks.myapp.avatar.AvatarEventMapper
 import com.openapi.ks.myapp.avatar.ProactiveKind
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -70,12 +72,16 @@ class CompanionViewModel(
         streaming: Boolean = false,
         proactive: ProactiveKind = ProactiveKind.REPLY,
         confirmationId: String? = null,
+        images: List<String> = emptyList(),
+        attachmentIds: List<String> = emptyList(),
     ) = CompanionMessage(
         role = role,
         text = text,
         streaming = streaming,
         proactive = proactive,
         confirmationId = confirmationId,
+        images = images,
+        attachmentIds = attachmentIds,
         id = nextMessageId++,
     )
 
@@ -458,9 +464,48 @@ class CompanionViewModel(
                     newMessage(
                         role = if (item.isUser) MessageRole.USER else MessageRole.ASSISTANT,
                         text = item.text,
+                        attachmentIds = item.attachmentIds,
                     )
                 },
             )
+        }
+        // 图片是第二步，而且**不挡建房**：换签名 URL 一张要 0.4–2 秒，把它放在这条
+        // 启动链上等于让语音房间晚两秒才连上。文字与灰占位先画出来，URL 到了再补图。
+        hydrateImages()
+    }
+
+    /**
+     * 把历史里的图片附件 id 换成可渲染的签名 URL，逐位填回 [CompanionMessage.images]。
+     *
+     * 三条刻意的语义（与「对话」页的 `hydrateRemoteImages` 同一套）：
+     * - **并发**：一张一次 `GET /uploads/{id}`，串行做时一页五张图就是 2–10 秒才出图；
+     *   `coroutineScope` 里一起发出去，整页只等最慢的一张。
+     * - **去重**：同一个 id 在一页里出现多次只换一次。
+     * - **单张失败不拖垮整页**：换不到就填 [CompanionMessage.images] 的哨兵空串（灰占位），
+     *   既不报错也不清掉这条消息的文字。
+     *
+     * 只处理 `images` 还为空的消息：乐观消息（Task 4）的 images 是本地路径，不能被远程 URL 盖掉。
+     * 签名 URL 不进日志、不落缓存——它只活几百秒，缓存等于给用户留一张坏图。
+     */
+    private fun hydrateImages() {
+        val remote = api ?: return
+        val targets = _state.value.messages
+            .filter { it.attachmentIds.isNotEmpty() && it.images.isEmpty() }
+            .associate { it.id to it.attachmentIds }
+        if (targets.isEmpty()) return
+        viewModelScope.launch {
+            val urls = coroutineScope {
+                targets.values.flatten().distinct()
+                    .associateWith { id -> async { runCatching { remote.attachmentUrl(id) }.getOrNull() } }
+                    .mapValues { (_, deferred) -> deferred.await() }
+            }
+            _state.update { st ->
+                st.copy(messages = st.messages.map { m ->
+                    val ids = targets[m.id]
+                    if (ids == null || m.images.isNotEmpty()) m
+                    else m.copy(images = ids.map { urls[it] ?: "" })
+                })
+            }
         }
     }
 

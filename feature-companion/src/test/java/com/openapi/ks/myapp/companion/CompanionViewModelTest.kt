@@ -319,6 +319,160 @@ class CompanionViewModelTest {
         vm.stopListening()
     }
 
+    /**
+     * 历史里的图片只有 upload_id，渲染前要逐张换成签名 URL（服务端只给 300 秒，所以不缓存）。
+     * 这条钉的是「换到了」那一半：URL 进 images，附件 id 留在 attachmentIds（换源重试要用）。
+     */
+    @Test
+    fun `a history image message gets its signed url`() = runTest(dispatcher) {
+        val api = FakeCompanionApi(
+            session = sessionWithChat(7L),
+            historyItems = listOf(CompanionHistoryItem("user", "看这张", listOf("u1"))),
+            attachmentUrls = mapOf("u1" to "https://signed/u1"),
+        )
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        settleStartup()
+
+        val message = vm.state.value.messages.single()
+        assertEquals("看这张", message.text)
+        assertEquals(listOf("u1"), message.attachmentIds)
+        assertEquals("URL 要进渲染源", listOf("https://signed/u1"), message.images)
+        assertNull(vm.state.value.error)
+        vm.stopListening()
+    }
+
+    /**
+     * Review Focus 5：换不到 URL（404 / 登录失效 / 响应坏了）只让那一张图退化成空路径，
+     * 由 chatkit 的 surfaceVariant 底画出灰占位。这条消息的文字与这条消息本身都不能因此消失，
+     * 也不能弹一个错误把整页历史变成报错态。
+     */
+    @Test
+    fun `an image whose signed url cannot be fetched degrades to an empty path, keeping the text`() = runTest(dispatcher) {
+        val api = FakeCompanionApi(
+            session = sessionWithChat(7L),
+            historyItems = listOf(CompanionHistoryItem("user", "照片在这儿", listOf("u-gone"))),
+            attachmentUrls = mapOf("u-gone" to null),
+        )
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        settleStartup()
+
+        val message = vm.state.value.messages.single()
+        assertEquals("文字不能因为一张图没了", "照片在这儿", message.text)
+        assertEquals("换不到 URL 要留哨兵空串（渲染成灰占位），不是少一张", listOf(""), message.images)
+        assertEquals(listOf("u-gone"), message.attachmentIds)
+        assertNull("读图失败不是连接失败，不该报错", vm.state.value.error)
+        assertEquals("房间照常连着", CompanionConnection.CONNECTED, vm.state.value.connection)
+        vm.stopListening()
+    }
+
+    /** 一张成一张败：按 attachmentIds 的顺序逐个对应，败的那一格是哨兵，不能被挤掉。 */
+    @Test
+    fun `a failed url keeps its slot so the remaining images stay in order`() = runTest(dispatcher) {
+        val api = FakeCompanionApi(
+            session = sessionWithChat(7L),
+            historyItems = listOf(CompanionHistoryItem("user", "两张", listOf("u1", "u2"))),
+            attachmentUrls = mapOf("u1" to "https://signed/u1", "u2" to null),
+        )
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        settleStartup()
+
+        val message = vm.state.value.messages.single()
+        assertEquals(listOf("https://signed/u1", ""), message.images)
+        vm.stopListening()
+    }
+
+    /**
+     * 她发一张不带字的照片（「对话」页能发，历史里就有这种行）。以前这种行在解析阶段就被
+     * 丢掉了，所以看不到；现在它留在列表里，「对方正在输入…」就不能再当它是等待首字——
+     * 图已经发完了，下面挂一条永远不消失的打字提示等于说她还在说话。
+     */
+    @Test
+    fun `an assistant message that carries only an image does not fake a typing indicator`() = runTest(dispatcher) {
+        val api = FakeCompanionApi(
+            session = sessionWithChat(7L),
+            historyItems = listOf(CompanionHistoryItem("assistant", "", listOf("u1"))),
+            attachmentUrls = mapOf("u1" to "https://signed/u1"),
+        )
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        settleStartup()
+
+        val message = vm.state.value.messages.single()
+        assertEquals("", message.text)
+        assertEquals(listOf("https://signed/u1"), message.images)
+        assertEquals("有图可画就不再是等待首字", false, vm.state.value.awaitingReply)
+        vm.stopListening()
+    }
+
+    /** 换不到 URL 时那格是哨兵空串，仍然算「有内容可画」（灰占位），不退回打字提示。 */
+    @Test
+    fun `a failed image still counts as content so the typing indicator stays away`() = runTest(dispatcher) {
+        val api = FakeCompanionApi(
+            session = sessionWithChat(7L),
+            historyItems = listOf(CompanionHistoryItem("assistant", "", listOf("u-gone"))),
+            attachmentUrls = mapOf("u-gone" to null),
+        )
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        settleStartup()
+
+        assertEquals(listOf(""), vm.state.value.messages.single().images)
+        assertEquals(false, vm.state.value.awaitingReply)
+        vm.stopListening()
+    }
+
+    /** 没附件的历史一条 URL 都不该去换（老数据 + 纯文字是绝大多数）。 */
+    @Test
+    fun `text only history never asks for an attachment url`() = runTest(dispatcher) {
+        val api = FakeCompanionApi(
+            session = sessionWithChat(7L),
+            historyItems = listOf(CompanionHistoryItem("user", "在吗"), CompanionHistoryItem("assistant", "在")),
+        )
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        settleStartup()
+
+        assertEquals(emptyList<String>(), api.attachmentUrlCalls)
+        assertTrue(vm.state.value.messages.all { it.images.isEmpty() })
+        vm.stopListening()
+    }
+
+    /**
+     * 一页历史里的图要**并发**换 URL：一次 0.4–2 秒，串行做时五张图就是 2–10 秒才出图。
+     * 同时同一个 id 在一页里只换一次。探针在途计数在虚拟时间下是确定值，串行时峰值必然是 1。
+     */
+    @Test
+    fun `signed urls are fetched concurrently and each id only once`() = runTest(dispatcher) {
+        val api = FakeCompanionApi(
+            session = sessionWithChat(7L),
+            historyItems = listOf(
+                CompanionHistoryItem("user", "两张", listOf("u1", "u2")),
+                CompanionHistoryItem("user", "再来一张", listOf("u3")),
+                // 同一张图又出现在另一条消息里：不能再问一次
+                CompanionHistoryItem("assistant", "看到了", listOf("u1")),
+            ),
+            attachmentUrls = mapOf("u1" to "https://signed/u1", "u2" to "https://signed/u2", "u3" to "https://signed/u3"),
+            attachmentUrlDelayMillis = 1_000,
+        )
+        val vm = CompanionViewModel(api = api, transportFactory = { FakeCompanionTransport(reply = "") }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        settleStartup()
+
+        assertEquals("三个不同 id 必须同时在途", 3, api.maxAttachmentUrlInFlight)
+        assertEquals("同一个 id 只换一次", listOf("u1", "u2", "u3"), api.attachmentUrlCalls.sorted())
+        vm.stopListening()
+    }
+
     // ------------------------------------------------------ provider 分发
 
     /**
@@ -503,15 +657,37 @@ class FakeCompanionApi(
     private val confirmFailure: Exception? = null,
     /** 可以带 provider：验证「服务端在 grant 里指定线路 → ViewModel 按它取实现」。 */
     var session: SessionResponse = SessionResponse("s1", "room", "token", "wss://example.test", ""),
+    /** 历史脚本：`restoreHistory` 按这个顺序回放（服务端已按新→旧翻转正序）。 */
+    private val historyItems: List<CompanionHistoryItem> = emptyList(),
+    /** 换签名 URL 的脚本：值为 null 表示「换不到」（404 / 登录失效 / 响应坏了）。没列出的 id 同样算换不到。 */
+    private val attachmentUrls: Map<String, String?> = emptyMap(),
+    /** 每次换 URL 挂起多久：配合在途计数证明并发而不是串行。 */
+    private val attachmentUrlDelayMillis: Long = 0,
 ) : CompanionApi {
 
     val confirmations = mutableListOf<Pair<String, Boolean>>()
+
+    /** 换 URL 的调用顺序与并发峰值：串行时峰值必然是 1。 */
+    val attachmentUrlCalls = mutableListOf<String>()
+    var maxAttachmentUrlInFlight = 0
+        private set
+    private var inFlight = 0
 
     override suspend fun createSession(characterId: String) = session
 
     override suspend fun createScriptSession(characterId: String, caseId: String) = session
 
-    override suspend fun history(sessionId: Long, limit: Int): List<CompanionHistoryItem> = emptyList()
+    override suspend fun history(sessionId: Long, limit: Int): List<CompanionHistoryItem> = historyItems
+
+    override suspend fun attachmentUrl(uploadId: String): String? {
+        inFlight++
+        maxAttachmentUrlInFlight = maxOf(maxAttachmentUrlInFlight, inFlight)
+        attachmentUrlCalls += uploadId
+        if (attachmentUrlDelayMillis > 0) kotlinx.coroutines.delay(attachmentUrlDelayMillis)
+        val url = attachmentUrls[uploadId]
+        inFlight--
+        return url
+    }
 
     override suspend fun inbox(): List<InboxMessage> =
         if (inboxBatches.isEmpty()) emptyList() else inboxBatches.removeAt(0)
@@ -537,3 +713,29 @@ class FakeCompanionApi(
     override suspend fun preferences(): CompanionPreferences = error("unused")
     override suspend fun updatePreferences(patch: Map<String, Any?>): CompanionPreferences = error("unused")
 }
+
+/**
+ * 把「进页 → 建房 → 读历史 → 换图片 URL」这条启动链跑到稳定。
+ *
+ * 这里**不能**用 `advanceUntilIdle()`：收件箱轮询是 `delay(pollMillis)` 的无限循环，
+ * 虚拟时间永远追不到「空闲」，测试会挂死（不是慢，是永远不返回）。所以只推进到轮询间隔
+ * 之前——30 秒远够启动链和挂起 1 秒的换 URL 跑完，又踩不到 60 秒那一跳。
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+private fun kotlinx.coroutines.test.TestScope.settleStartup() {
+    advanceTimeBy(30_000)
+    runCurrent()
+}
+
+/**
+ * 带 chatSessionId 的会话：历史回放只在服务端绑定了文字会话时才做
+ * （没有它连读什么都读不到），所以读路径的测试都要先给它一个。
+ */
+private fun sessionWithChat(chatSessionId: Long) = SessionResponse(
+    sessionId = "s1",
+    roomName = "room",
+    token = "token",
+    livekitUrl = "wss://example.test",
+    expiresAt = "",
+    chatSessionId = chatSessionId,
+)

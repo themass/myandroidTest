@@ -63,6 +63,81 @@ class CompanionModelsTest {
         assertEquals("create_reminder", action.action)
     }
 
+    // ------------------------------------------------------- 历史图片附件
+    // 服务端已核实的形状：历史条目里的 attachments 是 meta.attachments 原样回带，
+    // 每项 {"upload_id": "01J…", "kind": "image", "name": "a.jpg"}。
+
+    @Test
+    fun `a history item keeps the image upload ids the server echoes back`() {
+        val item = CompanionHistoryItem.from(
+            JSONObject(
+                """{"role":"user","content":"看这张","attachments":
+                   [{"upload_id":"01JABC","kind":"image","name":"a.jpg"}]}""",
+            ),
+        )
+        assertEquals("user", item.role)
+        assertEquals("看这张", item.text)
+        assertEquals(listOf("01JABC"), item.attachmentIds)
+    }
+
+    @Test
+    fun `a history item without the attachments field parses as no attachments`() {
+        // 老数据（附件功能之前的历史）不带这个字段：解析成空列表，不是 null、更不是崩。
+        val item = CompanionHistoryItem.from(JSONObject("""{"role":"assistant","content":"我在"}"""))
+        assertEquals("我在", item.text)
+        assertEquals(emptyList<String>(), item.attachmentIds)
+    }
+
+    @Test
+    fun `an empty attachments array parses as no attachments`() {
+        val item = CompanionHistoryItem.from(
+            JSONObject("""{"role":"user","content":"没有图","attachments":[]}"""),
+        )
+        assertEquals(emptyList<String>(), item.attachmentIds)
+    }
+
+    @Test
+    fun `attachment entries without an upload id are skipped, not guessed`() {
+        // 一项缺 upload_id（服务端字段缺失/坏数据）只跳过那一项，同一批里正常的照常收下。
+        val item = CompanionHistoryItem.from(
+            JSONObject(
+                """{"role":"user","content":"两张",
+                   "attachments":[{"kind":"image","name":"no-id.jpg"},{"upload_id":"01JOK","kind":"image"}]}""",
+            ),
+        )
+        assertEquals(listOf("01JOK"), item.attachmentIds)
+    }
+
+    @Test
+    fun `only image attachments are collected - video and file ids are skipped`() {
+        // 「对话」页发视频走的是同一条 attachments 通道（AttachmentSender 把 kind=video 一起
+        // submit），序列化成 {"kind":"video"}。这里的 id 全部会进 MessagePart.Images：
+        // 一个视频 URL 交给 Coil 必然 onError，用户看到的是一张「图片加载失败」的坏图卡。
+        // 所以 kind 不是 image 的一律不收（它在该页没有渲染形态，不是被隐藏的图片）。
+        val item = CompanionHistoryItem.from(
+            JSONObject(
+                """{"role":"user","content":"图和视频",
+                   "attachments":[{"upload_id":"u1","kind":"image","name":"a.jpg"},
+                                  {"upload_id":"u2","kind":"video","name":"b.mp4"},
+                                  {"upload_id":"u3","kind":"file","name":"c.pdf"}]}""",
+            ),
+        )
+        assertEquals(listOf("u1"), item.attachmentIds)
+    }
+
+    @Test
+    fun `an attachment without a kind field is treated as an image`() {
+        // 缺 kind 按 image 解释，与 chat 侧 optString("kind","image") 的默认一致；
+        // 两边默认不一致的话，同一批数据在两个页面会出现一边有一边没有。
+        val item = CompanionHistoryItem.from(
+            JSONObject(
+                """{"role":"user","content":"没有 kind",
+                   "attachments":[{"upload_id":"u1","name":"a.jpg"}]}""",
+            ),
+        )
+        assertEquals(listOf("u1"), item.attachmentIds)
+    }
+
     @Test
     fun `character detail reads the opening line and alternate greetings`() {
         val detail = CharacterDetail.from(

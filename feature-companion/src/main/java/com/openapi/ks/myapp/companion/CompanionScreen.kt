@@ -899,7 +899,10 @@ private fun IncomingCallBanner(
 /**
  * 陪伴页消息 → chatkit 的 UI 模型。
  *
- * 不需要映射附件/语音：陪伴页的消息只有文字（语音条要等服务端在事件里带上分句与时长）。
+ * 图片走 [MessagePart.Images]，**排在文字之前**——chatkit 的渲染顺序是图片 → 文字，
+ * 与「对话」页同一套收纳盒样式（`layout` 用默认值 [com.openapi.chatkit.model.ImageLayout.Stack]，
+ * 两端默认一致，所以这里不显式传）。语音条还不映射：要等服务端在事件里带上分句与时长。
+ *
  * 主动消息的来源标签与待确认动作由 [ChatMessageList] 的 overlay 插槽、以及列表下方的
  * 独立确认卡片承担——chatkit 的 ChatItem 没有这两个概念，也不该为它们改动数据模型。
  */
@@ -909,7 +912,13 @@ private fun companionItems(messages: List<CompanionMessage>): List<ChatItem> = m
         id = key,
         key = key,
         sender = if (m.role == MessageRole.USER) Sender.User else Sender.Assistant,
-        parts = listOf(MessagePart.Text(m.text)).filter { m.text.isNotEmpty() },
+        parts = buildList {
+            // 顺序即渲染顺序：图在上、文字在下。空串是「这张图换不到地址」的哨兵，
+            // 要原样带下去占住那一格（渲染层画成灰占位），不能在这里被过滤掉——
+            // 少一格等于告诉用户「这里本来没图」。
+            if (m.images.isNotEmpty()) add(MessagePart.Images(m.images))
+            if (m.text.isNotEmpty()) add(MessagePart.Text(m.text))
+        },
         // 占位消息（还没有任何字）不画气泡：它由下方的「正在输入」指示器代替。
         // 空文本的流式占位气泡**不**交给 chatkit 的 thinking：
         // 列表下方已经有「对方正在输入…」那一条，两个指示器同时出现等于同一句话说两遍。

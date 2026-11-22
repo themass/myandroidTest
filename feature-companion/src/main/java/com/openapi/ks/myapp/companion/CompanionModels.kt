@@ -41,11 +41,47 @@ data class SessionResponse(
 // ---- 历史 ----
 
 /**
- * 历史里的一条消息。只有 role 与 text：陪伴页不渲染附件，图片/文件那种消息
- * 在「对话」页看更合适，这里读到就跳过，不当作错误。
+ * 历史里的一条消息。
+ *
+ * [attachmentIds] 是这条消息带过来的图片附件 id（服务端 `meta.attachments` 原样回带的
+ * `upload_id`）。陪伴页现在会渲染它们，但只带 **id** 不带 URL：签名 URL 的生命周期只有
+ * 几百秒，落进模型就等于给用户留一张坏图，所以到 [CompanionViewModel] hydration 那一步
+ * 才现换（见 [CompanionApi.attachmentUrl]）。
  */
-data class CompanionHistoryItem(val role: String, val text: String) {
+data class CompanionHistoryItem(
+    val role: String,
+    val text: String,
+    /** 图片附件的 upload_id，顺序与服务端下发一致。无附件（含老数据没有这个字段）为空列表。 */
+    val attachmentIds: List<String> = emptyList(),
+) {
     val isUser: Boolean get() = role == "user"
+
+    companion object {
+        /**
+         * 历史 JSON 条目 → 模型。附件三项都可能是坏的，一律降级而不是报错：
+         * 整个 `attachments` 字段缺失（附件功能之前的老数据）或为 `[]` → 空列表；
+         * 某一项没有 `upload_id` → 只跳过那一项（没有 id 就换不到 URL，留着只会渲染出一个
+         * 点不动的灰块）。读不回历史从来不该挡住用户开始说话。
+         *
+         * 只收 `kind == "image"`：「对话」页把视频/文件附件与图片走**同一条** attachments
+         * 通道提交（`kind: "video" / "file"`），而这里的每个 id 最终都进 `MessagePart.Images`
+         * ——视频 URL 交给 Coil 必然失败，用户会看到一张「图片加载失败」的坏图卡。缺 `kind`
+         * 按 image 解释，与 chat 侧 `optString("kind", "image")` 的默认保持一致。
+         */
+        fun from(json: JSONObject): CompanionHistoryItem = CompanionHistoryItem(
+            role = json.optString("role"),
+            text = json.optString("content"),
+            attachmentIds = json.optJSONArray("attachments").let { arr ->
+                if (arr == null) emptyList()
+                else (0 until arr.length()).mapNotNull { i ->
+                    arr.optJSONObject(i)?.let { a ->
+                        a.optString("kind", "image").takeIf { it == "image" }
+                            ?.let { a.optString("upload_id").trim().takeIf { id -> id.isNotEmpty() } }
+                    }
+                }
+            },
+        )
+    }
 }
 
 // ---- 角色 ----
