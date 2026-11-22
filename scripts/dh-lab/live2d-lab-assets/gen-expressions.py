@@ -14,6 +14,11 @@ Live2dTouchReaction.expressionFor 必须同序同名（Live2dTouchReactionTest �
 
 数值纪律：只允许上游 expression1–16.exp3.json 里对同一 atri_8.moc3 已验证过的
 (Id,Value)——这里用到的 (17,30)(18,30)(19,30)(38,30)(Cheek,1) 全部在列，无发明值。
+
+淡入淡出：exp3 不写 FadeInTime/FadeOutTime 时 CubismExpressionMotion 用默认
+DefaultFadeTime=1.0s（CubismExpressionMotion.cpp:24），触点反馈「按了像没按」。
+每个组合显式写 FADE_SECONDS（0.2s）：按下即变，观感从「交叉淡化的慢切换」变成
+「响应」；换装同值（要的就是立刻看到，不用另开一档）。
 """
 import json
 import os
@@ -21,6 +26,8 @@ import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 EXP_DIR = os.path.join(HERE, "expressions")
 MODEL3 = os.path.join(HERE, "ATRI.model3.json")
+
+FADE_SECONDS = 0.2
 
 COMBOS = [
     (costume, blush, crab, sandal)
@@ -58,6 +65,8 @@ def main():
             "Type": "Live2D Expression",
             "Comment": "lab 触点互动组合表情（生成器 gen-expressions.py，勿手改）："
                        + (name if activated else "初始态（参数清空）"),
+            "FadeInTime": FADE_SECONDS,
+            "FadeOutTime": FADE_SECONDS,
             "Parameters": params,
         }
         # 保持与手写资产一致的 tab 缩进风格
