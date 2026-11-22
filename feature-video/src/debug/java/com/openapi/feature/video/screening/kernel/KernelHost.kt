@@ -45,6 +45,9 @@ internal class KernelHost(private val context: Context) {
      * `currentPosition` 还报 0——只信 buffering 就会漏出 0:00。
      */
     private var awaitingSeek = false
+    /** seek 发出时刻与目标点：落点判定要「发出后过信任延迟窗、且读数落进目标 ± 容差」 */
+    private var seekIssuedAt = 0L
+    private var seekTarget = 0L
     /** 正在后台准备新内核，控件可以置灰并显示「换内核…」 */
     var switching by mutableStateOf(false)
         private set
@@ -173,6 +176,8 @@ internal class KernelHost(private val context: Context) {
         val target = ms.coerceAtLeast(0)
         android.util.Log.i("SeekHold", "seekTo target=$target active=${active?.kind}")
         position = target
+        seekTarget = target
+        seekIssuedAt = SystemClock.elapsedRealtime()
         awaitingSeek = true
         active?.player?.seekTo(target)
     }
@@ -364,6 +369,15 @@ internal class KernelHost(private val context: Context) {
             playing = player.playing,
             buffering = gated,
         )
+        // 落点判定：见 [awaitingSeekAfter]。IJK 在 seekTo 后会有一小段「假读数=目标值本身」
+        // 的缓存期（探针实测 ~400ms），落点窗口会被它立刻命中——判定前先过信任延迟窗。
+        awaitingSeek = awaitingSeekAfter(
+            awaiting = awaitingSeek,
+            playing = player.playing,
+            sinceIssuedMs = SystemClock.elapsedRealtime() - seekIssuedAt,
+            playerPosition = playerPosition,
+            target = seekTarget,
+        )
         // 探针（真机 seek 泄漏取证，临时）：只在可疑窗口打，不给正常播放刷日志
         if (gated || playerPosition < heldBefore) {
             android.util.Log.i(
@@ -372,15 +386,6 @@ internal class KernelHost(private val context: Context) {
                     "buf=${player.buffering} await=$awaitingSeek -> $position",
             )
         }
-        // 内核报出的位置落进落点窗口才算真落点，恢复信任。
-        // 上界同样必须有：向后拖时 seek 还没被内核处理，读数仍是拖前的旧位置，
-        // 只写下界会让它立刻误判落点、弹回旧位置。
-        // 只看播放中的读数：暂停时内核位置本来就不可信（保持原语义钉住 held）。
-        if (
-            awaitingSeek && player.playing &&
-            playerPosition >= position - SEEK_LANDING_SLACK_MS &&
-            playerPosition <= position + SEEK_LANDING_SLACK_MS
-        ) awaitingSeek = false
         if (player.duration > 0) duration = player.duration
         if (player.ratio > 0f && player.ratio != ratio) {
             ratio = player.ratio
@@ -429,9 +434,6 @@ internal class KernelHost(private val context: Context) {
 
         /** 交接后旧内核保留多久；这期间新内核报错可以直接退回 */
         const val RETIRE_GRACE_MS = 5000L
-
-        /** seek 落点判定的容差：真机假读数在几百毫秒级，落点偏差在几十毫秒级，取 1.5s 分隔两头 */
-        const val SEEK_LANDING_SLACK_MS = 1500L
     }
 }
 
@@ -451,6 +453,42 @@ internal fun playerPositionOrHold(held: Long, playerPosition: Long, playing: Boo
     !playing -> held
     buffering && playerPosition < held -> held
     else -> playerPosition
+}
+
+/** seek 落点判定的容差：真机假读数在几百毫秒级，落点偏差在几十毫秒级，取 1.5s 分隔两头 */
+internal const val SEEK_LANDING_SLACK_MS = 1500L
+
+/** seek 发出后的信任延迟窗：见 [awaitingSeekAfter]，压掉 IJK 的假缓存读数 */
+internal const val SEEK_TRUST_DELAY_MS = 2000L
+
+/** 落点等待上限：超时宁可回到跟内核读数（位置小跳），也不能永远钉死 */
+internal const val SEEK_FAILSAFE_MS = 30_000L
+
+/**
+ * seek 落点判定：[awaiting] 什么时候可以解除（解除后 [playerPositionOrHold] 恢复跟内核）。
+ *
+ * 探针取证（2026-11-22，真机日志）两段假读数都要挡：
+ * 1. seekTo 刚发出，IJK 的 Java 层 currentPosition 直接返回缓存的目标值本身（~400ms）——
+ *    所以发出后 [SEEK_TRUST_DELAY_MS] 内不认任何落点；
+ * 2. BUFFERING_END 比 ACCURATE_SEEK_COMPLETE 早 ~5s，这期间读数报 0——落在窗口外，继续等。
+ * 真落点 = 过信任窗后读数进入 target ± [SEEK_LANDING_SLACK_MS]；上界必须有，
+ * 否则向后拖时拖前的旧位置会被当成落点直接弹回去。
+ * 暂停时不判（暂停读数不可信）；[SEEK_FAILSAFE_MS] 兜底：永远追不上宁可回到跟内核
+ * （位置小跳一下），也不能把进度条钉死。
+ */
+internal fun awaitingSeekAfter(
+    awaiting: Boolean,
+    playing: Boolean,
+    sinceIssuedMs: Long,
+    playerPosition: Long,
+    target: Long,
+): Boolean = when {
+    !awaiting -> false
+    !playing -> true
+    sinceIssuedMs > SEEK_FAILSAFE_MS -> false
+    sinceIssuedMs < SEEK_TRUST_DELAY_MS -> true
+    playerPosition in (target - SEEK_LANDING_SLACK_MS)..(target + SEEK_LANDING_SLACK_MS) -> false
+    else -> true
 }
 
 /**
