@@ -26,7 +26,17 @@ class Live2dEngineTouchTest {
     fun `engine onTouch returns Handled with head or body region`() {
         val engine = Live2dDigitalHumanEngine()
         assertEquals(TouchResult.Handled(AvatarRegion.HEAD), engine.onTouch(tap(0.5f, 0.1f)))
-        assertEquals(TouchResult.Handled(AvatarRegion.BODY), engine.onTouch(tap(0.5f, 0.9f)))
+        assertEquals(TouchResult.Handled(AvatarRegion.BODY), engine.onTouch(tap(0.5f, 0.45f)))
+        engine.release()
+    }
+
+    @Test
+    fun `demo 2b zones map to fine-grained Handled regions`() {
+        // demo #2b：Live2D 的 onTouch 用细分区（手/脚各有反应），Handled 带回的
+        // 是细粒度区域名；上报给 agent 的 stageTapRegion 仍保持 head/body 老语义。
+        val engine = Live2dDigitalHumanEngine()
+        assertEquals(TouchResult.Handled(AvatarRegion.HAND), engine.onTouch(tap(0.34f, 0.50f)))
+        assertEquals(TouchResult.Handled(AvatarRegion.FOOT), engine.onTouch(tap(0.47f, 0.65f)))
         engine.release()
     }
 
@@ -54,7 +64,8 @@ class Live2dEngineTouchTest {
         bridge.onAvatarTouch(tap(0.5f, 0.1f)) // blush on
         bridge.onAvatarTouch(tap(0.5f, 0.1f)) // blush off
         // 状态机的迁移正确性由 Live2dTouchReactionTest 钉死；这里只保证桥接真的送达。
-        assertEquals(TouchResult.Handled(AvatarRegion.BODY), bridge.onAvatarTouch(tap(0.5f, 0.9f)))
+        // 躯干带坐标（0.45）——0.9 在 #2b 之后是 foot 区。
+        assertEquals(TouchResult.Handled(AvatarRegion.BODY), bridge.onAvatarTouch(tap(0.5f, 0.45f)))
         bridge.current().release()
     }
 }

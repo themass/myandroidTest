@@ -1,5 +1,5 @@
 {
 	"Type": "Live2D Expression",
-	"Comment": "lab demo2 默认态：不加任何参数（服装=校服默认，无脸红）。",
+	"Comment": "lab 触点互动组合表情（生成器 gen-expressions.py，勿手改）：初始态（参数清空）",
 	"Parameters": []
 }

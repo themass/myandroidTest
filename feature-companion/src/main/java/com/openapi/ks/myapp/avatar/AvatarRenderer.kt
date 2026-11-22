@@ -41,6 +41,10 @@ enum class AvatarTouchKind { DOWN, MOVE, UP, TAP }
 object AvatarRegion {
     const val HEAD = "head"
     const val BODY = "body"
+
+    /** demo #2b 起 Live2D 全身立绘可用的细分区（分层立绘不产生这两个值）。 */
+    const val HAND = "hand"
+    const val FOOT = "foot"
 }
 
 /**

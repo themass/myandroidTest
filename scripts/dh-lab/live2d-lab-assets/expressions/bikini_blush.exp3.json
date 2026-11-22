@@ -1,8 +1,16 @@
 {
 	"Type": "Live2D Expression",
-	"Comment": "泳装+脸红组合。表情管理器同时只激活一个表情，组合必须自带脸红。",
+	"Comment": "lab 触点互动组合表情（生成器 gen-expressions.py，勿手改）：bikini_blush",
 	"Parameters": [
-		{ "Id": "Param17", "Value": 30, "Blend": "Add" },
-		{ "Id": "ParamCheek", "Value": 1, "Blend": "Add" }
+		{
+			"Id": "Param17",
+			"Value": 30,
+			"Blend": "Add"
+		},
+		{
+			"Id": "ParamCheek",
+			"Value": 1,
+			"Blend": "Add"
+		}
 	]
 }

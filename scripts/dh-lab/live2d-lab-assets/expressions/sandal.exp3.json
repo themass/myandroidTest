@@ -1,0 +1,11 @@
+{
+	"Type": "Live2D Expression",
+	"Comment": "lab 触点互动组合表情（生成器 gen-expressions.py，勿手改）：sandal",
+	"Parameters": [
+		{
+			"Id": "Param19",
+			"Value": 30,
+			"Blend": "Add"
+		}
+	]
+}

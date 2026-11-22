@@ -41,7 +41,7 @@ class Live2dDigitalHumanEngine(
     private var viewCreated = false
     private var released = false
 
-    /** 触点互动状态（(服装,脸红)）；release 后重建引擎会回到初始态——与画面一致。 */
+    /** 触点互动状态（(服装,脸红,kani,凉鞋)）；release 后重建引擎会回到初始态——与画面一致。 */
     private var reaction = Live2dTouchReactionState()
 
     override fun bind(spec: AvatarSpec) {
@@ -64,17 +64,22 @@ class Live2dDigitalHumanEngine(
     }
 
     /**
-     * 舞台层认出的轻触（归一化坐标）。映射成区域（[stageTapRegion]，与上报给 agent 的
-     * 语义同一个纯函数）→ 状态机迁移 → 表情名 → native 淡入淡出。
+     * 舞台层认出的轻触（归一化坐标）。用 [live2dTapZone] 细分区（头/躯干/手/脚，
+     * 阈值来自真机截图实测）→ 状态机迁移 → 表情名 → native 淡入淡出。
+     * 上报给 agent 的 [stageTapRegion] 仍是 head/body 老语义——换引擎不换服务端契约。
      * 每次轻触一行 `Live2dTouch` 日志：真机验收的硬证据通道（同 demo #1 的 dhvrm）。
      */
     override fun onTouch(event: AvatarTouch): TouchResult {
         if (event.kind != AvatarTouchKind.TAP) return TouchResult.Ignored
-        val region = stageTapRegion(event.x, event.y)
+        val region = live2dTapZone(event.x, event.y)
         reaction = Live2dTouchReaction.step(reaction, region)
         val expression = Live2dTouchReaction.expressionFor(reaction)
         runtime?.takeIf { viewCreated }?.setExpression(expression)
-        Log.i(TAG, "tap region=$region costume=${reaction.costume} blushed=${reaction.blushed} expression=$expression")
+        Log.i(
+            TAG,
+            "tap region=$region costume=${reaction.costume} blushed=${reaction.blushed} " +
+                "crab=${reaction.crab} sandal=${reaction.sandal} expression=$expression",
+        )
         return TouchResult.Handled(region)
     }
 
