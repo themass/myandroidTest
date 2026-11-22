@@ -109,16 +109,33 @@ class CompanionModelsTest {
     }
 
     @Test
-    fun `only upload ids are kept, the kind and name are not turned into paths`() {
-        // 换签名 URL 要的是 id；kind/name 这一层不参与渲染（URL 现换现用，不落缓存）。
+    fun `only image attachments are collected - video and file ids are skipped`() {
+        // 「对话」页发视频走的是同一条 attachments 通道（AttachmentSender 把 kind=video 一起
+        // submit），序列化成 {"kind":"video"}。这里的 id 全部会进 MessagePart.Images：
+        // 一个视频 URL 交给 Coil 必然 onError，用户看到的是一张「图片加载失败」的坏图卡。
+        // 所以 kind 不是 image 的一律不收（它在该页没有渲染形态，不是被隐藏的图片）。
         val item = CompanionHistoryItem.from(
             JSONObject(
-                """{"role":"user","content":"两张",
+                """{"role":"user","content":"图和视频",
                    "attachments":[{"upload_id":"u1","kind":"image","name":"a.jpg"},
-                                  {"upload_id":"u2","kind":"file","name":"b.pdf"}]}""",
+                                  {"upload_id":"u2","kind":"video","name":"b.mp4"},
+                                  {"upload_id":"u3","kind":"file","name":"c.pdf"}]}""",
             ),
         )
-        assertEquals(listOf("u1", "u2"), item.attachmentIds)
+        assertEquals(listOf("u1"), item.attachmentIds)
+    }
+
+    @Test
+    fun `an attachment without a kind field is treated as an image`() {
+        // 缺 kind 按 image 解释，与 chat 侧 optString("kind","image") 的默认一致；
+        // 两边默认不一致的话，同一批数据在两个页面会出现一边有一边没有。
+        val item = CompanionHistoryItem.from(
+            JSONObject(
+                """{"role":"user","content":"没有 kind",
+                   "attachments":[{"upload_id":"u1","name":"a.jpg"}]}""",
+            ),
+        )
+        assertEquals(listOf("u1"), item.attachmentIds)
     }
 
     @Test

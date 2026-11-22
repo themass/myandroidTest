@@ -62,6 +62,11 @@ data class CompanionHistoryItem(
          * 整个 `attachments` 字段缺失（附件功能之前的老数据）或为 `[]` → 空列表；
          * 某一项没有 `upload_id` → 只跳过那一项（没有 id 就换不到 URL，留着只会渲染出一个
          * 点不动的灰块）。读不回历史从来不该挡住用户开始说话。
+         *
+         * 只收 `kind == "image"`：「对话」页把视频/文件附件与图片走**同一条** attachments
+         * 通道提交（`kind: "video" / "file"`），而这里的每个 id 最终都进 `MessagePart.Images`
+         * ——视频 URL 交给 Coil 必然失败，用户会看到一张「图片加载失败」的坏图卡。缺 `kind`
+         * 按 image 解释，与 chat 侧 `optString("kind", "image")` 的默认保持一致。
          */
         fun from(json: JSONObject): CompanionHistoryItem = CompanionHistoryItem(
             role = json.optString("role"),
@@ -69,7 +74,10 @@ data class CompanionHistoryItem(
             attachmentIds = json.optJSONArray("attachments").let { arr ->
                 if (arr == null) emptyList()
                 else (0 until arr.length()).mapNotNull { i ->
-                    arr.optJSONObject(i)?.optString("upload_id")?.trim()?.takeIf { it.isNotEmpty() }
+                    arr.optJSONObject(i)?.let { a ->
+                        a.optString("kind", "image").takeIf { it == "image" }
+                            ?.let { a.optString("upload_id").trim().takeIf { id -> id.isNotEmpty() } }
+                    }
                 }
             },
         )
