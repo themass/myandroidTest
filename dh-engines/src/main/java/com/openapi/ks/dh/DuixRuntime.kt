@@ -3,11 +3,14 @@ package com.openapi.ks.dh
 import android.content.Context
 import android.util.Log
 import android.view.View
+import ai.guiji.duix.sdk.client.loader.ModelInfo
 import com.openapi.ks.dh.duix.sdk.client.Callback
+import com.openapi.ks.dh.duix.sdk.client.Constant
 import com.openapi.ks.dh.duix.sdk.client.DUIX
 import com.openapi.ks.dh.duix.sdk.client.DuixHome
 import com.openapi.ks.dh.duix.sdk.client.render.DUIXRenderer
 import com.openapi.ks.dh.duix.sdk.client.render.DUIXTextureView
+import com.openapi.ks.dh.duix.sdk.client.util.Logger
 import java.io.File
 
 /** Whether an engine can run right now; [reason] says why not when [available] is false. */
@@ -69,6 +72,12 @@ class DuixRuntime internal constructor(
         val root = env.cacheRoot() ?: return null
         return try {
             DuixHome.setRoot(root)
+            // vendored 侧 Logger 的 logFlag 绑死在 hand-authored BuildConfig.DEBUG=false 上（Logger.java:9），
+            // 「动作区间」匹配日志与「渲染耗时过高(>40ms)」帧预算告警因此全程静音（demo#3 实测 0 行）。
+            // 按运行时 debuggable 打开，release 不受影响。
+            Logger.debugEnable(
+                (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0,
+            )
             val view = DUIXTextureView(context)
             val sink = DUIXRenderer(context, view)
             view.setEGLContextClientVersion(2)
@@ -76,7 +85,19 @@ class DuixRuntime internal constructor(
             view.isOpaque = false
             view.setRenderer(sink)
             view.renderMode = DUIXTextureView.RENDERMODE_WHEN_DIRTY
-            val callback = Callback { event, msg, _ -> Log.i(TAG, "duix event=$event msg=$msg") }
+            val callback = Callback { event, msg, info ->
+                Log.i(TAG, "duix event=$event msg=$msg")
+                // 实验田取证：init.ready 的 info 就是解析后的 ModelInfo —— 直接把 motionRegions 表打出来。
+                // （Logger/DUIX-SDK 通道被 vendored BuildConfig.DEBUG=false 静音，这里是唯一可见通道。）
+                if (event == Constant.CALLBACK_EVENT_INIT_READY && info is ModelInfo) {
+                    val regions = info.motionRegions
+                    Log.i(
+                        TAG,
+                        "duix model=$modelName w=${info.width} h=${info.height} " +
+                            "motionRegions.size=${regions?.size} names=${regions?.joinToString(",") { it.name }}",
+                    )
+                }
+            }
             val sdk = DUIX(context, modelName, sink, callback)
             sdk.setVolume(volume)
             sdk.init()
