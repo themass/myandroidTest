@@ -46,11 +46,30 @@ data class Live2dTouchReactionState(
     val face: Live2dFace = Live2dFace.NONE,
 )
 
-/** 托盘里可推进的一根装扮轴。 */
-enum class Live2dWardrobeAxis { TOP, SHOES, HELD, FACE }
+/** 托盘里可推进的一根装扮轴。id 与 wardrobe-spec.json 的 slot 一一对应（测试钉死），
+ *  active=false 的轴（内衣/头饰）只声明不出货：素材门槛见 spec 与
+ *  docs/design/2026-11-23-换装抽象与特效层设计.md。 */
+enum class Live2dWardrobeAxis(val id: String, val active: Boolean) {
+    TOP("top", true),
+    UNDERWEAR("underwear", false),
+    SHOES("shoes", true),
+    HAIR("hair", false),
+    HELD("held", true),
+    FACE("face", true),
+}
 
-/** 托盘一行：轴名 + 当前值（点一下推进到下一个值）。 */
-data class Live2dWardrobeRow(val axis: Live2dWardrobeAxis, val label: String, val value: String)
+/**
+ * 托盘一行：轴名 + 当前值（点一下推进到下一个值）。
+ * pending 轴（[enabled]=false）灰显且必须带 [disabledReason]——v2 修掉的是
+ * 「假轴」（可用却无变化），灰显+原因是**声明出来**的不可用，两回事。
+ */
+data class Live2dWardrobeRow(
+    val axis: Live2dWardrobeAxis,
+    val label: String,
+    val value: String,
+    val enabled: Boolean = true,
+    val disabledReason: String = "",
+)
 
 object Live2dTouchReaction {
 
@@ -65,19 +84,26 @@ object Live2dTouchReaction {
         else -> state
     }
 
-    /** 托盘显式推进某一根轴（与分区循环同一状态机、同一状态空间）。 */
+    /** 托盘显式推进某一根轴（与分区循环同一状态机、同一状态空间）。
+     *  pending 轴（active=false）结构性 no-op：无资产可切。 */
     fun advanceWardrobe(state: Live2dTouchReactionState, axis: Live2dWardrobeAxis): Live2dTouchReactionState =
-        when (axis) {
+        if (!axis.active) state
+        else when (axis) {
             Live2dWardrobeAxis.TOP -> state.copy(top = next(state.top, Live2dTop.entries.toTypedArray()))
             Live2dWardrobeAxis.SHOES -> state.copy(shoes = next(state.shoes, Live2dShoes.entries.toTypedArray()))
             Live2dWardrobeAxis.HELD -> state.copy(held = next(state.held, Live2dHeld.entries.toTypedArray()))
             Live2dWardrobeAxis.FACE -> state.copy(face = next(state.face, Live2dFace.entries.toTypedArray()))
+            Live2dWardrobeAxis.UNDERWEAR, Live2dWardrobeAxis.HAIR -> state // unreachable，保险
         }
 
-    /** 托盘四行（上衣/鞋/手持/表情），当前值可见。 */
+    /** 托盘行 = wardrobe-spec.json 的全部槽位（active 可点、pending 灰显带原因）。 */
     fun wardrobeRows(state: Live2dTouchReactionState): List<Live2dWardrobeRow> = listOf(
         Live2dWardrobeRow(Live2dWardrobeAxis.TOP, "上衣", topLabel(state.top)),
+        Live2dWardrobeRow(Live2dWardrobeAxis.UNDERWEAR, "内衣", "待素材",
+            enabled = false, disabledReason = "需要 Cubism 重制（见 wardrobe-spec.json）"),
         Live2dWardrobeRow(Live2dWardrobeAxis.SHOES, "鞋", shoesLabel(state.shoes)),
+        Live2dWardrobeRow(Live2dWardrobeAxis.HAIR, "头饰", "待验证",
+            enabled = false, disabledReason = "参数无已验证值"),
         Live2dWardrobeRow(Live2dWardrobeAxis.HELD, "手持", heldLabel(state.held)),
         Live2dWardrobeRow(Live2dWardrobeAxis.FACE, "表情", faceLabel(state.face)),
     )

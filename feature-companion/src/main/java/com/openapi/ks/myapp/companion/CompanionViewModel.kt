@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.openapi.ks.myapp.avatar.AvatarCommand
 import com.openapi.ks.myapp.avatar.AvatarEventMapper
 import com.openapi.ks.myapp.avatar.ProactiveKind
+import com.openapi.feature.companion.fx.StageEffectMapper
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -387,6 +388,23 @@ class CompanionViewModel(
      * 不走 [deliver] 是因为那条会清空输入框与待发条，而动作文案既不该覆盖草稿、
      * 也不该把用户选好的图一起发掉。
      */
+
+    /**
+     * 舞台特效触发：写入既有 [CompanionUiState.gesture]/[CompanionUiState.gestureSeq]。
+     *
+     * **不另起事件总线**（架构纪律 2026-11-23）：服务端 cue、托盘动作、接通边
+     * 都并进同一 Gesture 词表；特效层订阅这条既有 StateFlow 镜像，再用
+     * [StageEffectMapper.fromGesture] 翻成 StageEffect。未知 id 仍写入——
+     * mapper 那边 fail-silent 回 null，渲染层不播。
+     */
+    fun emitStageGesture(id: String) {
+        val clean = id.trim().lowercase()
+        if (clean.isEmpty()) return
+        _state.update {
+            it.copy(gesture = clean, gestureSeq = it.gestureSeq + 1)
+        }
+    }
+
     fun sendActionText(text: String) {
         if (_state.value.connection != CompanionConnection.CONNECTED) return
         if (uploadInProgress()) return
@@ -568,7 +586,14 @@ class CompanionViewModel(
     private fun observeConnection() {
         connectionJob?.cancel()
         connectionJob = viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            var prev: TransportConnection? = null
             transport.connection.collect { transportConnection ->
+                // 特效触发（接通花瓣）：并进既有 gesture 词表，不另起总线。
+                // 重连不播的规则钉在 StageEffectMapper.onCallState。
+                if (StageEffectMapper.onCallState(prev, transportConnection) != null) {
+                    emitStageGesture(StageEffectMapper.GESTURE_CONNECTED)
+                }
+                prev = transportConnection
                 val mapped = when (transportConnection) {
                     TransportConnection.CONNECTING -> CompanionConnection.CONNECTING
                     TransportConnection.CONNECTED -> CompanionConnection.CONNECTED

@@ -13,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
@@ -37,6 +38,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.openapi.feature.companion.fx.LottieFxLayer
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.AvatarTouch
 import com.openapi.ks.myapp.avatar.AvatarTouchKind
@@ -101,6 +103,17 @@ fun DigitalHumanLabHost(
      * 捏合缩放与长按托盘仍由舞台判定器管（onTap 传 null = 单指事件落给分层立绘）。
      */
     simpleFallback: com.openapi.ks.myapp.avatar.LayeredAvatarPack? = null,
+    /**
+     * 舞台特效：订阅既有 [CompanionUiState.gesture]/[CompanionUiState.gestureSeq]
+     * （cmp.cue → AvatarEventMapper → Gesture 的 UI 镜像），**不另起事件总线**。
+     * null / 0 = 不播（聊天页/调试舞台）。
+     */
+    gestureId: String? = null,
+    gestureSeq: Long = 0L,
+    /** 通话页飘散粒子开关；关 → 氛围类特效不播（[FxRenderPolicy]）。 */
+    particles: Boolean = true,
+    /** dh-lab 门内「特效测试」按钮；null = 不显示。Route 接到 emitStageGesture("pat_head"). */
+    onLabFxTest: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
@@ -395,6 +408,36 @@ fun DigitalHumanLabHost(
                 }
             }
         }
+
+        // ==== Lottie 特效层（MVP）=============================================
+        // 叠在引擎视口之后的 Box 兄弟——与复位胶囊/托盘同一条已验证合成路径：
+        // 不 setZOrderOnTop、不进 GL、**不加任何 pointerInput**（手势仲裁只有
+        // avatarStageTransform 一处，2026-11-23「捏合必死」教训）。
+        // 触发走既有 gestureSeq（cmp.cue → AvatarEventMapper → Gesture），不另起总线。
+        LottieFxLayer(
+            gestureId = gestureId,
+            gestureSeq = gestureSeq,
+            reducedMotion = reducedMotion,
+            particles = particles,
+            stageZoomed = stage.isZoomed,
+            modifier = Modifier.fillMaxSize(),
+        )
+        // dh-lab 调试：点一下 = 走同一条 Gesture 词表（pat_head），验证合成/触摸回归。
+        if (onLabFxTest != null && DhLabGate.isEnabled(context)) {
+            Text(
+                text = "特效测试",
+                color = Color.White,
+                fontSize = 13.sp,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 96.dp, end = 16.dp)
+                    .clip(RoundedCornerShape(percent = 50))
+                    .background(Color.White.copy(alpha = 0.18f))
+                    .clickable { onLabFxTest.invoke() }
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
+            )
+        }
+        // ======================================================================
 
         // 放大后的「复位」小胶囊：捏合跑偏或想看全貌时一键回 1x 居中。
         if (stage.isZoomed) {

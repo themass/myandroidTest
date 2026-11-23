@@ -1,47 +1,43 @@
-# psd2live 换装产能评估 harness
+# psd2live 换装产能评估 harness（工具侧）
 
-评估 `tsunehimatoi/psd2live`（v3.8.4）能否替代/辅助 Cubism Editor，
-为我们 Live2D 换装线（`wardrobe-spec.json` 内衣槽 `pending-art`）产出新 ArtMesh + Opacity 参数。
+评估对象：`tsunehimatoi/psd2live` 3.8.4（GPL 应用 / MIT IR）。对照 `wardrobe-spec.json` 内衣槽 `pending-art`。**本目录只收我们写的脚本与跑法，禁止把 psd2live 源码或 DMG 入仓。**
 
-**本目录不含 psd2live 源码或 DMG。** 只放我们自己写的生成脚本、跑法与证据摘要。
+## 结论（2026-11-23）
 
-## 结论摘要
+**半替代 → 主力候选**：官方 DMG CLI 能从分层 PSD **完全不碰 Cubism Editor** 直接写出真 `.moc3`（魔数 `MOC3`，本机实测 1,105,344 B）+ model3/cdi3/exp3/physics3 族。Layout toggle `ParamWear_test` 已实跑进 moc3/cdi3 字符串表（`layout.moc3` 1,001,728 B）。无头 CLI `--input` **只吃 PSD**；Layout 清单差分走 MCP：`project_import_layout` → `rig_generate` → `project_export_target moc3`。详见 [`EVAL.md`](EVAL.md)。
 
-详见 [`EVAL.md`](EVAL.md)。一句话：**半替代可主力候选**——官方 CLI 从分层 PSD 直出真 `.moc3`（不依赖 Cubism Editor），ArtMesh 与标准 Param* 齐全；Layout toggle `ParamWear_test` 已实跑进 moc3/cdi3 字符串表。
+许可：跑官方发布包、产物进仓库、APK 不含 psd2live 代码 → GPL 无传染。
 
 ## 前置
 
-1. 下载官方 macOS arm64 DMG（勿入仓）：
-   https://github.com/tsunehimatoi/psd2live/releases/download/v3.8.4/PSD2Live-3.8.4-macos-arm64.dmg
-2. 校验 `SHA256SUMS.txt`，挂载：
-   ```bash
-   hdiutil attach -nobrowse -readonly PSD2Live-3.8.4-macos-arm64.dmg
-   ```
-3. Python 3 + pillow（生成 PSD）；可选 psd-tools（自检图层栈）。
+- 官方 macOS arm64 DMG（自行下载，sha256 核验）挂到 `/Volumes/PSD2Live`
+- Python 3 + venv：`python3 -m venv /tmp/psd2live-gen/venv && /tmp/psd2live-gen/venv/bin/pip install pillow psd-tools`
+- **禁止 docker**；不碰真机 adb
 
-## 复跑
+## 跑法
 
 ```bash
-# 1) 生成最小分层 PSD（仓库外输出目录）
-python3 -m venv /tmp/psd2live-gen/venv
-/tmp/psd2live-gen/venv/bin/pip install pillow psd-tools
-mkdir -p /tmp/psd2live-gen
-/tmp/psd2live-gen/venv/bin/python -I scripts/dh-lab/psd2live-eval/make_psd.py \
-  /tmp/psd2live-gen/demo.psd
+# 1) 生成 demo PSD（Adobe FileHeader 正确公式，勿用笔记旧错版）
+/tmp/psd2live-gen/venv/bin/python -I scripts/dh-lab/psd2live-eval/make_psd.py /tmp/psd2live-gen/demo.psd
 
-# 2) CLI：PSD → moc3 族（默认写 moc3+cmo3+json）
-rm -rf /tmp/psd2live-gen/out && mkdir -p /tmp/psd2live-gen/out
+# 2) 自检图层栈
+/tmp/psd2live-gen/venv/bin/python -I -c "from psd_tools import PSDImage; p=PSDImage.open('/tmp/psd2live-gen/demo.psd'); print(p.width,p.height,len(list(p)))"
+
+# 3) 官方 CLI 导出 moc3 族
+mkdir -p /tmp/psd2live-gen/out
 /Volumes/PSD2Live/PSD2Live.app/Contents/MacOS/PSD2Live \
-  --input /tmp/psd2live-gen/demo.psd \
-  --output /tmp/psd2live-gen/out \
-  --lang zh
+  --input /tmp/psd2live-gen/demo.psd --output /tmp/psd2live-gen/out --lang zh
 # 注意：3.8.4 CLI 在写出后偶发挂在 IMK 消息端口；文件齐了可 kill 进程。
 
-# 3) 断言摘要
+# 4) 断言
 python3 -I scripts/dh-lab/psd2live-eval/inspect_export.py /tmp/psd2live-gen/out
 ```
 
-期望：`out/demo.moc3` 魔数 `MOC3`、`demo.model3.json` 引用闭合、cdi3 含 `ArtMeshTopwear` 等与 PSD 层对应的 ArtMesh、标准 `ParamAngleX`/`ParamEyeLOpen` 等。
+## PSD header 钉桩
+
+Adobe `FileHeader`：`struct.pack(">4sH6xHIIHH", b"8BPS", 1, 3, rows, cols, 8, 3)`
+（sig / version=1 / 6x reserved / channels=3 / rows / cols / depth=8 / colorMode=3）。
+错误公式 `>4s6xH6xHIIHH` 会把 version 读成 0，psd-tools 直接拒。
 
 ## 证据
 
@@ -53,7 +49,7 @@ python3 -I scripts/dh-lab/psd2live-eval/inspect_export.py /tmp/psd2live-gen/out
 - `demo-merged.png`：输入 PSD 合成预览
 - `cli-run.txt`：CLI 输出摘要
 
-## 纪律
+## 纪律 / 不入仓
 
 - 禁止 docker；本评估不占 adb 设备。
-- 不要把 `/tmp/psd2live-eval` 源码树或 DMG 拷进仓库。
+- 不要把 `/tmp/psd2live-eval` 源码树、`/tmp/psd2live-dmg/*.dmg`、导出的 moc3/贴图大文件拷进仓库。
