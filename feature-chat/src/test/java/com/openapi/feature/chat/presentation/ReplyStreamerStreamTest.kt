@@ -50,6 +50,7 @@ class ReplyStreamerStreamTest {
         val streamer = ReplyStreamer(
             repo, state, scope, SendMessageUseCase(repo),
             attachmentActive = { false }, reconcile = {}, syncSessions = {},
+            strings = FakeChatStrings(),
         )
     }
 
@@ -84,7 +85,8 @@ class ReplyStreamerStreamTest {
         h.streamer.cancel()
         h.scope.advanceUntilIdle()
         assertEquals(DeliveryStatus.FAILED, h.state.value.messages.first().delivery)
-        assertTrue(h.state.value.error?.contains("未发出") == true)
+        // P2-14b：文案走 ChatStrings 端口，JVM 单测里断言取到了哪条标记串（真实措辞在 :app 的 Robolectric）
+        assertEquals("S:stoppedNoReply", h.state.value.error)
     }
 
     @Test
