@@ -88,14 +88,15 @@ fun AvatarActionTray(
                     )
                 }
                 wardrobeRows.forEach { row ->
-                    val label = "${row.label} · ${row.value}"
+                    val label = if (row.enabled) "${row.label} · ${row.value}"
+                        else "${row.label} · ${row.disabledReason}"
                     Text(
                         text = label,
-                        color = TEXT_PRIMARY,
+                        color = if (row.enabled) TEXT_PRIMARY else TEXT_DISABLED,
                         fontSize = 15.sp,
                         modifier = Modifier
                             .semantics { contentDescription = label }
-                            .clickable { onWardrobeClick(row.axis) }
+                            .clickable(enabled = row.enabled) { onWardrobeClick(row.axis) }
                             .fillMaxWidth()
                             .padding(vertical = 7.dp, horizontal = 6.dp),
                     )
