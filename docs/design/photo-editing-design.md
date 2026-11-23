@@ -22,8 +22,17 @@
 | 贴纸 / emoji / 滤镜 | **明确不做** | 第 3.1 节末尾 |
 | 真机手感与导出耗时 | **待验证** | 第 6 节 |
 
-> 上一轮先落了代码，是因为编辑器是本次唯一「不接业务也能独立验证」的件；
-> 文档里的接入步骤（第 4 节）确实还没做，对应上表后三行。
+> **设计签收（2026-11-23）**：选型 §3 + 五项用户问题修法视为通过；剩余切片见 §0.1。
+
+### 0.1 最小实现切片（全线续跑）
+
+| 切片 | 内容 | 状态 |
+|---|---|---|
+| S0 | `PhotoEdits` / `PhotoRenderer` / `PhotoEditor` + 单测 | **已合入** `weifu-refactor` |
+| S1 | 对话选图/拍照首张 → `PhotoEditor` → 回草稿 | **已合入** `ChatRoute.kt` |
+| S2 | 真机五项 + 存储抽检 | **进行中** → `docs/qa/photo-edit-device-checklist.md`、`photo-edit-device-result-*.md` |
+| S3 | 草稿托盘项「再编辑」（长按菜单） | **未做**（可选；S2 通过后） |
+| S4 | 拍照解题结果页标注 | **不做**（除非你另行拍板） |
 
 ---
 
@@ -33,7 +42,7 @@
 
 | 位置 | 现在的能力 | 文件 |
 |---|---|---|
-| 发送前草稿托盘 | 选图、拍照后直接进托盘，**不能编辑** | `feature-chat/.../presentation/SendActions.kt`、`ui/ChatRoute.kt` |
+| 发送前草稿托盘 | 选图/拍照**首张**可进 `PhotoEditor`；多选其余直接进托盘 | `ChatRoute.kt`（`pendingEdit`）、`SendActions.kt` |
 | 消息里的图片 | 全屏查看（翻页、双指缩放、双击放大）、长按菜单：下载 / 复制图片 / 分享 / 查看路径 | `chatkit/.../media/ImageViewer.kt`、`feature-chat/.../ui/AttachmentActions.kt` |
 | 图片的落盘与压缩 | `ImageCompressor`：长边 1600、JPEG 82 起、≤800 KB | `common/.../image/ImageCompressor.kt` |
 
@@ -176,10 +185,8 @@ val uri: Uri? = PhotoEditExporter.export(sourceBitmap, edits, context.cacheDir)
 ## 4. 集成步骤
 
 1. **已完成**：模型、渲染器、导出器、Compose 编辑器、单测（见 3.2 的文件表）。`PhotoEditor(bitmap, onCancel, onDone)` 是唯一对外入口。
-2. 在 `:feature-chat` 的草稿托盘加「编辑」入口：
-   - 托盘项长按 → 「编辑」；
-   - 页面用 `PhotoEditor` 包一层全屏 `Dialog`（编辑完回草稿，不丢输入框内容）；
-   - `onDone` 里 `PhotoEditExporter.export(...)`，成功则 `viewModel.onAttachmentReplaced(draftId, uri)`。
+2. **S1 已完成**：选图/拍照第一张 `onImagesPicked(..., openEditor)` → 全屏 `PhotoEditor` → `export` + 回草稿。
+   **S3 待做**：托盘里已有附件长按「编辑」再进同一编辑器。
 3. 历史消息长按菜单里加「编辑后重发」：先 `AttachmentActions.localImageFile(context, source)` 拿到本地文件（网络图片会先下载到缓存），再走同一个编辑器。
 4. 拍照解题的结果页加「标注错处」入口（可选）：复用 `PhotoEditor`，`allowCrop = false`。
 
@@ -215,4 +222,5 @@ val uri: Uri? = PhotoEditExporter.export(sourceBitmap, edits, context.cacheDir)
 - 文字点选框是按"中文 1.0 / 西文 0.58 倍字号"估算的，和实际排版有偏差，点在文字边缘可能选不中或多选中；
 - 拖动手感、触摸容差（`DEFAULT_TOLERANCE = 0.04`，约 12~15dp）是否合适；
 - 预览与导出的文字位置、字号在 1~2px 以内一致这一点只做了设计，没有对比过同一张图；
-- 编辑器尚未接入聊天草稿栏（见第 4 节）。
+- 真机：见 `docs/qa/photo-edit-device-checklist.md` 与 `photo-edit-device-result-*.md`。
+- 托盘内「再编辑」（S3）尚未做。

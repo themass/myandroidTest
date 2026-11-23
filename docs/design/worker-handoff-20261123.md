@@ -32,7 +32,7 @@
 | **session** | 三引擎接入 + Duix/Live2D 稳定 | Duix TextureView 背景门；Live2D GL onResume；热换模 `changeModel`；VRM seed | weifu 含 `canApplyThemeBackgroundToView`；热换、1.22x scale 曾推真机 | VRM 选人+scene.bundle；纯黑主题 edge | 通话进房不 FATAL；换装 ParamWear 真机 |
 | **lottie-fx** | 特效层调研 + 通话叠加 | cmp.cue→Lottie 全屏礼物；reducedMotion；陪伴页特效测试入口 | 设计见 `2026-11-23-换装抽象与特效层设计.md` §二 | **通话页 Lottie MVP 未合主线** | 礼物 cue 真机 |
 | **lottie-fx-mvp** | 通话页 Lottie spike | architecture-first 叠加层，不改原 UI | spike 分支可能未 ff weifu | 与 lottie-fx 合并排期 | spike 通过后再装机 |
-| **psd2live-eval** | 素材管线 / wardrobe 证据 | psd→live 评估；MCP editor pose 导出 | `417a618f` wardrobe runtime smoke 证据进 repo | 内衣/头饰 pending-art | editor 姿态 vs 真机 |
+| **psd2live-eval** | 素材管线 / wardrobe 证据 | psd→live 评估；MCP editor pose 导出 | `58a48481` 线含 `docs/design/psd2live-wardrobe-evidence-20261123.md` + wardrobe 证据 PNG/JSON | 内衣 pending-art；Android runtime；头饰 | editor 0/0.5/1 已验；真机 Cubism 未验 |
 | **avatar-2d-design** | 2D 形象选型 | 文档 + PR#1（已关） | 研究交付 | 产品拍板未绑实现 | — |
 | **ui-weifu-refactor** | 通话 UI 收尾 | retry Banner、波形/字幕（前端 skill 约束） | `cfbb94b1` merge goldwasser | compile 绿，**全量/真机未跑** | 断线重试 UX |
 | **p0-5-p2** | 协议真机对账 | PENDING barge 只认 PLAYING（`8a7c909e`） | 1/4 PASS on 旧栈；自掐已修代码 | emotion 陪伴真机 PARTIAL；first_ms 25–32s | 生产 LiveKit 四项复测 |
