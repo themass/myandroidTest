@@ -151,6 +151,9 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
     override suspend fun localPendingMessages(sessionId: Long): List<ChatMessage> =
         withContext(Dispatchers.IO) { cache.localPending(sessionId) }
 
+    override suspend fun localAttachmentPathsInUse(): Set<String> =
+        withContext(Dispatchers.IO) { cache.localAttachmentPathsInUse() }
+
     /** 切换会话时立刻显示的本地缓存（见接口注释）；远程图片等服务端页到达后再换 URL。 */
     override suspend fun cachedMessages(sessionId: Long): List<ChatMessage> =
         withContext(Dispatchers.IO) {

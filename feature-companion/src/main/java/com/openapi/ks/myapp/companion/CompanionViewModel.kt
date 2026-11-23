@@ -212,8 +212,13 @@ class CompanionViewModel(
             // 同一份 :common 的暂存清扫（cleanup 项 5）：陪伴页这里以前只写不删，
             // 「选完就退出」「第二次选图被额度挡下」都会留下没人引用的字节。
             val dir = java.io.File(context.filesDir, ATTACHMENT_DIR).apply { mkdirs() }
+            // 待发条里那张还没发出去的图不是孤儿（复审 Important 的同一条规矩）：
+            // 托盘活在进程里，App 开着不动放够 7 天，再选一次图就会把待发条那张删掉——
+            // 卡片还显示着，点发送却得到「部分图片上传失败」，而且怎么按都失败。
+            // 与对话页不同，这里没有本地行可查，白名单就是当前 state 里的那几条路径。
+            val keep = _state.value.pendingImages.map { it.path }.toSet()
             withContext(ioDispatcher) {
-                com.openapi.common.media.StagingGc.sweep(dir)
+                com.openapi.common.media.StagingGc.sweep(dir, keep = keep)
                 for (uri in uris) {
                     val stamp = nextStagingStamp()
                     com.openapi.common.media.MediaStager.stageImage(context, uri, dir, stamp)
@@ -228,6 +233,13 @@ class CompanionViewModel(
      *
      * 必须是**单调递增**的：一次多选里九张图落在同一毫秒很常见，都用
      * `currentTimeMillis()` 的话后一张会盖掉前一张，用户看到的是「选了九张只剩一张」。
+     *
+     * 而且必须是**原子**的（复审 minor 1）：取 stamp 的位置在 `withContext(ioDispatcher)` 里面，
+     * 「相册多选」和「拍照」两条路可以同时跑，两个协程落在 IO 的不同线程上。
+     * 一句普通的读-改-写会在同一毫秒里读到同一个旧值，于是两条路写出同一个
+     * `img_<stamp>.jpg`，后一张**静默覆盖**前一张（写文件按名字覆盖，一声不吭）。
+     * 所以这里用 CAS 而不是 `lastStagingStamp = …`：同一个旧值只有一个线程换得动，
+     * 换不动就重读重试。
      */
     private var lastStagingStamp = 0L
     private fun nextStagingStamp(): Long {

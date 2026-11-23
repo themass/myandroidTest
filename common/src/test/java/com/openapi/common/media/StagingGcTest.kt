@@ -36,6 +36,34 @@ class StagingGcTest {
         assertTrue("刚写的暂存文件不能碰（陪伴页可能正在逐张上传）", fresh.exists())
     }
 
+    /**
+     * 复审 Important：`chat_attachments` 里的文件**不全是孤儿**。本地一条 `local-` 行如果还没
+     * SENT（上传从未成功过），它的字节只存在本机——`uploadId` 要么没有、要么早过了 ADR-011 的
+     * 10 分钟寿命，重发必须重新上传这个文件（AttachmentSender 的注释就是这句话:
+     * 「有字节在手就别赌它还能用」）。把这种文件按年龄扫掉，等于让那条消息永久重发不出去。
+     * 所以清扫要能把「调用方说还有人引用」的路径整批跳过。
+     */
+    @Test
+    fun `a file still referenced by a local row survives the sweep even when over-age`() {
+        val dir = tempDir()
+        val referenced = File(dir, "img_1700000000000.jpg").apply { writeText("x"); touchAt(now - StagingGc.MAX_AGE_MILLIS - 60_000) }
+        val orphan = File(dir, "img_other.jpg").apply { writeText("x"); touchAt(now - StagingGc.MAX_AGE_MILLIS - 60_000) }
+
+        assertEquals("只有没人引用的那个算删掉", 1, StagingGc.sweep(dir, now, keep = setOf(referenced.absolutePath)))
+        assertTrue("被非 SENT 本地行引用的字节必须留下（重发靠它）", referenced.exists())
+        assertFalse("同一条消息之外的超龄孤儿照旧走", orphan.exists())
+    }
+
+    @Test
+    fun `the keep set is matched on absolute path, not file name`() {
+        val dir = tempDir()
+        val other = File(dir, "img_same_name.jpg").apply { writeText("x"); touchAt(now - StagingGc.MAX_AGE_MILLIS - 60_000) }
+
+        // 同名但不同目录（另一个暂存目录里的同名文件不是「同一个字节」）：不能被误留
+        assertEquals(1, StagingGc.sweep(dir, now, keep = setOf("/somewhere/else/img_same_name.jpg")))
+        assertFalse(other.exists())
+    }
+
     @Test
     fun `subdirectories are left alone`() {
         val dir = tempDir()

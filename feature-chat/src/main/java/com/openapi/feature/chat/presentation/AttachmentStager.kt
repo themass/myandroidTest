@@ -40,11 +40,14 @@ object AttachmentStager {
 
     private const val DIR = "chat_attachments"
 
+    /** 拍照输出目录（`ChatPlatform.newCameraUri` 写在这里）——第二个只增不减的累积点。 */
+    const val CAMERA_DIR = "camera"
+
     /** 文件体积上限（原始大小）。 */
     const val MAX_FILE_BYTES = 20L * 1024 * 1024
 
     /**
-     * 暂存目录，顺带扫掉超龄的孤儿文件（cleanup 项 5）。
+     * 暂存目录，顺带把**两处**暂存目录里超龄的孤儿扫掉（cleanup 项 5）。
      *
      * 孤儿的来源是这条路的形状：选多张时超出附件额度那张被闸挡下、选完就退出、编辑半途取消、
      * 拍照取消——那些字节从没进过任何托盘，以前**没有任何回收路径**（Task 4 报告 §9 登记的就是
@@ -53,19 +56,43 @@ object AttachmentStager {
      *
      * 挂在「用到目录的时候」而不是 Application 启动：年龄阈值 7 天意味着任何一次经过这里
      * 都够把陈旧孤儿清掉，不必给 app 加一条启动时序，也不会误删另一次会话正在用的文件。
+     * 这条路与 `camera/` 的清扫都在调用方的 IO 线程上（选择器回来就在 IO），
+     * 所以点「拍摄」那一刻主线程只建一个目录，不再 `listFiles` + 删文件（复审 minor）。
+     *
+     * [keep] 是调用方给的「还不能当垃圾删」的绝对路径白名单（复审 Important）：
+     * `chat_attachments` 里的字节不全都是孤儿——一条没到 SENT 的本地 `local-` 行，
+     * 手里只有这些文件（服务端那张直传票据 10 分钟就废，ADR-011），扫掉就等于
+     * 把那条消息的重发能力永久删掉。白名单由 [SendActions] 从仓库 + 托盘 + 屏幕上
+     * 带附件的消息现问现取；不在名单里的超龄文件照旧回收。
      */
-    fun stagingDir(context: Context): File {
+    fun stagingDir(context: Context, keep: Set<String> = emptySet()): File {
         val dir = File(context.filesDir, DIR).apply { mkdirs() }
-        com.openapi.common.media.StagingGc.sweep(dir)
+        com.openapi.common.media.StagingGc.sweep(dir, keep = keep)
         return dir
     }
 
-    fun stage(context: Context, kind: MessageKind, uri: Uri): StageOutcome =
-        stage(context, kind, uri, AndroidVideoMeta)
+    /**
+     * 拍照输出目录：只建目录，**不扫**——清扫在 [stagingDir] 里（IO 线程）做。
+     * FileProvider 写文件要求父目录已存在，所以 `mkdirs()` 留在这条路上（一次系统调用，
+     * 与整改前的基线一致）。
+     */
+    fun cameraDir(context: Context): File = File(context.filesDir, CAMERA_DIR).apply { mkdirs() }
 
-    /** 可注入 [meta] 的重载：视频时长/首帧在 JVM 测试里读不了真编码器，换假的进来跑全流程。 */
-    internal fun stage(context: Context, kind: MessageKind, uri: Uri, meta: VideoMetaSource): StageOutcome {
-        val dir = stagingDir(context)
+    fun stage(context: Context, kind: MessageKind, uri: Uri): StageOutcome =
+        stage(context, kind, uri, emptySet())
+
+    /**
+     * 可注入 [keep]（清扫白名单，见 [stagingDir]）与 [meta] 的重载：
+     * 视频时长/首帧在 JVM 测试里读不了真编码器，换假的进来跑全流程。
+     */
+    internal fun stage(
+        context: Context,
+        kind: MessageKind,
+        uri: Uri,
+        keep: Set<String> = emptySet(),
+        meta: VideoMetaSource = AndroidVideoMeta,
+    ): StageOutcome {
+        val dir = stagingDir(context, keep)
         val stamp = System.currentTimeMillis()
         return when (kind) {
             MessageKind.IMAGE -> stageImage(context, uri, dir, stamp)

@@ -102,10 +102,21 @@ internal class SendActions(
         streamer.stream(text, userMessageId = user.id, persistUser = true)
     }
 
-    fun attachmentPicked(context: android.content.Context, kind: MessageKind, uri: android.net.Uri) {
+    fun attachmentPicked(
+        context: android.content.Context,
+        kind: MessageKind,
+        uri: android.net.Uri,
+        /**
+         * 测试接缝（与 `CompanionViewModel.onImagesPicked` 同款）：默认 `Dispatchers.IO`
+         * 是真线程，`advanceUntilIdle` 追不到它，暂存与清扫那一段就只能靠读代码确认。
+         * 界面调用方一律用默认值。
+         */
+        ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
+    ) {
         if (state.value.sending) return
         scope.launch {
-            val outcome = withContext(Dispatchers.IO) { AttachmentStager.stage(context, kind, uri) }
+            val keep = stagedBytesStillInUse()
+            val outcome = withContext(ioDispatcher) { AttachmentStager.stage(context, kind, uri, keep) }
             when (outcome) {
                 is StageOutcome.Staged -> rejectIfOverLimit(kind, outcome.attachment)
                 is StageOutcome.Rejected -> state.update { it.copy(error = outcome.reason) }
@@ -113,6 +124,24 @@ internal class SendActions(
             }
         }
     }
+
+    /**
+     * 暂存目录里**还不能当垃圾删**的字节（复审 Important）。
+     *
+     * 两类：
+     * 1. 本地行引用的：一条 `local-` 行没到 SENT（上传一次都没成过）时，图片字节只在本机，
+     *    `uploadId` 要么没有要么早过了 10 分钟寿命（ADR-011），重发只能重新上传这个文件；
+     *    扫掉它 = 那条消息永久发不出去。
+     * 2. 托盘里还没发的：App 一直开着、草稿压了一周没提交，此时再选一张图就会触发清扫。
+     *
+     * 只在清扫前问一次，不做引用计数：这些路径只让文件**多活一轮**，下一次它没被引用了照旧回收。
+     */
+    private suspend fun stagedBytesStillInUse(): Set<String> =
+        repository.localAttachmentPathsInUse() +
+            state.value.drafts.map { it.staged.file.absolutePath } +
+            state.value.messages.flatMap { message ->
+                message.images.map { it.path } + message.videos.map { it.path } + message.files.map { it.path }
+            }
 
     /**
      * 进草稿托盘，超了附件额度（图片+视频合计）就说清楚（终评 I-1）。
@@ -133,11 +162,14 @@ internal class SendActions(
         context: android.content.Context,
         uris: List<android.net.Uri>,
         openEditor: ((java.io.File, android.graphics.Bitmap) -> Unit)? = null,
+        /** 测试接缝，同 [attachmentPicked]；界面调用方一律用默认值。 */
+        ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
     ) {
         if (uris.isEmpty() || state.value.sending) return
         scope.launch {
+            val keep = stagedBytesStillInUse()
             for (uri in uris) {
-                val outcome = withContext(Dispatchers.IO) { AttachmentStager.stage(context, MessageKind.IMAGE, uri) }
+                val outcome = withContext(ioDispatcher) { AttachmentStager.stage(context, MessageKind.IMAGE, uri, keep) }
                 when (outcome) {
                     is StageOutcome.Staged -> {
                         val staged = outcome.attachment

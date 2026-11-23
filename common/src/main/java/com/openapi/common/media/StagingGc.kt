@@ -21,24 +21,40 @@ import java.io.File
  * 又不至于让目录无限增长。代价写清楚：超过 7 天且**只在本地**才有字节的旧图片消息，
  * 下次联网刷新历史时会走服务端签名 URL（那条路本来就是权威），离线时那一张退化成加载失败。
  *
+ * 「退化成加载失败」只对**已经发出去**的消息成立。对话页的 `chat_attachments` 里还有一类
+ * 根本没发出去的东西：一条本地 `local-` 行如果没到 SENT（上传一次都没成功过），它没有可用的
+ * `uploadId`（服务端只认 10 分钟内签发的那个，ADR-011），重发只能重新上传本机字节。
+ * 把这种文件按年龄扫掉，那条消息就**永久**重发不出去——比「只增不减」更糟（复审 Important）。
+ * 所以调用方可以把**还有人引用的路径**（本地非 SENT 行的附件、界面上还没发的托盘）交给
+ * [sweep] 的 `keep`，这些文件无论多老都留下。
+ *
  * 只删**文件**，不递归删子目录：这几个目录本来就没有子目录，保守一点不会误伤别的东西。
  * 删除失败一律忽略：GC 永远不该把一次选图变成错误。
  */
 object StagingGc {
 
-    /** 暂存文件的最长寿命：超过这个年龄、又不被任何托盘引用的文件按垃圾处理。 */
+    /** 暂存文件的最长寿命：超过这个年龄、且调用方没说要留（见 [sweep] 的 `keep`）的文件按垃圾处理。 */
     const val MAX_AGE_MILLIS: Long = 7L * 24 * 60 * 60 * 1000
 
     /**
      * 删掉 [dir] 下年龄超过 [MAX_AGE_MILLIS] 的文件，回删掉几个（测试用；调用方不看返回值）。
      * 目录不存在或读不到 → 0，不抛。
+     *
+     * [keep] 是「调用方说还有人引用」的**绝对路径**集合：这些文件一律跳过，无论多老。
+     * 按整条路径而不是文件名比——另一个暂存目录里的同名文件不是同一批字节。
+     * 默认空 = 没有需要留的东西（陪伴页那种「只有托盘引用、进程一退就没了」的目录）。
      */
-    fun sweep(dir: File, now: Long = System.currentTimeMillis()): Int {
+    fun sweep(
+        dir: File,
+        now: Long = System.currentTimeMillis(),
+        keep: Set<String> = emptySet(),
+    ): Int {
         val cutoff = now - MAX_AGE_MILLIS
         val children = runCatching { dir.listFiles() }.getOrNull() ?: return 0
         var deleted = 0
         for (child in children) {
             if (!child.isFile) continue
+            if (child.absolutePath in keep) continue
             if (child.lastModified() >= cutoff) continue
             if (runCatching { child.delete() }.getOrDefault(false)) deleted++
         }

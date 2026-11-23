@@ -69,6 +69,23 @@ internal class MessageCache {
         }
     }
 
+    /**
+     * 本地行还引用着的附件路径（跨会话，只算没到 SENT 的）。给暂存清扫当白名单，
+     * 为什么必须有：见 [ChatRepository.localAttachmentPathsInUse] 的注释。
+     * 与 [localPending] 一样走全局库；查不动就回空集合（清扫照旧，只是少一批白名单）。
+     */
+    fun localAttachmentPathsInUse(): Set<String> {
+        val rows = runCatching { AppDatabase.getInstance().chatLogDao().localRows() }
+            .getOrDefault(emptyList())
+        val out = LinkedHashSet<String>()
+        rows.forEach { log ->
+            val message = log.toDomainOrNull() ?: return@forEach
+            if (message.delivery == DeliveryStatus.SENT) return@forEach
+            out += ChatLogMapper.localAttachmentPaths(message)
+        }
+        return out
+    }
+
     fun clearLocal(sessionId: Long) {
         AppDatabase.getInstance().chatLogDao().deleteBySession(sessionId)
     }

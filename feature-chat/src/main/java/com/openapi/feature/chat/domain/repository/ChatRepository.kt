@@ -93,6 +93,18 @@ interface ChatRepository {
     suspend fun localPendingMessages(sessionId: Long): List<ChatMessage>
 
     /**
+     * 本地记录里**还不能当垃圾删**的附件路径（图片、视频、文件，跨会话）。
+     *
+     * 附件暂存目录做超龄清扫之前问一次（见
+     * [com.openapi.common.media.StagingGc.sweep] 的 `keep`）。之所以必须问：
+     * 一条 `local-` 行如果没到 SENT（上传一次都没成功过），它没有可用的 `uploadId`
+     * （服务端只认 10 分钟内签发的那张，ADR-011），重发只能重新上传本机字节——
+     * 按年龄把这些字节扫掉，那条消息就**永久**重发不出去。
+     * 实现要在后台线程查库；查不到就返回空集合（清扫照旧，只是少一批白名单）。
+     */
+    suspend fun localAttachmentPathsInUse(): Set<String>
+
+    /**
      * 该会话的本地缓存消息（不联网）。用于切换会话时立刻显示上一个已加载过的内容，
      * 而不是让上一个会话的消息在界面上多停留几秒。可能为空（没缓存过），调用方自行决定。
      */

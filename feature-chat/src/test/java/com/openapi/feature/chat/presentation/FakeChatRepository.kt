@@ -80,6 +80,16 @@ internal class FakeChatRepository : ChatRepository {
         clearedLocal++
     }
     override suspend fun localPendingMessages(sessionId: Long): List<ChatMessage> = pending
+    /**
+     * 清扫白名单：测试里想钉「引用中的字节不能被删」就塞 [attachmentPathsInUse]
+     * （与 [pending] 是两处：前者是库里真实查出来的形状，后者是界面恢复用的消息列表）。
+     */
+    var attachmentPathsInUse: Set<String> = emptySet()
+    val attachmentPathsInUseCalls = mutableListOf<Int>()
+    override suspend fun localAttachmentPathsInUse(): Set<String> {
+        attachmentPathsInUseCalls += 1
+        return attachmentPathsInUse
+    }
     /** 每个会话的「本地缓存」；[cachedMessagesDelay] 模拟慢 IO，用来验证迟到的旧会话缓存不会盖掉新会话。 */
     val cachedMessages = mutableMapOf<Long, List<ChatMessage>>()
     val cachedMessagesDelay = mutableMapOf<Long, Long>()
