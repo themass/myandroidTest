@@ -7,10 +7,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,6 +34,8 @@ import androidx.core.content.ContextCompat
 @Composable
 fun CameraFxScreen() {
     val context = LocalContext.current
+    val labPrefs = remember { CameraFxLabPreferences(context) }
+    var policy by remember { mutableStateOf(labPrefs.overlayPolicy) }
 
     var granted by remember {
         mutableStateOf(
@@ -87,10 +91,45 @@ fun CameraFxScreen() {
         return
     }
 
-    CameraFxGrantedContent(
-        modifier = Modifier.fillMaxSize(),
-        showDebugHud = true,
-        drawWireframe = true,
-        drawStickers = true,
-    )
+    fun persist(next: CameraFxOverlayPolicy) {
+        policy = next
+        labPrefs.overlayPolicy = next
+    }
+
+    Box(Modifier.fillMaxSize()) {
+        CameraFxGrantedContent(
+            modifier = Modifier.fillMaxSize(),
+            overlayPolicy = policy,
+        )
+        Row(
+            Modifier
+                .align(Alignment.TopEnd)
+                .padding(12.dp),
+        ) {
+            FilterChip(
+                selected = policy.drawWireframe,
+                onClick = { persist(policy.copy(drawWireframe = !policy.drawWireframe)) },
+                label = { Text("线框") },
+            )
+            FilterChip(
+                selected = policy.drawStickers,
+                onClick = { persist(policy.copy(drawStickers = !policy.drawStickers)) },
+                label = { Text("贴纸") },
+                modifier = Modifier.padding(start = 6.dp),
+            )
+            FilterChip(
+                selected = policy.stickerAssetId == StickerAssetIds.WAVE,
+                onClick = {
+                    val id = if (policy.stickerAssetId == StickerAssetIds.PAT_HEAD) {
+                        StickerAssetIds.WAVE
+                    } else {
+                        StickerAssetIds.PAT_HEAD
+                    }
+                    persist(policy.copy(stickerAssetId = id))
+                },
+                label = { Text(if (policy.stickerAssetId == StickerAssetIds.WAVE) "光弧" else "爱心") },
+                modifier = Modifier.padding(start = 6.dp),
+            )
+        }
+    }
 }

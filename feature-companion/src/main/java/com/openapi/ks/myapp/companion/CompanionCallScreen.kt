@@ -376,6 +376,9 @@ fun CompanionCallScreen(
     engineMenu: List<DhEngineMenuRow>? = null,
     selectedEngine: com.openapi.ks.myapp.dh.DhEngineId? = null,
     onEngineMenuClick: ((DhEngineMenuRow) -> Unit)? = null,
+    /** debug：本机人脸跟踪小窗（与底部 LiveKit 摄像头无关）。默认关。 */
+    faceCameraEnabled: Boolean = false,
+    onFaceCameraChange: ((Boolean) -> Unit)? = null,
     /** 右侧收纳盒：Live2D 换装轴（与 [com.openapi.ks.myapp.dh.Live2dTouchReaction.wardrobeRows] 同源）。 */
     wardrobeRows: List<com.openapi.ks.myapp.dh.Live2dWardrobeRow> = emptyList(),
     wardrobeRefreshTick: Int = 0,
@@ -449,6 +452,8 @@ fun CompanionCallScreen(
                 engineMenu = engineMenu,
                 selectedEngine = selectedEngine,
                 onEngineMenuClick = onEngineMenuClick,
+                faceCameraEnabled = faceCameraEnabled,
+                onFaceCameraChange = onFaceCameraChange,
                 // 试听按钮搬到右侧收纳盒（HeroSideDrawer），菜单里不再重复。
                 previewState = previewState,
                 onPreviewAudio = null,
@@ -468,6 +473,8 @@ fun CompanionCallScreen(
             engineMenu = engineMenu,
             selectedEngine = selectedEngine,
             onEngineMenuClick = onEngineMenuClick,
+            faceCameraEnabled = faceCameraEnabled,
+            onFaceCameraChange = onFaceCameraChange,
         )
         if (onPreviewAudio != null) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
@@ -725,6 +732,8 @@ private fun CallHeader(
     engineMenu: List<DhEngineMenuRow>? = null,
     selectedEngine: com.openapi.ks.myapp.dh.DhEngineId? = null,
     onEngineMenuClick: ((DhEngineMenuRow) -> Unit)? = null,
+    faceCameraEnabled: Boolean = false,
+    onFaceCameraChange: ((Boolean) -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -749,13 +758,15 @@ private fun CallHeader(
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
             )
-            if (onWaveOptionsChange != null || engineMenu != null) {
+            if (onWaveOptionsChange != null || engineMenu != null || onFaceCameraChange != null) {
                 WaveStyleMenu(
                     options = waveOptions,
                     onChange = onWaveOptionsChange,
                     engineMenu = engineMenu,
                     selectedEngine = selectedEngine,
                     onEngineMenuClick = onEngineMenuClick,
+                    faceCameraEnabled = faceCameraEnabled,
+                    onFaceCameraChange = onFaceCameraChange,
                 )
             } else {
                 Spacer(Modifier.size(40.dp))
@@ -851,6 +862,8 @@ private fun HeroCallHeader(
     engineMenu: List<DhEngineMenuRow>?,
     selectedEngine: com.openapi.ks.myapp.dh.DhEngineId?,
     onEngineMenuClick: ((DhEngineMenuRow) -> Unit)?,
+    faceCameraEnabled: Boolean = false,
+    onFaceCameraChange: ((Boolean) -> Unit)? = null,
     previewState: CallAudioPreviewState,
     onPreviewAudio: ((String) -> Unit)?,
 ) {
@@ -902,13 +915,17 @@ private fun HeroCallHeader(
                 }
             }
         }
-        if (onWaveOptionsChange != null || engineMenu != null || onPreviewAudio != null) {
+        if (onWaveOptionsChange != null || engineMenu != null || onPreviewAudio != null ||
+            onFaceCameraChange != null
+        ) {
             WaveStyleMenu(
                 options = waveOptions,
                 onChange = onWaveOptionsChange,
                 engineMenu = engineMenu,
                 selectedEngine = selectedEngine,
                 onEngineMenuClick = onEngineMenuClick,
+                faceCameraEnabled = faceCameraEnabled,
+                onFaceCameraChange = onFaceCameraChange,
                 previewState = previewState,
                 onPreviewAudio = onPreviewAudio,
             )
@@ -929,6 +946,8 @@ private fun WaveStyleMenu(
     engineMenu: List<DhEngineMenuRow>? = null,
     selectedEngine: com.openapi.ks.myapp.dh.DhEngineId? = null,
     onEngineMenuClick: ((DhEngineMenuRow) -> Unit)? = null,
+    faceCameraEnabled: Boolean = false,
+    onFaceCameraChange: ((Boolean) -> Unit)? = null,
     previewState: CallAudioPreviewState = CallAudioPreviewState(),
     onPreviewAudio: ((String) -> Unit)? = null,
 ) {
@@ -996,6 +1015,20 @@ private fun WaveStyleMenu(
                     onChange(options.copy(particles = !options.particles))
                 },
             )
+            if (onFaceCameraChange != null) {
+                MenuSectionLabel("实验室")
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            if (faceCameraEnabled) "✓ 人脸贴纸小窗" else "　 人脸贴纸小窗",
+                        )
+                    },
+                    onClick = {
+                        open = false
+                        onFaceCameraChange(!faceCameraEnabled)
+                    },
+                )
+            }
 
             MenuSectionLabel("中央 · 她的声音")
             CenterEffect.entries.forEach { effect ->

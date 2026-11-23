@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,10 +61,12 @@ import kotlin.math.roundToInt
 @Composable
 fun CameraFxGrantedContent(
     modifier: Modifier = Modifier,
-    showDebugHud: Boolean = true,
-    drawWireframe: Boolean = true,
-    drawStickers: Boolean = true,
+    overlayPolicy: CameraFxOverlayPolicy = CameraFxOverlayPolicy(),
 ) {
+    val showDebugHud = overlayPolicy.showDebugHud
+    val drawWireframe = overlayPolicy.drawWireframe
+    val drawStickers = overlayPolicy.drawStickers
+    val stickerAssetPath = overlayPolicy.lottieAssetPath
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -149,7 +152,7 @@ fun CameraFxGrantedContent(
 
     val frame by frameFlow.collectAsState()
     val fatal by fatalFlow.collectAsState()
-    val stickerComposition by rememberLottieComposition(LottieCompositionSpec.Asset("fx/fx_pat_head.json"))
+    val stickerComposition by rememberLottieComposition(LottieCompositionSpec.Asset(stickerAssetPath))
 
     Box(
         modifier
@@ -250,9 +253,11 @@ fun CameraFxGrantedContent(
 fun CameraFxStickerPip(modifier: Modifier = Modifier) {
     CameraFxGrantedContent(
         modifier = modifier,
-        showDebugHud = false,
-        drawWireframe = false,
-        drawStickers = true,
+        overlayPolicy = CameraFxOverlayPolicy(
+            drawWireframe = false,
+            drawStickers = true,
+            showDebugHud = false,
+        ),
     )
 }
 

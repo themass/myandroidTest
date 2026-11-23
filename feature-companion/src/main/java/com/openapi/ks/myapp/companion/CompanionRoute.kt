@@ -348,6 +348,8 @@ fun CompanionRoute(
         // 默认（callStage == null）仍是原来的圆头像 / 分层立绘；选了引擎才换舞台。
         DhLabBootstrap.ensureDefaults()
         val labEnabled = remember(context) { DhLabGate.isEnabled(context) }
+        val faceCamPrefs = remember(context) { CompanionFaceCameraPrefs(context) }
+        var faceCameraOn by remember { mutableStateOf(faceCamPrefs.enabled) }
         val dhPrefs = remember(context) { DhLabPreferences(context) }
         var callStage by remember { mutableStateOf(dhPrefs.callStage) }
         // 用户在菜单里再点已勾选的引擎 = 「解除熔断再试一次」。引擎 id 没变，Compose 不会重组，
@@ -511,6 +513,15 @@ fun CompanionRoute(
                 waveOptions = next
                 saveWaveOptions(context, next)
             },
+            faceCameraEnabled = faceCameraOn,
+            onFaceCameraChange = if (labEnabled) {
+                { on ->
+                    faceCameraOn = on
+                    faceCamPrefs.enabled = on
+                }
+            } else {
+                null
+            },
             theme = callTheme,
             onThemeChange = { next ->
                 callTheme = next
@@ -653,7 +664,7 @@ fun CompanionRoute(
                             particles = waveOptions.particles,
                             // dh-lab 调试按钮 → 同一条 Gesture 词表（pat_head）。
                             onLabFxTest = { chatViewModel.emitStageGesture("pat_head") },
-                            labFaceCameraPip = labEnabled,
+                            labFaceCameraPip = labEnabled && faceCameraOn,
                         )
                         }
                         if (actionTrayOpen) {
