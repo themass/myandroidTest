@@ -143,6 +143,7 @@
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"
+            android:configChanges="orientation|screenSize|smallestScreenSize|keyboardHidden|screenLayout"
             android:windowSoftInputMode="adjustResize" />
 
 

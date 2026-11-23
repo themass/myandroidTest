@@ -1,0 +1,43 @@
+psd2live: launch
+psd2live: io.github.psd2live.MainKt
+PSD2Live：/tmp/psd2live-gen/demo.psd -> /tmp/psd2live-gen/out
+  4%  读取 PSD
+  4%  语义识别与左右拆分
+ 14%  生成参数与关键形
+ 52%  生成贴图集
+ 57%  生成参数与关键形
+ 77%  导出 MOC3 文件族
+ 91%  导出 CMO3 项目
+100%  校验完成
+完成：19 个文件
+  /tmp/psd2live-gen/out/demo.moc3 (1105344 bytes)
+  /tmp/psd2live-gen/out/demo.cdi3.json (8872 bytes)
+  /tmp/psd2live-gen/out/demo.4096/texture_00.png (80679 bytes)
+  /tmp/psd2live-gen/out/demo.physics3.json (47210 bytes)
+  /tmp/psd2live-gen/out/demo.idle.motion3.json (29105 bytes)
+  /tmp/psd2live-gen/out/demo.blink.motion3.json (2617 bytes)
+  /tmp/psd2live-gen/out/demo.nod.motion3.json (8232 bytes)
+  /tmp/psd2live-gen/out/demo.shake.motion3.json (6403 bytes)
+  /tmp/psd2live-gen/out/demo.talk.motion3.json (11867 bytes)
+  /tmp/psd2live-gen/out/demo.smile.exp3.json (996 bytes)
+  /tmp/psd2live-gen/out/demo.sad.exp3.json (1137 bytes)
+  /tmp/psd2live-gen/out/demo.angry.exp3.json (905 bytes)
+  /tmp/psd2live-gen/out/demo.surprised.exp3.json (1011 bytes)
+  /tmp/psd2live-gen/out/demo.shy.exp3.json (686 bytes)
+  /tmp/psd2live-gen/out/demo.gloom.exp3.json (799 bytes)
+  /tmp/psd2live-gen/out/demo.model3.json (1209 bytes)
+  /tmp/psd2live-gen/out/demo.cmo3 (1434136 bytes)
+  /tmp/psd2live-gen/out/demo.can3 (29453 bytes)
+  /tmp/psd2live-gen/out/demo.psd2live.json (5868 bytes)
+警告：检测到同名图层：eyebrow, eyewhite, iris；已通过稳定图层 ID 区分。
+警告：生成模型：ArtMeshMouth 默认姿态与 PSD 有明显偏差；期望=Bounds(left=296.86758, top=282.3521, right=343.764, bottom=301.05438)，实际=Bounds(left=298.81903, top=289.80658, right=341.84882, bottom=291.47745)
+警告：生成模型：ArtMeshMouth_lip_0 默认姿态与 PSD 有明显偏差；期望=Bounds(left=292.0, top=277.0, right=349.0, bottom=300.0)，实际=Bounds(left=297.49432, top=288.90192, right=343.17218, bottom=292.30792)
+警告：生成模型：ArtMeshMouth_lip_1 默认姿态与 PSD 有明显偏差；期望=Bounds(left=292.0, top=281.0, right=349.0, bottom=306.0)，实际=Bounds(left=297.49432, top=288.90192, right=343.17218, bottom=292.307)
+警告：MOC3 回读：ArtMeshMouth_lip_1 默认姿态与 PSD 有明显偏差；期望=Bounds(left=292.0, top=281.0, right=349.0, bottom=306.0)，实际=Bounds(left=297.4937, top=288.9023, right=343.1731, bottom=292.30737)
+警告：MOC3 回读：ArtMeshMouth_lip_0 默认姿态与 PSD 有明显偏差；期望=Bounds(left=292.0, top=277.0, right=349.0, bottom=300.0)，实际=Bounds(left=297.4937, top=288.9023, right=343.1731, bottom=292.3082)
+警告：MOC3 回读：ArtMeshMouth 默认姿态与 PSD 有明显偏差；期望=Bounds(left=296.86758, top=282.3521, right=343.764, bottom=301.05438)，实际=Bounds(left=298.81885, top=289.80637, right=341.8479, bottom=291.47726)
+警告：CMO3：DrawOrdersRenumbered(subjects=[front hair（透过刘海）])
+警告：CMO3 回读：ArtMeshMouth_lip_1 默认姿态与 PSD 有明显偏差；期望=Bounds(left=292.0, top=281.0, right=349.0, bottom=306.0)，实际=Bounds(left=297.4937, top=288.9023, right=343.1731, bottom=292.30737)
+警告：CMO3 回读：ArtMeshMouth_lip_0 默认姿态与 PSD 有明显偏差；期望=Bounds(left=292.0, top=277.0, right=349.0, bottom=300.0)，实际=Bounds(left=297.4937, top=288.9023, right=343.1731, bottom=292.3082)
+警告：CMO3 回读：ArtMeshMouth 默认姿态与 PSD 有明显偏差；期望=Bounds(left=296.86758, top=282.3521, right=343.764, bottom=301.05438)，实际=Bounds(left=298.81885, top=289.80637, right=341.8479, bottom=291.47726)
+2026-11-23 14:53:23.941 PSD2Live[45349:20143856] error messaging the mach port for IMKCFRunLoopWakeUpReliable

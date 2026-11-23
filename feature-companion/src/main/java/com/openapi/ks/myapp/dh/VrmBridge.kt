@@ -16,6 +16,13 @@ sealed interface VrmSceneCommand {
 
     /** 注视目标，-1..1（x 右正，y 上正），驱动头部/视线。 */
     data class Look(val x: Float, val y: Float) : VrmSceneCommand
+
+    /**
+     * 轨道旋转：模型水平累计角（度，绕 Y，不夹取——一圈就是 360）。
+     * 绝对角而非增量：页面直接写 scene.rotation.y，中途丢一条指令只丢一段
+     * 转动，不会让角色与手势永久错位（增量制会）。
+     */
+    data class Orbit(val yawDeg: Float) : VrmSceneCommand
 }
 
 /**
@@ -57,5 +64,6 @@ object VrmBridge {
         is VrmSceneCommand.Expression -> """{"type":"expression","name":"${command.name}"}"""
         is VrmSceneCommand.Mouth -> """{"type":"mouth","openness":${command.openness}}"""
         is VrmSceneCommand.Look -> """{"type":"look","x":${command.x},"y":${command.y}}"""
+        is VrmSceneCommand.Orbit -> """{"type":"orbit","yawDeg":${command.yawDeg}}"""
     }
 }

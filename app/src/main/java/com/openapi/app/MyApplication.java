@@ -111,7 +111,6 @@ public class MyApplication extends MultiDexApplication {
                 new com.openapi.ks.myapp.companion.ResourceCompanionStrings(this));
         com.openapi.app.data.home.LegacyHomeEntries home = new com.openapi.app.data.home.LegacyHomeEntries(this);
         com.openapi.app.home.HomeDependencies.INSTANCE.install(home);
-        com.openapi.feature.content.home.ChannelsDependencies.INSTANCE.install(home);
         com.openapi.feature.user.home.ProfileDependencies.INSTANCE.install(home);
         // 以前由旧首页页面注册，页面不在前台就收不到；现在随进程注册一次
         com.openapi.feature.content.config.ConfigActionJump.start();

@@ -1,0 +1,17 @@
+{
+  "name": "dh-vrm-scene",
+  "private": true,
+  "version": "0.0.0",
+  "description": "VRM 舞台场景页源码：esbuild 打包产物落 feature-companion/src/main/assets/dh-vrm/scene.bundle.js",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@pixiv/three-vrm": "3.5.5",
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}
