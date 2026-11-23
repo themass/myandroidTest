@@ -124,12 +124,13 @@ class Live2dTouchReactionTest {
         assertEquals(s.shoes, next.shoes)
 
         val rows = Live2dTouchReaction.wardrobeRows(next)
-        assertEquals(4, rows.size)
+        assertEquals(6, rows.size) // spec 六槽全显形（含 pending 灰显行）
         assertEquals("上衣", rows[0].label)
         assertEquals("比基尼", rows[0].value)
         assertEquals("日常", Live2dTouchReaction.wardrobeRows(Live2dTouchReactionState())[0].value)
         assertEquals("南瓜裤", Live2dTouchReaction.wardrobeRows(Live2dTouchReactionState(top = Live2dTop.PUMPKIN))[0].value)
-        assertEquals("凉鞋", Live2dTouchReaction.wardrobeRows(Live2dTouchReactionState(shoes = Live2dShoes.SANDAL))[1].value)
+        assertEquals("凉鞋", Live2dTouchReaction.wardrobeRows(Live2dTouchReactionState(shoes = Live2dShoes.SANDAL))
+            .first { it.axis == Live2dWardrobeAxis.SHOES }.value)
     }
 
     // ---- 单一事实源：wardrobe-spec.json 与 Kotlin 状态机 / 资产 / model3 四处同源 ----
@@ -236,6 +237,58 @@ class Live2dTouchReactionTest {
                 Regex("(\"|_)${t}(_\"|\"|\\.)").containsMatchIn(expText) ||
                     Regex("expressions/[\\w_]*${t}").containsMatchIn(expText))
             assertFalse("pending token $t leaked into model3", model3.contains("\"$t"))
+        }
+    }
+
+    // ---- 托盘：pending 槽位显形为灰显行（代码先行，素材未到位） ----
+
+    @Test
+    fun `tray lists every spec slot including pending ones as disabled`() {
+        val rows = Live2dTouchReaction.wardrobeRows(Live2dTouchReactionState())
+        // spec 六槽全在托盘里，顺序按 spec 声明序（身体序：上衣→内衣→鞋→头饰→手持→表情）。
+        assertEquals(
+            listOf("top", "underwear", "shoes", "hair", "held", "face"),
+            rows.map { it.axis.id },
+        )
+        val byAxis = rows.associateBy { it.axis }
+        listOf(Live2dWardrobeAxis.TOP, Live2dWardrobeAxis.SHOES,
+            Live2dWardrobeAxis.HELD, Live2dWardrobeAxis.FACE).forEach {
+            assertTrue("$it must be enabled", byAxis[it]!!.enabled)
+        }
+        listOf(Live2dWardrobeAxis.UNDERWEAR, Live2dWardrobeAxis.HAIR).forEach {
+            val row = byAxis[it]!!
+            assertFalse("$it must be disabled", row.enabled)
+            // 灰显行必须自带原因，不能只留一个点不动的控件。
+            assertTrue("$it needs a disabled reason", row.disabledReason.isNotBlank())
+        }
+    }
+
+    @Test
+    fun `advancing a pending axis is a structural no-op`() {
+        // pending 轴没有资产，点了不许改状态——「点了没动静」在这里是**声明出来的**，
+        // 与 v2 修掉的「假轴」（声明可用却无变化）是两回事。
+        val s = Live2dTouchReactionState(Live2dTop.BIKINI)
+        assertEquals(s, Live2dTouchReaction.advanceWardrobe(s, Live2dWardrobeAxis.UNDERWEAR))
+        assertEquals(s, Live2dTouchReaction.advanceWardrobe(s, Live2dWardrobeAxis.HAIR))
+    }
+
+    @Test
+    fun `axis registry matches spec slots and pending axes stay out of the expression name space`() {
+        // Kotlin 轴 ≡ spec 槽（六个）；轴状态与 spec status 一致。
+        val specById = wardrobeSpec.associateBy { it.id }
+        assertEquals(specById.keys.toSet(), Live2dWardrobeAxis.entries.map { it.id }.toSet())
+        Live2dWardrobeAxis.entries.forEach { axis ->
+            val specStatus = checkNotNull(specById[axis.id]) { "axis ${axis.id} not in spec" }
+                .variants.first { it.token != "none" }.status
+            assertEquals("axis ${axis.id} status", specStatus.startsWith("active"), axis.active)
+        }
+        // pending 轴的名字绝不进 expressionFor——180 个名字里没有 underwear/hair 词缀。
+        allStates.forEach { s ->
+            val name = Live2dTouchReaction.expressionFor(s)
+            assertFalse("pending axis leaked into $name",
+                name.contains("underwear") || name.contains("lace") ||
+                    name.contains("sport") || name.contains("cat") ||
+                    name.contains("hair") || name.contains("ribbon") || name.contains("hat"))
         }
     }
 
