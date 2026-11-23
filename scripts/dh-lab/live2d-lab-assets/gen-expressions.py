@@ -21,6 +21,10 @@ Live2dTouchReaction.expressionFor 必须同序同名（Live2dTouchReactionTest �
 (Id,Value)（2026-11-23 盘点：16 个文件的参数与 cdi3 中文标签逐一对过）。
 头饰类参数（Param4-7 发饰、Param23-30 hdj）上游没有已验证值，不进这里。
 
+**单一事实源**（2026-11-23 换装抽象设计）：槽位/变体/参数绑定全部读
+wardrobe-spec.json，本脚本不再自带字典。status=active 才进命名空间并生成资产；
+pending-* 只声明不出货。改轴改 spec，不改本脚本。
+
 淡入淡出：exp3 不写 FadeInTime/FadeOutTime 时 CubismExpressionMotion 用默认
 DefaultFadeTime=1.0s（CubismExpressionMotion.cpp:24），触点反馈「按了像没按」。
 每个组合显式写 FADE_SECONDS（0.2s）：按下即变。
@@ -32,37 +36,22 @@ import glob
 HERE = os.path.dirname(os.path.abspath(__file__))
 EXP_DIR = os.path.join(HERE, "expressions")
 MODEL3 = os.path.join(HERE, "ATRI.model3.json")
+SPEC = os.path.join(HERE, "wardrobe-spec.json")
 
 FADE_SECONDS = 0.2
 
-# 词缀顺序与 Kotlin expressionFor 一致：上衣 → 鞋 → 手持 → 表情。
-TOPS = {
-    "bikini": ("Param17", 30),
-    "pajamas": ("Param18", 30),
-    "pumpkin": ("Param9", 30),
-    "blood": ("Param36", 30),
-}
-SHOES = {
-    "sandal": ("Param19", 30),
-    "leather": ("Param20", 30),
-}
-HELD = {
-    "kani": ("Param38", 30),
-    "bird": ("Param37", 30),
-    "pillow": ("Param39", 30),
-}
-FACES = {
-    "blush": ("ParamCheek", 1),
-    "white": ("Param22", 30),
-}
+with open(SPEC) as f:
+    spec = json.load(f)
 
-AXES = (
-    ("top", [None] + list(TOPS)),
-    ("shoes", [None] + list(SHOES)),
-    ("held", [None] + list(HELD)),
-    ("face", [None] + list(FACES)),
-)
-PARAMS = {**TOPS, **SHOES, **HELD, **FACES}
+# 词缀顺序与 Kotlin expressionFor 一致（spec.naming.order）：上衣 → 鞋 → 手持 → 表情。
+SLOTS = [s for s in spec["slots"] if s["slot"] in spec["naming"]["order"]]
+AXES = [(s["slot"], [v["token"] for v in s["variants"] if v["status"] == "active"])
+        for s in SLOTS]
+PARAMS = {
+    v["token"]: (v["param"], v["value"])
+    for s in SLOTS for v in s["variants"]
+    if v["status"] == "active" and v["token"] != "none"
+}
 
 
 def expression_name(active):
@@ -81,7 +70,7 @@ def main():
             names.append((tuple(active), expression_name(active)))
             return
         for token in AXES[i][1]:
-            if token is None:
+            if token == "none":
                 cross(i + 1, active)
             else:
                 cross(i + 1, active + [token])

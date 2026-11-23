@@ -132,6 +132,113 @@ class Live2dTouchReactionTest {
         assertEquals("凉鞋", Live2dTouchReaction.wardrobeRows(Live2dTouchReactionState(shoes = Live2dShoes.SANDAL))[1].value)
     }
 
+    // ---- 单一事实源：wardrobe-spec.json 与 Kotlin 状态机 / 资产 / model3 四处同源 ----
+    // 设计见 docs/design/2026-11-23-换装抽象与特效层设计.md：槽位/变体只声明一份，
+    // 生成器与测试都读它；加轴改 spec，不改状态机代码。
+
+    private data class SpecVariant(
+        val token: String, val label: String, val status: String,
+        val param: String?, val value: String, val verifiedFrom: String,
+    )
+
+    private data class SpecSlot(
+        val id: String, val label: String, val region: String,
+        val exclusive: Boolean, val variants: List<SpecVariant>,
+    )
+
+    private val wardrobeSpec: List<SpecSlot> by lazy {
+        // 无 org.json（android.jar 里是桩），手写解析够用：结构固定、无转义嵌套。
+        val text = File(labAssetsDir, "wardrobe-spec.json").readText()
+        Regex(""""slot"\s*:\s*"(\w+)".*?"label"\s*:\s*"([^"]+)".*?"region"\s*:\s*"(\w+)".*?"exclusive"\s*:\s*(true|false)(.*?)\n\t\t\}""",
+            RegexOption.DOT_MATCHES_ALL,
+        ).findAll(text).map { m ->
+            val body = m.groupValues[5]
+            SpecSlot(
+                m.groupValues[1], m.groupValues[2], m.groupValues[3],
+                m.groupValues[4] == "true",
+                Regex(""""token"\s*:\s*"([\w-]+)".*?"label"\s*:\s*"([^"]+)".*?"status"\s*:\s*"([\w-]+)"(.*)""")
+                    .findAll(body).map { v ->
+                    val pair = Regex(""""param"\s*:\s*"(\w+)"\s*,\s*"value"\s*:\s*"?(-?[\w.]+)"?""")
+                        .find(v.groupValues[4])
+                    val from = Regex(""""verifiedFrom"\s*:\s*"([^"]+)"""")
+                        .find(v.groupValues[4])?.groupValues?.get(1) ?: ""
+                    SpecVariant(v.groupValues[1], v.groupValues[2], v.groupValues[3],
+                        pair?.groupValues?.get(1), pair?.groupValues?.get(2) ?: "", from)
+                }.toList(),
+            )
+        }.toList()
+    }
+
+    private fun activeVariants(): List<SpecVariant> =
+        wardrobeSpec.flatMap { it.variants }.filter { it.status == "active" && it.token != "none" }
+
+    @Test
+    fun `wardrobe spec is the single source of truth for slots and variants`() {
+        // spec 必须声明现有四根 active 轴 + 两根 pending 轴（内衣/头饰，素材门槛）。
+        val byId = wardrobeSpec.associateBy { it.id }
+        assertEquals(wardrobeSpec.size, byId.size)
+        listOf("top", "shoes", "held", "face").forEach { id ->
+            val slot = checkNotNull(byId[id]) { "spec must declare active slot $id" }
+            val real = slot.variants.filter { it.token != "none" }
+            assertTrue("$id has no variants", real.isNotEmpty())
+            real.forEach { assertEquals("$id variant must be active", "active", it.status) }
+        }
+        listOf("underwear", "hair").forEach { id ->
+            val slot = checkNotNull(byId[id]) { "spec must declare pending slot $id" }
+            assertTrue("$id must be pending-*, not shipped",
+                slot.variants.all { it.status.startsWith("pending") })
+        }
+        // 换装槽单选互斥（多选会爆笛卡尔积）。
+        listOf("top", "underwear", "shoes", "hair").forEach {
+            assertTrue("$it must be exclusive", byId[it]!!.exclusive)
+        }
+        // active 变体的参数绑定必须带验证出处（数值纪律的机器化）。
+        activeVariants().forEach { v ->
+            assertTrue("${v.token} needs verifiedFrom", v.verifiedFrom.isNotBlank())
+            assertTrue("${v.token} needs a param binding", v.param != null)
+        }
+    }
+
+    @Test
+    fun `spec active variants generate exactly the Kotlin name space`() {
+        // 同一批变体在 spec 与状态机里必须产出同一组 180 个名字。
+        val slots = listOf("top", "shoes", "held", "face").map { id ->
+            wardrobeSpec.first { it.id == id }.variants
+                .filter { it.status == "active" }
+                .map { it.token }.filter { it != "none" }
+        }
+        val names = slots.fold(listOf("")) { acc, tokens ->
+            acc.flatMap { prefix -> (listOf("") + tokens).map { t ->
+                if (prefix.isEmpty()) t else if (t.isEmpty()) prefix else "${prefix}_$t"
+            } }
+        }.map { if (it.isEmpty()) "base" else it }.toSet()
+        assertEquals(180, names.size)
+        assertEquals(allStates.map { Live2dTouchReaction.expressionFor(it) }.toSet(), names)
+        // 词缀顺序 spec 与 Kotlin 同序：上衣→鞋→手持→表情。
+        assertEquals("bikini_leather_kani_blush",
+            Live2dTouchReaction.expressionFor(
+                Live2dTouchReactionState(Live2dTop.BIKINI, Live2dShoes.LEATHER, Live2dHeld.KANI, Live2dFace.BLUSH)))
+    }
+
+    @Test
+    fun `pending slots never touch the shipped asset namespace`() {
+        // pending 槽位的 token 不许出现在任何 exp3 文件或 model3 注册表里——
+        // 「代码先行、素材未到位」阶段结构性不污染装机包。
+        val pendingTokens = wardrobeSpec.flatMap { it.variants }
+            .filter { it.status.startsWith("pending") }
+            .map { it.token }
+        assertTrue("must have pending variants declared", pendingTokens.isNotEmpty())
+        val expText = File(labAssetsDir, "expressions").listFiles { f -> f.extension == "json" }!!
+            .joinToString("\n") { it.readText() }
+        val model3 = File(labAssetsDir, "ATRI.model3.json").readText()
+        pendingTokens.forEach { t ->
+            assertFalse("pending token $t leaked into exp3 assets",
+                Regex("(\"|_)${t}(_\"|\"|\\.)").containsMatchIn(expText) ||
+                    Regex("expressions/[\\w_]*${t}").containsMatchIn(expText))
+            assertFalse("pending token $t leaked into model3", model3.contains("\"$t"))
+        }
+    }
+
     // ---- 资产一致性：Kotlin 状态机与 lab exp3 / model3.json 不许漂移 ----
 
     private val allStates: List<Live2dTouchReactionState> by lazy {
