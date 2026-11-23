@@ -22,7 +22,7 @@ FPS = 30
 # ---- Lottie 构件小工具 ----------------------------------------------------
 
 def static(value, dim=1):
-    return {"a": 0, "k": [value] * dim if dim > 1 else value}
+    return {"a": 0, "k": [value] * dim if dim > 1 and not isinstance(value, list) else value}
 
 
 def anim(times, values, dim=1, ease=1 / 3.0):
@@ -112,7 +112,7 @@ def fx_pat_head():
     big = shape_layer(
         "heart", [heart_shape()],
         transform(
-            p=anim([0, 12, 26, 44], [[0, 30], [0, 4], [0, -18], [0, -96]], 2),
+            p=anim([0, 12, 26, 44], [[256, 286], [256, 260], [256, 238], [256, 160]], 2),
             o=anim([0, 4, 34, 44], [0, 100, 100, 0]),
             s=anim([0, 12, 22, 32, 44],
                    [[20, 20], [115, 115], [95, 95], [105, 105], [100, 100]], 2),
@@ -121,7 +121,7 @@ def fx_pat_head():
     small = shape_layer(
         "heart-sm", [heart_shape(0.45)],
         transform(
-            p=anim([8, 20, 44], [[-70, 34], [-86, -14], [-104, -78]], 2),
+            p=anim([8, 20, 44], [[186, 290], [170, 242], [152, 178]], 2),
             o=anim([8, 14, 36, 44], [0, 100, 100, 0]),
             s=anim([8, 18, 28, 44], [[20, 20], [110, 110], [100, 100], [92, 92]], 2),
         ),
@@ -162,7 +162,7 @@ def fx_wave():
     layer = shape_layer(
         "arc", [arc],
         transform(
-            p=static([0, 0], 2),
+            p=static([256, 256], 2),
             o=anim([0, 24, 39], [100, 100, 0]),
             s=anim([0, 39], [[92, 92], [106, 106]], 2),
             r=anim([0, 39], [-8, 10]),
@@ -221,6 +221,17 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     for name in names:
         data = ASSETS[name]()
+        def validate_static_vectors(node):
+            if isinstance(node, dict):
+                if node.get("a") == 0 and isinstance(node.get("k"), list):
+                    assert all(isinstance(v, (int, float)) for v in node["k"]), \
+                        "Lottie static vectors must be flat numeric arrays"
+                for value in node.values():
+                    validate_static_vectors(value)
+            elif isinstance(node, list):
+                for value in node:
+                    validate_static_vectors(value)
+        validate_static_vectors(data)
         text = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
         path = os.path.join(OUT, name + ".json")
         with open(path, "w", encoding="utf-8") as fh:

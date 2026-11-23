@@ -127,7 +127,7 @@ private fun RenderFx(
     modifier: Modifier,
     progressProvider: () -> Float,
 ) {
-    BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.TopStart) {
         val anchor = effect.anchor
         val width = maxWidth * FxAnchors.widthFraction(anchor)
         val height = if (anchor == StageEffect.Anchor.FULL) maxHeight else width
