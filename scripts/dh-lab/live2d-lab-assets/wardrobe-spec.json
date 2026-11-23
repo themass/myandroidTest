@@ -1,0 +1,79 @@
+{
+	"Comment": "换装单一事实源（docs/design/2026-11-23-换装抽象与特效层设计.md）。槽位×变体只声明这一份：gen-expressions.py 从这里生成 exp3+model3 注册表，Live2dTouchReactionTest 从同一份钉四处一致（Kotlin 枚举 ≡ spec ≡ exp3 资产 ≡ model3）。加一根轴 = 加一个 slot，不改状态机代码。status: active=资产已上线; pending-param=moc3 有参数但无已验证值（需编辑器验证显隐）; pending-art=moc3 尚无该 ArtMesh（需 Cubism 重制）。数值纪律：active 变体必须带 verifiedFrom（上游同款 moc3 已验证出处）。",
+	"naming": {
+		"order": ["top", "shoes", "held", "face"],
+		"comment": "expressionFor 词缀顺序；只有 active 槽进命名空间。token 全局互不相同是名字两两不同的前提。"
+	},
+	"slots": [
+		{
+			"slot": "top",
+			"label": "上衣",
+			"region": "body",
+			"exclusive": true,
+			"variants": [
+				{ "token": "none", "label": "日常", "status": "active" },
+				{ "token": "bikini", "label": "比基尼", "status": "active", "param": "Param17", "value": 30, "verifiedFrom": "expression1-16.exp3.json(atri_8)" },
+				{ "token": "pajamas", "label": "睡衣", "status": "active", "param": "Param18", "value": 30, "verifiedFrom": "expression1-16.exp3.json(atri_8)" },
+				{ "token": "pumpkin", "label": "南瓜裤", "status": "active", "param": "Param9", "value": 30, "verifiedFrom": "expression1-16.exp3.json(atri_8)" },
+				{ "token": "blood", "label": "血衣", "status": "active", "param": "Param36", "value": 30, "verifiedFrom": "expression1-16.exp3.json(atri_8)" }
+			]
+		},
+		{
+			"slot": "underwear",
+			"label": "内衣",
+			"region": "body",
+			"exclusive": true,
+			"comment": "用户 2026-11-23 需求（内衣裤点击换装、多种素材、基线去衣）。atri_8.moc3 无内衣 ArtMesh——exp3 造不出新 ArtMesh，只能开关已有的。前置=美术任务书：Cubism 编辑器重制 ATRI-v2（去外衣基线+胸部调整+若干内衣套），每套一个 Opacity 参数命名 ParamWear_<variant>，逐套验证后此处转 active。token 先行占位不进资产。",
+			"variants": [
+				{ "token": "lace", "label": "蕾丝", "status": "pending-art" },
+				{ "token": "sport", "label": "运动", "status": "pending-art" },
+				{ "token": "cat", "label": "小猫", "status": "pending-art" }
+			]
+		},
+		{
+			"slot": "shoes",
+			"label": "鞋",
+			"region": "foot",
+			"exclusive": true,
+			"variants": [
+				{ "token": "none", "label": "赤脚", "status": "active" },
+				{ "token": "sandal", "label": "凉鞋", "status": "active", "param": "Param19", "value": 30, "verifiedFrom": "expression1-16.exp3.json(atri_8)" },
+				{ "token": "leather", "label": "皮鞋", "status": "active", "param": "Param20", "value": 30, "verifiedFrom": "expression1-16.exp3.json(atri_8)" }
+			]
+		},
+		{
+			"slot": "hair",
+			"label": "头饰",
+			"region": "head",
+			"exclusive": true,
+			"comment": "atri_8 有发饰参数（cdi3：Param4-7 发饰、Param23-30 hdj）但上游 exp3 无已验证值——盲发会发明值（测试禁）。前置=编辑器里逐个开到已验证显隐态并记录 (Id,Value)，然后转 active。",
+			"variants": [
+				{ "token": "ribbon", "label": "蝴蝶结", "status": "pending-param" },
+				{ "token": "hat", "label": "帽子", "status": "pending-param" }
+			]
+		},
+		{
+			"slot": "held",
+			"label": "手持",
+			"region": "hand",
+			"exclusive": true,
+			"variants": [
+				{ "token": "none", "label": "空手", "status": "active" },
+				{ "token": "kani", "label": "kani", "status": "active", "param": "Param38", "value": 30, "verifiedFrom": "expression1-16.exp3.json(atri_8)" },
+				{ "token": "bird", "label": "小鸟", "status": "active", "param": "Param37", "value": 30, "verifiedFrom": "expression1-16.exp3.json(atri_8)" },
+				{ "token": "pillow", "label": "枕头", "status": "active", "param": "Param39", "value": 30, "verifiedFrom": "expression1-16.exp3.json(atri_8)" }
+			]
+		},
+		{
+			"slot": "face",
+			"label": "表情",
+			"region": "head",
+			"exclusive": true,
+			"variants": [
+				{ "token": "none", "label": "正常", "status": "active" },
+				{ "token": "blush", "label": "脸红", "status": "active", "param": "ParamCheek", "value": 1, "verifiedFrom": "expression1-16.exp3.json(atri_8)" },
+				{ "token": "white", "label": "白眼", "status": "active", "param": "Param22", "value": 30, "verifiedFrom": "expression1-16.exp3.json(atri_8)" }
+			]
+		}
+	]
+}
