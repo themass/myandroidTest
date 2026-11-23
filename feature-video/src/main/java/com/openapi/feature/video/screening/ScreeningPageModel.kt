@@ -41,15 +41,30 @@ internal enum class FeedRoute { CHANNEL, ALBUM, TEXT, SOUND, PLAY, WEB }
  *   （hsexhsex.men 发 items.json 实测 30 行可播条目）。旧页面 VideoChannleActivity
  *   就是这个两层结构，现在两层都在新内页里。
  */
-internal enum class ScreeningPageKind { VIDEOS, SUBCHANNELS }
+internal enum class ScreeningPageKind { VIDEOS, SUBCHANNELS, VIDEO_USERS, VIDEO_USER_ITEMS }
 
 /**
  * 这一张卡进内页后取哪种接口：配置频道（`video://`、`teleplay://`、`movie://` + `channel=`）
  * 列子频道，其余取片单。取哪种接口跟 scheme 白名单走，不跟 channel 值的长相走——
  * `movie_1` 这类值和子频道 key 长得像，但 teleplay/movie 的第一层必须是 channel.json。
  */
-internal fun videoChannelPageKind(entry: RemoteEntry): ScreeningPageKind =
-    if (isConfigAction(entry.actionUrl)) ScreeningPageKind.SUBCHANNELS else ScreeningPageKind.VIDEOS
+/** 子频道行标记「用户片单」：video 端看 actionUrl，movie 端看 param（对齐 BodyFragment）。 */
+internal const val VIDEO_USER_CHANNEL = "qvod_user"
+
+internal fun isVideoUserHubEntry(entry: RemoteEntry): Boolean =
+    entry.actionUrl == VIDEO_USER_CHANNEL || entry.param == VIDEO_USER_CHANNEL
+
+/** user.json 的 channel 参数：movie 行 param 常为 qvod_user，退回 channelParam。 */
+internal fun videoUserListChannelKey(entry: RemoteEntry): String =
+    entry.param?.takeIf { it.isNotBlank() && it != VIDEO_USER_CHANNEL }
+        ?: entry.channelParam?.takeIf { it.isNotBlank() }
+        ?: VIDEO_USER_CHANNEL
+
+internal fun videoChannelPageKind(entry: RemoteEntry): ScreeningPageKind = when {
+    isConfigAction(entry.actionUrl) -> ScreeningPageKind.SUBCHANNELS
+    isVideoUserHubEntry(entry) -> ScreeningPageKind.VIDEO_USERS
+    else -> ScreeningPageKind.VIDEOS
+}
 
 /**
  * 这张卡是不是「点进去还有一页」的东西：图集卡，或者能定出频道 key 的卡。
