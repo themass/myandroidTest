@@ -2,6 +2,7 @@ package com.openapi.ks.myapp.dh
 
 import com.openapi.ks.myapp.avatar.AvatarRegion
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -280,13 +281,39 @@ class Live2dTouchReactionTest {
                     assertTrue("$asset fade too slow", m.groupValues[2].toFloat() in 0f..0.3f)
                 }
             }
-            // 只允许 ParamCheek=1（三模型共用的标准 Cubism 脸颊参数）——不许发明值。
-            Regex("\"Id\":\\s*\"(\\w+)\",\\s*\"Value\":\\s*(-?\\d+)")
-                .findAll(File(dir, "expressions/blush.exp3.json").readText())
-                .forEach { m ->
-                    assertEquals("ParamCheek", m.groupValues[1])
-                    assertEquals(1, m.groupValues[2].toInt())
-                }
         }
+    }
+
+    @Test
+    fun `amadeus expressions all bake the upstream fix logo gate or the model never draws`() {
+        // 真机取证 2026-11-23：kurisu.moc3 有名为 logo 的绘制总闸——上游靠常驻注册
+        // fix.exp3.json（logo=0.01 Add）让模型可见。lab 的状态机切换表情，旧表情
+        // FadeOut 时 logo 回到 moc 默认（不画）→ 画面全黑只剩两点（就是那次投诉）。
+        // 所以 Amadeus 的**每一个** lab 表情都必须自带 logo=0.01（上游值，非发明）。
+        val dir = File(labAssetsDir.parentFile, "live2d-lab-assets-Amadeus")
+        listOf("base", "blush").forEach { name ->
+            val asset = File(dir, "expressions/$name.exp3.json")
+            val pairs = Regex("\"Id\":\\s*\"(\\w+)\",\\s*\"Value\":\\s*(-?[0-9.]+)")
+                .findAll(asset.readText())
+                .map { it.groupValues[1] to it.groupValues[2] }
+                .toSet()
+            assertTrue("$name must carry the logo gate: $pairs", pairs.contains("logo" to "0.01"))
+        }
+        // blush 额外只有 ParamCheek=1；Yuuka 无总闸（上游无 fix 文件，画面正常），
+        // 它的表情不许混进 logo——防止把 Amadeus 的补丁无脑复制。
+        val amadeusBlush = Regex("\"Id\":\\s*\"(\\w+)\"")
+            .findAll(File(dir, "expressions/blush.exp3.json").readText())
+            .map { it.groupValues[1] }.toSet()
+        assertEquals(setOf("logo", "ParamCheek"), amadeusBlush)
+        val yuukaDir = File(labAssetsDir.parentFile, "live2d-lab-assets-Yuuka")
+        listOf("base", "blush").forEach { name ->
+            assertFalse("Yuuka must not get the logo gate",
+                File(yuukaDir, "expressions/$name.exp3.json").readText().contains("\"logo\""))
+        }
+        // Yuuka 的脸轴仍只许 ParamCheek=1（不许发明值）。
+        val yuukaIds = Regex("\"Id\":\\s*\"(\\w+)\"")
+            .findAll(File(yuukaDir, "expressions/blush.exp3.json").readText())
+            .map { it.groupValues[1] }.toSet()
+        assertEquals(setOf("ParamCheek"), yuukaIds)
     }
 }

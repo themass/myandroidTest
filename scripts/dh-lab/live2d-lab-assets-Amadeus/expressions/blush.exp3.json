@@ -1,9 +1,14 @@
 {
 	"Type": "Live2D Expression",
-	"Comment": "lab 触点互动（多形象最小层，生成器建、勿手改）：blush",
+	"Comment": "lab 触点互动（多形象最小层）：blush。同 base：logo=0.01 总闸每个表情都要带（2026-11-23 全黑根因），再加跨模型语义一致的 ParamCheek=1。",
 	"FadeInTime": 0.2,
 	"FadeOutTime": 0.2,
 	"Parameters": [
+		{
+			"Id": "logo",
+			"Value": 0.01,
+			"Blend": "Add"
+		},
 		{
 			"Id": "ParamCheek",
 			"Value": 1,
