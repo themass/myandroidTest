@@ -1,0 +1,18 @@
+# PoC service deps. The bark package itself is NOT pinned here — it is vendored
+# at /Users/gqli/work/sound/bark (MIT) and installed editable, or from git in
+# Docker. Keep the two in sync with `pip install -e /path/to/bark`.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+
+# Bark's own dependency set (pyproject.toml), pinned to what the PoC was run with.
+# boto3 is dropped: bark/generation.py never imports it.
+numpy==2.2.1
+scipy==1.15.0
+torch==2.5.1
+funcy==2.0
+tqdm==4.67.1
+huggingface-hub==0.27.1
+transformers==4.48.0
+tokenizers==0.21.0
+encodec==0.1.1
