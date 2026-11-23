@@ -25,6 +25,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -312,15 +313,48 @@ private fun TextArticleReader(
 
 private const val TAG_BODY = "ScreeningTextBody"
 
+/**
+ * 正文纸面色：旧文章页是浅色背景图（`boob_bg2`）+ 黑字，不是纯白——深色放映场里
+ * 纯白会刺眼，这里取同一档柔和纸白。CSS 与 Compose 兜底共用这一个值，别漂移。
+ */
+private const val PAPER_RGB = 0xFFFFFDF8
+
+/**
+ * 正文 HTML 的纸面包装——用户点名「背景是黑的，文字也是黑的，全都看不见」。
+ *
+ * 根因：服务端 `item.json` 回的 `file` 是论坛帖子片段（Discuz `t_msgfontfix` 一类的 `<div>`），
+ * 它没带任何颜色声明，天生按白底黑字写。旧文章页
+ * （[com.openapi.feature.content.text.TextItemsFragment] + [com.openapi.common.ui.widget.MyWebView]）
+ * 之所以读得出来：`layout_textitems.xml` 整页是浅色背景图（`boob_bg2`），WebView 透明、
+ * `textColor=base_black`，黑字压在浅底上。放映场整屏深色（Ink），WebView 再透明就是黑字压黑底。
+ *
+ * 修法照旧页的观感来：正文区自带浅色纸面 + 显式字色（不再靠底下那层颜色碰巧是对的），
+ * 顺带把旧 `loadHtmlBody` 的 viewport 与图片自适应一起补齐——帖子内容原样，不加工不删减。
+ */
+internal fun articleBodyHtml(body: String): String =
+    "<html><head>" +
+        "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1," +
+        "minimum-scale=1,maximum-scale=1,user-scalable=no\" />" +
+        "<style>" +
+        "html,body{margin:0;padding:0;background:#FFFDF8;color:#1A1A1A;}" +
+        "body{padding:16px 14px;word-wrap:break-word;word-break:break-word;" +
+        "font-size:17px;line-height:1.7;}" +
+        "img,video,iframe{max-width:100%;height:auto;}" +
+        "a{color:#0B5CAB;}" +
+        "table{max-width:100%;}" +
+        "</style>" +
+        "</head><body>" + body + "</body></html>"
+
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 private fun TextHtmlBody(html: String) {
     val context = LocalContext.current
     AndroidView(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(Color(PAPER_RGB)),
         factory = {
             WebView(context).apply {
-                setBackgroundColor(0)
+                // 纸面白而不是透明：深色屏幕上透明=黑底，而帖子正文没声明颜色（天生黑字）。
+                setBackgroundColor(PAPER_RGB.toInt())
                 settings.javaScriptEnabled = true
                 settings.allowFileAccess = false
                 settings.domStorageEnabled = true
@@ -328,6 +362,6 @@ private fun TextHtmlBody(html: String) {
                 webViewClient = WebViewClient()
             }
         },
-        update = { it.loadDataWithBaseURL(null, html, "text/html", "utf-8", null) },
+        update = { it.loadDataWithBaseURL(null, articleBodyHtml(html), "text/html", "utf-8", null) },
     )
 }
