@@ -8,6 +8,9 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -154,10 +157,24 @@ fun CameraFxScreen() {
         val view = previewView ?: return@LaunchedEffect
         try {
             p.unbindAll()
-            val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(view.surfaceProvider)
-            }
+            // 预览与分析钉死同一 4:3 视野 + 有界分辨率：
+            //  - 两个 use case 比例不一致 → 覆盖层与预览画面取景范围不同，看着就是「错位」
+            //  - 分析不封顶 → 每帧全分辨率送进模型，fps 掉到 ~12（真机实测）
+            val selector = ResolutionSelector.Builder()
+                .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+                .setResolutionStrategy(
+                    ResolutionStrategy(
+                        android.util.Size(720, 960),
+                        ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
+                    ),
+                )
+                .build()
+            val preview = Preview.Builder()
+                .setResolutionSelector(selector)
+                .build()
+                .also { it.setSurfaceProvider(view.surfaceProvider) }
             val analysis = ImageAnalysis.Builder()
+                .setResolutionSelector(selector)
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                 .build()

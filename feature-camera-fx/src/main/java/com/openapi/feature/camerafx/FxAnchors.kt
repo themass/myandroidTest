@@ -63,6 +63,32 @@ fun eyeTiltDegrees(first: Point2d, second: Point2d): Float {
 }
 
 /**
+ * 两点（如双眼）连线在「显示空间」的倾角，度，归一到 (-90, 90]（线的角度，不是向量方向）。
+ *
+ * [mirrorX] 对应前摄预览的显示镜像：关键点来自未镜像的分析图，预览里看到的是镜像后的画面，
+ * 镜像会把倾角反号（未镜像 +30° 的头歪，屏幕上看是 -30°）。HUD 要显示用户所见就传 true。
+ * 真机缺陷回归（HUD 89.4°）：根因不是弧度/角度，而是关键点落在横屏 sensor 空间没换算
+ * （见 [uprightDims]）；换算后倾角就是普通的小角度。
+ */
+fun lineTiltDegrees(first: Point2d, second: Point2d, mirrorX: Boolean): Float {
+    var deg = eyeTiltDegrees(first, second)
+    if (mirrorX) deg = -deg
+    // 线没有方向：把 atan2 的 (-180,180] 折回 (-90,90]
+    while (deg > 90f) deg -= 180f
+    while (deg <= -90f) deg += 180f
+    return deg
+}
+
+/**
+ * 帧的「正立显示尺寸」：`ImageProxy.toBitmap()` **不会**应用 rotationDegrees，
+ * 关键点默认落在 sensor 空间（竖持手机时是横屏）。必须把 rotationDegrees 交给
+ * MediaPipe 的 ImageProcessingOptions，并把宽高按旋转交换后再上报给画布映射。
+ * 真机缺陷回归（倾角 89.4°、覆盖层整体转了 90°）就是漏了这一步。
+ */
+fun uprightDims(width: Int, height: Int, rotationDegrees: Int): Pair<Int, Int> =
+    if (rotationDegrees == 90 || rotationDegrees == 270) Pair(height, width) else Pair(width, height)
+
+/**
  * 归一化正立图像 → 画布像素的映射。
  *
  * CameraX 默认预览缩放是 FILL_CENTER：等比放大到铺满画布、超出部分裁掉。

@@ -5,6 +5,7 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
+import com.google.mediapipe.tasks.vision.core.ImageProcessingOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
@@ -29,7 +30,7 @@ data class PoseFx(val segments: List<Segment2d>)
 data class FrameFx(
     val faces: List<FaceFx>,
     val poses: List<PoseFx>,
-    /** 分析图的正立宽高（toBitmap 已应用旋转），归一化坐标就是相对它说的。 */
+    /** 正立显示空间的宽高（已按 rotationDegrees 交换）；归一化坐标就是相对它说的。 */
     val imgW: Int,
     val imgH: Int,
     val seq: Long,
@@ -50,6 +51,8 @@ class FxAnalyzer(
     private val context: Context,
     private val onFrame: (FrameFx) -> Unit,
     private val onFatal: (String) -> Unit,
+    /** 姿态每 N 帧跑一次（脸每帧都跑）：spike 实测全分辨率双模型 ~12fps，降半姿态频率换帧率。 */
+    private val poseEvery: Int = 2,
 ) : ImageAnalysis.Analyzer {
 
     private val inFlight = AtomicBoolean(false)
@@ -63,6 +66,10 @@ class FxAnalyzer(
     private var windowStartNanos = 0L
     private var windowFrames = 0
 
+    // 姿态降频（poseEvery）期间沿用上一次的骨架；只在 analysis executor 上读写。
+    private var lastPoseLandmarks: List<List<com.google.mediapipe.tasks.components.containers.NormalizedLandmark>> =
+        emptyList()
+
     override fun analyze(image: ImageProxy) {
         if (disabled) {
             image.close()
@@ -74,15 +81,22 @@ class FxAnalyzer(
         }
         try {
             ensureLoaded()
-            // RGBA 输出（见 ImageAnalysis.Builder），toBitmap 直接可用且已应用旋转，
-            // 得到正立位图后归一化坐标语义 = 正立画面，不再需要 ImageProcessingOptions。
+            // toBitmap() 给的是 sensor 空间（竖持时横屏）的位图：旋转必须显式交给
+            // MediaPipe 的 ImageProcessingOptions，关键点才落在正立空间；上报宽高同样要交换
+            // （真机缺陷回归：漏了这步 → 覆盖层转 90°、倾角 89.4°）。
+            val rotation = image.imageInfo.rotationDegrees
             val bmp = image.toBitmap()
             val mp = BitmapImageBuilder(bmp).build()
+            val ipOptions = ImageProcessingOptions.builder().setRotationDegrees(rotation).build()
             val tsNanos = System.nanoTime()
             val tsMs = tsNanos / 1_000_000L
-            val faceResult = face!!.detectForVideo(mp, tsMs)
-            val poseResult = pose!!.detectForVideo(mp, tsMs)
-            val fx = buildFrame(faceResult.faceLandmarks(), poseResult.landmarks(), mp.width, mp.height)
+            val faceResult = face!!.detectForVideo(mp, ipOptions, tsMs)
+            // 姿态比脸贵：每 poseEvery 帧跑一次，中间帧沿用上一次的骨架
+            val runPose = seq % poseEvery == 0L
+            val poseLandmarks = if (runPose) pose!!.detectForVideo(mp, ipOptions, tsMs).landmarks() else lastPoseLandmarks
+            val (w, h) = uprightDims(mp.getWidth(), mp.getHeight(), rotation)
+            val fx = buildFrame(faceResult.faceLandmarks(), poseLandmarks, w, h)
+            lastPoseLandmarks = poseLandmarks
             mp.close()
             bmp.recycle()
 
@@ -153,7 +167,8 @@ class FxAnalyzer(
                 bounds = bounds,
                 headTop = headTopAnchor(oval, bounds),
                 eyeLine = eyes,
-                tiltDeg = eyes?.let { eyeTiltDegrees(it.a, it.b) } ?: 0f,
+                // HUD 显示用户所见（前摄预览镜像空间）的角度
+                tiltDeg = eyes?.let { lineTiltDegrees(it.a, it.b, mirrorX = true) } ?: 0f,
             )
         }
         val poses = poseLandmarks.map { lm ->

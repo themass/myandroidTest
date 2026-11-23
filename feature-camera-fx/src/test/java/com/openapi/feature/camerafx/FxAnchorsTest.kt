@@ -105,4 +105,46 @@ class FxAnchorsTest {
         assertEquals(0f, o.y, 0f)
         assertEquals(0f, map.scalePx, 0f)
     }
+
+    // ---- 真机缺陷回归（2026-11-23 截图：倾角 89.4°、覆盖层旋转错位）----
+    // 根因：ImageProxy.toBitmap() 不应用 rotationDegrees，关键点落在横屏 sensor 空间，
+    // 画的时候却按正立空间映射。修复 = ImageProcessingOptions 传旋转 + 上报正立尺寸。
+
+    @Test
+    fun `uprightDims 90 270 交换宽高`() {
+        assertEquals(Pair(480, 640), uprightDims(640, 480, 90))
+        assertEquals(Pair(480, 640), uprightDims(640, 480, 270))
+    }
+
+    @Test
+    fun `uprightDims 0 180 不变`() {
+        assertEquals(Pair(640, 480), uprightDims(640, 480, 0))
+        assertEquals(Pair(640, 480), uprightDims(640, 480, 180))
+    }
+
+    @Test
+    fun `lineTiltDegrees 未镜像 - 左低右高为 30 度`() {
+        val tilt = lineTiltDegrees(Point2d(0.3f, 0.4f), Point2d(0.6f, 0.4f + 0.3f * tan30), mirrorX = false)
+        assertEquals(30f, tilt, 1e-3f)
+    }
+
+    @Test
+    fun `lineTiltDegrees 镜像后倾角反号（显示空间所见）`() {
+        // 未镜像时 +30°；前摄预览镜像显示后画面里应读 -30°
+        val tilt = lineTiltDegrees(Point2d(0.3f, 0.4f), Point2d(0.6f, 0.4f + 0.3f * tan30), mirrorX = true)
+        assertEquals(-30f, tilt, 1e-3f)
+    }
+
+    @Test
+    fun `lineTiltDegrees 水平线镜像前后都是 0`() {
+        assertEquals(0f, lineTiltDegrees(Point2d(0.2f, 0.5f), Point2d(0.8f, 0.5f), mirrorX = false), 1e-6f)
+        assertEquals(0f, lineTiltDegrees(Point2d(0.2f, 0.5f), Point2d(0.8f, 0.5f), mirrorX = true), 1e-6f)
+    }
+
+    @Test
+    fun `lineTiltDegrees 结果归一到负90到90（线的角度不是向量）`() {
+        // 几乎竖直向下的线：atan2 给 -89.x 或 +90.x，归一后必须落在 (-90, 90]
+        val tilt = lineTiltDegrees(Point2d(0.5f, 0.9f), Point2d(0.501f, 0.1f), mirrorX = true)
+        assertTrue(tilt > -90f && tilt <= 90f)
+    }
 }
