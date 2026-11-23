@@ -1,6 +1,6 @@
 # PoC service deps. The bark package itself is NOT pinned here — it is vendored
-# at /Users/gqli/work/sound/bark (MIT) and installed editable, or from git in
-# Docker. Keep the two in sync with `pip install -e /path/to/bark`.
+# at /Users/gqli/work/sound/bark (MIT) and installed editable (`pip install -e`).
+# No Docker in this project; deploy is venv + uvicorn (see deploy/systemd/).
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 pydantic==2.10.4

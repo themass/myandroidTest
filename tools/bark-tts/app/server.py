@@ -51,7 +51,12 @@ from pydantic import BaseModel, Field
 
 from bark import SAMPLE_RATE
 from bark.api import semantic_to_waveform, text_to_semantic
-from bark.generation import ALLOWED_PROMPTS, SEMANTIC_RATE_HZ, preload_models
+from bark.generation import (
+    ALLOWED_PROMPTS,
+    CACHE_DIR,
+    SEMANTIC_RATE_HZ,
+    preload_models,
+)
 
 log = logging.getLogger("bark-tts")
 logging.basicConfig(level=os.getenv("BARK_LOG_LEVEL", "INFO").upper())
@@ -135,8 +140,31 @@ def _wav_bytes(audio: np.ndarray) -> bytes:
     return buf.getvalue()
 
 
+def _assert_weights_present() -> None:
+    # bark.generation.preload_models() silently calls hf_hub_download when a
+    # checkpoint is missing — single-stream, at 0.3-0.6 MB/s on this network
+    # that is hours of traffic in a request-serving process (observed on a real
+    # boot: it started pulling text.pt before the first request ever landed).
+    # Refuse to boot instead; fetch_weights.py is the supported way.
+    small = os.environ["SUNO_USE_SMALL_MODELS"].lower() in ("1", "true")
+    suffix = "" if small else "_2"
+    missing = [
+        f"{m}{suffix}.pt"
+        for m in ("text", "coarse", "fine")
+        if not os.path.isfile(os.path.join(CACHE_DIR, f"{m}{suffix}.pt"))
+    ]
+    if missing:
+        raise RuntimeError(
+            f"bark checkpoints missing in {CACHE_DIR}: {', '.join(missing)}. "
+            "Run scripts/fetch_weights.py first (parallel ranged download) — "
+            "otherwise preload would silently re-download them over HF's slow "
+            "single-stream endpoint."
+        )
+
+
 @app.on_event("startup")
 def _startup() -> None:
+    _assert_weights_present()
     # Warm the process: cold model load on a first request would otherwise look
     # like a ~1 minute TTS latency and poison the numbers.
     t0 = time.perf_counter()

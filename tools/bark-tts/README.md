@@ -15,7 +15,8 @@ App 侧接线设计见 [docs/app-wiring.md](docs/app-wiring.md)。
 | `app/server.py` | FastAPI：`POST /tts` text+speaker → 裸 WAV |
 | `scripts/fetch_weights.py` | 并行分片下载权重到 Bark 自己的缓存目录 |
 | `scripts/run_samples.py` | 生成样本 WAV + 分段时延计时 |
-| `requirements.txt` / `Dockerfile` | 依赖与镜像（PoC 级） |
+| `requirements.txt` | 依赖（PoC 级） |
+| `deploy/systemd/bark-tts.service` | 测试机原生部署单元（**本项目禁止 docker/容器**） |
 | `out/` | 生成的样本与 `latency.json` |
 
 ## 本机（macOS / Apple Silicon）跑通
@@ -64,6 +65,16 @@ curl -s localhost:8088/tts -H 'content-type: application/json' \
 ```
 
 `/healthz` 看配置，`/stats` 看累计 RTF。
+
+**别裸起服务**：权重不在缓存里时，`preload_models()`（`generation.py:210`）会就地走 `hf_hub_download` 单流重下——本机实测这条只有 0.3–0.6 MB/s，等于在请求进程里悄悄灌 4.68 GB（这次踩到了：服务一启动日志就是 `text model not found, downloading`）。`server.py` 现在启动先 `_assert_weights_present()`，缺文件直接拒绝启动并提示用 `fetch_weights.py`。
+
+## 测试机（GPU）原生部署
+
+**本项目任何环境禁止 docker/容器**（用户令，2026-11-23）。PoC 服务用 venv + uvicorn 原生进程跑，systemd 单元见 [`deploy/systemd/bark-tts.service`](deploy/systemd/bark-tts.service)，装法写在单元头注释里。要点：
+
+- `--workers 1` 写死不是调优：bark 把模型存在模块全局 dict（`generation.py:36`），多 worker 就是多份 4.68 GB 权重再互相踩。
+- `SUNO_ENABLE_MPS=False`（CUDA 机器）；`HOME`/`XDG_CACHE_HOME` 指到服务账号目录，权重缓存才找得到。
+- 服务只绑 `127.0.0.1`，对外走 nginx 反代（和 api.ok123find.top 现有拓扑同构），不裸绑公网。
 
 ## 设备与显存
 
