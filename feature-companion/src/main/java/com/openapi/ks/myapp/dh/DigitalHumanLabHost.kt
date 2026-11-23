@@ -23,7 +23,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -39,6 +38,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.openapi.feature.companion.fx.LottieFxLayer
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.AvatarTouch
 import com.openapi.ks.myapp.avatar.AvatarTouchKind
@@ -103,6 +103,17 @@ fun DigitalHumanLabHost(
      * 捏合缩放与长按托盘仍由舞台判定器管（onTap 传 null = 单指事件落给分层立绘）。
      */
     simpleFallback: com.openapi.ks.myapp.avatar.LayeredAvatarPack? = null,
+    /**
+     * 舞台特效：订阅既有 [CompanionUiState.gesture]/[CompanionUiState.gestureSeq]
+     * （cmp.cue → AvatarEventMapper → Gesture 的 UI 镜像），**不另起事件总线**。
+     * null / 0 = 不播（聊天页/调试舞台）。
+     */
+    gestureId: String? = null,
+    gestureSeq: Long = 0L,
+    /** 通话页飘散粒子开关；关 → 氛围类特效不播（[FxRenderPolicy]）。 */
+    particles: Boolean = true,
+    /** dh-lab 门内「特效测试」按钮；null = 不显示。Route 接到 emitStageGesture("pat_head"). */
+    onLabFxTest: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
@@ -398,15 +409,21 @@ fun DigitalHumanLabHost(
             }
         }
 
-        // ==== Lottie 特效层（spike）===========================================
+        // ==== Lottie 特效层（MVP）=============================================
         // 叠在引擎视口之后的 Box 兄弟——与复位胶囊/托盘同一条已验证合成路径：
         // 不 setZOrderOnTop、不进 GL、**不加任何 pointerInput**（手势仲裁只有
         // avatarStageTransform 一处，2026-11-23「捏合必死」教训）。
-        // MVP 用 com.openapi.feature.companion.fx.LottieFxLayer 替换这段；spike 只为
-        // 三件事验收：爱心能盖在 Live2D/SIMPLE 画面上、触摸与捏合不受影响、gfxinfo
-        // 掉帧增量。dh-lab 门内一个测试按钮触发。
-        if (DhLabGate.isEnabled(context)) {
-            var fxTick by remember { mutableIntStateOf(0) }
+        // 触发走既有 gestureSeq（cmp.cue → AvatarEventMapper → Gesture），不另起总线。
+        LottieFxLayer(
+            gestureId = gestureId,
+            gestureSeq = gestureSeq,
+            reducedMotion = reducedMotion,
+            particles = particles,
+            stageZoomed = stage.isZoomed,
+            modifier = Modifier.fillMaxSize(),
+        )
+        // dh-lab 调试：点一下 = 走同一条 Gesture 词表（pat_head），验证合成/触摸回归。
+        if (onLabFxTest != null && DhLabGate.isEnabled(context)) {
             Text(
                 text = "特效测试",
                 color = Color.White,
@@ -416,10 +433,9 @@ fun DigitalHumanLabHost(
                     .padding(top = 96.dp, end = 16.dp)
                     .clip(RoundedCornerShape(percent = 50))
                     .background(Color.White.copy(alpha = 0.18f))
-                    .clickable { fxTick++ }
+                    .clickable { onLabFxTest.invoke() }
                     .padding(horizontal = 14.dp, vertical = 6.dp),
             )
-            if (fxTick > 0) key(fxTick) { SpikeLottieSpikeFx() }
         }
         // ======================================================================
 
@@ -462,32 +478,6 @@ fun DigitalHumanLabHost(
                     .padding(start = 32.dp, end = 32.dp, bottom = 190.dp),
             )
         }
-    }
-}
-
-/**
- * spike 专用爱心层：预缓存命中则播一遍。放这里只为 spike 验收（覆盖引擎画面 +
- * 触摸回归 + gfxinfo）；MVP 提交把它换进 fx 包的 LottieFxLayer 并删除本函数。
- * 无 pointerInput——触摸天然穿透。调用方用 key(tick) 包住 = 每点一次重播。
- */
-@Composable
-private fun SpikeLottieSpikeFx() {
-    val composition by com.airbnb.lottie.compose.rememberLottieComposition(
-        spec = com.airbnb.lottie.compose.LottieCompositionSpec.Asset("fx/fx_pat_head.json"),
-    )
-    val progress by com.airbnb.lottie.compose.animateLottieCompositionAsState(
-        composition = composition,
-        iterations = 1,
-    )
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        com.airbnb.lottie.compose.LottieAnimation(
-            composition = composition,
-            progress = { progress },
-            modifier = Modifier
-                .size(width = 220.dp, height = 220.dp)
-                .align(Alignment.TopCenter)
-                .padding(top = 90.dp),
-        )
     }
 }
 

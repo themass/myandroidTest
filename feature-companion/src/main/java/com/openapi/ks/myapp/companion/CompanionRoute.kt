@@ -625,6 +625,12 @@ fun CompanionRoute(
                             // Simple 舞台形象回退（投诉 2026-11-23「只有一个字」）：
                             // 没有旧格式形象包但有分层立绘的角色，舞台画立绘不画字。
                             simpleFallback = if (avatarFiles == null) layeredPack else null,
+                            // 特效层：订阅既有 gesture/gestureSeq（cmp.cue → Gesture），不另起总线。
+                            gestureId = uiState.gesture,
+                            gestureSeq = uiState.gestureSeq,
+                            particles = waveOptions.particles,
+                            // dh-lab 调试按钮 → 同一条 Gesture 词表（pat_head）。
+                            onLabFxTest = { chatViewModel.emitStageGesture("pat_head") },
                         )
                         }
                         if (actionTrayOpen) {
@@ -635,6 +641,9 @@ fun CompanionRoute(
                                 actions = avatarActions(),
                                 onActionClick = { action ->
                                     action.messageText?.let(chatViewModel::sendActionText)
+                                    // 特效并进既有 Gesture 词表（与服务端 cue 同路）；
+                                    // mapper 不认的 id（sit_close 等）回 null，不播。
+                                    chatViewModel.emitStageGesture(action.id)
                                     actionTrayOpen = false
                                 },
                                 onDismiss = { actionTrayOpen = false },
