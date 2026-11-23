@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>数字人渲染引擎 · 一节课程（2026-11-23）</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --ink: #1c2430;
+    --ink-2: #5a6675;
+    --line: #e2e6eb;
+    --accent: #2f6feb;
+    --ok: #1a7f4b;
+    --warn: #b26a00;
+    --bad: #b03232;
+    --chip-ok: #e4f3ea;
+    --chip-warn: #fdf2df;
+    --chip-bad: #fbe9e9;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.75 -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 80px; }
+  header h1 { font-size: 28px; margin: 0 0 6px; letter-spacing: .5px; }
+  header .sub { color: var(--ink-2); margin: 0 0 4px; }
+  header .src { color: var(--ink-2); font-size: 13px; }
+  header .src code { font-family: var(--mono); font-size: 12px; }
+  h2 { font-size: 21px; margin: 40px 0 12px; }
+  h3 { font-size: 16px; margin: 18px 0 8px; }
+
+  .toc { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 18px; margin: 20px 0; }
+  .toc ol { margin: 6px 0 0; padding-left: 22px; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  .verdict { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent);
+    border-radius: 10px; padding: 16px 20px; margin: 20px 0; }
+  .verdict ul { margin: 6px 0 0; padding-left: 22px; }
+  .verdict li { margin: 4px 0; }
+
+  .badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 9px;
+    border-radius: 999px; vertical-align: 2px; margin-left: 8px; white-space: nowrap; }
+  .b-ok   { background: var(--chip-ok);   color: var(--ok); }
+  .b-warn { background: var(--chip-warn); color: var(--warn); }
+  .b-bad  { background: var(--chip-bad);  color: var(--bad); }
+  .b-lab  { background: #e8ecf7; color: #3d5188; }
+
+  table { width: 100%; border-collapse: collapse; background: var(--card);
+    border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+    font-size: 13.5px; margin: 14px 0; }
+  th, td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { background: #eef1f5; font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td.ok { color: var(--ok); }
+  td.warn { color: var(--warn); }
+  td.bad { color: var(--bad); }
+  .table-scroll { overflow-x: auto; }
+
+  .engine { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 20px 24px; margin: 22px 0; }
+  .engine h2 { margin: 0 0 4px; font-size: 20px; }
+  .engine .tagline { color: var(--ink-2); margin: 0 0 14px; font-size: 14px; }
+  dl.facts { display: grid; grid-template-columns: 7.5em 1fr; gap: 6px 14px; margin: 10px 0; }
+  dl.facts dt { font-weight: 600; color: var(--ink-2); }
+  dl.facts dd { margin: 0; }
+
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px; margin: 14px 0 4px; }
+  .gallery figure { margin: 0; }
+  .gallery img { width: 100%; height: 260px; object-fit: cover; object-position: top center;
+    border: 1px solid var(--line); border-radius: 8px; background: #10141a; display: block; }
+  .gallery figcaption { font-size: 12.5px; color: var(--ink-2); margin-top: 5px; line-height: 1.5; }
+  .wide { margin: 14px 0 4px; }
+  .wide img { width: 100%; border: 1px solid var(--line); border-radius: 8px; display: block; }
+  .wide figcaption { font-size: 12.5px; color: var(--ink-2); margin-top: 5px; }
+
+  .note { font-size: 13px; color: var(--ink-2); }
+  .pill { font-family: var(--mono); font-size: 12px; background: #eef1f5; border-radius: 4px;
+    padding: 1px 6px; white-space: nowrap; }
+  code.inline { font-family: var(--mono); font-size: 13px; }
+
+  .gh { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 22px; margin: 16px 0; }
+  .gh h3 { margin: 12px 0 4px; }
+  .gh h3:first-child { margin-top: 0; }
+  footer { margin-top: 48px; color: var(--ink-2); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 16px; }
+  @media (max-width: 640px) {
+    dl.facts { grid-template-columns: 1fr; }
+    dl.facts dt { margin-top: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>数字人渲染引擎 · 一节课程</h1>
+  <p class="sub">六个引擎的功能、特点、真机证据与选型结论 · 一页看完 · 口径 <b>2026-11-23</b></p>
+  <p class="src">事实来源全部在仓库内：选型结论 <code>docs/design/2026-11-22-数字人渲染选型-产品视角.md</code> · 换装抽象 <code>docs/design/2026-11-23-换装抽象与特效层设计.md</code> · 槽位现状 <code>scripts/dh-lab/live2d-lab-assets/wardrobe-spec.json</code> · 引擎枚举 <code>DhEngineId.kt</code>（SIMPLE / LIVE2D / DUIX / TAO_AVATAR / VRM）· 各 demo 真机验收笔记与截图（已复制进本页 <code>img/</code>）。证据标签：<b>实测</b> = 真机/代码验证过，<b>spike</b> = 桌面验证未上真机，<b>调研</b> = 带来源的外部记录。</p>
+
+  <div class="verdict">
+    <b>总结论（2026-11-23 拍板口径）</b>
+    <ul>
+      <li><b>Live2D = 当前真机主线</b>——换装做得最好（四轴 180 组合已上线），但 Expandable Application 条款<b>书面确认前不上生产</b>；内部验收不受影响。</li>
+      <li><b>Simple = 已上线兜底</b>——零成本零授权，永久保留为降级层。</li>
+      <li><b>Spine = 随时候补</b>——skin 换装 spike 已通（像素级证据），测试阶段按用户口径<b>忽略编辑器许可</b>；进主线只差采购拍板。</li>
+      <li><b>VRM = 试验田</b>——360° 旋转是天然能力，描边已验；lab only，3D 的最终决策钥匙在 Web 版。</li>
+      <li><b>DUIX = 会说话的视频窗口</b>——不是可交互 HER；交互投入已冻结，写实路线改走服务端流。</li>
+      <li><b>Tao = 不可用，待下线</b>。</li>
+    </ul>
+  </div>
+
+  <nav class="toc">
+    <b>目录</b>
+    <ol>
+      <li><a href="#live2d">Live2D（Cubism）— 当前真机主线</a></li>
+      <li><a href="#simple">Simple 分层立绘 — 已上线兜底</a></li>
+      <li><a href="#spine">Spine 2D 骨骼 — 随时候补</a></li>
+      <li><a href="#vrm">VRM（WebView + three.js）— 试验田</a></li>
+      <li><a href="#duix">DUIX（硅基智能）— 会说话的视频窗口</a></li>
+      <li><a href="#tao">Tao Avatar（阿里 MNN）— 不可用待下线</a></li>
+      <li><a href="#table">总结对比表</a></li>
+      <li><a href="#gh">近月 GitHub 上升项摘要</a></li>
+    </ol>
+  </nav>
+</header>
+
+<!-- ============================== Live2D ============================== -->
+<section class="engine" id="live2d">
+  <h2>1 · Live2D（Cubism）<span class="badge b-ok">当前真机主线</span><span class="badge b-warn">许可待书面确认</span></h2>
+  <p class="tagline">二次元立绘天花板：口型 / 视线 / 摆头 / 换装全在真机跑通，换装能力全场最好。</p>
+  <dl class="facts">
+    <dt>是什么</dt><dd>Cubism <span class="pill">.moc3</span> 模型（ATRI）+ <span class="pill">exp3</span> 表情参数，vendored 渲染 <span class="pill">.so</span>（本仓库自带补丁：背景色第 20 导出）。【实测】</dd>
+    <dt>换装抽象</dt><dd>exp3 参数组 <code class="inline">{(Id, Value)}</code> 开关 moc3 里<b>预画的 ArtMesh</b>——换装是「切已有零件」，不是运行时合成。四轴（上衣/鞋/手持/表情）已上线，共 <b>180 组合</b>；单一事实源 <code class="inline">wardrobe-spec.json</code>：内衣槽 3 变体 = <b>pending-art</b>（moc3 没有内衣零件，要美术在编辑器重制 ATRI-v2），头饰槽 2 变体 = <b>pending-param</b>（参数存在但无已验证值）。卡点是素材不在代码。【实测】</dd>
+    <dt>点击交互</dt><dd>分区触点真机全通：头→脸红、手→蟹娘手持、脚→凉鞋、躯干→换装循环；24 组表情全注册、四开关正交互不抹除。曾拆掉两个真崩溃（LiveKit 发送抛异常 → <code class="inline">RoomSendGuard</code>；JNI 场景变更并发 → GL 线程 dispatcher），修复后六连点零崩溃。【实测】</dd>
+    <dt>旋转</dt><dd>无真 3D 旋转——只有 GAZE 视线跟随 + 说话摆头，转头没有弧面变化（2D 属性）。</dd>
+    <dt>许可成本</dt><dd><b>Expandable Application 条款把「avatar」写进了例子</b>：若命中则无小规模豁免，分成 20% 或 ¥300/激活。固定官方模型 + 不开放 UGC 的形态可能不构成 expandable，但这是推断——<b>书面确认前不上生产真金白银</b>。技术退路见末节（ayagami / PurismCore）。【调研】</dd>
+    <dt>真机证据</dt><dd>demo#2b（2026-11-22 18:40，ADY-AL00）：head/hand/foot/body 六连点全命中 + 换装截图；背景色修复后舞台底采样 RGB 与预测<b>逐值相等</b>；表情淡变 1.0s→0.2s。【实测】</dd>
+  </dl>
+  <div class="gallery">
+    <figure><img src="img/live2d-tap-head.png" alt="点头部触发脸红"><figcaption>点头部 → blushed=true（region=head）</figcaption></figure>
+    <figure><img src="img/live2d-tap-hand.png" alt="点手部触发蟹娘手持"><figcaption>点左手 → 蟹娘手持（region=hand）</figcaption></figure>
+    <figure><img src="img/live2d-outfit-bikini.png" alt="躯干循环到比基尼"><figcaption>躯干循环第一档：比基尼</figcaption></figure>
+    <figure><img src="img/live2d-outfit-pajamas.png" alt="躯干循环到睡衣"><figcaption>躯干循环第二档：睡衣（0.2s 淡变到位）</figcaption></figure>
+  </div>
+</section>
+
+<!-- ============================== Simple ============================== -->
+<section class="engine" id="simple">
+  <h2>2 · Simple 分层立绘<span class="badge b-ok">已上线兜底</span></h2>
+  <p class="tagline">自研分层 PNG：唯一零成本零授权的引擎，上限是「剪纸感」，但永远该保留。</p>
+  <dl class="facts">
+    <dt>是什么</dt><dd>自研分层立绘渲染器，能力位 <span class="pill">STATE/EMOTION/MOUTH/TOUCH_TAP</span>。呼吸、眨眼、嘴型、情绪、点击脉冲全通；双指缩放/拖动（<code class="inline">AvatarStageTransform</code>）、陀螺视差、主题色板都挂在它身上。【实测】</dd>
+    <dt>换装抽象</dt><dd>分层 drawable 换图层（wardrobe 抽象里 binding = 换图层）——加素材 = 出一套新的 <b>PNG 分层件</b>，纯美术成本、无运行时机制创新。整图重画路线撑不起换装商城。【实测+调研】</dd>
+    <dt>点击交互</dt><dd>TOUCH_TAP 已上线（点击脉冲），是所有引擎里第一个把「点她有反应」做成生产功能的。【实测】</dd>
+    <dt>旋转</dt><dd>无。头发不随头摆、转头无弧面变化——「剪纸感」是它的钉死上限（avatar-2d-design §0）。Simple+ 六件套（瞳孔层视线/眉毛层/随机微动作）是把免费线做到上限的路。【调研】</dd>
+    <dt>许可成本</dt><dd><b>零。</b>自研自有，无第三方一分钱。这是它作为降级梯子（P4）永久保留的根本理由：低端机看到的是同一个她。【实测】</dd>
+    <dt>真机证据</dt><dd>生产在线；引擎协议层（AvatarCommand/AvatarCapability + CueCompiler）从不认识具体渲染引擎，换引擎只是多写一个 adapter——这条架构护城河今天就存在。【实测】</dd>
+  </dl>
+</section>
+
+<!-- ============================== Spine ============================== -->
+<section class="engine" id="spine">
+  <h2>3 · Spine（2D 骨骼）<span class="badge b-warn">随时候补 · spike 已通</span><span class="badge b-lab">尚未有引擎位</span></h2>
+  <p class="tagline">唯一把「换装做成数据结构」的方案：<span class="pill">DhEngineId</span> 里还没有它，但管线证据已经闭环。</p>
+  <dl class="facts">
+    <dt>是什么</dt><dd>EsotericSoftware 2D 骨骼动画。spike 走 <b>WebView + @esotericsoftware/spine-webgl 4.2.120</b>（照抄 VRM 引擎模式：assets 离线内置 + evaluateJavascript 桥），bundle 自含 core 仅 222 KB。【spike】</dd>
+    <dt>换装抽象</dt><dd><b>skin 字典运行时合成</b>：多个部位 skin <code class="inline">Skin.addSkin</code> 拼成一套、<code class="inline">setSkin</code> 生效；单件覆盖、槽位级附件替换（<code class="inline">setAttachment("mouth", …)</code> = 离散口型锚点）全部验证。官方 mix-and-match 示例 34 skins 直接跑。这就是产品视角文档「换装=skin 字典」论据的实证。【spike】</dd>
+    <dt>点击交互</dt><dd>数据模型支持 attachment 命中区（选型论据），spike 未做触点——进主线时随引擎一起补。【调研】</dd>
+    <dt>旋转</dt><dd>骨骼 + IK 约束可以做头发跟随、伪转头（transform/IK 约束在样本资产里就有），但不是真 3D；真 360° 归 VRM。</dd>
+    <dt>许可成本</dt><dd>runtime 随产品分发不需要终端用户购买，但<b>产出生产素材必须持 Professional 编辑器席位（促销 $379）</b>——Essential 导不出 mesh/IK，skin 换装素材恰恰离不开 mesh；无免费合规路线。<b>测试阶段按用户口径忽略许可</b>；示例素材禁商用，只证管线。营收 ≥$500k 触发 Enterprise（$2,499 起）。【调研，2026-11-22 实抓原文】</dd>
+    <dt>spike 证据</dt><dd>像素级 + API 级双重：三套合成 outfit 变化 23–28%；同 skin 回切仅 0.05%（渲染可复现）；口型 close↔smile 的 <b>2,379 px 全部落在嘴部 128×27 框内</b>，其余画面逐位相同。未上真机（mid-range GPU 画 219 个 mesh 的开销待测）。【spike】</dd>
+  </dl>
+  <figure class="wide"><img src="img/spine-contact-sheet.png" alt="Spine spike 证据总表"><figcaption>spike 证据总表：同一骨架同一姿势下 outfit A/B/C、4 套预制 skin、单件覆盖、口型切换、动画 crossfade——每一步截图与操作一一对应。</figcaption></figure>
+  <div class="gallery">
+    <figure><img src="img/spine-combo-A.png" alt="合成 outfit A"><figcaption>运行时合成 outfit A（9 个部位 skin）</figcaption></figure>
+    <figure><img src="img/spine-combo-B.png" alt="合成 outfit B"><figcaption>同一骨架合成 outfit B（差异 23.34%）</figcaption></figure>
+    <figure><img src="img/spine-override-dress-blue.png" alt="单件覆盖"><figcaption>A + 单件覆盖 dress-blue：只换衣服，发型/眼睛/包不变</figcaption></figure>
+    <figure><img src="img/spine-mouth-close.png" alt="口型 close"><figcaption>口型附件 close（去 HUD 特写）</figcaption></figure>
+    <figure><img src="img/spine-mouth-smile.png" alt="口型 smile"><figcaption>口型附件 smile：变化全部落在嘴部框内</figcaption></figure>
+  </div>
+</section>
+
+<!-- ============================== VRM ============================== -->
+<section class="engine" id="vrm">
+  <h2>4 · VRM（WebView + three.js）<span class="badge b-lab">试验田 · lab only</span></h2>
+  <p class="tagline">真 3D 在 WebView 里跑通了：360° 轨道旋转天然、描边已验；模型授权逐件，所以留 lab。</p>
+  <dl class="facts">
+    <dt>是什么</dt><dd>WebView + three.js 0.187 + @pixiv/three-vrm 3.5.5（场景页源码在 <code class="inline">scripts/dh-lab/vrm-scene/</code>），通话页全幅渲染，<span class="pill">DhEngineId.VRM</span>，lab / debug 包专用。【实测】</dd>
+    <dt>换装抽象</dt><dd>命名网格节点显隐 / 材质替换（three-vrm node visibility）——抽象上挂得上 wardrobe 槽位，未实做。VRM 模型 <code class="inline">commercialUsage</code> 默认 personalNonProfit，逐模型授权是雷区。【调研】</dd>
+    <dt>点击交互</dt><dd>分区触点真机在案：上半屏=摸头→happy+低头缓冲，下半屏=碰身体→surprised，1.4s 复位；加了旋转后仲裁没破（同屏 <code class="inline">tap region=</code> 与 <code class="inline">rot=</code> 都在）。【实测】</dd>
+    <dt>旋转</dt><dd><b>360° 是天然能力</b>：单指横拖→绝对 yaw 累加（掉指令不错位），设备实测两笔 251°+250°、复验 460° 转回正面；<b>MToon 描边已验</b>（14 个材质统一换屏宽坐标系 0.004，反壳由 three-vrm 自带）。【实测】</dd>
+    <dt>许可成本</dt><dd>three.js / three-vrm 全 MIT；卡的是 <b>VRM 模型逐件授权</b>（示例模型 personalNonProfit 只能留 lab）。3D 资产管线重 2D 一个数量级（外包单价 3–10 倍）。【调研】</dd>
+    <dt>真机证据</dt><dd>demo#1（2026-11-22）渲染+拖动+指令管线闭环（68,692 三角、tick 稳定、drag 零 CANCEL）；demo#1 后续（2026-11-23）旋转+描边装机复验闭合——注意装机验收必须 pull 回 <code class="inline">base.apk</code> 比对字节数（曾被别的会话的 apk 抢装造成假象）。【实测】</dd>
+  </dl>
+  <div class="gallery">
+    <figure><img src="img/vrm-front.png" alt="VRM 正面带描边"><figcaption>正面（描边上线后的取景）</figcaption></figure>
+    <figure><img src="img/vrm-back-222.png" alt="VRM 旋转 222° 背面"><figcaption>单指横扫 → rot=-222°：完整背面</figcaption></figure>
+    <figure><img src="img/vrm-full-turn.png" alt="VRM 转满一圈回正面"><figcaption>继续拖 → 累计 460° 转回正面（角度不错位）</figcaption></figure>
+  </div>
+  <p class="note">门牌含义：如果哪天真要走 3D，先做 <b>Web 版</b>用 three.js+VRM 验证「3D 陪伴感是否真的比 2D 强」，别在 Android 原生里嵌（Unity UaaL 只能全屏单实例、Godot 增量 76 MB）。【调研】</p>
+</section>
+
+<!-- ============================== DUIX ============================== -->
+<section class="engine" id="duix">
+  <h2>5 · DUIX（硅基智能）<span class="badge b-warn">会说话的视频窗口</span><span class="badge b-bad">交互投入已冻结</span></h2>
+  <p class="tagline">端侧实时渲染真人是真本事，但形象是不可操作的整块素材——写实与高交互在同一个引擎上互斥，这是路线属性。</p>
+  <dl class="facts">
+    <dt>是什么</dt><dd>真人克隆端到端视频合成：形象 = 一整个 zip 模型包（Oliver），端侧 SDK 实时渲染，口型由远端 PCM 驱动，90s 连续播报零积压。【实测】</dd>
+    <dt>换装抽象</dt><dd><b>无。</b>素材 = 整帧真人实拍 jpg（人和办公室背景同一张图），背景烤死 → 主题色板无效；换装 = 重新训练模型。【实测】</dd>
+    <dt>点击交互</dt><dd><b>钉死在素材空表上</b>：插桩 dump 出 <code class="inline">motionRegions.size=0</code>（肉眼可见，不再靠扫描反推）；7 个 motion id 广播 7/7 播放、动作区间命中 0；引擎 <code class="inline">onTouch → TouchResult.Ignored</code> 硬编码。要「摸头有反应」= 重新打包带 motionRegions 的素材（客户端修不了）。【实测】</dd>
+    <dt>旋转</dt><dd>无任何可驱动参数。</dd>
+    <dt>许可成本</dt><dd>开源版<b>强制 “Powered by Duix.com” 水印</b>，<b>&gt;1000 MAU 需付费授权</b>；上游推荐骁龙 8Gen2+8GB；连发音频 clip &lt;4s 会 native crash（红线 ≥4s）。【实测+调研】</dd>
+    <dt>真机证据</dt><dd>demo#3（2026-11-22）：92.3s 喂完与音频时长严丝合缝；但渲染线程只有 <b>22.4 fps、41% 帧超 40ms 预算</b>，背壳 90s 内 41.7→43.3°C 越过降频档——观感最真人，热代价量级上的高。【实测】</dd>
+  </dl>
+  <figure class="wide" style="max-width:420px"><img src="img/duix-call.png" alt="DUIX 通话页真人播报"><figcaption>demo#3 播报中：真人「林澈」背后是烤死的虚化办公室——背景层对客户端不存在。</figcaption></figure>
+  <p class="note">定位改判：lab 里的「写实试验田」，<b>停止投交互功能</b>。写实 HER 若要产品化，走「服务端 talking-head 推理 + 现有 LiveKit 推流」的高级订阅 SKU（GPU 成本 + 生成合成内容标识合规是入场券）。</p>
+</section>
+
+<!-- ============================== Tao ============================== -->
+<section class="engine" id="tao">
+  <h2>6 · Tao Avatar（阿里 MNN）<span class="badge b-bad">不可用 · 待下线</span></h2>
+  <p class="tagline">纯 lab 展品：关键件没开源，接不上线。</p>
+  <dl class="facts">
+    <dt>是什么</dt><dd>阿里 MNN 系端侧 3D 数字人（<span class="pill">DhEngineId.TAO_AVATAR</span>），曾在 lab 展示过。【实测】</dd>
+    <dt>换装抽象</dt><dd>无从谈起——没有任何换装通路。【实测】</dd>
+    <dt>点击交互</dt><dd>能力位<b>仅 STATE</b>；A2BS（音频驱动口型）未接线。【实测】</dd>
+    <dt>旋转</dt><dd>3D 形象本身可转，但没有可用的渲染路径去转。</dd>
+    <dt>许可成本</dt><dd>不产生成本问题——产生的是不可用问题。</dd>
+    <dt>真机证据</dt><dd><code class="inline">libtaoavatar.so</code> 未打包、≥8GB 内存门槛、麒麟 GPU 必崩（libbishenggpucompiler SIGSEGV）。除非阿里开源关键件且我们重编 JNI，否则当它不存在。【实测】</dd>
+  </dl>
+</section>
+
+<!-- ============================== 对比表 ============================== -->
+<h2 id="table">总结对比表（2026-11-23 口径）</h2>
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr><th>引擎</th><th>定位</th><th>换装</th><th>点击交互</th><th>旋转</th><th>许可与成本</th><th>证据强度</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>Live2D</b></td><td class="ok">当前真机主线</td>
+      <td class="ok">最好：exp3 开关预画零件，四轴 180 组合已上线；内衣=待素材、头饰=待验证值</td>
+      <td class="ok">分区触点全通（头/手/脚/躯干），正交组合</td>
+      <td class="warn">仅视线+摆头，无弧面转头</td>
+      <td class="warn">Expandable Application 条款点名 avatar：分成 20% 或 ¥300/激活——书面确认前不上生产</td>
+      <td>真机【实测】</td>
+    </tr>
+    <tr>
+      <td><b>Simple</b></td><td class="ok">已上线兜底</td>
+      <td class="warn">换图层=整图重画，撑不起商城</td>
+      <td class="ok">TOUCH_TAP 已上线</td>
+      <td class="bad">无（剪纸感上限）</td>
+      <td class="ok">零成本零授权，永久降级层</td>
+      <td>生产【实测】</td>
+    </tr>
+    <tr>
+      <td><b>Spine</b></td><td class="ok">随时候补</td>
+      <td class="ok">教科书级：skin 字典运行时合成 + 单件覆盖 + 附件级口型</td>
+      <td class="warn">attachment 命中区可设计，spike 未做</td>
+      <td class="warn">骨骼/IK 伪转头，非真 3D</td>
+      <td class="warn">素材须持 Professional 席位（$379，无免费合规路线）；测试阶段忽略许可</td>
+      <td>桌面 spike【spike】，真机未测</td>
+    </tr>
+    <tr>
+      <td><b>VRM</b></td><td class="b-lab">试验田（lab only）</td>
+      <td class="warn">节点显隐挂得上抽象，未实做</td>
+      <td class="ok">分区触点真机在案（摸头/碰身）</td>
+      <td class="ok">360° 天然：绝对 yaw + 描边已验</td>
+      <td class="warn">库全 MIT；模型逐件授权（示例 personalNonProfit）</td>
+      <td>真机【实测】</td>
+    </tr>
+    <tr>
+      <td><b>DUIX</b></td><td class="warn">会说话的视频窗口</td>
+      <td class="bad">不可能（整块素材、背景烤死）</td>
+      <td class="bad">motionRegions 空表 + onTouch Ignored，客户端不可修</td>
+      <td class="bad">无可驱动参数</td>
+      <td class="bad">强制水印；&gt;1000 MAU 付费；发热触顶 22fps</td>
+      <td>真机【实测】</td>
+    </tr>
+    <tr>
+      <td><b>Tao</b></td><td class="bad">不可用待下线</td>
+      <td class="bad">无通路</td>
+      <td class="bad">能力位仅 STATE</td>
+      <td class="bad">渲染路径不存在</td>
+      <td>关键件未开源</td>
+      <td>真机【实测】（崩溃证据）</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<p class="note">一句话主轴：产品六件事（点击/拖动/换装/吃饭/多角色/照片生成）全部落在「形象必须是<b>可操作资产</b>」这条轴上——所以主线在 2D 骨骼/参数系（Live2D 现在、Spine 候补、Simple 兜底），写实改走服务端流，3D 留给 Web 版验证。</p>
+
+<!-- ============================== GitHub 上升项 ============================== -->
+<h2 id="gh">近月 GitHub 上升项摘要（2026-11-23 调研，原生 + Web 两份报告）</h2>
+<div class="gh">
+  <h3>AGSL 范式（原生特效收敛）</h3>
+  原生特效收敛为 <code class="inline">RuntimeShader + SDF + RenderEffect</code> 链：舞台 HUD 模糊、描边、水墨质感可以<b>纯 Compose 单 pass</b> 做，不需要 WebView/Filament。门槛是 API 33——<b>验收机 ADY-AL00 = Android 12 / API 31</b>，引入任何 AGSL 效果必须带老机降级路径（PrismalAGSL 的降级策略值得抄）。参考：AndroidLiquidGlass 4.8k★ Apache、Liquid-Glass-Android 332★ MIT。
+  <h3>psd2live（素材产能瓶颈的直接解药）</h3>
+  1,157★、2026-09 建仓几乎每天发版：分层 PSD <b>自动 rig 成标准 Cubism 3.0–5.3 资产</b>。许可拆分干净——编辑器 GPL，但中立 IR 格式/导出框架/Rust 运行时是 MIT 可单独复用。引入候补（工具侧最高优先）：Live2D 内衣换装管线等的就是 moc3 重制，它正面命中这个产能问题。
+  <h3>ayagami（Live2D 许可风险的技术退路）</h3>
+  407★，MIT OR Apache-2.0，Rust + wgpu 清洁室 MOC3 兼容 runtime（支持到 Cubism 5.3 特性），可 WASM 跑浏览器；需自研 JNI、单人主作者、API 不稳——<b>不进产线</b>，作为「去 Cubism 化」唯一干净路径备档；接入前必须先过法务（无第三方合法性讨论）。同类还有 PurismCore（56★ MIT，C99 重写 Cubism Core）。
+  <h3>WebGPU 是上升主力，恰好是 WebView 层的短板</h3>
+  近月上星最快的渲染库（shaders、vgpu、liquid-dom、three.js TSL 全系）都是 WebGPU-only；Android WebView 从 Chromium 121 起有 <code class="inline">navigator.gpu</code>，但覆盖取决于 GPU 型号而非仅版本，且这类库探测失败时<b>静默透明不报错</b>。任何引入必须「能力探测 + WebGL2 退路」。另：<code class="inline">androidx.webgpu</code> 已到 1.0.0-alpha06——长期看原生层拿 GPU 能力比 WebView 层快，与 AGSL 结论同向。
+  <h3>顺手记下的（次要）</h3>
+  Rive Android runtime 破坏性重写（新 API：RiveWorker 异步模型、state machine→data binding；头像四态直接按新 API 写，无旧包袱）· GSAP 自 3.13 起全部免费含商用（WebView 层时间线动效可选）· vibrance（romainguy，感知均匀色彩混合，Live2D 调色相关，Apache）· 剔除的可疑项与「窗口内无有效结果」清单见同目录两份调研笔记原文，不再重复搜。
+</div>
+
+<footer>
+  本页为自包含静态页（无外部 CDN；截图全部复制于 <code>img/</code>）。逐条事实的原始出处：仓库 <code>docs/design/</code> 两份设计文档、<code>scripts/dh-lab/</code>、共享笔记 <code>spine-spike.md / dh-demo2b-region-touch.md / dh-vrm-demo1-acceptance.md / dh-vrm-rotate-outline.md / duix-demo3-acceptance.md / gh-trends-*.md</code>。口径日期 2026-11-23。
+</footer>
+
+</div>
+</body>
+</html>

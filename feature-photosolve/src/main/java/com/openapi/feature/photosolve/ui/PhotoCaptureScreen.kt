@@ -1,0 +1,241 @@
+package com.openapi.feature.photosolve.ui
+
+import android.graphics.Bitmap
+import android.net.Uri
+import android.view.MotionEvent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraControl
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.FocusMeteringAction
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.FlashOff
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import com.openapi.feature.photosolve.R
+import com.openapi.common.image.ImageUtils.decodeJpegApplyingExifOrientation
+import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+@Composable
+fun PhotoCaptureScreen(
+    onPhotoCaptured: (Bitmap) -> Unit,
+    onPickFromGallery: (Uri) -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    /** 拍完后正在端上检测题目边框。 */
+    detecting: Boolean = false,
+    /** 上一次检测没找到题目时的提示（null 表示没有提示）。 */
+    notice: String? = null,
+    /** 手动框选：检测不到题目时的退路。 */
+    onManualCrop: () -> Unit = {},
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
+
+    var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
+    var cameraControl by remember { mutableStateOf<CameraControl?>(null) }
+    var torchOn by rememberSaveable { mutableStateOf(false) }
+    var isCapturing by remember { mutableStateOf(false) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia(),
+    ) { uri -> if (uri != null) onPickFromGallery(uri) }
+
+    Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { ctx ->
+                val previewView = PreviewView(ctx).apply {
+                    // FIT_CENTER：预览显示完整取景范围。以前的 FILL_CENTER 会裁掉画幅
+                    // 边缘，而实拍是全画幅——自动边框检测跑在实拍图上，
+                    // 用户看到的题目和算法框住的题目因此对不上。
+                    scaleType = PreviewView.ScaleType.FIT_CENTER
+                }
+                val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+                cameraProviderFuture.addListener(
+                    {
+                        val cameraProvider = cameraProviderFuture.get()
+                        val preview = Preview.Builder().build().also {
+                            it.surfaceProvider = previewView.surfaceProvider
+                        }
+                        val capture = ImageCapture.Builder()
+                            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                            .build()
+                        runCatching {
+                            cameraProvider.unbindAll()
+                            val camera = cameraProvider.bindToLifecycle(
+                                lifecycleOwner,
+                                CameraSelector.DEFAULT_BACK_CAMERA,
+                                preview,
+                                capture,
+                            )
+                            cameraControl = camera.cameraControl
+                        }
+                        imageCapture = capture
+                    },
+                    ContextCompat.getMainExecutor(ctx),
+                )
+
+                previewView.setOnTouchListener { view, event ->
+                    if (event.action == MotionEvent.ACTION_UP) {
+                        val point = (view as PreviewView).meteringPointFactory.createPoint(event.x, event.y)
+                        cameraControl?.startFocusAndMetering(FocusMeteringAction.Builder(point).build())
+                        view.performClick()
+                    }
+                    true
+                }
+                previewView
+            },
+        )
+
+        Box(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.capture_back_cd),
+                        tint = Color.White,
+                    )
+                }
+                IconButton(onClick = {
+                    torchOn = !torchOn
+                    cameraControl?.enableTorch(torchOn)
+                }) {
+                    Icon(
+                        if (torchOn) Icons.Filled.FlashOn else Icons.Filled.FlashOff,
+                        contentDescription = stringResource(R.string.capture_flash_cd),
+                        tint = Color.White,
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = 64.dp, start = 24.dp, end = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = if (detecting) stringResource(R.string.photosolve_detecting) else stringResource(R.string.capture_hint),
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                if (notice != null && !detecting) {
+                    Spacer(Modifier.size(12.dp))
+                    Text(
+                        text = notice,
+                        color = Color(0xFFFFCC00),
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                    TextButton(onClick = onManualCrop) {
+                        Text(stringResource(R.string.photosolve_manual_crop), color = Color.White)
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(32.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                IconButton(onClick = {
+                    galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                }) {
+                    Icon(
+                        Icons.Filled.PhotoLibrary,
+                        contentDescription = stringResource(R.string.capture_gallery_cd),
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp),
+                    )
+                }
+
+                IconButton(
+                    onClick = {
+                        if (isCapturing) return@IconButton
+                        val capture = imageCapture ?: return@IconButton
+                        isCapturing = true
+                        val photoFile = File(context.cacheDir, "paizhao_capture_${System.currentTimeMillis()}.jpg")
+                        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+                        capture.takePicture(
+                            outputOptions,
+                            ContextCompat.getMainExecutor(context),
+                            object : ImageCapture.OnImageSavedCallback {
+                                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                                    scope.launch {
+                                        val bitmap = withContext(Dispatchers.IO) {
+                                            decodeJpegApplyingExifOrientation(photoFile.absolutePath)
+                                        }
+                                        isCapturing = false
+                                        if (bitmap != null) onPhotoCaptured(bitmap)
+                                    }
+                                }
+
+                                override fun onError(exception: ImageCaptureException) {
+                                    isCapturing = false
+                                }
+                            },
+                        )
+                    },
+                    modifier = Modifier
+                        .size(72.dp)
+                        .border(4.dp, Color.White, CircleShape),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .background(if (isCapturing) Color.Gray else Color.White, CircleShape),
+                    )
+                }
+
+                Spacer(modifier = Modifier.size(48.dp))
+            }
+        }
+    }
+}

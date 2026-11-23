@@ -36,5 +36,13 @@ gen-external-apklibs
 app/src/main/jni/openssl/
 app/src/main/jni/strongswan/
 .idea/
-app/src/main/libs/
 app/src/main/obj/
+
+# CMake/NDK 构建产物
+.cxx/
+
+# Kotlin 编译器会话目录
+.kotlin/
+
+# SDD scratch + host-side asset pack cache (multi-hundred MB) — never commit
+.superpowers/

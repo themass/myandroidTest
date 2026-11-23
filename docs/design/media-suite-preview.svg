@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1560" height="1160" viewBox="0 0 1560 1160"><defs>
+<linearGradient id="g0" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#124753"/><stop offset="1" stop-color="#ca9864"/></linearGradient>
+<linearGradient id="g1" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#363557"/><stop offset="1" stop-color="#e78d64"/></linearGradient>
+<linearGradient id="g2" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#263658"/><stop offset="1" stop-color="#909baf"/></linearGradient>
+<linearGradient id="g3" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#465748"/><stop offset="1" stop-color="#dac992"/></linearGradient>
+<linearGradient id="g4" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#563147"/><stop offset="1" stop-color="#eea078"/></linearGradient>
+<linearGradient id="g5" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#395770"/><stop offset="1" stop-color="#b4d1bd"/></linearGradient>
+<style>text{font-family:Inter,"PingFang SC","Noto Sans CJK SC",sans-serif}</style></defs>
+<rect x="0" y="0" width="1560" height="1160" rx="0" fill="#101519"/>
+<text x="48" y="54" fill="#a5e7cb" font-size="16" font-weight="700">MEDIA STUDIO   /   ANDROID DESIGN STUDY</text>
+<text x="48" y="105" fill="#f3f5f4" font-size="37" font-weight="750">频道、视频与图集：一套媒体界面</text>
+<text x="48" y="135" fill="#aab9b7" font-size="15" font-weight="500">低饱和深色底 · 薄荷绿强调色 · 内容优先   /   静态视觉稿，示例数据</text>
+<text x="48" y="182" fill="#9adabf" font-size="13" font-weight="700">01  /  DISCOVER</text>
+<text x="48" y="209" fill="#f3f5f4" font-size="21" font-weight="700">频道</text>
+<rect x="48" y="230" width="342" height="680" rx="26" fill="#0d1115"/>
+<rect x="49" y="231" width="340" height="678" rx="25" fill="#151a1f"/>
+<text x="66" y="258" fill="#f3f5f4" font-size="12" font-weight="500">9:41</text>
+<text x="320" y="258" fill="#f3f5f4" font-size="12" font-weight="500">◉  ▰</text>
+<text x="66" y="295" fill="#f3f5f4" font-size="26" font-weight="700">频道</text>
+<text x="66" y="319" fill="#aab9b7" font-size="13" font-weight="500">浏览频道，保持分类和滚动位置</text>
+<text x="422" y="182" fill="#9adabf" font-size="13" font-weight="700">02  /  BROWSE</text>
+<text x="422" y="209" fill="#f3f5f4" font-size="21" font-weight="700">视频列表</text>
+<rect x="422" y="230" width="342" height="680" rx="26" fill="#0d1115"/>
+<rect x="423" y="231" width="340" height="678" rx="25" fill="#151a1f"/>
+<text x="440" y="258" fill="#f3f5f4" font-size="12" font-weight="500">9:41</text>
+<text x="694" y="258" fill="#f3f5f4" font-size="12" font-weight="500">◉  ▰</text>
+<text x="440" y="295" fill="#f3f5f4" font-size="26" font-weight="700">视频列表</text>
+<text x="440" y="319" fill="#aab9b7" font-size="13" font-weight="500">纪录片  /  24 部视频</text>
+<text x="796" y="182" fill="#9adabf" font-size="13" font-weight="700">03  /  WATCH</text>
+<text x="796" y="209" fill="#f3f5f4" font-size="21" font-weight="700">播放</text>
+<rect x="796" y="230" width="342" height="680" rx="26" fill="#0d1115"/>
+<rect x="797" y="231" width="340" height="678" rx="25" fill="#151a1f"/>
+<text x="814" y="258" fill="#f3f5f4" font-size="12" font-weight="500">9:41</text>
+<text x="1068" y="258" fill="#f3f5f4" font-size="12" font-weight="500">◉  ▰</text>
+<text x="814" y="295" fill="#f3f5f4" font-size="26" font-weight="700">播放</text>
+<text x="814" y="319" fill="#aab9b7" font-size="13" font-weight="500">正在观看  /  云层之上</text>
+<text x="1170" y="182" fill="#9adabf" font-size="13" font-weight="700">04  /  ALBUMS</text>
+<text x="1170" y="209" fill="#f3f5f4" font-size="21" font-weight="700">图集</text>
+<rect x="1170" y="230" width="342" height="680" rx="26" fill="#0d1115"/>
+<rect x="1171" y="231" width="340" height="678" rx="25" fill="#151a1f"/>
+<text x="1188" y="258" fill="#f3f5f4" font-size="12" font-weight="500">9:41</text>
+<text x="1442" y="258" fill="#f3f5f4" font-size="12" font-weight="500">◉  ▰</text>
+<text x="1188" y="295" fill="#f3f5f4" font-size="26" font-weight="700">图集</text>
+<text x="1188" y="319" fill="#aab9b7" font-size="13" font-weight="500">12 个图集  /  最近更新</text>
+<rect x="66" y="342" width="62" height="29" rx="14" fill="#c3f3dc"/>
+<text x="76" y="361" fill="#132a21" font-size="12" font-weight="650">电影</text>
+<rect x="136" y="342" width="62" height="29" rx="14" fill="#252b30"/>
+<text x="146" y="361" fill="#c3cecc" font-size="12" font-weight="650">夜色</text>
+<rect x="206" y="342" width="72" height="29" rx="14" fill="#252b30"/>
+<text x="216" y="361" fill="#c3cecc" font-size="12" font-weight="650">自定义</text>
+<svg x="66" y="389" width="148" height="155" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g0)"/><circle cx="52" cy="31" r="13" fill="#ca9864"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#124753"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#102d33"/></svg>
+<text x="68" y="566" fill="#f3f5f4" font-size="15" font-weight="650">自然纪实</text>
+<text x="68" y="584" fill="#aab9b7" font-size="11" font-weight="500">48 项</text>
+<svg x="224" y="389" width="148" height="114" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g1)"/><circle cx="68" cy="38" r="13" fill="#e78d64"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#363557"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#332642"/></svg>
+<text x="226" y="525" fill="#f3f5f4" font-size="15" font-weight="650">独立电影</text>
+<text x="226" y="543" fill="#aab9b7" font-size="11" font-weight="500">26 项</text>
+<svg x="224" y="559" width="148" height="178" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g2)"/><circle cx="84" cy="45" r="13" fill="#909baf"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#263658"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#17213d"/></svg>
+<text x="226" y="759" fill="#f3f5f4" font-size="15" font-weight="650">夜间放映</text>
+<text x="226" y="777" fill="#aab9b7" font-size="11" font-weight="500">31 项</text>
+<svg x="66" y="602" width="148" height="126" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g3)"/><circle cx="100" cy="31" r="13" fill="#dac992"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#465748"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#223d33"/></svg>
+<text x="68" y="750" fill="#f3f5f4" font-size="15" font-weight="650">城市影像</text>
+<text x="68" y="768" fill="#aab9b7" font-size="11" font-weight="500">19 项</text>
+<svg x="66" y="789" width="148" height="65" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g4)"/><circle cx="116" cy="38" r="13" fill="#eea078"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#563147"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#35243b"/></svg>
+<text x="68" y="876" fill="#f3f5f4" font-size="15" font-weight="650">经典片</text>
+<text x="68" y="894" fill="#aab9b7" font-size="11" font-weight="500"></text>
+<svg x="224" y="795" width="148" height="59" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g5)"/><circle cx="132" cy="45" r="13" fill="#b4d1bd"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#395770"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#192f48"/></svg>
+<text x="226" y="876" fill="#f3f5f4" font-size="15" font-weight="650">歌舞片</text>
+<text x="226" y="894" fill="#aab9b7" font-size="11" font-weight="500"></text>
+<rect x="440" y="342" width="61" height="29" rx="14" fill="#c3f3dc"/>
+<text x="450" y="361" fill="#132a21" font-size="12" font-weight="650">全部</text>
+<rect x="508" y="342" width="68" height="29" rx="14" fill="#252b30"/>
+<text x="518" y="361" fill="#c3cecc" font-size="12" font-weight="650">未观看</text>
+<rect x="583" y="342" width="68" height="29" rx="14" fill="#252b30"/>
+<text x="593" y="361" fill="#c3cecc" font-size="12" font-weight="650">已观看</text>
+<rect x="659" y="342" width="76" height="29" rx="14" fill="#252b30"/>
+<text x="669" y="361" fill="#c3cecc" font-size="12" font-weight="650">排序 ▾</text>
+<svg x="440" y="393" width="126" height="70" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g0)"/><circle cx="52" cy="31" r="13" fill="#ca9864"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#124753"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#102d33"/></svg>
+<rect x="519" y="442" width="42" height="16" rx="4" fill="#14181d"/>
+<text x="523" y="454" fill="#f3f5f4" font-size="10" font-weight="500">42:18</text>
+<text x="577" y="415" fill="#f3f5f4" font-size="16" font-weight="700">云层之上</text>
+<text x="577" y="438" fill="#b7c0bf" font-size="11" font-weight="500">已看 18:42 · 继续观看</text>
+<text x="726" y="416" fill="#f3f5f4" font-size="16" font-weight="500">⋮</text>
+<rect x="440" y="459" width="126" height="4" rx="0" fill="#43524a"/>
+<rect x="440" y="459" width="56" height="4" rx="0" fill="#a7e8c9"/>
+<svg x="440" y="485" width="126" height="70" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g1)"/><circle cx="68" cy="38" r="13" fill="#e78d64"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#363557"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#332642"/></svg>
+<rect x="519" y="534" width="42" height="16" rx="4" fill="#14181d"/>
+<text x="523" y="546" fill="#f3f5f4" font-size="10" font-weight="500">28:04</text>
+<text x="577" y="507" fill="#f3f5f4" font-size="16" font-weight="700">往返海岸</text>
+<text x="577" y="530" fill="#b7c0bf" font-size="11" font-weight="500">1080p · 未观看</text>
+<text x="726" y="508" fill="#f3f5f4" font-size="16" font-weight="500">⋮</text>
+<svg x="440" y="577" width="126" height="70" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g2)"/><circle cx="84" cy="45" r="13" fill="#909baf"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#263658"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#17213d"/></svg>
+<rect x="519" y="626" width="42" height="16" rx="4" fill="#14181d"/>
+<text x="523" y="638" fill="#f3f5f4" font-size="10" font-weight="500">35:09</text>
+<text x="577" y="599" fill="#f3f5f4" font-size="16" font-weight="700">潮汐之城</text>
+<text x="577" y="622" fill="#b7c0bf" font-size="11" font-weight="500">中文字幕 · 未观看</text>
+<text x="726" y="600" fill="#f3f5f4" font-size="16" font-weight="500">⋮</text>
+<svg x="440" y="669" width="126" height="70" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g3)"/><circle cx="100" cy="31" r="13" fill="#dac992"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#465748"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#223d33"/></svg>
+<rect x="519" y="718" width="42" height="16" rx="4" fill="#14181d"/>
+<text x="523" y="730" fill="#f3f5f4" font-size="10" font-weight="500">21:36</text>
+<text x="577" y="691" fill="#f3f5f4" font-size="16" font-weight="700">冬日回声</text>
+<text x="577" y="714" fill="#b7c0bf" font-size="11" font-weight="500">1080p · 未观看</text>
+<text x="726" y="692" fill="#f3f5f4" font-size="16" font-weight="500">⋮</text>
+<svg x="440" y="761" width="126" height="70" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g4)"/><circle cx="116" cy="38" r="13" fill="#eea078"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#563147"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#35243b"/></svg>
+<rect x="519" y="810" width="42" height="16" rx="4" fill="#14181d"/>
+<text x="523" y="822" fill="#f3f5f4" font-size="10" font-weight="500">49:12</text>
+<text x="577" y="783" fill="#f3f5f4" font-size="16" font-weight="700">世界尽头</text>
+<text x="577" y="806" fill="#b7c0bf" font-size="11" font-weight="500">中文字幕 · 未观看</text>
+<text x="726" y="784" fill="#f3f5f4" font-size="16" font-weight="500">⋮</text>
+<svg x="808" y="344" width="318" height="179" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g5)"/><circle cx="132" cy="45" r="13" fill="#b4d1bd"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#395770"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#192f48"/></svg>
+<rect x="808" y="344" width="318" height="179" rx="10" fill="#11192366"/>
+<text x="839" y="382" fill="#f3f5f4" font-size="12" font-weight="500">这段的配乐太合适了</text>
+<text x="948" y="437" fill="#f3f5f4" font-size="31" font-weight="500">▶</text>
+<text x="890" y="501" fill="#f3f5f4" font-size="13" font-weight="500">风穿过山谷，天色渐亮。</text>
+<rect x="815" y="540" width="304" height="4" rx="2" fill="#384743"/>
+<rect x="815" y="540" width="135" height="4" rx="2" fill="#a7e8c9"/>
+<text x="815" y="564" fill="#f3f5f4" font-size="12" font-weight="500">18:42 / 42:18</text>
+<text x="1082" y="564" fill="#f3f5f4" font-size="12" font-weight="500">全屏</text>
+<text x="815" y="600" fill="#f3f5f4" font-size="22" font-weight="700">云层之上</text>
+<text x="815" y="625" fill="#aab9b7" font-size="12" font-weight="500">自然纪实 · 第 03 集</text>
+<rect x="814" y="644" width="62" height="29" rx="14" fill="#c3f3dc"/>
+<text x="824" y="663" fill="#132a21" font-size="12" font-weight="650">弹幕</text>
+<rect x="883" y="644" width="58" height="29" rx="14" fill="#252b30"/>
+<text x="893" y="663" fill="#c3cecc" font-size="12" font-weight="650">字幕</text>
+<rect x="948" y="644" width="61" height="29" rx="14" fill="#252b30"/>
+<text x="958" y="663" fill="#c3cecc" font-size="12" font-weight="650">1.0×</text>
+<rect x="1016" y="644" width="85" height="29" rx="14" fill="#252b30"/>
+<text x="1026" y="663" fill="#c3cecc" font-size="12" font-weight="650">更多 ⋯</text>
+<rect x="814" y="704" width="305" height="56" rx="12" fill="#232b30"/>
+<text x="827" y="737" fill="#c3cecc" font-size="13" font-weight="500">18:42   说点什么…</text>
+<rect x="1056" y="717" width="52" height="29" rx="14" fill="#c3f3dc"/>
+<text x="1066" y="736" fill="#132a21" font-size="12" font-weight="650">发送</text>
+<text x="815" y="800" fill="#f3f5f4" font-size="15" font-weight="700">播放队列</text>
+<svg x="814" y="815" width="71" height="47" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g1)"/><circle cx="68" cy="38" r="13" fill="#e78d64"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#363557"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#332642"/></svg>
+<text x="898" y="843" fill="#f3f5f4" font-size="13" font-weight="500">下一集 · 往返海岸</text>
+<rect x="1188" y="342" width="62" height="29" rx="14" fill="#c3f3dc"/>
+<text x="1198" y="361" fill="#132a21" font-size="12" font-weight="650">全部</text>
+<rect x="1258" y="342" width="68" height="29" rx="14" fill="#252b30"/>
+<text x="1268" y="361" fill="#c3cecc" font-size="12" font-weight="650">收藏</text>
+<rect x="1335" y="342" width="97" height="29" rx="14" fill="#252b30"/>
+<text x="1345" y="361" fill="#c3cecc" font-size="12" font-weight="650">最近更新 ▾</text>
+<svg x="1188" y="389" width="148" height="181" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g3)"/><circle cx="100" cy="31" r="13" fill="#dac992"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#465748"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#223d33"/></svg>
+<text x="1190" y="592" fill="#f3f5f4" font-size="15" font-weight="650">山野四季</text>
+<text x="1190" y="610" fill="#aab9b7" font-size="11" font-weight="500">32 张</text>
+<svg x="1346" y="389" width="148" height="110" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g4)"/><circle cx="116" cy="38" r="13" fill="#eea078"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#563147"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#35243b"/></svg>
+<text x="1348" y="521" fill="#f3f5f4" font-size="15" font-weight="650">暮色街巷</text>
+<text x="1348" y="539" fill="#aab9b7" font-size="11" font-weight="500">24 张</text>
+<svg x="1346" y="558" width="148" height="188" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g5)"/><circle cx="132" cy="45" r="13" fill="#b4d1bd"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#395770"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#192f48"/></svg>
+<text x="1348" y="768" fill="#f3f5f4" font-size="15" font-weight="650">潮汐与海岸</text>
+<text x="1348" y="786" fill="#aab9b7" font-size="11" font-weight="500">18 张</text>
+<svg x="1188" y="630" width="148" height="127" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g0)"/><circle cx="52" cy="31" r="13" fill="#ca9864"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#124753"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#102d33"/></svg>
+<text x="1190" y="779" fill="#f3f5f4" font-size="15" font-weight="650">北境漫游</text>
+<text x="1190" y="797" fill="#aab9b7" font-size="11" font-weight="500">41 张</text>
+<svg x="1346" y="810" width="148" height="40" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g1)"/><circle cx="68" cy="38" r="13" fill="#e78d64"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#363557"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#332642"/></svg>
+<text x="1348" y="872" fill="#f3f5f4" font-size="15" font-weight="650"></text>
+<text x="1348" y="890" fill="#aab9b7" font-size="11" font-weight="500"></text>
+<svg x="1188" y="818" width="148" height="35" viewBox="0 0 180 110" preserveAspectRatio="none" style="overflow:hidden;border-radius:10px"><rect width="180" height="110" rx="10" fill="url(#g2)"/><circle cx="84" cy="45" r="13" fill="#909baf"/><path d="M0 87L48 43L88 79L126 51L180 86V110H0Z" fill="#263658"/><path d="M0 90L42 72L78 91L133 66L180 91V110H0Z" fill="#17213d"/></svg>
+<text x="1190" y="875" fill="#f3f5f4" font-size="15" font-weight="650"></text>
+<text x="1190" y="893" fill="#aab9b7" font-size="11" font-weight="500"></text>
+<rect x="169" y="887" width="100" height="4" rx="2" fill="#667571"/>
+<rect x="543" y="887" width="100" height="4" rx="2" fill="#667571"/>
+<rect x="917" y="887" width="100" height="4" rx="2" fill="#667571"/>
+<rect x="1291" y="887" width="100" height="4" rx="2" fill="#667571"/>
+<rect x="48" y="954" width="1464" height="146" rx="18" fill="#1a2228"/>
+<text x="72" y="987" fill="#f3f5f4" font-size="19" font-weight="700">05  /  横屏控制分层</text>
+<text x="72" y="1020" fill="#c3cecc" font-size="15" font-weight="500">顶部   返回 · 标题 · 锁屏 · 更多</text>
+<text x="450" y="1020" fill="#c3cecc" font-size="15" font-weight="500">中央   快退 · 播放/暂停 · 快进</text>
+<text x="868" y="1020" fill="#c3cecc" font-size="15" font-weight="500">底部   时间轴 · 字幕 · 倍速 · 弹幕</text>
+<text x="72" y="1064" fill="#a5e7cb" font-size="15" font-weight="500">右下工具组保留收藏与电视投屏；字幕占底部独立区域，滚动弹幕不覆盖字幕或控制条。</text>
+</svg>

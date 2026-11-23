@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<title>HER · VRM</title>
+<style>
+  html, body { margin: 0; height: 100%; background: transparent; overscroll-behavior: none; }
+  canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
+  #status { position: fixed; inset: 0; display: none; color: #aab; font: 14px/1.6 system-ui;
+            padding: 24px; text-align: center; }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div id="status"></div>
+<script src="scene.bundle.js"></script>
+<script>
+  // Kotlin 侧（VrmBridge.jsCall）只调这个；桥回调走 __doSyncJs 之外的原生接口名见引擎。
+  window.vrmCommand = function (json) { if (window.__scene) window.__scene.command(json); };
+  window.__scene = window.DhVrmScene.init(document.getElementById('scene'), '/model', {
+    bridge: {
+      onReady: function () { window.DhVrmNative && window.DhVrmNative.onReady(); },
+      onError: function (m) { window.DhVrmNative && window.DhVrmNative.onError(String(m)); },
+    },
+  });
+</script>
+</body>
+</html>

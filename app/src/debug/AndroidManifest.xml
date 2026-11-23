@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- 本地真机验收：把陪伴 API 指到本地栈（runbook §1）。release 清单合并不到这一条。 -->
+        <provider
+            android:name="com.openapi.app.DevCompanionServer"
+            android:authorities="${applicationId}.dev-companion-server"
+            android:exported="false"
+            android:initOrder="100" />
+    </application>
+</manifest>

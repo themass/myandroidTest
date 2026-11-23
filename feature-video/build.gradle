@@ -1,0 +1,67 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.feature.video'
+    // 随包样片 assets 挂载已撤（本地样片库下线）；docs/design/video-suite-prototype/media
+    // 仍在仓库里，只作为设计原型自带的资源，不再进任何构建。
+    buildFeatures {
+        compose = true
+        viewBinding = true
+    }
+    testOptions {
+        unitTests {
+            // FeedPager 的重试路径带 Log.i/w，JVM 测试里按 no-op 处理即可
+            returnDefaultValues = true
+        }
+    }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    // FeedPager 的重试策略跑在协程上，用虚拟时间测退避等待
+    testImplementation libs.kotlinx.coroutines.test
+    // 视频页的实时字幕与翻译
+    implementation project(':speech')
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.recyclerview
+    implementation libs.glide
+    implementation project(':common')
+    implementation project(':cast')
+    // GSY 播放器和内核（只有本模块用）
+    implementation 'io.github.carguo:gsyvideoplayer:13.1.0'
+    // 阿里云播放器内核（需 PlayerFactory.setPlayManager(AliPlayerManager.class)）
+    implementation 'io.github.carguo:gsyvideoplayer-aliplay:13.1.0'
+    // IJK 扩展 FFmpeg/so：mpeg、部分 rtsp/concat 等，见 GSY doc/DECODERS.md
+    implementation 'io.github.carguo:gsyvideoplayer-ex_so:13.1.0'
+    implementation project(':core')
+
+    implementation libs.okhttp
+    // Material 组件（BottomSheetDialog、Snackbar）
+    implementation libs.google.material
+
+    // Media3（PCM 音频源、ExoPlayer 数据源）
+    implementation libs.androidx.media3.exoplayer
+    implementation libs.androidx.media3.datasource
+    implementation libs.androidx.media3.ui
+    // HLS（m3u8）播放：原来声明在 :app，实际是视频播放用
+    implementation libs.androidx.media3.exoplayer.hls
+    // Google Cast 投屏（AppCastOptionsProvider、CastButtonBinder 等），原来声明在 :app
+    implementation 'com.google.android.gms:play-services-cast-framework:21.5.0'
+
+    // Compose（LocalVideoActivity、VideoListItemCompose）
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.material3
+    implementation libs.androidx.compose.material.icons.extended
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.lifecycle.viewmodel.compose
+    implementation libs.androidx.lifecycle.runtime.compose
+    implementation libs.kotlinx.coroutines.android
+}

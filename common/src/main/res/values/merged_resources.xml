@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_network_no_connection">Network connection is not available, please try again later</string>
+    <string name="error_network_timeout">Network connection timeout, please try again later</string>
+    <string name="error_network_unknown">Connection server error, please check your network connection or try again later.</string>
+    <attr name="ate_key" format="string" />
+    <attr name="cardStyle" format="reference" />
+    <attr name="accentColor" format="reference" />
+    <attr name="iconColor" format="reference" />
+    <attr name="windowBackground" format="reference" />
+    <attr name="stateSelector" format="reference" />
+    <attr name="toolbar_popup_theme" format="reference" />
+        <attr name="textType" format="string" />
+        <attr name="ahp_progressColor" format="color|reference" />
+        <attr name="ahp_backgroundColor" format="color|reference" />
+        <attr name="ahp_cornerRadius" format="dimension|reference" />
+    <attr name="fontPath" format="string" />
+    <attr name="main_background" format="color" />
+    <attr name="card_background" format="color" />
+    <attr name="ripple_color" format="color" />
+    <attr name="toolbar_icon" format="color" />
+    <color name="base_white">#ffffff</color>
+    <color name="base_red">#ff0000</color>
+    <color name="base_black">#000000</color>
+    <color name="base_gray">#968d8d</color>
+    <color name="transparent">#00000000</color>
+    <color name="heart_anim_view_bg">#662d5d82</color>
+    <color name="btn_default_light_normal">#00000000</color>
+    <color name="btn_default_light_pressed">#40ffffff</color>
+    <color name="base_bg">#FFE8E8E8</color>
+    <dimen name="textsize_11">11sp</dimen>
+    <dimen name="textsize_12">12sp</dimen>
+    <dimen name="textsize_14">14sp</dimen>
+    <dimen name="textsize_16">16sp</dimen>
+    <dimen name="textsize_18">18sp</dimen>
+    <dimen name="margin_2">2dip</dimen>
+    <dimen name="margin_3">3dip</dimen>
+    <dimen name="margin_5">5dip</dimen>
+    <dimen name="margin_8">8dip</dimen>
+    <dimen name="margin_10">10dip</dimen>
+    <dimen name="margin_15">15dip</dimen>
+    <dimen name="margin_22">22dip</dimen>
+    <dimen name="margin_40">40dip</dimen>
+    <dimen name="margin_48">48dip</dimen>
+    <dimen name="margin_55">55dip</dimen>
+    <dimen name="margin_100">100dip</dimen>
+    <dimen name="margin_250">250dip</dimen>
+    <dimen name="loading_footer">12sp</dimen>
+    <string name="core_permission_rationale_title">需要权限</string>
+    <string name="core_permission_go_settings_title">权限未开启</string>
+    <string name="core_permission_go_settings_message">%1$s\n\n你之前选择了“不再询问”，需要到 设置 → 权限 中手动开启。</string>
+    <string name="core_permission_continue">继续</string>
+    <string name="core_permission_go_settings">去设置</string>
+    <string name="core_permission_cancel">暂不</string>
+    <string name="error_network_retry">Load error, please click Retry.</string>
+    <string name="error_network_nodata_retry">Nodata, please click Retry.</string>
+    <string name="menu_haha">Yo! You found it.</string>
+    <string name="input_picture">photo</string>
+    <string name="input_video">video</string>
+    <string name="input_file">files</string>
+    <string name="input_talk">talk</string>
+    <string name="input_question">Solve</string>
+    <string name="input_help">Help</string>
+    <string name="input_position">position</string>
+    <string name="menu_share_copy_ok">Copied OK</string>
+    <string name="load">loading more data</string>
+    <style name="like_toast_dialog_style">
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+    <style name="dialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowFrame">@null</item><!--边框-->
+        <item name="android:windowIsFloating">true</item><!--是否浮现在activity之上-->
+        <item name="android:windowNoTitle">true</item><!--无标题-->
+        <item name="android:windowBackground">@color/transparent</item><!--背景透明-->
+    </style>
+    <style name="mydialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowBackground">@color/base_bg</item>
+        <item name="android:windowIsFloating">true</item><!--是否浮现在activity之上-->
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.6</item>
+    </style>
+    <string name="tab_fb_click_no">No ads,please try later</string>
+    <string name="tab_fb_click">Points ads to earn points +</string>
+    <string name="tab_fb_click_fast">Too fast,please wait 3 seconds</string>
+    <string name="repeated_click">Do not click repeatedly</string>
+</resources>

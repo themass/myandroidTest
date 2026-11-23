@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 位置消息（P2-13）只要粗定位：库清单声明，合并进 app。
+         刻意不声明 FINE——位置气泡是城市街区级精度，敏感权限换它不值。 -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+</manifest>

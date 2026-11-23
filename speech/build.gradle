@@ -1,0 +1,57 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+// :speech：语音与字幕——火山引擎流式识别（asr/）、设备朗读（tts/）、录音与语音消息播放（audio/）、
+// 翻译接口与实时字幕（subtitle/）。实时字幕组合识别和覆盖层，所以放在同一个模块。
+apply from: rootProject.file('gradle/android-library.gradle')
+
+// 火山 ASR 凭证构建注入（正式化整改：主源码集不留明文 key）。
+// 取值优先级：-PvolcAsrAppKey / gradle.properties / local.properties（gitignore）> 同名环境变量 > 空。
+// 空不报错：VolcengineAsrConfig.isConfigured() 为假，实时字幕走「去设置页填凭证」的明示路径。
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) localPropsFile.withInputStream { localProps.load(it) }
+def asrSecret = { String name ->
+    def value = project.findProperty(name) ?: localProps.getProperty(name) ?: System.getenv(name) ?: ""
+    "\"${value.toString().replace('\\', '\\\\').replace('"', '\\"')}\""
+}
+
+// 情绪 TTS（Suno Bark PoC）接线开关。默认关：不写就是 false + 空 URL，
+// BarkEmotionalTts.enabled 为假，朗读链路和以前一模一样。
+// 只在本地/测试打开：-PbarkTtsEnabled=true -PbarkTtsBaseUrl=https://<测试机>:8088
+// 绝不要提交测试机地址（见 tools/bark-tts/README.md：测试机 ≠ 104 生产机）。
+def buildFlag = { String name, String fallback ->
+    def value = project.findProperty(name) ?: localProps.getProperty(name) ?: System.getenv(name) ?: fallback
+    value.toString()
+}
+
+android {
+    namespace = 'com.openapi.speech'
+    buildFeatures { buildConfig = true }
+    defaultConfig {
+        buildConfigField "String", "VOLC_ASR_APP_KEY", asrSecret('volcAsrAppKey')
+        buildConfigField "String", "VOLC_ASR_ACCESS_KEY", asrSecret('volcAsrAccessKey')
+        buildConfigField "boolean", "BARK_TTS_ENABLED",
+                buildFlag('barkTtsEnabled', 'false')
+        buildConfigField "String", "BARK_TTS_BASE_URL",
+                "\"${buildFlag('barkTtsBaseUrl', '')}\""
+    }
+}
+
+dependencies {
+    implementation libs.androidx.core.ktx
+    implementation libs.kotlinx.coroutines.android
+    // 语音消息播放（AudioPlayer）
+    implementation libs.androidx.media3.exoplayer
+    // 火山引擎流式 ASR：WebSocket，配置读偏好、日志
+    implementation libs.okhttp
+    implementation project(':common')
+    // 实时字幕的 PCM 音频源已由上面的 media3-exoplayer 提供
+
+    testImplementation 'junit:junit:4.13.2'
+    // 识别响应解析器用 org.json：JVM 单测里它是 stub，照 feature-chat 的做法由 Robolectric 提供真实现
+    testImplementation 'org.robolectric:robolectric:4.17'
+    testImplementation 'androidx.test:core:1.7.0'
+}

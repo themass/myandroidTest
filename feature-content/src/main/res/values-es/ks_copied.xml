@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sound">Obsceno</string>
+    <string name="video">Video sexual</string>
+    <string name="down_to_loadmore">deslice hacia abajo para cargar más</string>
+    <string name="menu_btn_favorite">Mis favoritos</string>
+    <string name="menu_btn_app">Recomendación de aplicaciones</string>
+    <string name="ads_logo">ANUNCIO</string>
+    <string name="save_fail">error al guardar</string>
+    <string name="no_select">no seleccionado</string>
+    <string name="save_ok">guardado correctamente</string>
+    <string name="menu_share_copy_ok">Copiado correctamente</string>
+    <string name="menu_btn_donation">Apoyo</string>
+    <string name="sound_play_not_wifi">¿Está usando una red que no es WiFi?</string>
+    <string name="app_name">kimi</string>
+    <string name="vip_tips">por favor actualice a VIP</string>
+    <string name="save_start">comenzando a guardar...</string>
+    <string name="del_cancel">Cancelar</string>
+    <string name="tv">TV</string>
+    <string name="text">Novela interesante</string>
+    <string name="del_ok">Aceptar</string>
+    <string name="menu_favorite">Favorito</string>
+    <string name="img">Imagen sexual</string>
+    <string name="menu_share_text_only">¡FALLO! Solo se puede compartir texto</string>
+    <string name="menu_favorite_cancel">Cancelar favorito</string>
+</resources>

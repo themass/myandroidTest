@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sound">Lasterhafte Worte</string>
+    <string name="video">Videoerfahrung</string>
+    <string name="down_to_loadmore">Ziehen Sie nach unten, um spannenderen Inhalt zu laden</string>
+    <string name="menu_btn_favorite">Lesezeichen</string>
+    <string name="menu_btn_app">App-Empfehlungen</string>
+    <string name="ads_logo">Werbung</string>
+    <string name="save_fail">Fehler beim Speichern</string>
+    <string name="no_select">Nichts ausgewählt</string>
+    <string name="save_ok">Erfolgreich gespeichert</string>
+    <string name="menu_share_copy_ok">In die Zwischenablage kopiert</string>
+    <string name="menu_btn_donation">Bezahlen</string>
+    <string name="sound_play_not_wifi">Audio ohne WLAN abspielen?</string>
+    <string name="app_name">kimi</string>
+    <string name="vip_tips">Bitte upgraden Sie auf VIP</string>
+    <string name="save_start">Speichern beginnt...</string>
+    <string name="del_cancel">Abbrechen</string>
+    <string name="tv">TV</string>
+    <string name="text">Erotische Geschichten</string>
+    <string name="del_ok">Bestätigen</string>
+    <string name="menu_favorite">Merken</string>
+    <string name="img">Sensible Bilder</string>
+    <string name="menu_share_text_only">FEHLER!! Nur Text kann geteilt werden</string>
+    <string name="menu_favorite_cancel">Merken aufheben</string>
+</resources>

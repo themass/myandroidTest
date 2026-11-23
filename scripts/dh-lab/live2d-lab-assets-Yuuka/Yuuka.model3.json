@@ -1,0 +1,36 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "yuuka.moc3",
+		"Textures": [
+			"yuuka.4096/texture_00.png"
+		],
+		"Physics": "yuuka.physics3.json",
+		"DisplayInfo": "yuuka.cdi3.json",
+		"Expressions": [
+			{
+				"Name": "base",
+				"File": "expressions/base.exp3.json"
+			},
+			{
+				"Name": "blush",
+				"File": "expressions/blush.exp3.json"
+			}
+		]
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": []
+		}
+	]
+}

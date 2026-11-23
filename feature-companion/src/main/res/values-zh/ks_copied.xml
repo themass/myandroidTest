@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="companion_proactive_generic">她主动说的</string>
+    <string name="companion_tab_events">重要日子</string>
+    <string name="companion_pref_call">允许她主动打电话给我</string>
+    <string name="companion_tab_facts">记住的事</string>
+    <string name="companion_pref_pause_1h">暂停 1 小时</string>
+    <string name="companion_call_accept">接听</string>
+    <string name="companion_action_cancel">先不用</string>
+    <string name="companion_proactive_event">她记得</string>
+    <string name="companion_pref_events">重要日子提醒我</string>
+    <string name="companion_mode_voice">语音</string>
+    <string name="companion_action_confirm">允许</string>
+    <string name="companion_open_characters">角色</string>
+    <string name="companion_pref_greetings">偶尔主动跟我打个招呼</string>
+    <string name="companion_mode_text">文字</string>
+    <string name="companion_open_memory">她记得的</string>
+    <string name="companion_settings_title">她的主动性</string>
+    <string name="companion_pref_resume">恢复</string>
+    <string name="companion_event_title_hint">是什么日子</string>
+    <string name="companion_memory_title">她记得的</string>
+    <string name="companion_error_generic">出了点问题</string>
+    <string name="companion_saving">正在保存…</string>
+    <string name="companion_pref_quiet">安静时段：%1$s – %2$s</string>
+    <string name="companion_input_hint">说点什么…</string>
+    <string name="companion_call_decline">挂断</string>
+    <string name="companion_event_date_hint">日期，如 2026-12-01 10:00</string>
+    <string name="companion_empty">还没有内容</string>
+    <string name="companion_incoming_call">她打来了</string>
+    <string name="companion_done">已完成</string>
+    <string name="companion_retry">重试</string>
+    <string name="companion_send">发送</string>
+    <string name="companion_open_settings">她的主动性</string>
+    <string name="companion_delete">忘掉</string>
+    <string name="companion_copied">已复制</string>
+    <string name="companion_proactive_greeting">她来找你</string>
+    <string name="companion_pref_paused_until">暂停至 %1$s</string>
+    <string name="companion_characters_title">选择陪伴的角色</string>
+    <string name="companion_title">陪伴</string>
+    <string name="companion_add_event">添加</string>
+    <string name="companion_nav_back">返回</string>
+    <string name="companion_open_voice">语音通话</string>
+    <string name="companion_voice_back">返回文字对话</string>
+    <string name="companion_tab_profile">她对你的了解</string>
+    <string name="companion_profile_hint">这是她归纳出来的对你的了解。标了「猜测」的是她猜的，没有经过你确认。你可以让她别再提某一条，或者直接忘掉。</string>
+    <string name="companion_profile_guess">猜测，未经确认</string>
+    <string name="companion_profile_stop">别再提</string>
+    <!-- AI 对你的档案（Markdown 长文，按角色隔离，可编辑） -->
+    <string name="companion_profile_doc_title">AI 对我的档案</string>
+    <string name="companion_profile_doc_maintained_by_ai">由她维护——你们聊得越多越准</string>
+    <string name="companion_profile_doc_edited_by_you">你最近改过</string>
+    <string name="companion_profile_doc_edit_hint">编辑档案</string>
+    <string name="companion_profile_doc_save">保存</string>
+    <string name="companion_profile_doc_saved">已保存</string>
+    <!-- 输入区选图/拍照 -->
+    <string name="companion_attach_more">发图片</string>
+    <string name="companion_attach_album">相册</string>
+    <string name="companion_attach_camera">拍摄</string>
+    <string name="companion_attach_thumbnail">待发送的图片</string>
+    <string name="companion_attach_remove">移除这张图片</string>
+    <!-- 发送侧错误提示（cleanup 项 2）：与迁移前 ViewModel 里的中文字面量逐字一致 -->
+    <string name="companion_upload_partial_failed">部分图片上传失败，已保留待重发</string>
+    <string name="companion_upload_unsupported">当前连接不支持图片，请重新进入对话后再试</string>
+    <string name="companion_attachment_delivery_failed">图片没能发送出去，已保留，请再按一次发送</string>
+    <string name="companion_upload_in_progress">图片正在发送，稍等一下再发</string>
+    <!-- 与 values/ 同名：闸数的是图片张数（陪伴页只有图片），不是「对话」页那条
+         chat_attachment_limit_reached（图片 + 视频合计）。见 values/ks_copied.xml 的注释。 -->
+    <string name="companion_image_limit_reached">一条消息最多 %1$d 张图片</string>
+    <string name="companion_camera_rationale">拍摄照片并发给她需要使用相机权限</string>
+    <string name="companion_camera_denied">未授予相机权限，无法拍照</string>
+</resources>

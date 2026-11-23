@@ -1,0 +1,72 @@
+diff --git a/Live2D/src/main/cpp/JniBridgeC.cpp b/Live2D/src/main/cpp/JniBridgeC.cpp
+index 9e13e77..a0be52b 100644
+--- a/Live2D/src/main/cpp/JniBridgeC.cpp
++++ b/Live2D/src/main/cpp/JniBridgeC.cpp
+@@ -219,4 +219,12 @@ JNIEXPORT void JNICALL
+ Java_com_chatwaifu_live2d_JniBridgeJava_nativeProjectMouthOpenY(JNIEnv *env, jclass clazz,
+                                                                 jfloat value) {
+     LAppDelegate::GetInstance()->ModelMouthOpenY(value);
+-}
+\ No newline at end of file
++}
++
++// [chatwaifu-fork] 第 20 个导出：背景色注入（r,g,b ∈ 0..1）。GL 线程下一帧生效。
++extern "C"
++JNIEXPORT void JNICALL
++Java_com_chatwaifu_live2d_JniBridgeJava_nativeSetBackgroundColor(JNIEnv *env, jclass clazz,
++                                                                 jfloat r, jfloat g, jfloat b) {
++    LAppDelegate::GetInstance()->SetBackgroundColor(r, g, b);
++}
+diff --git a/Live2D/src/main/cpp/LAppDelegate.cpp b/Live2D/src/main/cpp/LAppDelegate.cpp
+index 1f81ab3..df7d3d9 100644
+--- a/Live2D/src/main/cpp/LAppDelegate.cpp
++++ b/Live2D/src/main/cpp/LAppDelegate.cpp
+@@ -86,7 +86,8 @@ void LAppDelegate::Run()
+     LAppPal::UpdateTime();
+ 
+     // 画面の初期化
+-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
++    // [chatwaifu-fork] 背景色由宿主注入（默认 0,0,0 = 上游行为）。
++    glClearColor(_bgR, _bgG, _bgB, 1.0f);
+     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+     glClearDepthf(1.0f);
+ 
+@@ -102,6 +103,13 @@ void LAppDelegate::Run()
+     }
+ }
+ 
++void LAppDelegate::SetBackgroundColor(float r, float g, float b)
++{
++    // [chatwaifu-fork] Run() 每帧在 GL 线程读取这三个值，与此处的写入构成
++    // 良性竞争（最坏一帧旧色），与 ModelMouthOpenY 等既有参数同款约定。
++    _bgR = r; _bgG = g; _bgB = b;
++}
++
+ void LAppDelegate::OnSurfaceCreate()
+ {
+     //テクスチャサンプリング設定
+diff --git a/Live2D/src/main/cpp/LAppDelegate.hpp b/Live2D/src/main/cpp/LAppDelegate.hpp
+index 373ccbf..050b4ec 100644
+--- a/Live2D/src/main/cpp/LAppDelegate.hpp
++++ b/Live2D/src/main/cpp/LAppDelegate.hpp
+@@ -162,6 +162,12 @@ public:
+ 
+     void ModelMouthOpenY(float value);
+ 
++    /**
++     * [chatwaifu-fork] 每帧 glClearColor 的背景色（0..1）。默认黑 = 上游行为不变。
++     * 由宿主经 nativeSetBackgroundColor 注入通话页主题色。
++     */
++    void SetBackgroundColor(float r, float g, float b);
++
+ private:
+     /**
+     * @brief   コンストラクタ
+@@ -189,4 +195,7 @@ private:
+     bool _isActive;                              ///< アプリがアクティブ状態なのか
+     float _mouseY;                               ///< マウスY座標
+     float _mouseX;                               ///< マウスX座標
++    float _bgR = 0.0f;                           ///< [chatwaifu-fork] 背景色 R
++    float _bgG = 0.0f;                           ///< [chatwaifu-fork] 背景色 G
++    float _bgB = 0.0f;                           ///< [chatwaifu-fork] 背景色 B
+ };

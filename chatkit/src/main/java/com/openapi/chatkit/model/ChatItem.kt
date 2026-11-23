@@ -1,0 +1,146 @@
+package com.openapi.chatkit.model
+
+import androidx.compose.runtime.Immutable
+
+/** 消息由谁发出。 */
+enum class Sender { User, Assistant }
+
+/** 用户消息的发送状态。 */
+enum class SendStatus { Sent, Sending, Failed }
+
+/** 用户对助手消息的评价。 */
+enum class Reaction { None, Like, Dislike }
+
+/**
+ * 一组图片在气泡里用什么样式排。样式由「策略 + 张数」决定，张数不再单独决定样式：
+ *
+ * - [Auto]：按张数分支的旧行为（1 张按原图比例显示，2–4 张收纳盒，5 张及以上轮播）。
+ * - [Stack]：一律走收纳盒（mediaview 的 MediaStack），任意张数都是同一个样式——
+ *   聊天气泡与陪伴端图片消息统一成这套样式的默认值。
+ */
+enum class ImageLayout { Auto, Stack }
+
+/**
+ * 一条消息里的一个部分。一条消息可以由多个部分组合而成，渲染顺序固定为
+ * 图片 → 文件 → 语音 → 文字（附件在上、文字在下），与列表顺序无关。
+ */
+@Immutable
+sealed interface MessagePart {
+    /** 文字。助手文字可由调用方用 Markdown 渲染（见 [com.openapi.chatkit.message.ChatMessageList] 的 text 参数）。 */
+    data class Text(val text: String) : MessagePart
+
+    /**
+     * 一组图片：本地文件路径或 http(s) 地址。
+     * [layout] 默认 [ImageLayout.Stack]：映射图片时不用显式传，两端默认同一套收纳盒样式。
+     */
+    data class Images(val sources: List<String>, val layout: ImageLayout = ImageLayout.Stack) : MessagePart
+
+    /** 一个文件。 */
+    data class File(val path: String, val name: String, val sizeBytes: Long) : MessagePart
+
+    /**
+     * 一个视频。[thumbnailPath] 只有发送侧有（发之前从本机文件抽的首帧，服务端不产缩略图），
+     * 历史侧通常是空串；两者都空时卡片退化成「文件名 + 时长」。
+     * [path] 是本机文件路径（没有为空串），[uploadId] 是服务端对象 id——点开播放时由调用方
+     * 决定用哪个来源，组件不碰网络也不碰文件。
+     */
+    data class Video(
+        val name: String,
+        val durationSeconds: Int,
+        val thumbnailPath: String = "",
+        val path: String = "",
+        val uploadId: String? = null,
+    ) : MessagePart
+
+    /**
+     * 一个位置。只有坐标和可选精度（米）——组件不画地图，「在地图打开」按钮只把回调
+     * 交给调用方（geo: intent 由业务侧决定，组件库里没有也不需要 Android intent）。
+     */
+    data class Location(val latitude: Double, val longitude: Double, val accuracyMeters: Int?) : MessagePart
+
+    /** 语音。[playing] 由调用方根据播放器状态填入，组件据此显示声波动画。 */
+    /** 语音消息。[transcript] 为 null 或空白表示没有识别出文字；[transcribing] 为 true 表示还在识别中。 */
+    data class Voice(
+        val durationSeconds: Int,
+        val transcript: String?,
+        val playing: Boolean,
+        val transcribing: Boolean = false,
+    ) : MessagePart
+}
+
+/** 列表里的一条消息（UI 模型）。由调用方从自己的领域模型映射而来。 */
+@Immutable
+data class ChatItem(
+    val id: String,
+    /** 列表项的稳定标识（不随服务端 id 的替换而变化），LazyColumn 用它做 key。 */
+    val key: String = id,
+    val sender: Sender,
+    val parts: List<MessagePart>,
+    val status: SendStatus = SendStatus.Sent,
+    /** 助手正在思考、还没有任何内容时为 true，显示跳动的点。 */
+    val thinking: Boolean = false,
+    val reaction: Reaction = Reaction.None,
+    /** 正在朗读这条消息。 */
+    val speaking: Boolean = false,
+    /** 助手正在流式输出这条消息（已有部分文字但还没结束）。 */
+    val streaming: Boolean = false,
+) {
+    /** 用于复制、分享、编辑的纯文本：文字部分，没有文字时退回语音转写。 */
+    val plainText: String
+        get() {
+            val text = parts.filterIsInstance<MessagePart.Text>().joinToString("\n") { it.text }
+            if (text.isNotBlank()) return text
+            return parts.filterIsInstance<MessagePart.Voice>().mapNotNull { it.transcript }.joinToString("\n")
+        }
+}
+
+/** 用户在消息上触发的操作。组件只负责把操作交给调用方，不关心怎么实现。 */
+sealed interface MessageAction {
+    data object Copy : MessageAction
+    data object Delete : MessageAction
+    data object Retry : MessageAction
+    data object Edit : MessageAction
+    data object Speak : MessageAction
+    data object Like : MessageAction
+    data object Dislike : MessageAction
+    data object Share : MessageAction
+    data object Regenerate : MessageAction
+    data object PlayVoice : MessageAction
+    /** 长按菜单「多选」：进入多选，并选中这条消息。 */
+    data object Select : MessageAction
+    data class OpenFile(val file: MessagePart.File) : MessageAction
+    /** 点击视频卡片要播放。[video] 原样带回，播放地址（本机文件或签名 URL）由调用方解析。 */
+    data class OpenVideo(val video: MessagePart.Video) : MessageAction
+    /** 点击位置气泡的「在地图打开」。 */
+    data class OpenLocation(val location: MessagePart.Location) : MessageAction
+    /**
+     * 点击了加载失败的那张图（整改清单 P1-10）。[index] 是它在消息里的下标。
+     * 组件已经自己做了「强制重新加载」；调用方若还能重新换取远程地址（签名 URL），
+     * 拿到后更新消息里的路径即可——下标对应的路径一变，组件会按新地址重新加载。
+     */
+    data class RetryImage(val index: Int) : MessageAction
+}
+
+/** 附件的长按目标：一张图片（本地路径或地址）或一个文件。 */
+sealed interface AttachmentTarget {
+    data class Image(val source: String) : AttachmentTarget
+    data class File(val file: MessagePart.File) : AttachmentTarget
+}
+
+/**
+ * 附件长按菜单里的动作种类。图标和文字由组件统一提供；具体做什么由调用方决定
+ * （下载、复制图片、分享、复制路径都在 app 里实现，「查看路径」由组件显示路径卡片）。
+ */
+enum class AttachmentActionKind { Download, CopyImage, Share, ShowPath, CopyPath }
+
+/**
+ * 「查看路径」卡片的内容，由调用方给出。[path] 是 app 内部存储里的完整路径；
+ * [savedPath] 是已经另存到公共目录（如 Pictures）时的路径，没有就为 null。
+ */
+data class AttachmentPathInfo(
+    val name: String,
+    val path: String,
+    val sizeBytes: Long?,
+    val savedPath: String? = null,
+)
+

@@ -1,0 +1,17 @@
+# 复制到 ~/.ssh/config（按需合并）
+
+Host jumphost
+    HostName 139.196.79.65
+    User root
+    Port 1122
+    StrictHostKeyChecking no
+
+Host test.io
+    HostName 172.16.3.23
+    User root
+    StrictHostKeyChecking no
+    ProxyCommand ssh -W %h:%p -o StrictHostKeyChecking=no jumphost
+    ControlMaster auto
+    ControlPath ~/.ssh/cm/agent.sock
+    ControlPersist 10m
+

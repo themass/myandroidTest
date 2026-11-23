@@ -1,0 +1,752 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "atri_8.moc3",
+		"Textures": [
+			"atri_8.4096/texture_00.png",
+			"atri_8.4096/texture_01.png"
+		],
+		"Physics": "atri_8.physics3.json",
+		"DisplayInfo": "atri_8.cdi3.json",
+		"Expressions": [
+			{
+				"Name": "base",
+				"File": "expressions/base.exp3.json"
+			},
+			{
+				"Name": "blush",
+				"File": "expressions/blush.exp3.json"
+			},
+			{
+				"Name": "white",
+				"File": "expressions/white.exp3.json"
+			},
+			{
+				"Name": "kani",
+				"File": "expressions/kani.exp3.json"
+			},
+			{
+				"Name": "kani_blush",
+				"File": "expressions/kani_blush.exp3.json"
+			},
+			{
+				"Name": "kani_white",
+				"File": "expressions/kani_white.exp3.json"
+			},
+			{
+				"Name": "bird",
+				"File": "expressions/bird.exp3.json"
+			},
+			{
+				"Name": "bird_blush",
+				"File": "expressions/bird_blush.exp3.json"
+			},
+			{
+				"Name": "bird_white",
+				"File": "expressions/bird_white.exp3.json"
+			},
+			{
+				"Name": "pillow",
+				"File": "expressions/pillow.exp3.json"
+			},
+			{
+				"Name": "pillow_blush",
+				"File": "expressions/pillow_blush.exp3.json"
+			},
+			{
+				"Name": "pillow_white",
+				"File": "expressions/pillow_white.exp3.json"
+			},
+			{
+				"Name": "sandal",
+				"File": "expressions/sandal.exp3.json"
+			},
+			{
+				"Name": "sandal_blush",
+				"File": "expressions/sandal_blush.exp3.json"
+			},
+			{
+				"Name": "sandal_white",
+				"File": "expressions/sandal_white.exp3.json"
+			},
+			{
+				"Name": "sandal_kani",
+				"File": "expressions/sandal_kani.exp3.json"
+			},
+			{
+				"Name": "sandal_kani_blush",
+				"File": "expressions/sandal_kani_blush.exp3.json"
+			},
+			{
+				"Name": "sandal_kani_white",
+				"File": "expressions/sandal_kani_white.exp3.json"
+			},
+			{
+				"Name": "sandal_bird",
+				"File": "expressions/sandal_bird.exp3.json"
+			},
+			{
+				"Name": "sandal_bird_blush",
+				"File": "expressions/sandal_bird_blush.exp3.json"
+			},
+			{
+				"Name": "sandal_bird_white",
+				"File": "expressions/sandal_bird_white.exp3.json"
+			},
+			{
+				"Name": "sandal_pillow",
+				"File": "expressions/sandal_pillow.exp3.json"
+			},
+			{
+				"Name": "sandal_pillow_blush",
+				"File": "expressions/sandal_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "sandal_pillow_white",
+				"File": "expressions/sandal_pillow_white.exp3.json"
+			},
+			{
+				"Name": "leather",
+				"File": "expressions/leather.exp3.json"
+			},
+			{
+				"Name": "leather_blush",
+				"File": "expressions/leather_blush.exp3.json"
+			},
+			{
+				"Name": "leather_white",
+				"File": "expressions/leather_white.exp3.json"
+			},
+			{
+				"Name": "leather_kani",
+				"File": "expressions/leather_kani.exp3.json"
+			},
+			{
+				"Name": "leather_kani_blush",
+				"File": "expressions/leather_kani_blush.exp3.json"
+			},
+			{
+				"Name": "leather_kani_white",
+				"File": "expressions/leather_kani_white.exp3.json"
+			},
+			{
+				"Name": "leather_bird",
+				"File": "expressions/leather_bird.exp3.json"
+			},
+			{
+				"Name": "leather_bird_blush",
+				"File": "expressions/leather_bird_blush.exp3.json"
+			},
+			{
+				"Name": "leather_bird_white",
+				"File": "expressions/leather_bird_white.exp3.json"
+			},
+			{
+				"Name": "leather_pillow",
+				"File": "expressions/leather_pillow.exp3.json"
+			},
+			{
+				"Name": "leather_pillow_blush",
+				"File": "expressions/leather_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "leather_pillow_white",
+				"File": "expressions/leather_pillow_white.exp3.json"
+			},
+			{
+				"Name": "bikini",
+				"File": "expressions/bikini.exp3.json"
+			},
+			{
+				"Name": "bikini_blush",
+				"File": "expressions/bikini_blush.exp3.json"
+			},
+			{
+				"Name": "bikini_white",
+				"File": "expressions/bikini_white.exp3.json"
+			},
+			{
+				"Name": "bikini_kani",
+				"File": "expressions/bikini_kani.exp3.json"
+			},
+			{
+				"Name": "bikini_kani_blush",
+				"File": "expressions/bikini_kani_blush.exp3.json"
+			},
+			{
+				"Name": "bikini_kani_white",
+				"File": "expressions/bikini_kani_white.exp3.json"
+			},
+			{
+				"Name": "bikini_bird",
+				"File": "expressions/bikini_bird.exp3.json"
+			},
+			{
+				"Name": "bikini_bird_blush",
+				"File": "expressions/bikini_bird_blush.exp3.json"
+			},
+			{
+				"Name": "bikini_bird_white",
+				"File": "expressions/bikini_bird_white.exp3.json"
+			},
+			{
+				"Name": "bikini_pillow",
+				"File": "expressions/bikini_pillow.exp3.json"
+			},
+			{
+				"Name": "bikini_pillow_blush",
+				"File": "expressions/bikini_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "bikini_pillow_white",
+				"File": "expressions/bikini_pillow_white.exp3.json"
+			},
+			{
+				"Name": "bikini_sandal",
+				"File": "expressions/bikini_sandal.exp3.json"
+			},
+			{
+				"Name": "bikini_sandal_blush",
+				"File": "expressions/bikini_sandal_blush.exp3.json"
+			},
+			{
+				"Name": "bikini_sandal_white",
+				"File": "expressions/bikini_sandal_white.exp3.json"
+			},
+			{
+				"Name": "bikini_sandal_kani",
+				"File": "expressions/bikini_sandal_kani.exp3.json"
+			},
+			{
+				"Name": "bikini_sandal_kani_blush",
+				"File": "expressions/bikini_sandal_kani_blush.exp3.json"
+			},
+			{
+				"Name": "bikini_sandal_kani_white",
+				"File": "expressions/bikini_sandal_kani_white.exp3.json"
+			},
+			{
+				"Name": "bikini_sandal_bird",
+				"File": "expressions/bikini_sandal_bird.exp3.json"
+			},
+			{
+				"Name": "bikini_sandal_bird_blush",
+				"File": "expressions/bikini_sandal_bird_blush.exp3.json"
+			},
+			{
+				"Name": "bikini_sandal_bird_white",
+				"File": "expressions/bikini_sandal_bird_white.exp3.json"
+			},
+			{
+				"Name": "bikini_sandal_pillow",
+				"File": "expressions/bikini_sandal_pillow.exp3.json"
+			},
+			{
+				"Name": "bikini_sandal_pillow_blush",
+				"File": "expressions/bikini_sandal_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "bikini_sandal_pillow_white",
+				"File": "expressions/bikini_sandal_pillow_white.exp3.json"
+			},
+			{
+				"Name": "bikini_leather",
+				"File": "expressions/bikini_leather.exp3.json"
+			},
+			{
+				"Name": "bikini_leather_blush",
+				"File": "expressions/bikini_leather_blush.exp3.json"
+			},
+			{
+				"Name": "bikini_leather_white",
+				"File": "expressions/bikini_leather_white.exp3.json"
+			},
+			{
+				"Name": "bikini_leather_kani",
+				"File": "expressions/bikini_leather_kani.exp3.json"
+			},
+			{
+				"Name": "bikini_leather_kani_blush",
+				"File": "expressions/bikini_leather_kani_blush.exp3.json"
+			},
+			{
+				"Name": "bikini_leather_kani_white",
+				"File": "expressions/bikini_leather_kani_white.exp3.json"
+			},
+			{
+				"Name": "bikini_leather_bird",
+				"File": "expressions/bikini_leather_bird.exp3.json"
+			},
+			{
+				"Name": "bikini_leather_bird_blush",
+				"File": "expressions/bikini_leather_bird_blush.exp3.json"
+			},
+			{
+				"Name": "bikini_leather_bird_white",
+				"File": "expressions/bikini_leather_bird_white.exp3.json"
+			},
+			{
+				"Name": "bikini_leather_pillow",
+				"File": "expressions/bikini_leather_pillow.exp3.json"
+			},
+			{
+				"Name": "bikini_leather_pillow_blush",
+				"File": "expressions/bikini_leather_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "bikini_leather_pillow_white",
+				"File": "expressions/bikini_leather_pillow_white.exp3.json"
+			},
+			{
+				"Name": "pajamas",
+				"File": "expressions/pajamas.exp3.json"
+			},
+			{
+				"Name": "pajamas_blush",
+				"File": "expressions/pajamas_blush.exp3.json"
+			},
+			{
+				"Name": "pajamas_white",
+				"File": "expressions/pajamas_white.exp3.json"
+			},
+			{
+				"Name": "pajamas_kani",
+				"File": "expressions/pajamas_kani.exp3.json"
+			},
+			{
+				"Name": "pajamas_kani_blush",
+				"File": "expressions/pajamas_kani_blush.exp3.json"
+			},
+			{
+				"Name": "pajamas_kani_white",
+				"File": "expressions/pajamas_kani_white.exp3.json"
+			},
+			{
+				"Name": "pajamas_bird",
+				"File": "expressions/pajamas_bird.exp3.json"
+			},
+			{
+				"Name": "pajamas_bird_blush",
+				"File": "expressions/pajamas_bird_blush.exp3.json"
+			},
+			{
+				"Name": "pajamas_bird_white",
+				"File": "expressions/pajamas_bird_white.exp3.json"
+			},
+			{
+				"Name": "pajamas_pillow",
+				"File": "expressions/pajamas_pillow.exp3.json"
+			},
+			{
+				"Name": "pajamas_pillow_blush",
+				"File": "expressions/pajamas_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "pajamas_pillow_white",
+				"File": "expressions/pajamas_pillow_white.exp3.json"
+			},
+			{
+				"Name": "pajamas_sandal",
+				"File": "expressions/pajamas_sandal.exp3.json"
+			},
+			{
+				"Name": "pajamas_sandal_blush",
+				"File": "expressions/pajamas_sandal_blush.exp3.json"
+			},
+			{
+				"Name": "pajamas_sandal_white",
+				"File": "expressions/pajamas_sandal_white.exp3.json"
+			},
+			{
+				"Name": "pajamas_sandal_kani",
+				"File": "expressions/pajamas_sandal_kani.exp3.json"
+			},
+			{
+				"Name": "pajamas_sandal_kani_blush",
+				"File": "expressions/pajamas_sandal_kani_blush.exp3.json"
+			},
+			{
+				"Name": "pajamas_sandal_kani_white",
+				"File": "expressions/pajamas_sandal_kani_white.exp3.json"
+			},
+			{
+				"Name": "pajamas_sandal_bird",
+				"File": "expressions/pajamas_sandal_bird.exp3.json"
+			},
+			{
+				"Name": "pajamas_sandal_bird_blush",
+				"File": "expressions/pajamas_sandal_bird_blush.exp3.json"
+			},
+			{
+				"Name": "pajamas_sandal_bird_white",
+				"File": "expressions/pajamas_sandal_bird_white.exp3.json"
+			},
+			{
+				"Name": "pajamas_sandal_pillow",
+				"File": "expressions/pajamas_sandal_pillow.exp3.json"
+			},
+			{
+				"Name": "pajamas_sandal_pillow_blush",
+				"File": "expressions/pajamas_sandal_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "pajamas_sandal_pillow_white",
+				"File": "expressions/pajamas_sandal_pillow_white.exp3.json"
+			},
+			{
+				"Name": "pajamas_leather",
+				"File": "expressions/pajamas_leather.exp3.json"
+			},
+			{
+				"Name": "pajamas_leather_blush",
+				"File": "expressions/pajamas_leather_blush.exp3.json"
+			},
+			{
+				"Name": "pajamas_leather_white",
+				"File": "expressions/pajamas_leather_white.exp3.json"
+			},
+			{
+				"Name": "pajamas_leather_kani",
+				"File": "expressions/pajamas_leather_kani.exp3.json"
+			},
+			{
+				"Name": "pajamas_leather_kani_blush",
+				"File": "expressions/pajamas_leather_kani_blush.exp3.json"
+			},
+			{
+				"Name": "pajamas_leather_kani_white",
+				"File": "expressions/pajamas_leather_kani_white.exp3.json"
+			},
+			{
+				"Name": "pajamas_leather_bird",
+				"File": "expressions/pajamas_leather_bird.exp3.json"
+			},
+			{
+				"Name": "pajamas_leather_bird_blush",
+				"File": "expressions/pajamas_leather_bird_blush.exp3.json"
+			},
+			{
+				"Name": "pajamas_leather_bird_white",
+				"File": "expressions/pajamas_leather_bird_white.exp3.json"
+			},
+			{
+				"Name": "pajamas_leather_pillow",
+				"File": "expressions/pajamas_leather_pillow.exp3.json"
+			},
+			{
+				"Name": "pajamas_leather_pillow_blush",
+				"File": "expressions/pajamas_leather_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "pajamas_leather_pillow_white",
+				"File": "expressions/pajamas_leather_pillow_white.exp3.json"
+			},
+			{
+				"Name": "pumpkin",
+				"File": "expressions/pumpkin.exp3.json"
+			},
+			{
+				"Name": "pumpkin_blush",
+				"File": "expressions/pumpkin_blush.exp3.json"
+			},
+			{
+				"Name": "pumpkin_white",
+				"File": "expressions/pumpkin_white.exp3.json"
+			},
+			{
+				"Name": "pumpkin_kani",
+				"File": "expressions/pumpkin_kani.exp3.json"
+			},
+			{
+				"Name": "pumpkin_kani_blush",
+				"File": "expressions/pumpkin_kani_blush.exp3.json"
+			},
+			{
+				"Name": "pumpkin_kani_white",
+				"File": "expressions/pumpkin_kani_white.exp3.json"
+			},
+			{
+				"Name": "pumpkin_bird",
+				"File": "expressions/pumpkin_bird.exp3.json"
+			},
+			{
+				"Name": "pumpkin_bird_blush",
+				"File": "expressions/pumpkin_bird_blush.exp3.json"
+			},
+			{
+				"Name": "pumpkin_bird_white",
+				"File": "expressions/pumpkin_bird_white.exp3.json"
+			},
+			{
+				"Name": "pumpkin_pillow",
+				"File": "expressions/pumpkin_pillow.exp3.json"
+			},
+			{
+				"Name": "pumpkin_pillow_blush",
+				"File": "expressions/pumpkin_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "pumpkin_pillow_white",
+				"File": "expressions/pumpkin_pillow_white.exp3.json"
+			},
+			{
+				"Name": "pumpkin_sandal",
+				"File": "expressions/pumpkin_sandal.exp3.json"
+			},
+			{
+				"Name": "pumpkin_sandal_blush",
+				"File": "expressions/pumpkin_sandal_blush.exp3.json"
+			},
+			{
+				"Name": "pumpkin_sandal_white",
+				"File": "expressions/pumpkin_sandal_white.exp3.json"
+			},
+			{
+				"Name": "pumpkin_sandal_kani",
+				"File": "expressions/pumpkin_sandal_kani.exp3.json"
+			},
+			{
+				"Name": "pumpkin_sandal_kani_blush",
+				"File": "expressions/pumpkin_sandal_kani_blush.exp3.json"
+			},
+			{
+				"Name": "pumpkin_sandal_kani_white",
+				"File": "expressions/pumpkin_sandal_kani_white.exp3.json"
+			},
+			{
+				"Name": "pumpkin_sandal_bird",
+				"File": "expressions/pumpkin_sandal_bird.exp3.json"
+			},
+			{
+				"Name": "pumpkin_sandal_bird_blush",
+				"File": "expressions/pumpkin_sandal_bird_blush.exp3.json"
+			},
+			{
+				"Name": "pumpkin_sandal_bird_white",
+				"File": "expressions/pumpkin_sandal_bird_white.exp3.json"
+			},
+			{
+				"Name": "pumpkin_sandal_pillow",
+				"File": "expressions/pumpkin_sandal_pillow.exp3.json"
+			},
+			{
+				"Name": "pumpkin_sandal_pillow_blush",
+				"File": "expressions/pumpkin_sandal_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "pumpkin_sandal_pillow_white",
+				"File": "expressions/pumpkin_sandal_pillow_white.exp3.json"
+			},
+			{
+				"Name": "pumpkin_leather",
+				"File": "expressions/pumpkin_leather.exp3.json"
+			},
+			{
+				"Name": "pumpkin_leather_blush",
+				"File": "expressions/pumpkin_leather_blush.exp3.json"
+			},
+			{
+				"Name": "pumpkin_leather_white",
+				"File": "expressions/pumpkin_leather_white.exp3.json"
+			},
+			{
+				"Name": "pumpkin_leather_kani",
+				"File": "expressions/pumpkin_leather_kani.exp3.json"
+			},
+			{
+				"Name": "pumpkin_leather_kani_blush",
+				"File": "expressions/pumpkin_leather_kani_blush.exp3.json"
+			},
+			{
+				"Name": "pumpkin_leather_kani_white",
+				"File": "expressions/pumpkin_leather_kani_white.exp3.json"
+			},
+			{
+				"Name": "pumpkin_leather_bird",
+				"File": "expressions/pumpkin_leather_bird.exp3.json"
+			},
+			{
+				"Name": "pumpkin_leather_bird_blush",
+				"File": "expressions/pumpkin_leather_bird_blush.exp3.json"
+			},
+			{
+				"Name": "pumpkin_leather_bird_white",
+				"File": "expressions/pumpkin_leather_bird_white.exp3.json"
+			},
+			{
+				"Name": "pumpkin_leather_pillow",
+				"File": "expressions/pumpkin_leather_pillow.exp3.json"
+			},
+			{
+				"Name": "pumpkin_leather_pillow_blush",
+				"File": "expressions/pumpkin_leather_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "pumpkin_leather_pillow_white",
+				"File": "expressions/pumpkin_leather_pillow_white.exp3.json"
+			},
+			{
+				"Name": "blood",
+				"File": "expressions/blood.exp3.json"
+			},
+			{
+				"Name": "blood_blush",
+				"File": "expressions/blood_blush.exp3.json"
+			},
+			{
+				"Name": "blood_white",
+				"File": "expressions/blood_white.exp3.json"
+			},
+			{
+				"Name": "blood_kani",
+				"File": "expressions/blood_kani.exp3.json"
+			},
+			{
+				"Name": "blood_kani_blush",
+				"File": "expressions/blood_kani_blush.exp3.json"
+			},
+			{
+				"Name": "blood_kani_white",
+				"File": "expressions/blood_kani_white.exp3.json"
+			},
+			{
+				"Name": "blood_bird",
+				"File": "expressions/blood_bird.exp3.json"
+			},
+			{
+				"Name": "blood_bird_blush",
+				"File": "expressions/blood_bird_blush.exp3.json"
+			},
+			{
+				"Name": "blood_bird_white",
+				"File": "expressions/blood_bird_white.exp3.json"
+			},
+			{
+				"Name": "blood_pillow",
+				"File": "expressions/blood_pillow.exp3.json"
+			},
+			{
+				"Name": "blood_pillow_blush",
+				"File": "expressions/blood_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "blood_pillow_white",
+				"File": "expressions/blood_pillow_white.exp3.json"
+			},
+			{
+				"Name": "blood_sandal",
+				"File": "expressions/blood_sandal.exp3.json"
+			},
+			{
+				"Name": "blood_sandal_blush",
+				"File": "expressions/blood_sandal_blush.exp3.json"
+			},
+			{
+				"Name": "blood_sandal_white",
+				"File": "expressions/blood_sandal_white.exp3.json"
+			},
+			{
+				"Name": "blood_sandal_kani",
+				"File": "expressions/blood_sandal_kani.exp3.json"
+			},
+			{
+				"Name": "blood_sandal_kani_blush",
+				"File": "expressions/blood_sandal_kani_blush.exp3.json"
+			},
+			{
+				"Name": "blood_sandal_kani_white",
+				"File": "expressions/blood_sandal_kani_white.exp3.json"
+			},
+			{
+				"Name": "blood_sandal_bird",
+				"File": "expressions/blood_sandal_bird.exp3.json"
+			},
+			{
+				"Name": "blood_sandal_bird_blush",
+				"File": "expressions/blood_sandal_bird_blush.exp3.json"
+			},
+			{
+				"Name": "blood_sandal_bird_white",
+				"File": "expressions/blood_sandal_bird_white.exp3.json"
+			},
+			{
+				"Name": "blood_sandal_pillow",
+				"File": "expressions/blood_sandal_pillow.exp3.json"
+			},
+			{
+				"Name": "blood_sandal_pillow_blush",
+				"File": "expressions/blood_sandal_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "blood_sandal_pillow_white",
+				"File": "expressions/blood_sandal_pillow_white.exp3.json"
+			},
+			{
+				"Name": "blood_leather",
+				"File": "expressions/blood_leather.exp3.json"
+			},
+			{
+				"Name": "blood_leather_blush",
+				"File": "expressions/blood_leather_blush.exp3.json"
+			},
+			{
+				"Name": "blood_leather_white",
+				"File": "expressions/blood_leather_white.exp3.json"
+			},
+			{
+				"Name": "blood_leather_kani",
+				"File": "expressions/blood_leather_kani.exp3.json"
+			},
+			{
+				"Name": "blood_leather_kani_blush",
+				"File": "expressions/blood_leather_kani_blush.exp3.json"
+			},
+			{
+				"Name": "blood_leather_kani_white",
+				"File": "expressions/blood_leather_kani_white.exp3.json"
+			},
+			{
+				"Name": "blood_leather_bird",
+				"File": "expressions/blood_leather_bird.exp3.json"
+			},
+			{
+				"Name": "blood_leather_bird_blush",
+				"File": "expressions/blood_leather_bird_blush.exp3.json"
+			},
+			{
+				"Name": "blood_leather_bird_white",
+				"File": "expressions/blood_leather_bird_white.exp3.json"
+			},
+			{
+				"Name": "blood_leather_pillow",
+				"File": "expressions/blood_leather_pillow.exp3.json"
+			},
+			{
+				"Name": "blood_leather_pillow_blush",
+				"File": "expressions/blood_leather_pillow_blush.exp3.json"
+			},
+			{
+				"Name": "blood_leather_pillow_white",
+				"File": "expressions/blood_leather_pillow_white.exp3.json"
+			}
+		]
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": [
+				"ParamMouthForm",
+				"ParamMouthOpenY"
+			]
+		}
+	]
+}

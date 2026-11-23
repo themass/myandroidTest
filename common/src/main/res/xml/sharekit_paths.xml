@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 只开放一个目录：分享前，文件统一复制到 cache/share/ 再给出 uri（见 ShareKit.prepare）。 -->
+<paths>
+    <cache-path name="share" path="share/" />
+</paths>

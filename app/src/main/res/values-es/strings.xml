@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+    Copyright (C) 2012-2013 Tobias Brunner
+    Copyright (C) 2012 Giuliano Grassi
+    Copyright (C) 2012 Ralf Sager
+    Hochschule fuer Technik Rapperswil
+
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version.  See <http://www.fsf.org/copyleft/gpl.txt>.
+
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!--  tab main -->
+    <string name="tab_movie">Película</string>
+    <string name="tab_ng">Bueno</string>
+    <string name="tab_area">Local</string>
+    <string name="tab_customer">Cliente</string>
+    <string name="tab_chat">Chat</string>
+    <string name="tab_index">Inicio</string>
+    <string name="tab_tag_index">Índice</string>
+
+    <string name="tab_tag_movie">Película</string>
+    <string name="tab_tag_ng">Noche</string>
+    <string name="tab_tag_english">Inglés</string>
+    <string name="tab_tag_math">Matemáticas</string>
+    <string name="tab_tag_chinese">Chino</string>
+    <string name="tab_tag_area">Área</string>
+    <string name="tab_tag_chat">chat</string>
+    <string name="tab_tag_customer">cliente</string>
+
+
+    <!-- Application -->
+    <string name="app_name">kimi</string>
+    <string name="main_activity_name">kimi</string>
+    <string name="toobar_title">kimi</string>
+    <string name="load">cargando más datos</string>
+    <string name="off">apagado</string>
+    <string name="on">encendido</string>
+
+    <!-- menu -->
+    <string name="menu_btn_login">Iniciar sesión</string>
+    <string name="menu_btn_login_ready">Sesión iniciada</string>
+    <string name="menu_btn_name_default">Quién soy</string>
+    <string name="menu_btn_feedback">Comentarios</string>
+    <string name="menu_btn_about">Acerca de: Puntuación Afreedom</string>
+    <string name="menu_btn_share">Compartir</string>
+    <string name="menu_btn_test">prueba</string>
+
+    <string name="menu_btn_character">Configuración de personaje IA</string>
+    <string name="menu_btn_version">Versión:</string>
+    <string name="menu_btn_logout">Cerrar sesión</string>
+    <string name="menu_btn_setting">Configuración</string>
+    <string name="menu_btn_app">Recomendación de aplicaciones</string>
+    <string name="talktome">Habla con ella</string>
+    <string name="menu_btn_donation">Apoyo</string>
+    <string name="menu_btn_support">explorador esclavo</string>
+    <string name="feed_back">Comentarios</string>
+    <string name="menu_btn_country">Región:</string>
+    <string name="menu_btn_open_browser">Abrir en navegador</string>
+    <string name="menu_btn_copy_url">Copiar URL</string>
+    <string name="menu_btn_favorite">Mis favoritos</string>
+    <string name="menu_btn_chat_session">Sesión de chat</string>
+    <string name="menu_favorite">Favorito</string>
+    <string name="menu_favorite_cancel">Cancelar favorito</string>
+    <string name="support_info">vida feliz...</string>
+    <string name="vpn_status_down">Haga clic para descargar FreeVPN</string>
+    <!-- share-->
+    <string name="menu_share_title">Compartir con amigos</string>
+    <string name="menu_share_copy_ok">Copiado correctamente</string>
+    <string name="menu_share_text_only">¡FALLO! Solo se puede compartir texto</string>
+    <!--登录，注册-->
+    <string name="close_over">¡Una vez más!</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="setting">Configuración</string>
+    <string name="reg">Registrarse</string>
+    <string name="findpass">¿Olvidó su contraseña?</string>
+    <string name="username_hint">Nombre de usuario</string>
+    <string name="email_hint">Correo electrónico</string>
+    <string name="ref_hint">Invitador</string>
+    <string name="email_see">Enviar un correo electrónico</string>
+    <string name="password_hint">Contraseña</string>
+    <string name="password_error">Error de contraseña</string>
+    <string name="re_password_hint">Repetir contraseña</string>
+    <string name="re_code">Código</string>
+    <string name="re_bt_code">Obtener código</string>
+    <string name="empty_name_pwd">Por favor complete la información</string>
+    <string name="sex">Sexo:</string>
+    <string name="female">Femenino</string>
+    <string name="male">Masculino</string>
+    <string name="error_repwd">Error de contraseña</string>
+    <string name="reg_success">Registro exitoso, ¿iniciar sesión ahora?</string>
+    <string name="remark">Timeline DERECHOS RESERVADOS.</string>
+    <string name="need_login">Por favor inicie sesión</string>
+    <string name="down_to_loadmore">deslice hacia abajo para cargar más</string>
+
+    <string name="iwanna_tips">Dime qué quieres,\nestaré lista para ti</string>
+    <string name="iwanna_title">apoyo</string>
+    <string name="feedback_hint">$3 $5 VIP3</string>
+    <string name="recharge">Recargar:</string>
+    <string name="money_back_title">¿Puntuación?</string>
+    <string name="send">enviar</string>
+    <string name="iwanna_content_error">¡Dime algo!</string>
+    <string name="area_setting">Mostrar área</string>
+    <string name="playcore_setting">core-ijk/exo</string>
+    <string name="use_tts">Activar voz</string>
+    <string name="playvideo_setting">reproducir video-jiaozi</string>
+    <string name="sound_setting">Reproducir audio sin WiFi</string>
+    <string name="sound_picshow">Mostrar imagen de video</string>
+    <string name="list_video_tiny_need">Lista de video pequeño necesario</string>
+    <string name="area_mi">Área encriptada</string>
+    <string name="sound_play_not_wifi">¿Está usando una red que no es WiFi?</string>
+    <string name="sound">Obsceno</string>
+    <string name="text">Novela interesante</string>
+    <string name="video">Video sexual</string>
+    <string name="submit">enviar</string>
+    <string name="vip_tips">por favor actualice a VIP</string>
+    <string name="img">Imagen sexual</string>
+    <string name="tv">TV</string>
+    <string name="version_low">¡la versión es demasiado baja!</string>
+
+    <!-- vpn状态改变 -->
+    <!--版本更新下载-->
+
+    <string name="about_version_update_to_date">Es la última versión</string>
+    <string name="about_version_download_title">Descubrir nueva versión</string>
+    <string name="about_version_download">Descargar</string>
+    <string name="about_version_confirm">Confirmar</string>
+    <string name="about_version_cancel">Cancelar</string>
+    <string name="about_download_confirm_title">Confirmar descarga</string>
+    <string name="about_download_confirm_content">
+Actualmente está usando una red que no es WiFi, continuar con la descarga puede consumir más tráfico de red, ¿desea continuar con la descarga?</string>
+    <string name="about_download_begin">Iniciar descarga</string>
+    <string name="about_download_finish">Finalizar descarga</string>
+    <string name="about_download_title">Descargando Freedom</string>
+    <string name="about_download_prepare">Preparándose para descargar</string>
+    <string name="about_download_error">Error en la descarga del archivo</string>
+    <string name="about_download_percent">Descargando %1$s/%2$s</string>
+
+    <!--其他-->
+    <item name="tag_pos" type="id" />
+    <item name="tag_val" type="id" />
+    <!--   like  -->
+    <plurals name="likes_count">
+        <item quantity="one">%d me gusta</item>
+        <item quantity="other">%d me gusta</item>
+    </plurals>
+    <!-- 自定义-->
+    <string name="title_hint">Título</string>
+    <string name="url_hint">Enlace del sitio</string>
+    <string name="open_hint">Modo de apertura</string>
+    <string name="open_local">Local</string>
+    <string name="open_browser">Navegador</string>
+    <string name="custome_title">Añadir personalizado</string>
+    <string name="empty_info">Por favor complete la información</string>
+    <string name="custome_ok">Añadido correctamente</string>
+    <string name="custome_del_ok">Eliminado correctamente</string>
+    <string name="save">Guardar</string>
+    <string name="schema_hint">Esquema</string>
+    <string name="schema_http">http://</string>
+    <string name="schema_https">https://</string>
+    <string name="del_hint">¿Confirmar eliminación?</string>
+    <string name="del_send_messag">¿Está seguro de que desea eliminar los mensajes seleccionados?</string>
+    <string name="del_cancel">Cancelar</string>
+    <string name="custome_del_fail">error al eliminar</string>
+    <string name="my_charater">configurar mi personaje IA</string>
+    <string name="del_ok">Aceptar</string>
+    <string name="edit">editar</string>
+    <string name="delete">eliminar</string>
+    <string name="no_select">no seleccionado</string>
+    <string name="save_ok">guardado correctamente</string>
+    <string name="save_fail">error al guardar</string>
+    <string name="save_start">comenzando a guardar...</string>
+    <!-- vpn error text -->
+    <!-- activity title-->
+    <string name="ads_logo">ANUNCIO</string>
+    <string name="skip">saltar</string>
+    <string name="search">introduzca contenido de búsqueda</string>
+    <!--slidingclose-->
+
+    <string-array name="recharge_arry">
+        <item>WeChat</item>
+        <item>Alipay</item>
+        <item>Otro</item>
+    </string-array>
+    <!--广告-->
+
+
+    <string name="chat_new">nombre de sesión de chat</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_sessiom">Nueva sesión</string>
+    <string name="cancel">Cancelar</string>
+    <string name="hold_please">espere por favor...</string>
+    <string name="on_log_selected_messages">%1$d mensajes seleccionados</string>
+    <string name="action_copy">Copiar</string>
+    <string name="copied_message">¡Mensaje copiado!</string>
+    <string name="del_message">¡Mensaje eliminado!</string>
+    <string name="chat_feedback_ok">He recibido tus comentarios.</string>
+    <string name="chat_feedback_hint">Introduce tus comentarios</string>
+    <string-array name="chat_feed_reson">
+        <item>Dañino</item>
+        <item>Falso</item>
+        <item>No útil</item>
+        <item>Otro</item>
+    </string-array>
+
+
+</resources>

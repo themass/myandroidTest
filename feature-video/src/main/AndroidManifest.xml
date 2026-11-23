@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <application>
+        <activity
+            android:name="com.openapi.feature.video.page.VideoShowActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name="com.openapi.feature.video.page.VideoShowActivityLazyUrl"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name="com.openapi.feature.video.page.VideoListShowActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
+            android:theme="@style/AppTheme" />
+        <!-- 新播放页（实验实现），与 VideoShowActivityLazyUrl 并存，入口默认仍走旧页 -->
+        <activity
+            android:name="com.openapi.feature.video.prototype.NewVideoShowActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode|smallestScreenSize"
+            android:theme="@style/NewPlayerTheme" />
+        <!-- 放映场：正式入口是首页「频道」标签（内嵌 ScreeningRoute）。这个 Activity 保留
+             给旧的独立页入口结构（返回/沉浸都挂在它身上），但不导出、无 LAUNCHER：
+             桌面不加图标，外部应用也拉不起。真机验收走用户真实路径：
+             am start HomeActivity → 点「频道」标签。 -->
+        <activity
+            android:name="com.openapi.feature.video.screening.ScreeningActivity"
+            android:exported="false"
+            android:label="放映场"
+            android:screenOrientation="portrait"
+            android:theme="@style/NewPlayerTheme"
+            android:configChanges="orientation|screenSize|smallestScreenSize|keyboardHidden|screenLayout" />
+        <activity
+            android:name="com.openapi.feature.video.local.LocalVideoActivity"
+            android:exported="false"
+            android:label="@string/localvideo_title" />
+
+    </application>
+</manifest>

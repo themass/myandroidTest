@@ -1,0 +1,139 @@
+package com.openapi.core.db;
+
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+import androidx.room.Database;
+import androidx.room.Room;
+import androidx.room.RoomDatabase;
+import androidx.room.TypeConverters;
+import androidx.room.migration.Migration;
+import androidx.sqlite.SQLite;
+import androidx.sqlite.SQLiteConnection;
+
+import com.openapi.core.db.FavoriteVo;
+import com.openapi.common.util.android.Background;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.core.model.ChatLog;
+import com.openapi.core.model.ChatSessionLog;
+import com.openapi.core.model.ConnLog;
+import com.openapi.core.model.HistoryVo;
+
+/**
+ * 应用数据库入口（Room）：聊天记录、会话、连接日志、浏览历史、收藏，全部在 app.db 里。
+ *
+ * 库名换成了 app.db：旧的 greenDAO 库（freeSEX）不再读取，也不迁移。
+ * 版本 1 → 2 只加了收藏表（见 [#MIGRATION_1_2]），已有数据保留。
+ *
+ * 整改清单 P3-21：不再 {@code allowMainThreadQueries()}。以前旧代码在主线程直接读写
+ * app.db，全靠这个标志兜着——代价是主线程被 SQLite 卡住也没人发现。标志去掉后
+ * Room 会在主线程查询处直接抛 IllegalStateException，所有 UI 侧的库访问必须走后台
+ * （FavoriteUtil 的 *Async、HistoryUtil、feature-chat 的 suspend 仓库方法）。
+ *
+ * 生命周期：进程启动时由 MyApplication 调用一次 [#init(Context)]，之后用 [#getInstance()] 取库，
+ * 首次取库时才真正打开 app.db。
+ */
+@Database(
+        entities = {ChatLog.class, ChatSessionLog.class, ConnLog.class, HistoryVo.class, FavoriteVo.class},
+        version = 4,
+        exportSchema = false
+)
+@TypeConverters(Converters.class)
+public abstract class AppDatabase extends RoomDatabase {
+
+    public static final String DB_NAME = "app.db";
+
+    //多线程中要被共享的使用volatile关键字修饰
+    private static volatile AppDatabase instance;
+    private static volatile Context appContext;
+
+    /** 应用启动时调用一次，保存 Application Context；聊天记录条数在后台打，别把开库拖进主线程。 */
+    public static void init(Context context) {
+        appContext = context.getApplicationContext();
+        Background.serial(() -> {
+            try {
+                LogUtil.i("chat log count ====" + getInstance().chatLogDao().count());
+            } catch (Throwable e) {
+                LogUtil.e(e);
+            }
+        });
+    }
+
+    /** 取得数据库，首次调用时用 [#init(Context)] 保存的 Context 创建。 */
+    public static AppDatabase getInstance() {
+        AppDatabase db = instance;
+        if (db == null) {
+            synchronized (AppDatabase.class) {
+                db = instance;
+                if (db == null) {
+                    db = Room.databaseBuilder(appContext, AppDatabase.class, DB_NAME)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                            .fallbackToDestructiveMigration()
+                            .build();
+                    instance = db;
+                }
+            }
+        }
+        return db;
+    }
+
+    /** 关闭数据库，下次访问时重新打开。 */
+    public static synchronized void closeConnection() {
+        if (instance != null) {
+            instance.close();
+            instance = null;
+        }
+    }
+
+    /**
+     * 版本 1 → 2：加入收藏表（原来在 commonutil 的独立库 favorites.db 里）。
+     * 只建新表，不动聊天、连接日志、历史等已有数据。SQL 与 Room 为 FavoriteVo 生成的建表语句一致，
+     * 否则 Room 打开时会校验失败。
+     */
+    public static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+        @Override
+        public void migrate(@NonNull SQLiteConnection connection) {
+            SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS `FavoriteVo` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT, `updateTime` TEXT, `type` INTEGER NOT NULL, `itemUrl` TEXT, `extra` TEXT)");
+            SQLite.execSQL(connection, "CREATE UNIQUE INDEX IF NOT EXISTS `index_FavoriteVo_itemUrl` ON `FavoriteVo` (`itemUrl`)");
+        }
+    };
+
+    /**
+     * 版本 2 → 3：会话与消息改由服务端持有（见服务端 docs/chat-history-server.md）。
+     * - ChatSessionLog 去掉 name 唯一索引（服务端允许重名），新增 updatedAt 列；
+     * - 清空旧的本地聊天与会话缓存：旧记录的会话 id 是本地自增的，与服务端 id 对不上，
+     *   留着会在离线时把别的会话内容显示出来。之后以服务端拉取为准。
+     */
+    public static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SQLiteConnection connection) {
+            SQLite.execSQL(connection, "DROP INDEX IF EXISTS `index_ChatSessionLog_name`");
+            SQLite.execSQL(connection, "ALTER TABLE `ChatSessionLog` ADD COLUMN `updatedAt` INTEGER NOT NULL DEFAULT 0");
+            SQLite.execSQL(connection, "DELETE FROM `ChatLog`");
+            SQLite.execSQL(connection, "DELETE FROM `ChatSessionLog`");
+        }
+    };
+
+    /**
+     * 版本 3 → 4：会话记住自己的角色。
+     * 每个用户与每个角色是一段独立的对话历史，换角色 = 换会话，所以会话要带上 roleId / characterId。
+     * 旧缓存里没有这两列，下次同步服务端列表时会整表替换并补上。
+     */
+    public static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SQLiteConnection connection) {
+            SQLite.execSQL(connection, "ALTER TABLE `ChatSessionLog` ADD COLUMN `roleId` TEXT");
+            SQLite.execSQL(connection, "ALTER TABLE `ChatSessionLog` ADD COLUMN `characterId` INTEGER");
+        }
+    };
+
+    public abstract ChatLogDao chatLogDao();
+
+    public abstract ChatSessionLogDao chatSessionLogDao();
+
+    public abstract ConnLogDao connLogDao();
+
+    public abstract HistoryDao historyDao();
+
+    public abstract FavoriteDao favoriteDao();
+}

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="companion_proactive_generic">From her</string>
+    <string name="companion_tab_events">Important days</string>
+    <string name="companion_pref_call">Allow her to call me</string>
+    <string name="companion_tab_facts">Facts</string>
+    <string name="companion_pref_pause_1h">Pause for 1 hour</string>
+    <string name="companion_call_accept">Answer</string>
+    <string name="companion_action_cancel">Not now</string>
+    <string name="companion_proactive_event">She remembered</string>
+    <string name="companion_pref_events">Remind me about important days</string>
+    <string name="companion_mode_voice">Voice</string>
+    <string name="companion_action_confirm">Allow</string>
+    <string name="companion_open_characters">Characters</string>
+    <string name="companion_pref_greetings">Say hello now and then</string>
+    <string name="companion_mode_text">Text</string>
+    <string name="companion_open_memory">What she remembers</string>
+    <string name="companion_settings_title">Her initiative</string>
+    <string name="companion_pref_resume">Resume</string>
+    <string name="companion_event_title_hint">What happens?</string>
+    <string name="companion_memory_title">What she remembers</string>
+    <string name="companion_error_generic">Something went wrong</string>
+    <string name="companion_saving">Saving…</string>
+    <string name="companion_pref_quiet">Quiet hours: %1$s – %2$s</string>
+    <string name="companion_input_hint">Say something…</string>
+    <string name="companion_call_decline">Decline</string>
+    <string name="companion_event_date_hint">Date, e.g. 2026-12-01 10:00</string>
+    <string name="companion_empty">Nothing here yet</string>
+    <string name="companion_incoming_call">She is calling</string>
+    <string name="companion_done">Done</string>
+    <string name="companion_retry">Retry</string>
+    <string name="companion_send">Send</string>
+    <string name="companion_open_settings">Her initiative</string>
+    <string name="companion_delete">Forget</string>
+    <string name="companion_copied">Copied</string>
+    <string name="companion_proactive_greeting">Checking in</string>
+    <string name="companion_pref_paused_until">Paused until %1$s</string>
+    <string name="companion_characters_title">Choose a companion</string>
+    <string name="companion_title">Companion</string>
+    <string name="companion_add_event">Add</string>
+    <string name="companion_nav_back">Back</string>
+    <string name="companion_open_voice">Voice call</string>
+    <string name="companion_voice_back">Back to chat</string>
+    <string name="companion_tab_profile">What she knows</string>
+    <string name="companion_profile_hint">This is what she has gathered about you. Anything marked as a guess hasn\'t been confirmed. You can ask her to stop bringing something up, or forget it.</string>
+    <string name="companion_profile_guess">A guess, not confirmed</string>
+    <string name="companion_profile_stop">Stop mentioning</string>
+    <!-- AI 对你的档案（Markdown 长文，按角色隔离，可编辑） -->
+    <string name="companion_profile_doc_title">What she knows about you</string>
+    <string name="companion_profile_doc_maintained_by_ai">Maintained by her — updates as you talk</string>
+    <string name="companion_profile_doc_edited_by_you">Last edited by you</string>
+    <string name="companion_profile_doc_edit_hint">Edit the profile</string>
+    <string name="companion_profile_doc_save">Save</string>
+    <string name="companion_profile_doc_saved">Saved</string>
+    <!-- 输入区选图/拍照 -->
+    <string name="companion_attach_more">Add a photo</string>
+    <string name="companion_attach_album">Album</string>
+    <string name="companion_attach_camera">Camera</string>
+    <string name="companion_attach_thumbnail">Photo waiting to be sent</string>
+    <string name="companion_attach_remove">Remove this photo</string>
+    <string name="companion_camera_rationale">Camera permission is needed to take photos to send to her</string>
+    <string name="companion_camera_denied">Camera permission not granted, can\'t take a photo</string>
+    <!-- 发送侧错误提示（cleanup 项 2）：以前这三句是 ViewModel 里的硬编码中文，
+         同一个提交里输入区那 7 条已经走资源，这几条是漏下的。中文在 values-zh/。 -->
+    <string name="companion_upload_partial_failed">Some photos failed to upload; they are kept so you can send again</string>
+    <string name="companion_upload_unsupported">This connection can\'t carry photos. Please re-enter the conversation</string>
+    <string name="companion_attachment_delivery_failed">The photos couldn\'t be sent. They are kept — press send again</string>
+    <string name="companion_upload_in_progress">Photos are still sending, please wait a moment</string>
+    <!-- 键名叫 image 而不是 attachment（复审 minor 3）：陪伴页只发图片，这条闸数的就是图片张数。
+         「一条消息最多 N 个附件」那套（chat_attachment_limit_reached）是「对话」页的规则——
+         那里图片与视频共用同一条 attachments。名字对齐措辞，免得以后有人把两边「统一」成一条。 -->
+    <string name="companion_image_limit_reached">A message can carry at most %1$d photos</string>
+</resources>

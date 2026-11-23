@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>陪伴页改版设计稿</title>
+<style>
+:root{
+  --bg:#FBF8F5; --surface:#FFFFFF; --incoming:#F5F5F5; --outgoing:#FDE7D3;
+  --ink:#212121; --ink2:#5B6470; --ink3:#8A8F98; --divider:#F0E6DC;
+  --primary:#C2410C; --onprimary:#FFFFFF;
+  --violet:#8B7CF6; --pink:#FFA6C9; --chip:#F3EFEA; --danger:#D32F2F;
+}
+*{box-sizing:border-box;margin:0}
+body{
+  background:radial-gradient(1200px 700px at 82% -12%, #FFF1F6 0%, transparent 60%),
+              radial-gradient(900px 600px at 0% 110%, #EFEBFF 0%, transparent 55%),
+              #EDE9E4;
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  color:var(--ink); padding:36px 20px 56px;
+}
+.wrap{display:flex;gap:40px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;align-items:center;gap:14px}
+.caption{font-size:12px;color:#6B7280;letter-spacing:.02em}
+.phone{
+  width:392px;height:812px;border-radius:44px;background:var(--bg);
+  box-shadow:0 30px 60px -24px rgba(60,40,90,.35), 0 0 0 1px rgba(0,0,0,.06);
+  overflow:hidden;position:relative;display:flex;flex-direction:column;
+}
+.statusbar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:13px;color:var(--ink2);background:var(--surface)}
+/* 顶栏 */
+.topbar{background:var(--surface);padding:6px 8px 10px 8px;display:flex;align-items:center;gap:4px;position:relative}
+.topbar:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:linear-gradient(90deg,transparent, #E7DFF9 18%, #FFE0EC 55%, #F6E9DA 85%, transparent)}
+.iconbtn{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:var(--ink2)}
+.ident{display:flex;align-items:center;gap:10px;flex:1;padding-left:2px}
+.ring{width:44px;height:44px;border-radius:50%;padding:2px;
+  background:linear-gradient(135deg,var(--violet),var(--pink));flex:none}
+.ring>div{width:100%;height:100%;border-radius:50%;background:#F3F0FF;display:grid;place-items:center;
+  font-size:17px;font-weight:600;color:#6F5BD6}
+.ident .txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.name{font-size:15px;font-weight:600;letter-spacing:.01em}
+.name .chev{font-size:10px;color:var(--ink3);margin-left:4px}
+.tag{font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.actions{display:flex;align-items:center;gap:2px}
+.pill{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--chip);margin-right:2px}
+.pill.on{background:linear-gradient(135deg,var(--violet),#A99BF8);box-shadow:0 4px 12px -2px rgba(139,124,246,.5)}
+.call{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--violet),var(--pink));
+  box-shadow:0 6px 16px -4px rgba(139,124,246,.55);margin:0 2px}
+/* 消息区 */
+.msgs{flex:1;overflow:hidden;padding:14px 8px 8px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;align-items:flex-start;gap:8px}
+.row.user{flex-direction:row-reverse}
+.av{width:32px;height:32px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:13px}
+.av.her{padding:1.5px;background:linear-gradient(135deg,var(--violet),var(--pink))}
+.av.her>div{width:100%;height:100%;border-radius:50%;background:#F3F0FF;color:#6F5BD6;font-weight:600;display:grid;place-items:center}
+.av.me{background:#EDE6DC;color:#8A7C6A;font-weight:600}
+.bubble{max-width:262px;padding:10px 13px;font-size:14.5px;line-height:1.62;
+  border-radius:14px;position:relative}
+.bubble.a{background:var(--incoming);border-top-left-radius:5px}
+.bubble.u{background:var(--outgoing);color:#7C2D12;border-top-right-radius:5px}
+.time{align-self:center;font-size:11px;color:#B6AFA6;margin:2px 0 -4px}
+/* 输入栏 */
+.composer{padding:8px 12px 18px}
+.card{background:var(--surface);border-radius:24px;box-shadow:0 8px 24px -14px rgba(80,50,30,.35),0 0 0 1px rgba(0,0,0,.03);
+  display:flex;align-items:flex-end;gap:8px;padding:8px 8px 8px 16px;min-height:54px}
+.placeholder{flex:1;color:#B3AEA8;font-size:14.5px;padding-bottom:8px}
+.send{width:38px;height:38px;border-radius:50%;background:var(--primary);display:grid;place-items:center;flex:none;
+  box-shadow:0 6px 14px -6px rgba(194,65,12,.7)}
+/* 底部弹层 */
+.sheet-scrim{position:absolute;inset:0;background:rgba(30,20,10,.34);display:flex;align-items:flex-end}
+.sheet{width:100%;background:var(--surface);border-radius:24px 24px 0 0;padding:8px 0 22px;
+  box-shadow:0 -12px 40px -12px rgba(0,0,0,.25);animation:up .28s cubic-bezier(.2,.9,.3,1)}
+@keyframes up{from{transform:translateY(24px);opacity:.7}to{transform:none;opacity:1}}
+.grip{width:36px;height:4px;border-radius:2px;background:#E5DFD8;margin:4px auto 10px}
+.mi{display:flex;align-items:center;gap:14px;padding:14px 22px;font-size:15px}
+.mi svg{width:22px;height:22px;stroke:var(--ink2);fill:none;stroke-width:1.6}
+.mi.del{color:var(--danger)}
+.mi.del svg{stroke:var(--danger)}
+.mi .hint{margin-left:auto;font-size:11px;color:#B6AFA6}
+/* 标注 */
+.anno{position:absolute;font-size:11px;color:#7A6A5C;background:#FFFDF9;border:1px solid #EFE4D6;
+  border-radius:8px;padding:3px 7px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+.legend{max-width:860px;margin:44px auto 0;background:#fff;border-radius:18px;padding:20px 24px;
+  box-shadow:0 12px 30px -20px rgba(0,0,0,.25)}
+.legend h3{font-size:14px;margin-bottom:10px;color:#3B3430}
+.legend p{font-size:12.5px;line-height:1.85;color:#5B5652}
+.swatches{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 4px}
+.sw{display:flex;align-items:center;gap:8px;font-size:11.5px;color:#6B6560}
+.dot{width:22px;height:22px;border-radius:7px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- A: 主页面 -->
+  <div class="col">
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁ 88%</span></div>
+
+      <div class="topbar">
+        <div class="iconbtn">☰</div>
+        <div class="ident">
+          <div class="ring"><div>澈</div></div>
+          <div class="txt">
+            <div class="name">林澈<span class="chev">▾</span></div>
+            <div class="tag">在线 · 刚在等你说话</div>
+          </div>
+        </div>
+        <div class="actions">
+          <div class="pill on">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 12a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z" opacity=".85"/></svg>
+          </div>
+          <div class="call">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M6.6 3.8a1.6 1.6 0 0 1 2.3.6l1.1 2.6a1.6 1.6 0 0 1-.4 1.8l-1 1a12 12 0 0 0 5.6 5.6l1-1a1.6 1.6 0 0 1 1.8-.4l2.6 1.1a1.6 1.6 0 0 1 .6 2.3l-.7 1.2a2.4 2.4 0 0 1-2.6 1.2C10.3 19.6 4.4 13.7 3.1 6.1A2.4 2.4 0 0 1 4.3 3.5z"/></svg>
+          </div>
+          <div class="iconbtn" style="width:38px">⋯</div>
+        </div>
+      </div>
+
+      <div class="msgs">
+        <div class="time">今天 21:07</div>
+
+        <div class="row">
+          <div class="av her"><div>澈</div></div>
+          <div class="bubble a">你回来啦。窗外在下小雨，我把窗帘拉开了一点——你那边也听得到吗？</div>
+        </div>
+
+        <div class="row user">
+          <div class="av me">我</div>
+          <div class="bubble u">听得到，刚到家，鞋都湿了</div>
+        </div>
+
+        <div class="row user">
+          <div class="av" style="visibility:hidden"></div>
+          <div class="bubble u">先让我缓一会儿</div>
+        </div>
+
+        <div class="row">
+          <div class="av" style="visibility:hidden"></div>
+          <div class="bubble a">那就别急着说话。给你留了杯热的，慢慢来。<br>—— 我把台灯调暗了一格，这样不刺眼。</div>
+        </div>
+      </div>
+
+      <div class="composer">
+        <div class="card">
+          <div class="placeholder">说点什么…</div>
+          <div class="send">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 19V6M6 12l6-6 6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">A · 主页面：顶栏身份区 + 右上角「语音 / 通话 / ⋯」、双侧头像、无 footer 芯片、卡片式输入框</div>
+  </div>
+
+  <!-- B: 长按底部弹层 -->
+  <div class="col">
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁ 88%</span></div>
+
+      <div class="topbar" style="filter:blur(.2px)">
+        <div class="iconbtn">☰</div>
+        <div class="ident">
+          <div class="ring"><div>澈</div></div>
+          <div class="txt">
+            <div class="name">林澈<span class="chev">▾</span></div>
+            <div class="tag">在线 · 刚在等你说话</div>
+          </div>
+        </div>
+        <div class="actions">
+          <div class="pill on">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M4 9v6h4l5 4V5L8 9H4z"/></svg>
+          </div>
+          <div class="call">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M6.6 3.8a1.6 1.6 0 0 1 2.3.6l1.1 2.6a1.6 1.6 0 0 1-.4 1.8l-1 1a12 12 0 0 0 5.6 5.6l1-1a1.6 1.6 0 0 1 1.8-.4l2.6 1.1a1.6 1.6 0 0 1 .6 2.3l-.7 1.2a2.4 2.4 0 0 1-2.6 1.2C10.3 19.6 4.4 13.7 3.1 6.1A2.4 2.4 0 0 1 4.3 3.5z"/></svg>
+          </div>
+          <div class="iconbtn" style="width:38px">⋯</div>
+        </div>
+      </div>
+
+      <div class="msgs">
+        <div class="time">今天 21:07</div>
+        <div class="row">
+          <div class="av her"><div>澈</div></div>
+          <div class="bubble a" style="box-shadow:0 0 0 2px rgba(139,124,246,.28)">你回来啦。窗外在下小雨，我把窗帘拉开了一点——你那边也听得到吗？</div>
+        </div>
+        <div class="row user">
+          <div class="av me">我</div>
+          <div class="bubble u">听得到，刚到家，鞋都湿了</div>
+        </div>
+        <div class="row">
+          <div class="av" style="visibility:hidden"></div>
+          <div class="bubble a">那就别急着说话。给你留了杯热的，慢慢来。</div>
+        </div>
+      </div>
+
+      <div class="composer" style="opacity:.35">
+        <div class="card"><div class="placeholder">说点什么…</div>
+          <div class="send"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 19V6M6 12l6-6 6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+      </div>
+
+      <div class="sheet-scrim">
+        <div class="sheet">
+          <div class="grip"></div>
+          <div class="mi">
+            <svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+            复制
+          </div>
+          <div class="mi">
+            <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M19 6a9 9 0 0 1 0 12"/></svg>
+            朗读<span class="hint">设备语音</span>
+          </div>
+          <div class="mi">
+            <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.4"/><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="M8.2 10.8 15.8 6.2M8.2 13.2l7.6 4.6"/></svg>
+            分享
+          </div>
+          <div class="mi">
+            <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/><path d="M18 15v5M15.5 17.5h5"/></svg>
+            多选
+          </div>
+          <div class="mi del">
+            <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>
+            删除
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">B · 长按消息：底部弹层（与对话页同一套 MessageMenuSheet），被选中的气泡加紫罗兰描边</div>
+  </div>
+</div>
+
+<div class="legend">
+  <h3>设计要点</h3>
+  <p>
+    ① 顶栏从「汉堡 + 标题 + 三个含义不明的图标」改为<b>身份区</b>（头像 / 名字 / 在线文案 / 下拉）＋<b>三个明确动作</b>；语音回答是<i>开关态</i>用填充表达，通话是<i>主行动</i>用渐变圆的视觉重心，记忆与形象入口收进 ⋯。<br>
+    ② 用户消息补上右侧头像；连续同一发送者只显示第一枚头像，空位用等宽占位，气泡边缘仍对齐。<br>
+    ③ 消息下方不再挂 footer 芯片，复制 / 朗读 / 分享 / 删除全部收进长按弹层，长按区比小图标大得多，误触反而更少。<br>
+    ④ 输入框换成对话页同款白色悬浮卡片＋圆形发送键；语音、通话离开这一行，输入区只剩「说话」一件事。
+  </p>
+  <div class="swatches">
+    <span class="sw"><span class="dot" style="background:#FBF8F5"></span>页面 #FBF8F5</span>
+    <span class="sw"><span class="dot" style="background:#F5F5F5"></span>她的气泡 #F5F5F5</span>
+    <span class="sw"><span class="dot" style="background:#FDE7D3"></span>我的气泡 #FDE7D3</span>
+    <span class="sw"><span class="dot" style="background:#C2410C"></span>行动橙 #C2410C</span>
+    <span class="sw"><span class="dot" style="background:#8B7CF6"></span>她-紫罗兰 #8B7CF6</span>
+    <span class="sw"><span class="dot" style="background:linear-gradient(135deg,#8B7CF6,#FFA6C9)"></span>身份渐变 #8B7CF6→#FFA6C9</span>
+    <span class="sw"><span class="dot" style="background:#F3EFEA"></span>开关关态 #F3EFEA</span>
+  </div>
+  <p style="margin-top:10px;color:#7A736D">紫色只属于「她」：头像环、通话、语音开启。橙色仍是「你／发送」的行动色，两套色不混用，浅暖底不动。</p>
+</div>
+</body>
+</html>

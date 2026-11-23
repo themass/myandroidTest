@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="companion_title">Companion</string>
+    <string name="companion_tab">Companion</string>
+    <string name="companion_mode_text">Text</string>
+    <string name="companion_mode_voice">Voice</string>
+    <string name="companion_input_hint">Say something…</string>
+    <string name="companion_send">Send</string>
+    <string name="companion_connecting">Connecting…</string>
+    <string name="companion_error">Connection failed</string>
+    <string name="companion_voice_hint">Hold to talk</string>
+
+    <!-- Proactive messages: she opened this, nobody asked. The label makes that clear. -->
+    <string name="companion_proactive_event">She remembered</string>
+    <string name="companion_proactive_greeting">Checking in</string>
+    <string name="companion_proactive_generic">From her</string>
+
+    <!-- Actions needing approval before she does them on the user's behalf. -->
+    <string name="companion_action_confirm">Allow</string>
+    <string name="companion_action_cancel">Not now</string>
+
+    <string name="companion_incoming_call">She is calling</string>
+    <string name="companion_call_accept">Answer</string>
+    <string name="companion_call_decline">Decline</string>
+    <!-- Management pages: characters, memory, initiative settings. -->
+    <string name="companion_nav_back">Back</string>
+    <string name="companion_open_characters">Characters</string>
+    <string name="companion_open_memory">What she remembers</string>
+    <string name="companion_open_settings">Her initiative</string>
+    <string name="companion_characters_title">Choose a companion</string>
+    <string name="companion_memory_title">What she remembers</string>
+    <string name="companion_settings_title">Her initiative</string>
+    <string name="companion_tab_facts">Facts</string>
+    <string name="companion_tab_events">Important days</string>
+    <string name="companion_delete">Forget</string>
+    <string name="companion_done">Done</string>
+    <string name="companion_add_event">Add</string>
+    <string name="companion_event_title_hint">What happens?</string>
+    <string name="companion_event_date_hint">Date, e.g. 2026-12-01 10:00</string>
+    <string name="companion_retry">Retry</string>
+    <string name="companion_empty">Nothing here yet</string>
+    <string name="companion_error_generic">Something went wrong</string>
+    <string name="companion_saving">Saving…</string>
+    <string name="companion_pref_events">Remind me about important days</string>
+    <string name="companion_pref_greetings">Say hello now and then</string>
+    <string name="companion_pref_call">Allow her to call me</string>
+    <string name="companion_pref_quiet">Quiet hours: %1$s – %2$s</string>
+    <string name="companion_pref_pause_1h">Pause for 1 hour</string>
+    <string name="companion_pref_resume">Resume</string>
+    <string name="companion_pref_paused_until">Paused until %1$s</string>
+</resources>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_2"
+            android:layout_marginEnd="@dimen/margin_2"
+            android:layout_marginTop="@dimen/margin_3"
+            android:layout_marginBottom="@dimen/margin_3"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:gravity="center"
+            card_view:cardBackgroundColor="@color/music_row_bg_alt"
+            card_view:cardCornerRadius="10dp"
+            card_view:cardElevation="2dp"
+            card_view:cardUseCompatPadding="false">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingTop="@dimen/margin_2"
+                android:paddingBottom="@dimen/margin_2">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/iv_photo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerCrop"
+                        android:src="@color/transparent"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.App.ImageGrid.Top"
+                        app:strokeWidth="0dp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:layout_gravity="bottom"
+                        android:background="@drawable/bg_gallery_bottom_scrim" />
+
+                    <View
+                        android:id="@+id/iv_new"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/ic_new"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tv_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom"
+                        android:ellipsize="end"
+                        android:gravity="center_horizontal"
+                        android:paddingStart="@dimen/margin_5"
+                        android:paddingEnd="@dimen/margin_5"
+                        android:paddingBottom="@dimen/margin_5"
+                        android:shadowColor="#80000000"
+                        android:shadowDx="0"
+                        android:shadowDy="1"
+                        android:shadowRadius="3"
+                        android:singleLine="true"
+                        android:textColor="@color/base_white"
+                        android:textSize="@dimen/recommend_hit_size"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/ads_logo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|start"
+                        android:layout_marginStart="@dimen/margin_5"
+                        android:layout_marginTop="@dimen/margin_3"
+                        android:background="@drawable/bg_gallery_page_badge"
+                        android:paddingStart="@dimen/margin_5"
+                        android:paddingTop="@dimen/margin_2"
+                        android:paddingEnd="@dimen/margin_5"
+                        android:paddingBottom="@dimen/margin_2"
+                        android:text="@string/ads_logo"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/textsize_12" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tv_title_below"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:paddingStart="@dimen/margin_2"
+                    android:paddingEnd="@dimen/margin_2"
+                    android:paddingTop="@dimen/margin_3"
+                    android:paddingBottom="@dimen/margin_2"
+                    android:textColor="#3A3A3C"
+                    android:textSize="@dimen/textsize_12" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/iv_edit"
+        android:layout_width="@dimen/margin_22"
+        android:layout_height="@dimen/margin_22"
+        android:layout_gravity="end"
+        android:layout_marginTop="@dimen/margin_5"
+        android:layout_marginEnd="@dimen/margin_5"
+        android:src="@drawable/ic_menu_edit"
+        android:visibility="gone" />
+
+</FrameLayout>

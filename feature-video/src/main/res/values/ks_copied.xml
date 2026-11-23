@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="player_title_text_size">16sp</dimen>
+    <dimen name="player_title_bar_height">52dp</dimen>
+    <dimen name="player_time_text_size">13sp</dimen>
+    <dimen name="player_bottom_bar_height">52dp</dimen>
+    <dimen name="margin_55">55dip</dimen>
+    <dimen name="margin_22">22dip</dimen>
+    <dimen name="margin_10">10dip</dimen>
+    <string name="player_more_decoder_settings">Decoder settings</string>
+    <string name="video_playback_retry_other_engine">%1$s failed; temporarily using %2$s and retrying (your setting is unchanged).</string>
+    <string name="player_speed_applied">Speed: %1$s</string>
+    <string name="cast_load_failed">Cast failed to load media</string>
+    <string name="localvideo_need_permission">需要读取视频的权限，才能显示相册里的视频</string>
+    <string name="localvideo_delete_failed">删除失败，请在系统相册中删除</string>
+    <string name="video">Sex video</string>
+    <string name="load">loading more data</string>
+    <string name="localvideo_delete">删除</string>
+    <string name="localvideo_title">本地视频</string>
+    <string name="video_playback_retry_action">Retry</string>
+    <string name="localvideo_share">分享</string>
+    <string name="video_playback_failed_retry">Playback failed. Tap Retry to try again.</string>
+    <string name="localvideo_back">返回</string>
+    <string name="video_playback_failed">Playback failed</string>
+    <string name="localvideo_all">全部</string>
+    <string name="localvideo_grant">授权</string>
+    <string name="cast_need_http_url">Cast requires http/https URL</string>
+    <string name="player_gesture_hint">Swipe horizontally to seek; vertical on the left for brightness, right for volume; double-tap to pause.</string>
+    <string name="localvideo_empty">没有找到视频</string>
+    <string name="cast_url_not_ready">Video URL not ready yet</string>
+    <string name="player_more_speed_title">Playback speed</string>
+    <string name="player_more_menu">More options</string>
+    <string name="cast_title">投屏到电视</string>
+</resources>

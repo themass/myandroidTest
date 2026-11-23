@@ -1,0 +1,32 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+// 对话 UI 组件库：与业务无关的消息列表、消息气泡、输入栏等组件。
+// 只依赖 Compose / Material3 / Coil，不依赖 app 的领域模型、网络或主题 token。
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.chatkit'
+    buildFeatures {
+        compose = true
+    }
+}
+
+dependencies {
+    implementation project(':mediaview')
+    implementation libs.kotlinx.coroutines.android
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.ui.tooling.preview
+    implementation libs.androidx.compose.material3
+    implementation libs.androidx.compose.material.icons.extended
+    implementation libs.androidx.core.ktx
+    implementation 'io.coil-kt:coil-compose:2.7.0'
+    debugImplementation libs.androidx.compose.ui.tooling
+
+    testImplementation 'junit:junit:4.13.2'
+}

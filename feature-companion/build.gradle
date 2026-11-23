@@ -1,0 +1,51 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.feature.companion'
+    buildFeatures {
+        compose = true
+    }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.17'
+    testImplementation 'androidx.test:core:1.7.0'
+    testImplementation libs.kotlinx.coroutines.test
+    implementation libs.okhttp
+    // 角色扮演（伴侣页、角色记忆与设置、虚拟形象渲染）。Android 端按角色扮演分支维护。
+    implementation project(':common')
+    implementation project(':core')
+    // 消息列表与输入区复用 chatkit：陪伴页和对话页要长得像一家人，
+    // 而不是各自再造一套气泡。
+    implementation project(':chatkit')
+    // 朗读：设备自带中文 TTS（离线、免费），与「对话」页同一个实现。
+    implementation project(':speech')
+
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.material3
+    implementation libs.androidx.compose.material.icons.extended
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.lifecycle.viewmodel.compose
+    implementation libs.androidx.lifecycle.runtime.compose
+    implementation libs.kotlinx.coroutines.android
+    // 待发条的缩略图。版本与 :chatkit 对齐（同一个 coil-compose，两处各引一次是因为
+    // 模块之间不共享依赖声明；升级时要一起改，否则运行时是两份 coil）。
+    implementation 'io.coil-kt:coil-compose:2.7.0'
+    // LiveKit 语音/实时传输（LiveKitCompanionTransport）
+    implementation 'io.livekit:livekit-android:2.29.0'
+    // 舞台特效层（单模块库，按仓库口径直接写模块依赖，不进 libs.versions.toml）。
+    // 只被 feature-companion 的 fx 包使用；叠在引擎视口之后的 Compose 兄弟层。
+    implementation 'com.airbnb.android:lottie-compose:6.7.1'
+
+    // In-repo DH engines module (Duix / Live2D / Tao runtimes; external includes removed in Task 7).
+    implementation project(':dh-engines')
+}
