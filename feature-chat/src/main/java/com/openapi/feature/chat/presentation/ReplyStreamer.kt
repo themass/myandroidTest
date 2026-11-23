@@ -216,9 +216,19 @@ internal class ReplyStreamer(
         return kept != null
     }
 
+    /**
+     * 流式期高频更新：按 key 定位后原位替换，避免每 tick 对整表 map 拷贝（P1-12）。
+     */
     fun updateByKey(key: String, transform: (ChatMessage) -> ChatMessage) {
         state.update { current ->
-            current.copy(messages = current.messages.map { if (it.key == key) transform(it) else it })
+            val index = current.messages.indexOfLast { it.key == key }
+            if (index < 0) return@update current
+            val previous = current.messages[index]
+            val next = transform(previous)
+            if (previous === next) return@update current
+            val messages = current.messages.toMutableList()
+            messages[index] = next
+            current.copy(messages = messages)
         }
     }
 

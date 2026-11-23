@@ -1,5 +1,8 @@
 package com.openapi.feature.chat.presentation.ui
 
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.URLSpan
 import android.widget.TextView
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -9,6 +12,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.widget.TextViewCompat
 import com.openapi.feature.chat.markdown.ChatMarkwon
 import com.openapi.feature.chat.markdown.FormulaInputNormalizer
+import com.openapi.feature.chat.markdown.MarkdownStableTail
+import io.noties.markwon.Markwon
 
 /**
  * Markdown 渲染。
@@ -43,17 +48,56 @@ fun MarkdownText(
                 setTextColor(textColor.toArgb())
                 setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, textSizeSp)
                 setLineSpacing(0f, 1.2f)
+                tag = MarkdownRenderCache()
             }
         },
         update = { view ->
             view.setTextColor(textColor.toArgb())
-            ChatMarkwon.get(view.context).setMarkdown(view, FormulaInputNormalizer.forRender(markdown))
-            // Markwon 会给带链接的文字挂上 LinkMovementMethod，它会吞掉按压，导致外层长按菜单打不开。
-            // 只有真的有链接时才保留它；没有链接的文字不挂，让按压交给气泡。
-            val hasLinks = (view.text as? android.text.Spanned)
-                ?.getSpans(0, view.text.length, android.text.style.URLSpan::class.java)
+            val normalized = FormulaInputNormalizer.forRender(markdown)
+            val split = MarkdownStableTail.split(normalized)
+            val markwon = ChatMarkwon.get(view.context)
+            val cache = view.tag as MarkdownRenderCache
+            setMarkdownIncremental(view, markwon, cache, split)
+            val hasLinks = (view.text as? Spanned)
+                ?.getSpans(0, view.text.length, URLSpan::class.java)
                 ?.isNotEmpty() == true
             view.movementMethod = if (hasLinks) android.text.method.LinkMovementMethod.getInstance() else null
         },
     )
+}
+
+private data class MarkdownRenderCache(
+    var stableSource: String? = null,
+    var stableSpanned: Spanned? = null,
+)
+
+/**
+ * 已闭合段落缓存在 View tag 上，流式时只重解析 [MarkdownStableTail.Split.tail]（P1-12）。
+ */
+private fun setMarkdownIncremental(
+    view: TextView,
+    markwon: Markwon,
+    cache: MarkdownRenderCache,
+    split: MarkdownStableTail.Split,
+) {
+    val builder = SpannableStringBuilder()
+    if (split.stable.isNotEmpty()) {
+        val stableKey = split.stable
+        if (cache.stableSource != stableKey) {
+            cache.stableSource = stableKey
+            cache.stableSpanned = markwon.toMarkdown(stableKey.trimEnd())
+        }
+        cache.stableSpanned?.let { builder.append(it) }
+    } else {
+        cache.stableSource = ""
+        cache.stableSpanned = null
+    }
+    if (split.tail.isNotEmpty()) {
+        builder.append(markwon.toMarkdown(split.tail))
+    }
+    if (builder.isEmpty() && split.stable.isEmpty() && split.tail.isEmpty()) {
+        view.text = ""
+    } else {
+        view.text = builder
+    }
 }
