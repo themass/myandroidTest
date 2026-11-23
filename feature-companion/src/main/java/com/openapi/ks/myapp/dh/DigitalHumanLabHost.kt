@@ -423,8 +423,10 @@ fun DigitalHumanLabHost(
                             v.translationX = stage.offsetX
                             v.translationY = stage.offsetY
                             theme?.let {
-                                val argb = stageClearColorArgb(it.topArgb, it.midArgb, it.bottomArgb)
-                                v.setBackgroundColor(argb)
+                                if (canApplyThemeBackgroundToView(v)) {
+                                    val argb = stageClearColorArgb(it.topArgb, it.midArgb, it.bottomArgb)
+                                    v.setBackgroundColor(argb)
+                                }
                             }
                         },
                         onRelease = { /* release 由 bridge.replaceWith / DisposableEffect 负责 */ },
