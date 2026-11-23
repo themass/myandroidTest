@@ -29,6 +29,8 @@
     <string name="chatkit_remove_attachment">Remove attachment</string>
     <string name="chatkit_image_count">%1$d / %2$d</string>
     <string name="chatkit_image">Image</string>
+    <!-- 收纳盒位置角标的读屏说法（cleanup 项 12）：视觉上是「1/3」，念出来要像话 -->
+    <string name="chatkit_stack_position">Image %1$d of %2$d</string>
     <string name="chatkit_scroll_to_bottom">Scroll to bottom</string>
     <string name="chatkit_release_to_end">Release to finish</string>
     <string name="chatkit_release_to_send_short">Release to send</string>

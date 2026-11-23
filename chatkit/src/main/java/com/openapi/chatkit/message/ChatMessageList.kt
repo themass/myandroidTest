@@ -230,6 +230,11 @@ fun ChatMessageList(
                         // 只有调用方真的给了动作才记下这次长按，见 [shouldOpenAttachmentMenu]
                         // （没有它，不配附件菜单的调用方长按一张图会弹出一个零行的空面板）。
                         onAttachmentLongPress = { target ->
+                            // 注意（台账 minor）：`attachmentActions(target)` 在**一次长按**里会被调
+                            // 两次——这里判断一次，下面 `AttachmentActionSheet(actions = …)` 再调一次。
+                            // 今天的调用方给的是纯 when 常量表（`AttachmentActions.actionsFor`），成本为零；
+                            // 谁以后传非平凡的 lambda（要查表、算东西），就把这次长按变成两次计算，
+                            // 那时应该在这里算一次、把结果存进 attachment 那个 MenuTarget。
                             if (shouldOpenAttachmentMenu(selection.active, attachmentActions(target))) {
                                 attachment = target
                             }
