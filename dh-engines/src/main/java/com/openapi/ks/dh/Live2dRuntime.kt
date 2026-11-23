@@ -199,7 +199,12 @@ class Live2dRuntime internal constructor(
         if (!started || released) return
         val d = dispatcher ?: return
         runCatching {
-            d.post { runCatching { JniBridgeJava.nativeSetBackgroundColor(r, g, b) } }
+            d.post {
+                runCatching { JniBridgeJava.nativeSetBackgroundColor(r, g, b) }
+                    .onFailure { t ->
+                        Log.w(TAG, "nativeSetBackgroundColor failed — 舞台会保持黑底（检查 fork .so）", t)
+                    }
+            }
         }
     }
 
