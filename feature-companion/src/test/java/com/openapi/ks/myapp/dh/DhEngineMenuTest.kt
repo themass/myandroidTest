@@ -61,6 +61,20 @@ class DhEngineMenuTest {
     }
 
     @Test
+    fun live2d_empty_manifest_explains_seed_requirement() {
+        val rows = dhEngineMenuRows(
+            listOf(DhEngineAvailability(DhEngineId.LIVE2D, available = false, reason = "未下载", needsDownload = true)),
+        )
+        val live2d = rows.first { it.id == DhEngineId.LIVE2D }
+        assertTrue(live2d.switches)
+        assertTrue(live2d.detail!!.contains("seed"))
+        assertEquals(
+            EngineClickAction.UNAVAILABLE_REASON,
+            DhEngineDownloadGate({ false }) { _, _ -> Result.success(Unit) }.actionFor(live2d),
+        )
+    }
+
+    @Test
     fun vrm_menu_row_shows_experiment_label() {
         val rows = dhEngineMenuRows(
             listOf(DhEngineAvailability(DhEngineId.VRM, available = false, reason = "未下载", needsDownload = true)),

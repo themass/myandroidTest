@@ -22,7 +22,7 @@ fun dhEngineMenuRows(availability: List<DhEngineAvailability>): List<DhEngineMen
             id = row.id,
             label = dhEngineLabel(row.id),
             switches = row.available || row.needsDownload,
-            detail = if (row.available) null else row.reason,
+            detail = dhEngineMenuDetail(row.id, row.available, row.reason, row.needsDownload),
         )
     }
     return listOf(DhEngineMenuRow(id = null, label = "原来的形象", switches = true)) + engines

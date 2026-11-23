@@ -66,6 +66,8 @@ import com.openapi.ks.myapp.dh.DhLabGate
 import com.openapi.ks.myapp.dh.DhLabPreferences
 import com.openapi.ks.myapp.dh.DigitalHumanLabHost
 import com.openapi.ks.myapp.dh.dhEngineMenuRows
+import com.openapi.ks.myapp.dh.dhEngineSeedHint
+import com.openapi.ks.myapp.dh.mapEnsureFailureMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -585,8 +587,15 @@ fun CompanionRoute(
             live2dModelSwitchHint = "只推了这一个形象",
             onEngineMenuClick = { row ->
                 when (engineGate.actionFor(row)) {
-                    EngineClickAction.UNAVAILABLE_REASON ->
-                        toast(context, row.detail ?: "这个形象现在不能用")
+                    EngineClickAction.UNAVAILABLE_REASON -> {
+                        val id = row.id
+                        val msg = when {
+                            id != null && row.detail?.contains("seed") == true ->
+                                dhEngineSeedHint(id) ?: row.detail
+                            else -> row.detail ?: "这个形象现在不能用"
+                        }
+                        toast(context, msg)
+                    }
                     EngineClickAction.SELECT -> {
                         // 用户主动再选 = 解除上次崩溃留下的熔断（再崩会重新熔断）。
                         row.id?.let { DhEngineWatchdog(context).clear(it) }
@@ -624,7 +633,8 @@ fun CompanionRoute(
                                         toast(context, "$name 正在下载…")
                                     is DhEngineDownloadGate.Outcome.Failed -> {
                                         engineMenuTick++
-                                        toast(context, "$name 下载失败：${outcome.reason}")
+                                        val why = mapEnsureFailureMessage(id, outcome.reason)
+                                        toast(context, "$name：$why")
                                     }
                                 }
                             }
