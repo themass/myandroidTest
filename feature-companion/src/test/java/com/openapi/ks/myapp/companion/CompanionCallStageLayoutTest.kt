@@ -63,6 +63,30 @@ class CompanionCallStageLayoutTest {
     }
 
     @Test
+    fun hero_caption_band_clears_control_bar_without_collapsing() {
+        // 真机现象：选了数字人引擎（Simple/Live2D/Duix/VRM）后字幕全部失效，
+        // 「原来的形象」（分栏布局）正常。根因是主角模式字幕链的**修饰符顺序**：
+        // `heightIn(max = 150.dp)` 写在 `padding(bottom = 218.dp)` 之前——
+        // Compose 里 padding 作用在它下游内容的高度上、又被上游的封顶压制，
+        // 内容按 max(0, 150 − 218) = 0 测量，整条字幕栈隐形。
+        // 用源码断言钉住链序（同 route_passes_hero 的护栏风格）：先让位（padding），
+        // 再封顶（heightIn），内容才拿得到 0..150 的真实高度。
+        var dir = java.io.File(System.getProperty("user.dir"))
+        while (dir != null && !java.io.File(dir, "settings.gradle").isFile) dir = dir.parentFile
+        val screen = java.io.File(
+            checkNotNull(dir),
+            "feature-companion/src/main/java/com/openapi/ks/myapp/companion/CompanionCallScreen.kt",
+        ).readText()
+        val marker = "if (captionsVisible) CaptionStack("
+        val start = screen.indexOf(marker)
+        assertTrue("hero branch must gate CaptionStack with captionsVisible", start >= 0)
+        val chain = screen.substring(start, minOf(start + 700, screen.length))
+        val pad = chain.indexOf(".padding(bottom")
+        val cap = chain.indexOf(".heightIn(")
+        assertTrue("hero caption band must apply .padding(bottom …) before .heightIn(max …)", pad in 0 until cap)
+    }
+
+    @Test
     fun route_passes_hero_only_for_engine_stages() {
         // 接线护栏（同 DhLabExternalIncludesRemovedTest 的源码断言风格）：
         // CompanionRoute 必须只在选了引擎舞台（callStage != null）时开主角模式，
