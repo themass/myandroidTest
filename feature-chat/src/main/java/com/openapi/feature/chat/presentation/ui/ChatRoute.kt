@@ -100,7 +100,9 @@ fun ChatRoute(
         uri?.let { viewModel.onAttachmentPicked(context, MessageKind.FILE, it) }
     }
     val videoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        // 只有视频选择器返回 null（取消）时什么都不做；超限/格式错误由暂存层的 Rejected 提示
+        // 只有视频选择器返回 null（取消）时什么都不做；超限/格式错误由暂存层的 Rejected 提示。
+        // 这条选择器是单选、恒可用（没有条数上限可加），所以「9 图 + 1 视频 = 10 个附件」全靠
+        // [ComposerActions.addDraft] 的合计闸挡下——不挡的话十份字节传完才吃 422（cleanup P0）。
         if (uri != null) viewModel.onAttachmentPicked(context, MessageKind.VIDEO, uri)
     }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->

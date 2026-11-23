@@ -42,10 +42,13 @@ interface ChatStrings {
     /** 单次粗定位没拿到结果（超时、GPS 关、无服务）。 */
     fun locationFailed(): String
     /**
-     * 草稿托盘里的图片已经到 [max] 张，这张进不去。
+     * 草稿托盘里的**附件**（图片+视频）已经到 [max] 个，这一个进不去。
+     *
+     * 措辞刻意是「附件」而不是「图片」：图与视频在 wire 上是同一条 `SendBody.attachments`、
+     * 共用同一个额度，被拦下的可能是第 10 个视频——说「图片」会让用户去删一张其实没超的图。
      *
      * 必须有：选择器的 `maxItems` 只是**建议**，厂商 ROM 的选择器可以不认，
-     * 那时图会一路加到草稿里、上传花完钱再被服务端的 422 打回来。
+     * 那时附件会一路加到草稿里、上传花完钱再被服务端的 422 打回来。
      */
-    fun imageLimitReached(max: Int): String
+    fun attachmentLimitReached(max: Int): String
 }

@@ -102,10 +102,21 @@ internal class SendActions(
         streamer.stream(text, userMessageId = user.id, persistUser = true)
     }
 
-    fun attachmentPicked(context: android.content.Context, kind: MessageKind, uri: android.net.Uri) {
+    fun attachmentPicked(
+        context: android.content.Context,
+        kind: MessageKind,
+        uri: android.net.Uri,
+        /**
+         * 测试接缝（与 `CompanionViewModel.onImagesPicked` 同款）：默认 `Dispatchers.IO`
+         * 是真线程，`advanceUntilIdle` 追不到它，暂存与清扫那一段就只能靠读代码确认。
+         * 界面调用方一律用默认值。
+         */
+        ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
+    ) {
         if (state.value.sending) return
         scope.launch {
-            val outcome = withContext(Dispatchers.IO) { AttachmentStager.stage(context, kind, uri) }
+            val keep = stagedBytesStillInUse()
+            val outcome = withContext(ioDispatcher) { AttachmentStager.stage(context, kind, uri, keep) }
             when (outcome) {
                 is StageOutcome.Staged -> rejectIfOverLimit(kind, outcome.attachment)
                 is StageOutcome.Rejected -> state.update { it.copy(error = outcome.reason) }
@@ -115,15 +126,42 @@ internal class SendActions(
     }
 
     /**
-     * 进草稿托盘，超了图片上限就说清楚（终评 I-1）。
+     * 暂存目录里**还不能当垃圾删**的字节（复审 Important）。
      *
-     * 走 `Rejected` 那条已有的「说得出原因」的路径，而不是静默丢掉这一张：从「文件」里选图片
-     * 也到这里，那条路的选择器压根没有条数上限（它一次只给一张），到顶完全可能发生。
+     * 两类必要的：
+     * 1. 本地行引用的：一条 `local-` 行没到 SENT（上传一次都没成过）时，图片字节只在本机，
+     *    `uploadId` 要么没有要么早过了 10 分钟寿命（ADR-011），重发只能重新上传这个文件；
+     *    扫掉它 = 那条消息永久发不出去。
+     * 2. 托盘里还没发的：App 一直开着、草稿压了一周没提交，此时再选一张图就会触发清扫。
+     *
+     * **宽出是故意的**（复审 nit 2，把话说实话）：第三路把屏幕上**所有**消息的附件路径都放进来了，
+     * 包括已经 SENT 的那些 —— 按 [com.openapi.feature.chat.data.remote.LocalChatStore] 的口径
+     * SENT 行的字节算孤儿（服务端有它的正式版，图没了能走签名 URL），本可以被回收。
+     * 为什么不做「在屏 + 非 SENT」的精确覆盖：白名单是**一次快照**、不做引用计数，
+     * 判据多一处就多一处写错的地方；而刷新过历史之后（`LocalChatStore.cacheRemote`
+     * 把本地临时行改挂到服务端正式 id）带本机字节的行已经不在 `local-%` 那批里，
+     * 光靠仓库那一路覆盖不到它们。这里要的是「**永不窄于**当时真的还要用的字节」，
+     * 于是接受宁可宽一轮。代价有界且很小：一页历史最多几十条路径，效果只是这些字节
+     * **延后一轮**回收（不在屏上以后照旧被扫）。
+     */
+    private suspend fun stagedBytesStillInUse(): Set<String> =
+        repository.localAttachmentPathsInUse() +
+            state.value.drafts.map { it.staged.file.absolutePath } +
+            state.value.messages.flatMap { message ->
+                message.images.map { it.path } + message.videos.map { it.path } + message.files.map { it.path }
+            }
+
+    /**
+     * 进草稿托盘，超了附件额度（图片+视频合计）就说清楚（终评 I-1）。
+     *
+     * 走 `Rejected` 那条已有的「说得出原因」的路径，而不是静默丢掉这一个：从「文件」里选图片
+     * 也到这里，那条路的选择器压根没有条数上限（它一次只给一张），到顶完全可能发生；
+     * 「拍摄/视频」同理，它在 wire 上与图片共用同一条 attachments。
      */
     private fun rejectIfOverLimit(kind: MessageKind, staged: StagedAttachment) {
         if (!composer.addDraft(kind, staged)) {
             state.update {
-                it.copy(error = strings.imageLimitReached(com.openapi.common.media.MAX_MESSAGE_IMAGES))
+                it.copy(error = strings.attachmentLimitReached(com.openapi.common.media.MAX_MESSAGE_IMAGES))
             }
         }
     }
@@ -132,11 +170,14 @@ internal class SendActions(
         context: android.content.Context,
         uris: List<android.net.Uri>,
         openEditor: ((java.io.File, android.graphics.Bitmap) -> Unit)? = null,
+        /** 测试接缝，同 [attachmentPicked]；界面调用方一律用默认值。 */
+        ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
     ) {
         if (uris.isEmpty() || state.value.sending) return
         scope.launch {
+            val keep = stagedBytesStillInUse()
             for (uri in uris) {
-                val outcome = withContext(Dispatchers.IO) { AttachmentStager.stage(context, MessageKind.IMAGE, uri) }
+                val outcome = withContext(ioDispatcher) { AttachmentStager.stage(context, MessageKind.IMAGE, uri, keep) }
                 when (outcome) {
                     is StageOutcome.Staged -> {
                         val staged = outcome.attachment
@@ -144,7 +185,7 @@ internal class SendActions(
                         // 剩下几张也解码压缩一遍，白费等用户看着进度条跑完。
                         if (!composer.addDraft(MessageKind.IMAGE, staged)) {
                             state.update {
-                                it.copy(error = strings.imageLimitReached(com.openapi.common.media.MAX_MESSAGE_IMAGES))
+                                it.copy(error = strings.attachmentLimitReached(com.openapi.common.media.MAX_MESSAGE_IMAGES))
                             }
                             return@launch
                         }

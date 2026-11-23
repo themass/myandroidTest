@@ -24,6 +24,11 @@ import org.junit.Test
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class CompanionViewModelTest {
+    init {
+        // JVM 单测没有资源环境：VM 的错误文案走标记串（cleanup 项 2）。
+        // 装在这里而不是逐个构造点传参——VM 的 `strings` 有默认值，38 处构造点不必各自记一次。
+        CompanionDependencies.installStrings(FakeCompanionStrings())
+    }
 
     private val dispatcher = StandardTestDispatcher()
 
@@ -613,9 +618,12 @@ class CompanionViewModelTest {
      * 先到、文本后到，服务端才能把这两条挂成一条消息。反过来发，文本会先触发回合，
      * agent 开口时图片还没登记——表现是「她回了一句『图我看到了』但其实没有图」。
      *
-     * 顺序在这里是可以确定断言的：`sendAttachments` 与 `sendText` 都是同步的接口方法，
-     * 替身把每一次调用按到达顺序记进同一个 [calls] 序列，上传全成功时这条序列就是
-     * 「房间里实际收到的先后」。
+     * 顺序在这里是可以确定断言的：替身把每一次调用按到达顺序记进同一个 [calls] 序列，
+     * 上传全成功时这条序列就是「房间里实际收到的先后」。
+     *
+     * （旧注释说「`sendAttachments` 与 `sendText` 都是同步的接口方法」已经过时：I-1 修复轮把
+     * `sendAttachments` 改成了 **suspend** 方法，`deliver` 必须 `await` 它返回才发文本——
+     * 「顺序可钉」靠的正是这个 await，不是「两个方法都同步」。见 [CompanionTransport.sendAttachments]。）
      */
     @Test
     fun `picked images are uploaded, then an attachments event goes out before the text`() = runTest(dispatcher) {
@@ -682,10 +690,127 @@ class CompanionViewModelTest {
         assertEquals("待发图要原样留着待重发", 3, vm.state.value.pendingImages.size)
         assertTrue(
             "要给用户一条人话（实际 error=${vm.state.value.error}）",
-            vm.state.value.error?.contains("部分图片上传失败") == true,
+            vm.state.value.error == "S:uploadPartialFailed",
         )
         assertEquals("输入框不能白丢", "看这三张", vm.state.value.input)
         assertTrue("闸口要重新放开，否则重试按钮永远按不动", vm.state.value.canSend)
+        vm.stopListening()
+    }
+
+    /**
+     * cleanup 项 4：`removePendingImage` 在 VM 侧也要有 `uploading` 守卫。
+     *
+     * 以前只有 UI 那道门（`PendingImageStrip(enabled = !uploading)`），VM 入口是敞开的：
+     * 上传协程正在**逐张按路径读文件**，这时把某一张从待发条里划掉会顺手 `File(path).delete()`
+     * ——协程下一次读它就是读一个已经不存在的文件，用户看到的是一句「部分图片上传失败」，
+     * 而原因是他自己刚划掉了那张。入口在 VM 上钉死比只靠界面禁用可靠：界面上的门是
+     * 一次重组的结果，不是合同。
+     */
+    @Test
+    fun `removing a pending image while uploading is refused, keeping the file and the tray entry`() = runTest(dispatcher) {
+        val image = pendingFile("img_1.jpg")
+        val transport = AttachmentTransport()
+        val uploader = FakeImageUploader()
+        val vm = imageVm(transport, uploader)
+
+        vm.start("linche")
+        runCurrent()
+        vm.addPendingImage(image)
+        vm.onInputChange("看这张")
+        vm.send()
+        // 协程已经把自己标成 uploading（还没跑到第一张的挂起点）
+        assertTrue("前置：这一串在途", vm.state.value.uploading)
+
+        vm.removePendingImage(image.absolutePath)
+        assertTrue("上传在途时划不掉：待发条原样留着", vm.state.value.pendingImages.any { it.path == image.absolutePath })
+        assertTrue("划不掉就不许顺手删文件（协程还要读它）", image.exists())
+
+        vm.stopListening()
+    }
+
+    /**
+     * cleanup 项 6：额度（`MAX_PENDING_IMAGES`）在 VM 侧有测试引用。
+     *
+     * 选图那条路的闸在 VM 里（选择器的 maxItems 只是建议值，第二次打开选择器完全可能再选一张），
+     * 所以「第 10 张进不去 + 说得出原因」必须在 VM 上钉住，而不是只在界面上禁用。
+     * 额度真值来自 :common 的 MAX_MESSAGE_IMAGES（与服务端 MAX_MESSAGE_ATTACHMENTS 同源）——
+     * 这里刻意用 MAX_PENDING_IMAGES 断言，抄一个 9 就是给自己再造一处会漂的数。
+     */
+    @Test
+    fun `the tenth pending image is refused and says why`() = runTest(dispatcher) {
+        val vm = imageVm(AttachmentTransport(), FakeImageUploader())
+        vm.start("linche")
+        runCurrent()
+
+        for (i in 1..CompanionViewModel.MAX_PENDING_IMAGES) {
+            vm.addPendingImage(pendingFile("img_$i.jpg"))
+        }
+        assertEquals(CompanionViewModel.MAX_PENDING_IMAGES, vm.state.value.pendingImages.size)
+        assertNull("满格之前不该报错", vm.state.value.error)
+
+        vm.addPendingImage(pendingFile("img_extra.jpg"))
+        assertEquals("第 10 张进不去", CompanionViewModel.MAX_PENDING_IMAGES, vm.state.value.pendingImages.size)
+        assertEquals(
+            "到顶要说得出原因（否则图就像被吞了），且带的是额度数字",
+            "S:imageLimitReached:" + CompanionViewModel.MAX_PENDING_IMAGES,
+            vm.state.value.error,
+        )
+        vm.stopListening()
+    }
+
+    /** 去重按绝对路径：同一路径重复进来是选择器/暂存层重入，不是用户又选了一张。 */
+    @Test
+    fun `the same path picked twice does not take two slots`() = runTest(dispatcher) {
+        val vm = imageVm(AttachmentTransport(), FakeImageUploader())
+        vm.start("linche")
+        runCurrent()
+
+        val image = pendingFile("img_1.jpg")
+        vm.addPendingImage(image)
+        vm.addPendingImage(image)
+
+        assertEquals(1, vm.state.value.pendingImages.size)
+        assertNull(vm.state.value.error)
+        vm.stopListening()
+    }
+
+    /**
+     * cleanup 项 3：「已保留待重发」这句不能被一次重连抖动抹掉。
+     *
+     * 上传失败后图**还在**待发条里，那句错误是用户唯一的线索——「再按一次就行」。
+     * 而 `observeConnection` 以前在 CONNECTING/RECONNECTING/CONNECTED 三条边上都把
+     * `error` 置 null，于是房间抖一下（LiveKit 断线重连是常态），线索消失、图还在，
+     * 用户以为发出去了。错误条的消失只有两个正当理由：用户自己关掉（`clearError`），
+     * 或开了一通新会话（`start`）。
+     */
+    @Test
+    fun `the kept-for-resend upload error survives a reconnect jitter`() = runTest(dispatcher) {
+        val image = pendingFile("img_1.jpg")
+        val transport = AttachmentTransport()
+        val uploader = FakeImageUploader(failOn = "img_1.jpg")
+        val vm = imageVm(transport, uploader)
+
+        vm.start("linche")
+        runCurrent()
+        vm.addPendingImage(image)
+        vm.onInputChange("看这张")
+        vm.send()
+        runCurrent()
+
+        val error = vm.state.value.error
+        // 标记串：措辞本身由 :app 的 CompanionStringsResourceTest 钉（zh 与迁移前逐字一致），
+        // 这里钉的是「说了哪句话、这句话会不会被连接抖动带走」。
+        assertNotNull("前置：上传失败要说出一句话", error)
+        assertEquals("取的是「已保留待重发」那条文案（实际=「$error」）", "S:uploadPartialFailed", error)
+
+        transport.dropping()
+        runCurrent()
+        assertEquals("重连在途时那句提示还在", error, vm.state.value.error)
+        transport.reconnected()
+        runCurrent()
+
+        assertEquals("重连抖动不能换掉也不能抹掉这句话", error, vm.state.value.error)
+        assertEquals("图必须还在待发条里（那句话说的就是它）", 1, vm.state.value.pendingImages.size)
         vm.stopListening()
     }
 
@@ -1165,9 +1290,22 @@ private fun imageVm(transport: AttachmentTransport, uploader: FakeImageUploader)
     inboxPollMillis = 60_000,
 )
 
-/** 一个真实存在的待发图片文件（上传替身不读内容，只要路径与名字）。 */
-private fun pendingFile(name: String) =
-    java.io.File(System.getProperty("java.io.tmpdir"), name).apply { writeText("fake-jpeg") }
+/**
+ * 待发条用的假图文件（上传替身不读内容，只要路径与名字）。
+ *
+ * 每个用例一个**独立子目录**（按调用类+用例名），且用完即删：以前所有用例都往
+ * `java.io.tmpdir` 根下写同名的 `img_1.jpg`，于是「删掉暂存文件」这类断言（`file.exists()`）
+ * 会被**上一个用例留下的同名文件**糊住——红的时候说不清是谁写的，绿也可能只是残留。
+ */
+private fun pendingFile(name: String): java.io.File {
+    val dir = java.io.File(
+        System.getProperty("java.io.tmpdir"),
+        "companion-pending-" + System.nanoTime() + '-' + Thread.currentThread().id,
+    )
+    dir.mkdirs()
+    dir.deleteOnExit()
+    return java.io.File(dir, name).apply { writeText("fake-jpeg") }
+}
 
 /** 假上传：按文件名回一个稳定的 id，`failOn` 那张抛异常（模拟服务端拒绝/断网）。 */
 private class FakeImageUploader(
@@ -1199,6 +1337,18 @@ private class AttachmentTransport(
     /** 可翻：`false` 模拟这一次没落进房间（房间断了/协商变了/编码或发布失败），翻回 `true` 就是用户再按一次发送时房间恢复了。 */
     var attachmentsSucceed: Boolean = true,
 ) : CompanionTransport {
+    /** 可推的连接状态：用来造「重连抖动」那一条边（见 [reconnectJitter]）。 */
+    private val connectionFlow = kotlinx.coroutines.flow.MutableStateFlow(TransportConnection.CONNECTED)
+    override val connection: kotlinx.coroutines.flow.StateFlow<TransportConnection> = connectionFlow
+
+    /**
+     * 房间抖一下：RECONNECTING。必须与 [reconnected] **分两步**推，中间让测试线程跑一次
+     * `runCurrent()`——StateFlow 是 conflate 的，同一次同步写入里连改两次只会留下最后一个值，
+     * 那样这条边根本没被观察过，用例就是假绿。
+     */
+    fun dropping() { connectionFlow.value = TransportConnection.RECONNECTING }
+    fun reconnected() { connectionFlow.value = TransportConnection.CONNECTED }
+
     val calls = mutableListOf<String>()
     val sentTexts = mutableListOf<String>()
     /** 每一次 sendAttachments 原样记下来：只留最后一次的值会让「id 累加」这种错看不出来。 */

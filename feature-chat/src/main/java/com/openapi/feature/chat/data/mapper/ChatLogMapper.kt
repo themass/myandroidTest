@@ -327,6 +327,28 @@ object ChatLogMapper {
         return json.toString()
     }
 
+    /**
+     * 这条消息引用的**本机**附件路径（图片 + 视频 + 文件，外加视频首帧缩略图）。
+     *
+     * 服务端来源（`source == REMOTE`、`path` 空或 `remote`）在这里被跳过——那些字节不在本机，
+     * 无所谓留不留。用途是暂存目录清扫的白名单（见
+     * [com.openapi.feature.chat.data.remote.LocalChatStore.localAttachmentPathsInUse]）：
+     * 一条没到 SENT 的本地行只有这些字节可以重发，删了就永久发不出去（复审 Important）。
+     */
+    fun localAttachmentPaths(message: ChatMessage): Set<String> {
+        val out = LinkedHashSet<String>()
+        message.images.forEach { image ->
+            if (image.source == ImageSource.FILE) out.add(image.path)
+        }
+        message.videos.forEach { video ->
+            out.add(video.path)
+            video.thumbnailPath?.let { out.add(it) }
+        }
+        message.files.forEach { out.add(it.path) }
+        out.removeIf { it.isBlank() }
+        return out
+    }
+
     fun toWho(role: ChatRole): Int =
         if (role == ChatRole.USER) WHO_SENT else WHO_RECEIVED
 

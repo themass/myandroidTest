@@ -164,6 +164,9 @@ interface CompanionTransport {
      *
      * 默认实现返回 `false`：没有数据通道的替身**没有**这条路径，「没落进去」是它的真实答案
      * （发送侧的入口闸在 [imageSupported]，正常走不到这里）。
+     * **将来写新的替身注意**：想跑带图那条路的 fake 必须**显式覆盖**这个默认——默认 `false`
+     * 会让 `deliver` 按「发布失败」收尾（不发文本、把待发条留着），新 fake 忘了覆盖就会得到
+     * 一条永远发不出去的假失败，而不是编译错误。
      */
     suspend fun sendAttachments(uploadIds: List<String>, clientMsgId: String): Boolean = false
 

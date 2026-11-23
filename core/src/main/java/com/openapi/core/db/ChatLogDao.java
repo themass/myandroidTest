@@ -72,6 +72,18 @@ public interface ChatLogDao {
     ChatLog byChatId(String chatId);
 
     /**
+     * 全部本地临时行（`local-` 前缀，服务端历史里没有这些消息），跨会话。
+     *
+     * 用途只有一个：附件暂存目录做清扫之前，先问一遍「哪些字节还有人引用」。
+     * 一条没到 SENT 的本地行（上传一次都没成功过）手里只有本机字节——
+     * 服务端那张直传票据 10 分钟就废（ADR-011），重发只能重新上传文件。
+     * 按年龄把这些字节删了，那条消息就永久发不出去（复审 Important）。
+     * 投递状态在 content 的 JSON 里，SQL 判不了，所以这里只按前缀取行，状态由调用方映射后再筛。
+     */
+    @Query("SELECT * FROM ChatLog WHERE chatId LIKE 'local-%' ORDER BY id ASC")
+    List<ChatLog> localRows();
+
+    /**
      * 跨会话搜消息正文（整改清单 P2-15）。只搜纯文字行（msgType = 0）：
      * 语音/图片/文件行的 content 是本机路径或元数据，搜出来没有意义（同 deleteSessionTextOnly 的理由）。
      * 联 ChatSessionLog 带出会话名，结果才能显示「在哪段对话里」。

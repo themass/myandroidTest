@@ -434,6 +434,9 @@ class AgentBackedChatRepository(
     override suspend fun localPendingMessages(sessionId: Long): List<ChatMessage> =
         withContext(Dispatchers.IO) { local.localPending(sessionId) }
 
+    override suspend fun localAttachmentPathsInUse(): Set<String> =
+        withContext(Dispatchers.IO) { local.localAttachmentPathsInUse() }
+
     /**
      * 该会话的本地缓存整页消息，供切换会话时立刻显示。
      * 远程图片在这份缓存里是空路径（库里只存 upload_id，签名 URL 有 300 秒寿命），

@@ -342,7 +342,11 @@ class AgentChatRemote(
      *
      * 只报 HTTP 码对定位没用：401 是登录过期、409 是「回合进行中」、422 是内容被拒，三者的处理方式完全不同。
      * 422 还要再分一层——附件超上限是唯一一种「用户自己就能改好」的 422，而它恰好发生在
-     * 图片**已经传完**之后（上传花的流量和电都回不来了），所以这一句必须把上限数字给出来。
+     * 附件**已经传完**之后（上传花的流量和电都回不来了），所以这一句必须把上限数字给出来。
+     *
+     * 措辞是「附件」不是「图片」：服务端裁的是 `SendBody.attachments` 这一条 list，图片和视频
+     * 都进这一条 list、共用同一个额度（cleanup P0）。说「9 张图片」会让 9 图 + 1 视频的用户
+     * 去删一张其实没超的图，而该删的是那条视频。
      */
     private fun failure(status: Int, body: String): Failure {
         val detail = runCatching { JSONObject(body).optJSONObject("detail") }.getOrNull()
@@ -353,7 +357,7 @@ class AgentChatRemote(
             reason != null -> reason
             status == 401 -> "登录已过期，请重新登录"
             status == 409 -> "上一轮回复还没结束"
-            attachmentLimit != null -> "一条消息最多 $attachmentLimit 张图片，请减少后重试"
+            attachmentLimit != null -> "一条消息最多 $attachmentLimit 个附件，请减少后重试"
             status == 422 -> "消息内容不符合要求，请调整后重试"
             status == 503 -> "服务暂时不可用，请稍后重试"
             else -> "请求失败（HTTP $status）"

@@ -187,13 +187,13 @@ fun CompanionScreen(
         if (saved && uri != null) viewModel.onImagesPicked(context, listOf(uri))
     }
     val launchCamera = {
-        // authority 常量必须与 :app 清单里的 `<provider android:authorities
-        // ="com.openapi.ks.chat.fileprovider">`（app/src/main/AndroidManifest.xml）
-        // 一字不差：不一致时 FileProvider 直接抛 IllegalArgumentException，
-        // 表现是「点拍摄什么也没发生」。files-path 已在 file_provider_paths.xml 授权。
+        // authority 必须与 :app 清单里的 `<provider android:authorities=…>` 一字不差，
+        // 不一致时 FileProvider 直接抛 IllegalArgumentException，表现是「点拍摄什么也没发生」。
+        // 串收在 :common 的 AppFileProvider（与对话页共用一份），并由 :app 的
+        // FileProviderAuthorityTest 把它与清单文本钉在一起。files-path 已在 file_provider_paths.xml 授权。
         val file = java.io.File(context.filesDir, "camera/photo_${System.currentTimeMillis()}.jpg")
         file.parentFile?.mkdirs()
-        val uri = FileProvider.getUriForFile(context, "com.openapi.ks.chat.fileprovider", file)
+        val uri = com.openapi.common.ui.AppFileProvider.uriFor(context, file)
         cameraUri = uri
         camera.launch(uri)
     }

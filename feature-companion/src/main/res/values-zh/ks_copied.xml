@@ -58,6 +58,14 @@
     <string name="companion_attach_camera">拍摄</string>
     <string name="companion_attach_thumbnail">待发送的图片</string>
     <string name="companion_attach_remove">移除这张图片</string>
+    <!-- 发送侧错误提示（cleanup 项 2）：与迁移前 ViewModel 里的中文字面量逐字一致 -->
+    <string name="companion_upload_partial_failed">部分图片上传失败，已保留待重发</string>
+    <string name="companion_upload_unsupported">当前连接不支持图片，请重新进入对话后再试</string>
+    <string name="companion_attachment_delivery_failed">图片没能发送出去，已保留，请再按一次发送</string>
+    <string name="companion_upload_in_progress">图片正在发送，稍等一下再发</string>
+    <!-- 与 values/ 同名：闸数的是图片张数（陪伴页只有图片），不是「对话」页那条
+         chat_attachment_limit_reached（图片 + 视频合计）。见 values/ks_copied.xml 的注释。 -->
+    <string name="companion_image_limit_reached">一条消息最多 %1$d 张图片</string>
     <string name="companion_camera_rationale">拍摄照片并发给她需要使用相机权限</string>
     <string name="companion_camera_denied">未授予相机权限，无法拍照</string>
 </resources>
