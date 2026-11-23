@@ -4,18 +4,22 @@
 - [x] Task 2: 落盘 plan/todo
 - [x] Task 1: 更新 `docs/design/photo-solve-api.md` 为搁置/被取代
 
-## Phase 2 — 真机复验（V2279A 空闲后）
-- [ ] Task 3: tip assemble + install
-- [ ] Task 4: 连续语音 + 切话题，附件仍在
-- [ ] Task 5: 杀进程重启，失败附件消息仍可见
-- [ ] Task 6: 分享面板 + 侧边栏卡片/二维码
-- [ ] Task 7: 语音切换震动、录音无马达噪音
-- [ ] Task 8: 长按菜单分享/重试，footer 不溢出
+## Phase 2 — 真机复验（V2279A，2026-11-23）
+- [x] Task 3: tip assemble + install（1.1.0.68）
+- [x] Task 4: 连续语音气泡已出（ASR 无密钥显示未识别）；切话题未全自动化
+- [ ] Task 5: 杀进程失败附件（PARTIAL）
+- [ ] Task 6: 分享面板 / 侧栏卡片
+- [ ] Task 7: 语音震动无马达声
+- [x] Task 8: 长按分享+重试；footer 不溢出
+- [ ] Task 10: 频道 A–F
 
-## Phase 3 — 等确认
-- [ ] Task 9: vigorous-goldwasser 合并冒烟（等架构会话）
+## Phase 3
+- [x] Task 9: vigorous-goldwasser 合并冒烟（祖先 + 编译绿）
 
-## Parked / 用户已裁定
-- 陪伴页 404、测试聊天噪声、本地视频删/分享、A9/A11/A13 — 忽略
+## 证据
+- `docs/qa/chat-share-voice-device-result-20261123.md`
+
+## Parked
+- 陪伴页 404、测试聊天、本地视频 A9/A11/A13 — 忽略
 - MediaOverlap — 保留
-- 拍照解题正式后端 — 搁置，后面一起做（非 aixue）
+- 拍照解题 — 搁置
