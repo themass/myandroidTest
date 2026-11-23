@@ -422,6 +422,7 @@ fun DigitalHumanLabHost(
                             v.scaleY = stage.scale * pulse
                             v.translationX = stage.offsetX
                             v.translationY = stage.offsetY
+                            // TextureView（含 Live2D）禁止 setBackgroundColor；用 canApplyThemeBackgroundToView 统一门禁。
                             theme?.let {
                                 if (canApplyThemeBackgroundToView(v)) {
                                     val argb = stageClearColorArgb(it.topArgb, it.midArgb, it.bottomArgb)

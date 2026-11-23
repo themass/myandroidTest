@@ -530,9 +530,7 @@ fun CompanionRoute(
             },
             onHangUp = { chatViewModel.endCall() },
             onRetryConnect = if (uiState.connection == CompanionConnection.ERROR) {
-                {
-                    chatViewModel.retryConnection(characterId, scriptCaseId)
-                }
+                { chatViewModel.retryConnection(characterId, scriptCaseId) }
             } else {
                 null
             },

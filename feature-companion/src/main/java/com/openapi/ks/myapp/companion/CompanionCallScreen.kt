@@ -327,6 +327,7 @@ private const val WAVE_BAR_COUNT = 23
  *   字幕压在画面底部；此时不画波形，一屏只保留一组运动元素。
  *
  * @param state 见 [CompanionCallState]。
+ * @param onRetryConnect 连接失败时重试建会话；null 则不显示重试条。
  * @param onHangUp 挂断。
  * @param onToggleMute 切换静音。
  * @param onToggleCamera 切换摄像头。切到开时会同时让调用方去开本地视频轨。
@@ -344,6 +345,7 @@ private const val WAVE_BAR_COUNT = 23
 @Composable
 fun CompanionCallScreen(
     state: CompanionCallState,
+    onRetryConnect: (() -> Unit)? = null,
     onHangUp: () -> Unit,
     onToggleMute: () -> Unit,
     onToggleCamera: () -> Unit,
@@ -387,8 +389,6 @@ fun CompanionCallScreen(
     live2dModelLabel: String? = null,
     onLive2dModelSwitch: (() -> Unit)? = null,
     live2dModelSwitchHint: String? = null,
-    /** 通话已断开时底部「重试」；null 时不显示按钮。 */
-    onRetryConnect: (() -> Unit)? = null,
 ) {
     val reducedMotion = rememberReducedMotion()
 
@@ -498,24 +498,28 @@ fun CompanionCallScreen(
         }
     }
     val controls: @Composable () -> Unit = {
-        if (state.connection == CallConnection.ENDED && onRetryConnect != null) {
-            OutlinedButton(
-                onClick = onRetryConnect,
-                modifier = Modifier.padding(bottom = 12.dp),
-            ) {
-                Text("重试", color = CallColors.TextPrimary)
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            if (state.connection == CallConnection.ENDED) {
+                CallDisconnectedBanner(
+                    message = state.statusHint ?: "连接失败或已断开",
+                    onRetry = onRetryConnect,
+                )
+                Spacer(Modifier.height(12.dp))
             }
+            CallControlBar(
+                isMuted = state.isMuted,
+                cameraActive = state.cameraActive,
+                cameraAvailable = cameraAvailable,
+                composerOpen = composerOpen,
+                onToggleMute = onToggleMute,
+                onToggleCamera = onToggleCamera,
+                onOpenComposer = { composerOpen = true },
+                onHangUp = onHangUp,
+            )
         }
-        CallControlBar(
-            isMuted = state.isMuted,
-            cameraActive = state.cameraActive,
-            cameraAvailable = cameraAvailable,
-            composerOpen = composerOpen,
-            onToggleMute = onToggleMute,
-            onToggleCamera = onToggleCamera,
-            onOpenComposer = { composerOpen = true },
-            onHangUp = onHangUp,
-        )
     }
     val voiceStage: @Composable () -> Unit = {
         VoiceStage(
@@ -2565,6 +2569,36 @@ private fun RemoteVideoPlaceholder(state: CompanionCallState) {
 // ============================================================================
 // 操作条
 // ============================================================================
+
+@Composable
+private fun CallDisconnectedBanner(
+    message: String,
+    onRetry: (() -> Unit)?,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(CallColors.Glass)
+            .border(1.dp, CallColors.GlassBorder, RoundedCornerShape(12.dp))
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(
+            text = message,
+            color = Color(0xFFFF9297),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center,
+        )
+        if (onRetry != null) {
+            OutlinedButton(onClick = onRetry) {
+                Text("重新连接", color = CallColors.TextPrimary)
+            }
+        }
+    }
+}
 
 @Composable
 private fun CallControlBar(
