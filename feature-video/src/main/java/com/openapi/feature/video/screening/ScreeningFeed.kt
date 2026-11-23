@@ -114,6 +114,19 @@ internal fun isSoundConfigAction(actionUrl: String?): Boolean =
 internal fun isLegacyOnlyAction(actionUrl: String?): Boolean = false
 
 /**
+ * 放映场已经接住的协议族（routeOf 的分层判定只对它们成立）。
+ * 对照旧分发器注册表 `ConfigActionJump.configMap`：其余注册项——browser→浏览器页、
+ * local_chat→首页、local_sound→本地播放器——放映场没有对应 Compose 页；
+ * pic/video_item/local 压根没注册（旧行为就是「版本太低」提示）。
+ * 这些一律交回 WEB 原路由，不许拿 param 当频道 key、更不许落到 PLAY 兜底（黑屏）。
+ */
+private val ABSORBED_SCHEMES = SUBCHANNEL_SCHEMES +
+    setOf("videolist", "videolist1", "sound", "text", "img", "http", "https")
+
+internal fun isForeignScheme(actionUrl: String?): Boolean =
+    schemeOf(actionUrl)?.let { it !in ABSORBED_SCHEMES } ?: true
+
+/**
  * 视频频道内页取数用的 key。原页面 `VideoChannelListFragment.getUrl` 传的是 `vo.param`：
  * 服务端真实频道行（如 `param='se8成人动漫'`）的 actionUrl 是外链、不带 `channel=`，
  * 真正的频道标识只在 param 里。param 没有才退回 actionUrl 解析值（`videoList1://…?channel=`）。

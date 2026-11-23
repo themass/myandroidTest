@@ -75,7 +75,8 @@ internal fun videoChannelPageKind(entry: RemoteEntry): ScreeningPageKind = when 
  * 剩下的（直链 video://）才当可以直接播。
  */
 internal val RemoteEntry.isGroupEntry: Boolean
-    get() = !videoChannelKey().isNullOrEmpty() ||
+    get() = if (isForeignScheme(actionUrl)) false
+    else !videoChannelKey().isNullOrEmpty() ||
         (isWebAction(actionUrl) && !isPlayableMediaUrl(actionUrl)) || isConfigAction(actionUrl)
 
 /**
@@ -95,6 +96,10 @@ internal fun routeOf(entry: RemoteEntry): FeedRoute = when {
     isPlayableMediaUrl(entry.actionUrl) -> FeedRoute.PLAY
     isTextConfigAction(entry.actionUrl) -> FeedRoute.TEXT
     isSoundConfigAction(entry.actionUrl) -> FeedRoute.SOUND
+    // 放映场没原生页的协议（browser/local_chat/pic/未注册/无 scheme）：交回原路由。
+    // 必须排在 param 吸收之前——外来协议的 param 是 query 拷贝，不是频道 key，
+    // 让它往下走会被当频道入口或落进 PLAY 黑屏。
+    isForeignScheme(entry.actionUrl) -> FeedRoute.WEB
     isLegacyOnlyAction(entry.actionUrl) -> FeedRoute.WEB
     isConfigAction(entry.actionUrl) -> FeedRoute.CHANNEL
     !entry.videoChannelKey().isNullOrEmpty() -> FeedRoute.CHANNEL
