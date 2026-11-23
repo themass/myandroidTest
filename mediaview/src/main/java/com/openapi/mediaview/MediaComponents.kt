@@ -36,6 +36,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -102,6 +104,16 @@ fun MediaStack(
     onRetry: ((index: Int) -> Unit)? = null,
     /** 某张卡片自然加载失败：报给调用方合并进状态，让失败的卡片显示失败占位。 */
     onItemError: ((index: Int) -> Unit)? = null,
+    /**
+     * 右上角位置角标的**读屏**说法（「第 2 张，共 3 张」）。null = 维持现状，读屏直接念
+     * 「2/3」这个字面（cleanup 项 12 登记的就是这个：角标是给人眼看的进度，念出来不像话）。
+     * 语言归调用方（chatkit 已有中英两份），mediaview 不新增文案。
+     *
+     * `@Composable` 是必须的：调用方拿到的是带占位符的语言资源
+     * （`stringResource(R.string.chatkit_stack_position, current, total)`），
+     * 而 `stringResource` 只在组合里能用。在这里调用它的地方本身就是组合上下文。
+     */
+    positionDescription: (@Composable (current: Int, total: Int) -> String?)? = null,
 ) {
     if (items.isEmpty()) return
     val count = items.size
@@ -170,6 +182,10 @@ fun MediaStack(
         (0 until visible).reversed().forEach { depth ->
             val index = (front + depth) % count
             val item = items[index]
+            // 遮挡层不进读屏（cleanup 项 12）：≤3 层各自带 contentDescription 时，TalkBack 会把
+            // 一个收纳盒念成「图片 图片 图片 1/3」——用户聚焦的是顶卡，后面几层此刻看不见也点不到。
+            // 顶卡随滑动变化，所以按 depth 现算，不是在调用侧算好传进来。
+            val accessible = if (depth == 0) item else item.copy(contentDescription = null)
             // 拖动时后面各层朝 depth-1 的位置靠拢，形成「牌堆前进」的连续视觉
             val effectiveDepth = (depth - progress).coerceAtLeast(0f)
             val isFront = depth == 0
@@ -190,7 +206,7 @@ fun MediaStack(
                     .background(Color.Black)
                     .combinedClickable(onClick = { frontClick(item, index) }, onLongClick = onLongClick?.let { cb -> { cb(index) } }),
             ) {
-                MediaImage(item, onError = onItemError?.let { cb -> { cb(index) } })
+                MediaImage(accessible, onError = onItemError?.let { cb -> { cb(index) } })
                 if (item.isVideo) VideoBadge(Modifier.align(Alignment.TopStart).padding(8.dp))
             }
         }
@@ -204,10 +220,15 @@ fun MediaStack(
                     .background(Color.Black.copy(alpha = 0.5f))
                     .padding(horizontal = 8.dp, vertical = 3.dp),
             ) {
+                val positionText = "${front + 1}/$count"
                 Text(
-                    text = "${front + 1}/$count",
+                    text = positionText,
                     color = Color.White,
                     fontSize = 12.sp,
+                    // 有语义说法就换掉字面（clearAndSetSemantics 盖掉「1/3」这种念法）
+                    modifier = positionDescription?.invoke(front + 1, count)?.let { desc ->
+                        Modifier.clearAndSetSemantics { contentDescription = desc }
+                    } ?: Modifier,
                 )
             }
         }

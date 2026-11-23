@@ -5,9 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -17,7 +15,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -42,10 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -106,8 +101,8 @@ private fun ScreeningHome(activity: ScreeningActivity) {
     /** 从首页图片卡进图集时带的 `channel=`；null 时图集页直接给空态，不演样例。 */
     var galleryChannel by remember { mutableStateOf<String?>(null) }
     /**
-     * 首屏三个标签：0=频道 1=本地视频 2=图集。它们是同一屏的三种看法，不是三层页面——
-     * 切换在页面内原地淡切（用户点过名「切换跳和闪」），所以三种内容共用的取数状态
+     * 首屏两个标签：0=频道 1=图集。它们是同一屏的两种看法，不是三层页面——
+     * 切换在页面内原地淡切（用户点过名「切换跳和闪」），所以两种内容共用的取数状态
      * 全部挂在这一层：切走再回来不重建 pager、不重复打接口、不闪白。
      */
     var homeTab by rememberSaveable { mutableStateOf(0) }
@@ -118,14 +113,6 @@ private fun ScreeningHome(activity: ScreeningActivity) {
     /** 频道 pager 按分类留档（进内页返回也不丢）；图集 pager 按频道留档，同理。 */
     val channelPagers = remember { mutableStateMapOf<FeedCategory, FeedPager>() }
     val galleryPagers = remember { mutableStateMapOf<String, FeedPager>() }
-    /** 「本地视频」标签：页对象与已看进度固定在首页层，来回切标签不重建、不重新取数。 */
-    val localPage = remember {
-        ScreeningChannelPage(samples.title, samples.category, null, samples.cover, null, samples)
-    }
-    val localPager = remember(localPage) {
-        FeedPager(feedScope, fetch = { ScreeningFeedStore.Page(sampleReels(localPage.sample), null, false) })
-    }
-    val localProgress = remember { mutableStateMapOf<String, Long>() }
     /** 懒播放地址在路上：点了卡到地址回来之间要有反馈，不能像没点上。 */
     var opening by remember { mutableStateOf(false) }
     val holder = rememberSaveableStateHolder()
@@ -136,15 +123,10 @@ private fun ScreeningHome(activity: ScreeningActivity) {
     val openEntry: (RemoteEntry) -> Unit = { entry ->
         scope.launch {
             opening = true
-            // needLazyUrl 的条目这一步才拿到真正能播的地址；样例条目原样返回
+            // needLazyUrl 的条目这一步才拿到真正能播的地址
             val url = store.playUrl(entry)
-            val asset = entry.assetId()
             forward = true
-            selection = if (asset != null) {
-                ScreeningSource(entry.title, entry.description, asset = asset, key = entry.key)
-            } else {
-                ScreeningSource(entry.title, entry.description, uri = Uri.parse(url), key = entry.key)
-            }
+            selection = ScreeningSource(entry.title, entry.description, uri = Uri.parse(url), key = entry.key)
             opening = false
         }
     }
@@ -160,13 +142,10 @@ private fun ScreeningHome(activity: ScreeningActivity) {
             title = entry.title,
             detail = entry.description,
             coverUrl = entry.imageUrl,
-            // 随包封面 asset 只有「本地样片库」页头用得上（localPage 构造）；服务端条目没有。
-            coverAsset = null,
             // 原页面 VideoChannelListFragment.getUrl 用的是 vo.param。外链频道卡以前在这里
             // 被置空（掉回 WebView 就不用内页取数了）；B 线吸收后必须把 key 传下去，
-            // 内页才拿它发 items.json。（旧「样例频道」兜底已随写死样例频道一并清掉。）
+            // 内页才拿它发 items.json。（旧「样例频道/随包封面」兜底已随本地样片库一并下线。）
             channelParam = fetchKey,
-            sample = null,
             // 夜色配置频道卡（hsex_all 这类）进去先列子频道，点一行再下钻片单
             kind = kind,
             // 片单查不到时给的回网页退路；内部频道卡没有网页，为 null 就不画按钮
@@ -237,7 +216,7 @@ private fun ScreeningHome(activity: ScreeningActivity) {
                     ScreeningGallery(activity, store, target.channelParam) { forward = false; gallery = false }
                 }
                 is LibraryScreen -> holder.SaveableStateProvider(target.page.title) {
-                    // 真频道的 pager 随这一页建、离开即弃（缓存策略不同）；本地标签那份在首页层。
+                    // 真频道的 pager 随这一页建、离开即弃（缓存策略不同）。
                     // scope 用首页层的 feedScope：退场动画播的同时，在途请求不该被组合拆散牵连取消。
                     val param = target.page.channelParam
                     val pagePager = remember(target.page) {
@@ -247,23 +226,22 @@ private fun ScreeningHome(activity: ScreeningActivity) {
                                 param != null && target.page.kind == ScreeningPageKind.SUBCHANNELS ->
                                     store.subchannels(param, start)
                                 param != null -> store.videos(param, start)
-                                else -> ScreeningFeedStore.Page(sampleReels(target.page.sample), null, false)
+                                // 没有取数键（路由判定下理论上不出现）：诚实空页，不拿随包样片填屏
+                                else -> ScreeningFeedStore.Page(emptyList(), null, false)
                             }
                         }
                     }
                     Library(target.page, progress, preferences, pagePager,
                         back = { forward = false; channelPage = null }, openEntry = openRoute,
-                        onFile = { source -> selection = source },
                         onWeb = { url, title -> openUrl(url, title) })
                 }
                 else -> holder.SaveableStateProvider("channels") {
                     HomeTabs(store, feedScope, homeTab, { homeTab = it },
                         channelFilter, { channelFilter = it }, channelPagers,
-                        localPage, localPager, progress, preferences,
+                        progress, preferences,
                         onBack = { activity.finish() },
                         onChannel = openChannel, onPlay = openEntry, onWeb = openWeb,
-                        onGallery = { entry -> openGallery(entry) },
-                        onLocalFile = { source -> selection = source })
+                        onGallery = { entry -> openGallery(entry) })
                 }
             }
         }
@@ -278,11 +256,11 @@ private fun ScreeningHome(activity: ScreeningActivity) {
 }
 
 /**
- * 首屏：标题行 + 三个标签 + 原地切换的内容。
+ * 首屏：标题行 + 两个标签 + 原地切换的内容。
  *
- * 「频道 / 本地视频 / 图集」是同一屏的三种看法，不是三层页面：切换只做小位移交叉淡入
+ * 「频道 / 图集」是同一屏的两种看法，不是三层页面：切换只做小位移交叉淡入
  * （推页那种 24dp 滑动在 tab 尺度上读作「跳」），内容不先清空再填（那就是「闪」）。
- * 三种内容的取数状态都挂在调用方（ScreeningHome）：切走的 tab 不销毁 pager，
+ * 两种内容的取数状态都挂在调用方（ScreeningHome）：切走的 tab 不销毁 pager，
  * 切回来直接展示已加载的内容，也不重复打接口。
  */
 @Composable
@@ -294,8 +272,6 @@ private fun HomeTabs(
     channelFilter: String,
     onChannelFilter: (String) -> Unit,
     channelPagers: MutableMap<FeedCategory, FeedPager>,
-    localPage: ScreeningChannelPage,
-    localPager: FeedPager,
     progress: MutableMap<String, Long>,
     preferences: android.content.SharedPreferences,
     onBack: () -> Unit,
@@ -303,8 +279,6 @@ private fun HomeTabs(
     onPlay: (RemoteEntry) -> Unit,
     onWeb: (RemoteEntry) -> Unit,
     onGallery: (RemoteEntry?) -> Unit,
-    /** 本地标签里选中的手机文件：直接进播放器，和从列表点开同一条路。 */
-    onLocalFile: (ScreeningSource) -> Unit,
 ) {
     val motion = LocalScreeningMotion.current
     // 切 tab 的位移：推页距离的一半不到（10dp），换算成像素给转场用
@@ -329,9 +303,7 @@ private fun HomeTabs(
             label = "tabContent",
         ) { which ->
             when (which) {
-                1 -> Library(localPage, progress, preferences, localPager,
-                    back = { onSelect(0) }, openEntry = onPlay, onFile = onLocalFile, embedded = true)
-                2 -> GalleryFeed(
+                1 -> GalleryFeed(
                     // 频道 pager 本来只在频道 tab 里建；从图集 tab 先开时补建同一份，
                     // 两个 tab 共用一次请求，不是各打各的。分类跟频道 tab 的默认值一致（电影）。
                     channelPagers.getOrPut(FeedCategory.MOVIE) {
@@ -398,7 +370,7 @@ private fun GalleryFeed(allPager: FeedPager, onOpen: (RemoteEntry) -> Unit) {
  */
 @Composable
 private fun TabHeader(tab: Int, onBack: () -> Unit, onSelect: (Int) -> Unit) {
-    val tabs = listOf("频道", "本地视频", "图集")
+    val tabs = listOf("频道", "图集")
     Column(Modifier.padding(horizontal = 18.dp)) {
         Row(Modifier.fillMaxWidth().height(52.dp), verticalAlignment = Alignment.CenterVertically) {
             // 放映场是独立 Activity，系统返回之外得有个看得见的退出口
@@ -581,30 +553,19 @@ private fun storedProgress(preferences: android.content.SharedPreferences, entry
     return if (stored >= RESUME_MIN_MS) stored else 0L
 }
 
-@Composable
-internal fun Cover(id: String, modifier: Modifier = Modifier) {
-    val bitmap = coverBitmap(LocalContext.current, id)
-    Box(modifier.background(Lift)) {
-        bitmap?.let { Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
-    }
-}
-
-/** 一张卡的封面：远程地址走 Glide，随包 asset 走 assets，都没有就纯色底。 */
+/** 一张卡的封面：远程地址走 Glide，没有就纯色底（随包 asset 封面随本地样片库下线）。 */
 @Composable
 internal fun EntryCover(entry: RemoteEntry, modifier: Modifier = Modifier) {
-    val asset = entry.assetId()
     when {
         !entry.imageUrl.isNullOrBlank() -> RemoteCover(entry.imageUrl, modifier)
-        asset != null -> Cover(asset, modifier)
         else -> Box(modifier.background(Lift))
     }
 }
 
 
 /**
- * 频道内页（也内嵌作「本地视频」标签，[embedded]）。片单 pager 由调用方注入：
- * 真频道页在页面层建（离开即弃）；本地标签的 pager 挂在首页层——切标签不销毁、
- * 回来不重新取数（同 [ChannelsFeed] 的 pager 留档理由）。
+ * 频道内页。片单 pager 由调用方注入：真频道页在页面层建、离开即弃
+ * （同 [ChannelsFeed] 的 pager 留档理由）。
  */
 @Composable
 private fun Library(
@@ -614,15 +575,9 @@ private fun Library(
     pager: FeedPager,
     back: () -> Unit,
     openEntry: (RemoteEntry) -> Unit,
-    onFile: (ScreeningSource) -> Unit,
     /** 片单为空时的网页退路（page.webFallback 非 null 才画按钮）。 */
     onWeb: (String, String) -> Unit = { _, _ -> },
-    embedded: Boolean = false,
 ) {
-    val context = LocalContext.current
-    val picker = rememberLauncherForActivityResult(OpenDocument()) { uri -> uri?.let {
-        onFile(ScreeningSource(documentName(context, it), "在此设备上播放", uri = it, key = "file:${it}"))
-    } }
     var filter by rememberSaveable { mutableStateOf("全部") }
     // 默认就是三列网格（用户点名：屏小，一行两列要点好几屏才看完）；
     // 右上开关留着切到带观看进度的紧凑行视图。
@@ -643,18 +598,16 @@ private fun Library(
     val seen = remember(page) { mutableSetOf<String>() }
     LazyColumn(Modifier.fillMaxSize(), state = listState,
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = if (embedded) 10.dp else 8.dp, bottom = 9.dp)) {
+        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 9.dp)) {
         item {
-            // 内嵌进标签时不画返回键：标签本身就是位置，返回键会把人带回同一个列表（原地打转）
-            if (!embedded) IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回频道") }
+            IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回频道") }
             // 顶卡 168→148dp：屏小，头部只做到「认出这是哪个频道」就够，高度留给片单
             Box(Modifier.fillMaxWidth().height(148.dp).clip(RoundedCornerShape(12.dp, 22.dp, 12.dp, 12.dp))) {
-                if (page.coverAsset != null) Cover(page.coverAsset, Modifier.matchParentSize())
-                else RemoteCover(page.coverUrl, Modifier.matchParentSize())
+                RemoteCover(page.coverUrl, Modifier.matchParentSize())
                 Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink))))
                 Column(Modifier.align(Alignment.BottomStart).padding(13.dp)) {
                     // 这里原来印 Constants.BASE_IP（接口域名）——调试信息，不是给用户看的（用户点过名）
-                    Text(if (page.channelParam != null) "放映场" else "离线样片库", color = Peach, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text("放映场", color = Peach, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     Text(page.title, color = White, fontWeight = FontWeight.Black, fontSize = 21.sp, lineHeight = 25.sp,
                         maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(if (pager.loading) "正在取数据…" else "${pager.items.size} 条", color = Muted, fontSize = 11.sp)
@@ -662,13 +615,6 @@ private fun Library(
             }
             FeedError(pager.error, pager::reload)
             // 样式跟着下面的「继续看」行走：Lift 卡 + 薄荷图标（用户点名实验页不该再混旧的 tonal 按钮）
-            if (page.sample != null) Row(
-                Modifier.padding(top = 10.dp).fillMaxWidth().clip(Tile).background(Lift).clickable { picker.launch(arrayOf("video/*")) }.padding(11.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Default.PlayArrow, null, tint = Mint)
-                Text("打开手机里的视频", Modifier.padding(start = 8.dp), fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            }
             resume?.let { entry ->
                 Row(Modifier.padding(top = 10.dp).fillMaxWidth().clip(Tile).background(Lift).clickable { openEntry(entry) }.padding(11.dp),
                     verticalAlignment = Alignment.CenterVertically) {
@@ -739,24 +685,16 @@ private fun Library(
 
 @Composable
 private fun EntryCard(entry: RemoteEntry, position: Long, poster: Boolean, modifier: Modifier, open: (RemoteEntry) -> Unit) {
-    val duration = entry.sampleDurationMs()
     val art: @Composable (Modifier) -> Unit = { m ->
         // 海报视图三列后格子很窄，比例再乱就是锯齿：统一 0.8 竖片比例，行行对齐。
+        // 服务端推荐位不下发时长，卡片不画时长角标和进度条（分母未知）。
         Box(m.aspectRatio(if (poster) 0.8f else 16f / 9).clip(Tile)) {
             EntryCover(entry, Modifier.matchParentSize())
-            if (duration > 0L) Text(time(duration), Modifier.align(Alignment.BottomEnd).padding(6.dp)
-                .background(Ink, RoundedCornerShape(5.dp)).padding(horizontal = 5.dp), fontSize = 11.sp)
-            if (position > 0 && duration > 0L) Box(Modifier.align(Alignment.BottomStart)
-                .fillMaxWidth((position.toFloat() / duration).coerceIn(0f, 1f)).height(3.dp).background(Mint))
         }
     }
     val title: @Composable () -> Unit = {
         Text(entry.title, color = White, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(when {
-            duration > 0L && position >= duration -> "已看完"
-            position > 0 -> "已看到 ${time(position)}"
-            else -> "未观看"
-        }, color = Muted, fontSize = 11.sp)
+        Text(if (position > 0) "已看到 ${time(position)}" else "未观看", color = Muted, fontSize = 11.sp)
     }
     val clickable = modifier.pressable(Tile) { open(entry) }
     if (poster) Column(clickable) { art(Modifier.fillMaxWidth()); Spacer(Modifier.height(4.dp)); title() }

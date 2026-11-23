@@ -216,6 +216,11 @@ fun ImageGrid(
     onLongPress: (String) -> Unit,
     /** 排布策略；默认一律收纳盒，和陪伴端图片消息同一套样式。 */
     layout: ImageLayout = ImageLayout.Stack,
+    /**
+     * 参数序（台账 minor）：`modifier` 排在带默认值参数的**最后**（layout 之后），与 Compose
+     * 惯例（modifier 是第一个带默认值的参数）不一致。唯一调用方 `ChatMessageItem` 全部用具名实参，
+     * 所以这里保持原序、只钉注释：把它前移会让「按位传参」的写法静默换义，而这波不做无测试护航的签名搬家。
+     */
     modifier: Modifier = Modifier,
     /** 点击了加载失败的那张图（下标）。组件已做本地重载；调用方若能重新换源就换源。 */
     onRetryImage: (Int) -> Unit = {},
@@ -286,7 +291,13 @@ fun ImageGrid(
         }
         else -> {
             // 收纳盒 / 轮播（通用媒体组件 :mediaview）：张数决定用哪个的时机已经收进
-            // imageArrangement，这里只按算出来的结果分发
+            // imageArrangement，这里只按算出来的结果分发。
+            //
+            // 已知偏差（cleanup 项 11，台账已登记为真机项）：**[maxWidth] 在这条路上不起作用**。
+            // MediaStack 的卡片尺寸是组件自己的硬值（190×140dp + 14dp 错位），调用方给的
+            // maxWidth 只约束了 SingleFit 那一臂，所以窄屏上收纳盒可能比气泡的文字还宽。
+            // 只在代码侧钉注释、不改尺寸：卡片尺寸是设计稿定的（设计 §视觉），改它属于视觉决策，
+            // 要走真机窗口（372dp 宽的 ADY-AL00 上看）而不是在这波里顺手改。
             // 气泡里的图片不是纯装饰：收纳盒路径也要报得出这里有一张图（整改清单 P2-16，
             // 和上面 SingleFit 分支的 AsyncImage 同一处约定——默认样式换成收纳盒后别把它丢了）。
             // 提到循环外取：mapIndexed 的 lambda 不是 @Composable，stringResource 不能在里头调。
@@ -317,6 +328,14 @@ fun ImageGrid(
                     else -> MediaStack(
                         items = items,
                         theme = theme,
+                        // 「1/3」是给人眼看的进度，读屏换成语义说法（cleanup 项 12）。
+                        // 格式化走 stringResource(res, arg…) —— 与 MessageSelection 里
+                        // `chatkit_selected_count` 同一写法（复审 minor 4）：以前先取回带 %d
+                        // 的模板再 String.format，等于绕过了仓库里「资源参数由 stringResource
+                        // 一次填好」的约定，位置参数换语言时容易填错顺序。
+                        positionDescription = { current, total ->
+                            stringResource(R.string.chatkit_stack_position, current, total)
+                        },
                         onClick = onTap,
                         onLongClick = onLong,
                         onRetry = ::retry,

@@ -305,9 +305,6 @@ class ChatViewModel : ViewModel() {
     fun onAttachmentPicked(context: android.content.Context, kind: MessageKind, uri: android.net.Uri) =
         send.attachmentPicked(context, kind, uri)
 
-    private fun addDraft(kind: MessageKind, staged: StagedAttachment) = composer.addDraft(kind, staged)
-
-
     fun onRemoveDraft(id: String) = composer.removeDraft(id)
 
     /** 取掉输入栏上的待发送位置 chip。 */

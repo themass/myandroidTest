@@ -59,7 +59,7 @@ public final class RealtimeSubtitleEngine {
             callbacks.onError("Play URL is empty");
             return;
         }
-        // 不在这里拦 isConfigured()：配置带着内置兜底 key（聊天语音同一条路），这里永远为真，
+        // 不在这里拦 isConfigured()：key 由构建注入（未注入时为空，聊天语音同一条路），
         // 拦截只会把「以后真没 key」的情形显示成误导文案。密钥问题统一从 onFailure 的 onError 报。
         VolcengineAsrConfig config = VolcengineAsrConfig.load(appContext);
 

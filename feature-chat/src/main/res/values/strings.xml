@@ -100,6 +100,7 @@
     <string name="chat_role_update_failed">Couldn\'t update the role, please try again later</string>
     <string name="chat_role_delete_failed">Couldn\'t delete the role, please try again later</string>
     <string name="chat_file_too_large">File is over 20 MB and can\'t be sent</string>
-    <string name="chat_image_limit_reached">A message can carry at most %1$d images</string>
+    <!-- 闸的是「附件」而不是「图片」：图与视频在 wire 上同一条 attachments，共用同一个额度 -->
+    <string name="chat_attachment_limit_reached">A message can carry at most %1$d attachments</string>
     <string name="chat_error_separator">", "</string>
 </resources>

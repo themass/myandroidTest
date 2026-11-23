@@ -73,6 +73,25 @@ class LocalChatStore @JvmOverloads constructor(
                 it.delivery != com.openapi.feature.chat.domain.model.DeliveryStatus.SENT
         }
 
+    /**
+     * 本地行还引用着的附件路径，**跨会话**、只算没到 SENT 的那些（接口注释见
+     * [com.openapi.feature.chat.domain.repository.ChatRepository.localAttachmentPathsInUse]）。
+     *
+     * 跨会话是有意的：暂存目录不按会话分（`filesDir/chat_attachments` 一个目录装所有会话的字节），
+     * 而「哪个字节还有本地行引用」只有查库知道。已到 SENT 的行不进这里：服务端历史里一定有它，
+     * 图没了也能走签名 URL，那些字节是真的孤儿。
+     *
+     * 投递状态存在 content 的 JSON 里（不是列），SQL 判不了，所以按 `local-` 前缀取行、
+     * 映射完再筛。**判据与 [localPending] 不完全相同**（复审 nit 3，这里写实话）：
+     * 那条还要 `role == USER`，这里不筛 role —— `local-assistant-*` / `local-pending-*` /
+     * `local-voice-*` 也在捞出来的批里。为什么不补谓词：助手占位行没有附件，voice 行的字节在
+     * `cacheDir/voice_messages`（见 `speech` 的 VoiceRecorder.kt:65）而不是暂存目录，
+     * 筛了结果不变；最坏后果是**过留**（多活一轮 GC），不会误删。
+     * 逐行汇 paths 的循环与 [MessageCache] 共用 [keptAttachmentPaths]（两份会漂）。
+     */
+    fun localAttachmentPathsInUse(): Set<String> =
+        keptAttachmentPaths(runCatching { db().chatLogDao().localRows() }.getOrDefault(emptyList()))
+
     private fun toLog(sessionId: Long, message: ChatMessage): com.openapi.core.model.ChatLog {
         val log = com.openapi.core.model.ChatLog()
         log.content = com.openapi.feature.chat.data.mapper.ChatLogMapper.toRawContent(message)

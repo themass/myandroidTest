@@ -62,7 +62,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.io.InputStreamReader
 import java.io.StringReader
 import kotlin.math.roundToInt
@@ -83,9 +82,8 @@ internal const val TAG_SCREENING_DBG = "ScreeningDbg"
 internal data class ScreeningSource(
     val title: String,
     val description: String,
-    val asset: String? = null,
     val uri: Uri? = null,
-    val key: String = asset ?: uri.toString(),
+    val key: String = uri.toString(),
 )
 
 internal fun documentName(context: Context, uri: Uri): String = runCatching {
@@ -117,10 +115,9 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     // 两套内核各占一格画面槽，换内核在播放中途完成，见 KernelHost
     val host = remember { KernelHost(context) }
     // 实时字幕：引擎在后台并行重解一路静音音频喂火山流式识别，只吃能重解的地址（见 realtimeMediaUrl）。
-    // cacheFile 是样片落盘路径——asset:// 只有播放内核认识，重解要真实文件路径。
-    var cacheFile by remember { mutableStateOf<File?>(null) }
-    val realtimeUrl = remember(source.key, cacheFile) {
-        realtimeMediaUrl(source.uri?.toString(), source.uri?.scheme, cacheFile?.absolutePath)
+    // 随包样片已下线，重解地址就是条目的 uri 本身（http/file 能重解，content:// 不能）。
+    val realtimeUrl = remember(source.key) {
+        realtimeMediaUrl(source.uri?.toString(), source.uri?.scheme, null)
     }
     var realtimeText by remember { mutableStateOf("") }
     // "" = 没有消息；否则依次为加载中/失败原因，字幕面板的实时字幕条目直接显示它
@@ -128,30 +125,15 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     val realtimeRunner = remember { RealtimeSubtitleRunner(context) }
     DisposableEffect(realtimeRunner) { onDispose { realtimeRunner.stop() } }
     LaunchedEffect(source) {
-        // IJK / 系统内核吃不了 asset://，随包的样片先落到 cache 再交给内核
-        val file = withContext(Dispatchers.IO) {
-            source.asset?.let { id ->
-                runCatching {
-                    File(context.cacheDir, "screening-$id.mp4").takeIf { it.length() > 0 } ?: run {
-                        File(context.cacheDir, "screening-$id.mp4").also { out ->
-                            context.assets.open("$id.mp4").use { input -> out.outputStream().use(input::copyTo) }
-                        }
-                    }
-                }.getOrNull()
-            }
-        }
         host.open(
-            uri = source.uri ?: Uri.parse("asset:///${source.asset}.mp4"),
-            file = file,
-            // 随包样片长度已知（SAMPLE_MS），越界的旧进度直接丢掉；
+            uri = checkNotNull(source.uri),
+            file = null,
             // 网络片总长度这时还不知道，先按存的进度起播，host 拿到 duration 自己会夹
-            startMs = if (initial <= 0L) 0L else if (source.asset != null) initial.coerceAtMost(SAMPLE_MS) else initial,
+            startMs = initial,
         )
-        // 样片落盘的缓存文件同时是实时字幕的重解地址：asset:// 只有内核认识，提取器只认路径
-        cacheFile = file
     }
     var position by remember { mutableLongStateOf(initial) }
-    var width by remember { mutableLongStateOf(if (source.asset != null) SAMPLE_MS else 0L) }
+    var width by remember { mutableLongStateOf(0L) }
     val playing = host.playing
     var dragging by remember { mutableStateOf<Float?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -161,7 +143,6 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     var interaction by remember { mutableIntStateOf(0) }
     var panel by remember { mutableStateOf<String?>(null) }
     var captions by remember { mutableStateOf<ScreeningCaption?>(null) }
-    var demo by remember { mutableStateOf<ScreeningCaption?>(null) }
     var captionName by remember { mutableStateOf("") }
     var captionSource by remember { mutableIntStateOf(0) }
     // 服务端字幕：列表（null = 还没成功取到）、已加载的那份、正在加载谁
@@ -320,17 +301,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
             }
         }
     }
-    // 演示字幕是一份真实的 WebVTT，走和导入文件完全相同的解析路径，不是写死的字符串
-    LaunchedEffect(source.asset) {
-        if (source.asset == null) return@LaunchedEffect
-        demo = withContext(Dispatchers.IO) {
-            runCatching {
-                context.assets.open("screening.vtt").use { stream ->
-                    InputStreamReader(stream, Charsets.UTF_8.newDecoder()).use(::ScreeningCaption)
-                }
-            }.getOrNull()
-        }
-    }
+    // 随包演示字幕已随本地样片库下线：字幕只有导入文件、服务端轨道、实时识别三条真路
     // 服务端字幕列表：打开「字幕」面板才取，一次会话取一遍就够；失败保持 null，面板里给重试
     LaunchedEffect(panel, serverVideoId) {
         if (panel != "字幕" || serverVideoId == null || serverList != null || serverLoading) return@LaunchedEffect
@@ -341,7 +312,6 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     LaunchedEffect(host.failure) { host.failure?.let { error = it } }
     LaunchedEffect(fill) { host.setFill(fill) }
     val cue = when (captionSource) {
-        1 -> demo?.at(position, offset).orEmpty()
         2 -> captions?.at(position, offset).orEmpty()
         3 -> serverCaption?.at(position, offset).orEmpty()
         // 实时识别：partial 文本滚动刷新，样式走同一套 CaptionStyle；延时对它没有意义（没有轨可对）
@@ -531,7 +501,6 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                             )
                         }
                         if (captions != null) Setting("已导入的字幕", captionName, captionSource == 2) { captionSource = 2 }
-                        if (source.asset != null) Setting("使用演示字幕", "随包的 WebVTT，第 1 秒开始逐句出现", captionSource == 1) { captionSource = 1 }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("字幕延时", Modifier.weight(1f))
                             TextButton({ offset = (offset - 500).coerceAtLeast(-60_000) }) { Text("−500 ms") }

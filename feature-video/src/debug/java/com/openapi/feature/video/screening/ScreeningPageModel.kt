@@ -3,20 +3,16 @@ package com.openapi.feature.video.screening
 /**
  * 放映场内页（某个频道的片单）要渲染的东西。
  *
- * 真实频道只有标题、封面地址和 `channel=` 参数；本地样片库还带着 [sample]，
- * 用来在取不到服务端数据时列出随包 assets。页面只认这一个形状。
+ * 真实频道只有标题、封面地址和 `channel=` 参数。随包样片库已下线：
+ * 取不到数据就报空态（有 [webFallback] 时给回网页退路），不拿 assets 填屏。
  */
 internal class ScreeningChannelPage(
     val title: String,
     val detail: String,
-    /** 服务端封面地址；null 时用 [coverAsset]。 */
+    /** 服务端封面地址；null 就纯色底。 */
     val coverUrl: String?,
-    /** 随包 assets 里的封面图名（`<name>.jpg`）；没有就纯色底。 */
-    val coverAsset: String?,
-    /** 真接口的分页参数；null 表示这个频道只能走样例。 */
+    /** 真接口的分页参数；null 表示这一页取不出数据，诚实空态。 */
     val channelParam: String?,
-    /** 本地样片库；null 表示纯服务端频道。 */
-    val sample: Channel?,
     /** 这一页取哪种接口，见 [ScreeningPageKind]。 */
     val kind: ScreeningPageKind = ScreeningPageKind.VIDEOS,
     /**
@@ -90,12 +86,3 @@ internal fun routeOf(entry: RemoteEntry): FeedRoute = when {
     entry.isGroupEntry -> FeedRoute.CHANNEL
     else -> FeedRoute.PLAY
 }
-
-/**
- * 卡片右上角的时长：只有随包 12 秒样片能给得出真值。
- * 服务端推荐位不下发时长，所以真实条目返回 0，卡片就不显示时长，也不画进度条（分母未知）。
- */
-internal fun RemoteEntry.sampleDurationMs(): Long = if (assetId() != null) SAMPLE_MS else 0L
-
-/** 样例片单的 key，用来给「云层之上」预置一段已看进度，和 `ScreeningSampleFeed` 保持同一拼法。 */
-internal fun sampleReelKey(reelId: String): String = "sample:reel:$reelId"
