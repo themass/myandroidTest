@@ -66,4 +66,19 @@ class VrmEngineViewTest {
         engine.release()
         assertNull(engine.createView(context))
     }
+
+    @Test
+    fun orbit_before_page_ready_queues_without_crash_and_survives_release() {
+        // 手势层的 onOrbit 在页面 ready 前就会来（进舞台第一笔就拖）：
+        // 走 VrmSceneController 排队，Robolectric 不跑 JS 也必须在 View 生命周期里活着。
+        seedModel()
+        val engine = VrmDigitalHumanEngine()
+        assertNotNull(engine.createView(context))
+
+        engine.onStageOrbit(90f)
+        engine.onStageOrbit(90f)
+        engine.release()
+        // release 后手势残影不再投递（不崩即是契约）。
+        engine.onStageOrbit(45f)
+    }
 }

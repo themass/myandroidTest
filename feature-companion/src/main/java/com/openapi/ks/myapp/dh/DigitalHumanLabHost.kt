@@ -344,8 +344,9 @@ fun DigitalHumanLabHost(
                     // 一变就重执行。手势（捏合/拖图/轻触/长按）全在 avatarStageTransform
                     // 这一个判定器里——以前另有一层 Main pass 的 tap/长按覆盖 Box，与
                     // 托盘薄纱一起把第二根手指吃掉，捏合缩放必死（2026-11-23 投诉）。
-                    // VRM 例外：WebView 自己吃触摸（页面内单指拖动 = 视线跟随），
-                    // onTap 传 null = 单指事件原样透传，双指缩放仍生效。
+                    // VRM 例外：onTap 传 null = 静止轻触原样透传给 WebView（页面做
+                    // 分区触点反应）；单指横拖改由这层的 onOrbit 档吃掉（用户 2026-11-23
+                    // 要「支持旋转」），页面侧的拖动视线跟随同步退役，不再两边同吃。
                     AndroidView(
                         factory = { view },
                         modifier = Modifier
@@ -359,6 +360,9 @@ fun DigitalHumanLabHost(
                                     tappedNow?.invoke(stageTapRegion(off.x, off.y))
                                 },
                                 onLongPress = onLongPressed?.let { { it() } },
+                                onOrbit = (e as? VrmDigitalHumanEngine)?.let { vrmEngine ->
+                                    { deltaDeg -> vrmEngine.onStageOrbit(deltaDeg) }
+                                },
                             ),
                         update = { v ->
                             // 触摸脉冲乘在引擎 View 自身的 scale 上（与双指缩放同源，

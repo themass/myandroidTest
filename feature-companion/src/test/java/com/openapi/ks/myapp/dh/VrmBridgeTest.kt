@@ -46,6 +46,21 @@ class VrmBridgeTest {
     }
 
     @Test
+    fun orbit_delta_encodes_absolute_yaw_degrees() {
+        // 轨道旋转是**累计绝对角**（页面侧直接写 l.scene.rotation.y），不是增量：
+        // 中途掉一条指令最多丢一段转动，不会让角色与手势永久错位（增量制会）。
+        assertEquals(
+            """{"type":"orbit","yawDeg":123.5}""",
+            VrmBridge.encode(VrmSceneCommand.Orbit(123.5f)),
+        )
+        // 绕圈自由：一圈半不折半。
+        assertEquals(
+            """{"type":"orbit","yawDeg":540.0}""",
+            VrmBridge.encode(VrmSceneCommand.Orbit(540f)),
+        )
+    }
+
+    @Test
     fun scene_commands_encode_to_json_line_format() {
         assertEquals(
             """{"type":"expression","name":"happy"}""",
