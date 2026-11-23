@@ -59,11 +59,16 @@ import kotlin.math.roundToInt
 /**
  * 已授权相机后的预览 + 可选 HUD + Lottie 头顶贴纸。
  * [drawWireframe] 关时仅贴纸（通话页小窗）；开时与全屏 lab 一致。
+ *
+ * [onStageGesture]：把本机手势翻成**舞台词表 cue**（`wave`/`pat_head`，见
+ * [CameraGestureCue]）。由上层喂 `emitStageGesture`，本模块**不**依赖
+ * `feature-companion`、不自造总线（架构 spec §纪律1）。null = 不联动舞台。
  */
 @Composable
 fun CameraFxGrantedContent(
     modifier: Modifier = Modifier,
     overlayPolicy: CameraFxOverlayPolicy = CameraFxOverlayPolicy(),
+    onStageGesture: ((String) -> Unit)? = null,
 ) {
     val showDebugHud = overlayPolicy.showDebugHud
     val drawWireframe = overlayPolicy.drawWireframe
@@ -156,6 +161,17 @@ fun CameraFxGrantedContent(
     val fatal by fatalFlow.collectAsState()
     val stickerCompositionResult = rememberLottieComposition(LottieCompositionSpec.Asset(stickerAssetPath))
     val stickerComposition = stickerCompositionResult.value
+
+    // 手势 → 舞台 cue：边沿检测在纯函数层（JVM 钉死），这里只喂帧 + 转发。
+    // 选「主手」= 第一个非 NONE 手势的手，都没有则第一只手。
+    val gestureEdge = remember { StageGestureEdge() }
+    LaunchedEffect(frame?.seq) {
+        val f = frame ?: return@LaunchedEffect
+        if (onStageGesture == null) return@LaunchedEffect
+        val primary = f.hands.firstOrNull { it.gesture != HandGestureKind.NONE } ?: f.hands.firstOrNull()
+        val cue = gestureEdge.update(primary?.gesture ?: HandGestureKind.NONE)
+        if (cue != null) onStageGesture.invoke(cue)
+    }
 
     Box(
         modifier
@@ -314,9 +330,14 @@ fun CameraFxGrantedContent(
     }
 }
 
-/** 通话页右下角小窗：仅贴纸，无 HUD/线框。 */
+/**
+ * 通话页右下角小窗：仅贴纸，无 HUD/线框；手势联动舞台 cue（如上层传了 [onStageGesture]）。
+ */
 @Composable
-fun CameraFxStickerPip(modifier: Modifier = Modifier) {
+fun CameraFxStickerPip(
+    modifier: Modifier = Modifier,
+    onStageGesture: ((String) -> Unit)? = null,
+) {
     CameraFxGrantedContent(
         modifier = modifier,
         overlayPolicy = CameraFxOverlayPolicy(
@@ -324,6 +345,7 @@ fun CameraFxStickerPip(modifier: Modifier = Modifier) {
             drawStickers = true,
             showDebugHud = false,
         ),
+        onStageGesture = onStageGesture,
     )
 }
 

@@ -678,6 +678,13 @@ fun CompanionRoute(
                             // dh-lab 调试按钮 → 同一条 Gesture 词表（pat_head）。
                             onLabFxTest = { chatViewModel.emitStageGesture("pat_head") },
                             labFaceCameraPip = labEnabled && faceCameraOn,
+                            // 小窗手势 → 同一条 Gesture 词表（张→wave、捏→pat_head）。
+                            // 词表映射钉在 feature-camera-fx 的 CameraGestureCue（单一事实源）。
+                            onCameraStageGesture = if (faceCameraOn) {
+                                { cue -> chatViewModel.emitStageGesture(cue) }
+                            } else {
+                                null
+                            },
                         )
                         }
                         if (actionTrayOpen) {
