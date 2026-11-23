@@ -1,7 +1,11 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.openapi.chatkit.input
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,9 +55,20 @@ import com.openapi.chatkit.model.DraftType
 import com.openapi.chatkit.theme.ChatKit
 import java.util.Locale
 
-/** 附件草稿托盘：图片缩略图、文件名片，右上角 × 移除。 */
+/**
+ * 附件草稿托盘：图片缩略图、文件名片，右上角 × 移除。
+ *
+ * 图片可长按「再编辑」（[onEditImage]）：选图那一刻没编辑的，之后还能补。
+ * 只有图片可编辑——视频/文件/位置没有对应的编辑语义，长按不响应，
+ * 免得用户以为所有草稿都能改。不传 [onEditImage] 时长按同样不响应（组件不猜行为）。
+ */
 @Composable
-fun DraftTray(drafts: List<DraftItem>, onRemove: (String) -> Unit, modifier: Modifier = Modifier) {
+fun DraftTray(
+    drafts: List<DraftItem>,
+    onRemove: (String) -> Unit,
+    onEditImage: (String) -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
     val colors = ChatKit.colors
     LazyRow(
         modifier = modifier.fillMaxWidth(),
@@ -70,7 +85,11 @@ fun DraftTray(drafts: List<DraftItem>, onRemove: (String) -> Unit, modifier: Mod
                         modifier = Modifier
                             .size(64.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(colors.surfaceVariant),
+                            .background(colors.surfaceVariant)
+                            .combinedClickable(
+                                onClick = {},
+                                onLongClick = { onEditImage(draft.id) },
+                            ),
                     )
                     DraftType.File -> Row(
                         modifier = Modifier
