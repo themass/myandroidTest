@@ -495,10 +495,11 @@ fun CompanionRoute(
                 } else if (uiState.isMuted) FloatArray(0) else selfBands,
                 isAgentSpeaking = uiState.messages.lastOrNull()?.streaming == true,
                 connection = callConnection,
-                statusHint = if (uiState.connection == CompanionConnection.ERROR) {
-                    uiState.error ?: "连接已断开"
-                } else {
-                    null
+                statusHint = when (uiState.connection) {
+                    CompanionConnection.ERROR ->
+                        uiState.connectionError ?: uiState.error ?: "连接已断开"
+                    CompanionConnection.RECONNECTING -> "正在重连…"
+                    else -> null
                 },
             ),
             // 摄像头目前不支持；由按钮显示不可用状态，不注入点击回调。
@@ -528,6 +529,13 @@ fun CompanionRoute(
                 saveCallTheme(context, next)
             },
             onHangUp = { chatViewModel.endCall() },
+            onRetryConnect = if (uiState.connection == CompanionConnection.ERROR) {
+                {
+                    chatViewModel.retryConnection(characterId, scriptCaseId)
+                }
+            } else {
+                null
+            },
             onToggleMute = {
                 // 静音状态下点「取消静音」就是真的要开麦，没权限得先申请。
                 if (uiState.isMuted && !hasMicPermission(context)) {

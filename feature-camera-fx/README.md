@@ -19,6 +19,7 @@
 |---|---|---|---|
 | `camerafx/face_landmarker.task` | FaceLandmarker 478 关键点 | https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task (3.7 MB) | Apache-2.0（MediaPipe models） |
 | `camerafx/pose_landmarker_lite.task` | PoseLandmarker 33 关节（lite） | https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task (5.8 MB) | Apache-2.0（MediaPipe models） |
+| `camerafx/hand_landmarker.task` | HandLandmarker 双手各 21 点 + 启发式手势（张/拳/捏） | https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task (~7.6 MB) | Apache-2.0（MediaPipe models） |
 
 推理栈 `com.google.mediapipe:tasks-vision:0.10.35`（Apache-2.0），**纯离线**：
 运行时不联网、不依赖 Google Play Services——华为 ADY-AL00（无 GMS）可用。

@@ -79,7 +79,7 @@ class LiveKitCompanionTransport(
     private val bus = MutableSharedFlow<CompanionEvent>(extraBufferCapacity = EVENT_BUFFER)
     private val _connection = MutableStateFlow(TransportConnection.DISCONNECTED)
     private val _lastConnectionError = MutableStateFlow<String?>(null)
-    val lastConnectionError: StateFlow<String?> = _lastConnectionError.asStateFlow()
+    override val lastConnectionError: StateFlow<String?> = _lastConnectionError.asStateFlow()
     private var room: Room? = null
 
     /** 正在跑健康上报的那个 `Room`。同一房间重复 `Connected` 时不另起一个循环。 */
@@ -805,11 +805,15 @@ class LiveKitCompanionTransport(
         // `after` 锚点都解不出来，表现 cue 会挂在队列里直到 2 秒后过期。
         // 只在有待标定的时间线时才做，省掉稳态下每帧一次的无用计算。
         if (speech.timebasePendingId() != null) {
-            speech.onAudioFrame(
-                now = nowMono,
-                captureTs = absoluteCaptureTimestampMs,
-            )
-            speechWake.trySend(Unit)
+            if (speech.onAudioFrame(
+                    now = nowMono,
+                    captureTs = absoluteCaptureTimestampMs,
+                    rms = rms,
+                    minRms = REMOTE_FIRST_AUDIO_RMS,
+                )
+            ) {
+                speechWake.trySend(Unit)
+            }
         }
 
         // 诊断收敛成一条首帧事件 + 十秒聚合。
