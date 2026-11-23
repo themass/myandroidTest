@@ -25,8 +25,9 @@ fun stickerAtHeadTop(
     widthFractionOfFace: Float = 0.85f,
 ): StickerPlacementPx {
     val m = map.map(headTop)
-    val scale = map.scalePx
-    val w = (faceWidthNorm * scale * widthFractionOfFace).coerceIn(24f, 512f)
+    // faceWidthNorm 是**图像全宽**的比例：先 ×imgW 换成源像素，再 ×scalePx 换成画布像素。
+    // （scalePx 是 px/源px，直接乘归一化宽会小 imgW≈600 倍 → 贴纸退化成 clamp 下限的 24px 小点。）
+    val w = (faceWidthNorm * map.imgW * map.scalePx * widthFractionOfFace).coerceIn(24f, 512f)
     return StickerPlacementPx(
         centerX = m.x,
         centerY = m.y,

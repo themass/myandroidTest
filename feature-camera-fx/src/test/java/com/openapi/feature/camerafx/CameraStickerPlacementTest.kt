@@ -15,6 +15,18 @@ class CameraStickerPlacementTest {
         assertEquals(expected.x, p.centerX, 0.5f)
         assertEquals(expected.y, p.centerY, 0.5f)
         assertEquals(-12f, p.rotationDeg, 0.01f)
-        assertTrue(p.sizePx > 0f)
+        // 尺寸 = 脸宽(0.3×720 源px) × scalePx(800/960) × 0.85 = 153px。
+        // 回归 2026-11-23：曾漏乘 imgW → 0.21px 被 clamp 成 24px 小点，真机上「看不到贴纸」。
+        assertEquals(153f, p.sizePx, 1f)
+    }
+
+    @Test
+    fun `sticker 尺寸随脸远离变小但不小于下限`() {
+        val map = CanvasMap(1080f, 1920f, 720, 960, fill = true, mirrorX = true)
+        val near = stickerAtHeadTop(map, Point2d(0.5f, 0.2f), faceWidthNorm = 0.6f, tiltDegForDisplay = 0f)
+        val far = stickerAtHeadTop(map, Point2d(0.5f, 0.2f), faceWidthNorm = 0.01f, tiltDegForDisplay = 0f)
+        assertTrue(near.sizePx > far.sizePx)
+        assertEquals(24f, far.sizePx, 0.01f) // clamp 下限
+        assertTrue(near.sizePx <= 512f) // clamp 上限
     }
 }
