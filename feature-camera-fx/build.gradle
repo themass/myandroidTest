@@ -1,0 +1,52 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.feature.camerafx'
+    buildFeatures {
+        compose = true
+    }
+}
+
+dependencies {
+    // 预览：CameraX（版本在 rootProject.ext.cameraXVersion，root build.gradle 已对全依赖图 force 一致）
+    implementation "androidx.camera:camera-core:${rootProject.ext.cameraXVersion}"
+    implementation "androidx.camera:camera-camera2:${rootProject.ext.cameraXVersion}"
+    implementation "androidx.camera:camera-lifecycle:${rootProject.ext.cameraXVersion}"
+    implementation "androidx.camera:camera-view:${rootProject.ext.cameraXVersion}"
+
+    // 识别：MediaPipe Tasks Vision，离线 .task 模型在模块 assets，不依赖 Google Play Services
+    // （验收机华为 ADY-AL00 无 GMS，ML Kit 的 GMS 路线不可用）。
+    // 选 0.10.35 而不是 1.2.3：1.2.x 会额外带 litertlm-android（约 21MB）和 datatransport 全家桶，
+    // 对这个定位 spike 是纯包体负担。许可：Apache-2.0。
+    implementation 'com.google.mediapipe:tasks-vision:0.10.35'
+
+    // ProcessCameraProvider.getInstance() 返回 ListenableFuture，本模块直接 addListener
+    implementation 'com.google.guava:guava:33.3.1-android'
+
+    // Compose
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.material3
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.lifecycle.viewmodel.compose
+    implementation libs.androidx.lifecycle.runtime.compose
+    implementation libs.kotlinx.coroutines.android
+
+    // 锚点纯函数（归一化坐标 → 人脸框/头顶锚点/两眼倾角/画布映射）的 JVM 单测
+    testImplementation 'junit:junit:4.13.2'
+}
+
+// 与 :feature-photosolve 一致：CameraX 1.4.2 会带 concurrent-futures-ktx:1.1.0，
+// 本机离线缓存里只有 1.2.0 的 jar，不 force 会在离线跑单测时解析失败。
+configurations.configureEach {
+    resolutionStrategy {
+        force 'androidx.concurrent:concurrent-futures-ktx:1.2.0'
+    }
+}

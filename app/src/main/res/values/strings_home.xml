@@ -11,5 +11,7 @@
     <string name="drawer_group_account">Account</string>
     <string name="drawer_group_common">Common</string>
     <string name="drawer_group_test">Test</string>
+    <string name="drawer_group_lab">Lab</string>
+    <string name="drawer_entry_camera_fx">Camera face/pose demo</string>
     <string name="home_tab_agent_chat">Role chat (new)</string>
 </resources>

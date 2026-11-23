@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -237,6 +238,23 @@ fun HomeScreen() {
                                 }
                             }
                         }
+                    }
+
+                    // 实验室：debug 包才出现的 spike 入口（判定与 DhLabGate 同思路），不进生产导航
+                    if (com.openapi.feature.camerafx.CameraFxLabGate.isEnabled(context)) {
+                        HorizontalDivider(color = AppColors.Divider, modifier = Modifier.padding(vertical = 8.dp))
+                        DrawerSectionTitle(R.string.drawer_group_lab)
+                        NavigationDrawerItem(
+                            label = { Text(stringResource(R.string.drawer_entry_camera_fx)) },
+                            icon = { Icon(Icons.Filled.PhotoCamera, contentDescription = null) },
+                            selected = false,
+                            onClick = {
+                                scope.launch { drawerState.close() }
+                                com.openapi.feature.camerafx.CameraFxActivity.start(context)
+                            },
+                            colors = DrawerItemColors,
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                        )
                     }
                 }
             }
