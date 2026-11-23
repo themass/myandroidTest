@@ -422,10 +422,8 @@ fun DigitalHumanLabHost(
                             v.scaleY = stage.scale * pulse
                             v.translationX = stage.offsetX
                             v.translationY = stage.offsetY
-                            // Live2D 视口常为 TextureView：Android 禁止 setBackgroundColor，主题
-                            // 已由 LaunchedEffect → engine.setBackground(native) 推进，此处勿再碰 View。
-                            if (e.id != DhEngineId.LIVE2D) {
-                                theme?.let {
+                            theme?.let {
+                                if (canApplyThemeBackgroundToView(v)) {
                                     val argb = stageClearColorArgb(it.topArgb, it.midArgb, it.bottomArgb)
                                     v.setBackgroundColor(argb)
                                 }
