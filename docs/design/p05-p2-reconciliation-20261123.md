@@ -79,6 +79,10 @@ Owner：elastic-mendeleev 会话（`claude/elastic-mendeleev-ab3d36` @ `5db985a9
 
 生产 LiveKit 已切 104 自托管 `wss://livekit.ok123find.top`。手机蜂窝可直连，**不再要求**与 Mac 同网段。Mac 本地栈保留作旁证，不为它再折腾设备网络。
 
+### 4.4 生产 attempt 5313185b（V2279A，2026-11-23）
+
+104 `voice.log` job `AJ_rGzQGNyzfjqr`：`tts done` **frames=0** 全轮，`interrupted=True`，无 outbound chain energy。与客户端 `remote_pcm maxLevel=0` 一致。**不是** SFU 订阅故障；是 **TTS 未出帧即被打断**。APK 已含 `8a7c909e`。全链 PASS **未达成**；复测需停口等待或减少连续 STT final。
+
 ## 5. 结论（给协调会话）
 
 1. **P0.5/P2 四项：1 与 4 在 2026-11-22 栈上 PASS；2 与 3 仍是 PARTIAL。** 不能再沿用 11-19 的「全线 FAIL」口径，也不能声称 §17 全过。
