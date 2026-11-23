@@ -9,7 +9,7 @@
 | 能力 | 结论 |
 | --- | --- |
 | 产出真 `.moc3`（含新 ArtMesh） | **能**。官方 CLI 从分层 PSD 直写 moc3，**不依赖 Cubism Editor**（自家 umamo 全合成 lowering）。本会话实跑：`demo.moc3` 魔数 `MOC3`、版本字节 5，1.1 MB；`ArtMeshTopwear`/`ArtMeshBottomwear`/`ArtMeshFace`/… 22 个 ArtMesh 字符串可读。 |
-| `ParamWear_<variant>` 风格 Opacity 开关 | **能约定**。`ExpressionChannels.catalog()` 按图层 variant 参数名**字面**建 `Parameter(Id=name)`，`opacity()` 生成 0→1 Opacity 关键形——与 wardrobe「每套一个 Opacity 参数」同构。本 harness **未再跑** toggle 差分专项（代码路径 + Layout 清单字段已核实；列为后续）。 |
+| `ParamWear_<variant>` 风格 Opacity 开关 | **能**。Layout 清单 `variant:{type:"toggle",parameter:"ParamWear_test"}` → MCP `project_import_layout` → `rig_generate` → `project_export_target moc3`；`layout.moc3`（1,001,728 B）字符串表与 cdi3 均含 **`ParamWear_test`**（见 `evidence/layout-moc3-strings.json`）。无头 CLI 直接吃 layout.json 不行（须 MCP/GUI）。 |
 | 替代 atri_8 内衣重制 | **半替代**：能造「去外衣基线 + 若干内衣 ArtMesh + ParamWear_*」的**新 moc3**；不能自动把现成 atri_8 原画拆件重绑（仍是美术活）。头饰 `pending-param` 有「把 moc3 导进 psd2live 扫参数」的工具路径，产品入口未测。 |
 | 许可 | 工具 GPL；**产出素材不受 GPL 传染**。MIT 的 IR/导出框架/p2lrt 可单独复用。真正法务面在 Live2D moc3 专有格式/EULA，产线化前需法务。 |
 
@@ -52,15 +52,21 @@ PSD2Live --input …/demo.psd --output …/out --lang zh
 
 警告（可接受）：同名 eyebrow/eyewhite/iris 用稳定图层 ID 区分；嘴部自动补唇网格相对 PSD 有偏差；CMO3 透过刘海绘制顺序重编号。
 
+## 差分专项（已完成）
+
+Layout 摘录见 [`evidence/layout-variant-excerpt.json`](evidence/layout-variant-excerpt.json)：图层 `underwear lace` + `variant.toggle ParamWear_test`。导出断言：
+
+- `layout.moc3` 魔数 `MOC3` / v5 / 1,001,728 B；字符串含 `ParamWear_test`
+- `layout.cdi3.json` Parameters 含 `{Id: ParamWear_test, GroupId: ParamGroupCustom}`
+- 无头 CLI `--input layout.json` → 「不是有效的 PSD 文件」；差分必须走 MCP/GUI
+
 ## 未完成 / 后续
 
-1. toggle 专项：Layout 清单加 `ParamWear_test` 层，断言 moc3 字符串表含该名且 Opacity 关键形挂上。
-2. 头饰验证：moc3/`project_import_cmo3` 导入 atri_8，扫 Param4–7/23–30 显隐钉值（产品入口未确认）。
-3. 法务：第三方生成 moc3 与 Live2D EULA。
-4. 产线：美术 PSD 命名规范 + wardrobe-spec 新轴 value=1.0 纪律。
+1. 头饰验证：**未跑**。MCP 产品入口只有 `project_import_cmo3`（无 `project_import_moc3`）；引擎有 `Moc3Import` 代码但产品未暴露。atri_8 手头只有 `.moc3`，无 `.cmo3` 可喂。扫 Param4–7/23–30 仍待有 cmo3 或 GUI 时再测。
+2. 法务：第三方生成 moc3 与 Live2D EULA。
+3. 产线：美术 PSD/Layout 命名规范 + wardrobe-spec 新轴 value=1.0 纪律。
 
 ## 仓库落盘
 
 - harness：`scripts/dh-lab/psd2live-eval/`（本目录）
 - 共享笔记：`…/side-session-notes/local_0c440dde-…/psd2live-eval-20261123.md`
-- **未** merge/push `weifu-refactor`（本轮指令：文档完成先落分支；合主线另说）

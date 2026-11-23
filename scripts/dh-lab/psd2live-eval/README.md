@@ -7,7 +7,7 @@
 
 ## 结论摘要
 
-详见 [`EVAL.md`](EVAL.md)。一句话：**半替代可主力候选**——官方 CLI 从分层 PSD 直出真 `.moc3`（不依赖 Cubism Editor），ArtMesh 与标准 Param* 齐全；`ParamWear_<variant>` 可由图层 toggle variant 字面写入（代码路径已核实，本 harness 未再跑差分专项）。
+详见 [`EVAL.md`](EVAL.md)。一句话：**半替代可主力候选**——官方 CLI 从分层 PSD 直出真 `.moc3`（不依赖 Cubism Editor），ArtMesh 与标准 Param* 齐全；Layout toggle `ParamWear_test` 已实跑进 moc3/cdi3 字符串表。
 
 ## 前置
 
@@ -48,9 +48,10 @@ python3 -I scripts/dh-lab/psd2live-eval/inspect_export.py /tmp/psd2live-gen/out
 [`evidence/`](evidence/) 保留本次跑通的 sidecar 摘要（**不含** `.moc3`/贴图大文件）：
 
 - `demo.model3.json` / `demo.cdi3.json` / `demo.smile.exp3.json` / `demo.psd2live.json`
-- `moc3-strings.json`：从 moc3 扫出的 Param*/ArtMesh* 字符串表
+- `moc3-strings.json`：从 demo.moc3 扫出的 Param*/ArtMesh* 字符串表
+- `layout-moc3-strings.json` / `layout-variant-excerpt.json` / `layout.*.json`：ParamWear_test 差分专项证据
 - `demo-merged.png`：输入 PSD 合成预览
-- `cli-run.log`：CLI 输出摘要
+- `cli-run.txt`：CLI 输出摘要
 
 ## 纪律
 

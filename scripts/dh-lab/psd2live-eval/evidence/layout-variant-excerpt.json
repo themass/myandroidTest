@@ -1,0 +1,30 @@
+{
+  "note": "excerpt: underwear_lace toggle ParamWear_test; full layout stays out of repo",
+  "format": "psd2live-layout",
+  "version": 1,
+  "name": "wear-test",
+  "underwear_lace": {
+    "id": "underwear_lace",
+    "name": "underwear lace",
+    "image": {
+      "path": "parts/underwear_lace.png",
+      "width": 180,
+      "height": 120
+    },
+    "rect": {
+      "left": 230.0,
+      "top": 400.0,
+      "width": 180.0,
+      "height": 120.0
+    },
+    "tags": [
+      "topwear"
+    ],
+    "variant": {
+      "type": "toggle",
+      "parameter": "ParamWear_test"
+    },
+    "opacity": 1,
+    "visible": true
+  }
+}
