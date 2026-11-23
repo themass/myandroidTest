@@ -81,6 +81,8 @@ fun ChatScreen(
     onSend: () -> Unit,
     onStop: () -> Unit,
     onRemoveDraft: (String) -> Unit,
+    /** 长按草稿托盘里的图片再编辑（S3）。不传 = 该页不提供编辑。 */
+    onEditDraftImage: (String) -> Unit = {},
     onCancelEdit: () -> Unit = {},
     onVoiceDraftSendText: (String) -> Unit = {},
     onVoiceDraftSendAudio: () -> Unit = {},
@@ -271,6 +273,7 @@ fun ChatScreen(
                 onSend = onSend,
                 onStop = onStop,
                 onRemoveDraft = onRemoveDraft,
+                onEditDraftImage = onEditDraftImage,
                 onVoiceStart = onVoiceRecordStart,
                 onVoiceStop = onVoiceRecordStop,
                 onVoiceCancel = onVoiceRecordCancel,

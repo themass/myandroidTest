@@ -122,6 +122,8 @@ fun DigitalHumanLabHost(
     onLabFxTest: (() -> Unit)? = null,
     /** 通话页右下角小窗：前置相机 + 头顶 Lottie（仅 debug+已授相机权限）。 */
     labFaceCameraPip: Boolean = false,
+    /** 小窗手势 → 舞台 cue（"wave"/"pat_head"）；Route 接到 emitStageGesture，不另起总线。 */
+    onCameraStageGesture: ((String) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
@@ -493,6 +495,7 @@ fun DigitalHumanLabHost(
                         .padding(end = 12.dp, bottom = 120.dp)
                         .size(132.dp, 176.dp)
                         .clip(RoundedCornerShape(12.dp)),
+                    onStageGesture = onCameraStageGesture,
                 )
             }
         }

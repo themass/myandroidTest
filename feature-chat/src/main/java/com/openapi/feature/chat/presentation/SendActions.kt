@@ -206,6 +206,20 @@ internal class SendActions(
     }
 
     /**
+     * 草稿托盘里长按图片「再编辑」：找出这条草稿对应的暂存图片。
+     *
+     * 返回 null 的情况都按「不能编辑」处理，界面什么都不做（不弹错误、不闪提示）：
+     * 草稿在用户长按的一瞬间已经被发出去或被移除是正常竞态，报错反而是噪音。
+     * 非图片草稿同理——只有图片有编辑语义。
+     */
+    fun draftImageForEdit(draftId: String): java.io.File? {
+        val draft = state.value.drafts.firstOrNull { it.id == draftId } ?: return null
+        if (draft.kind != MessageKind.IMAGE) return null
+        val file = draft.staged.file
+        return if (file.exists()) file else null
+    }
+
+    /**
      * 用编辑后的图片覆盖草稿对应的暂存文件（同名写入，草稿本身无需替换）。
      * 失败时保留原图：用户至少还能发出未编辑的版本。
      */
