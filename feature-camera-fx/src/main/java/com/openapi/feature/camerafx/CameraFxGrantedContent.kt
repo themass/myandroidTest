@@ -25,6 +25,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -220,14 +221,20 @@ fun CameraFxGrantedContent(
             val density = LocalDensity.current
             val comp = stickerComposition
             key(stickerAssetPath, comp != null) {
+                // 每张贴纸一路 EMA；下标不是身份（MediaPipe 不保证多脸顺序），
+                // 所以跳脸由 smoother 内部的位移阈值 snap，见 [PlacementSmoother]。
+                val smoothers = remember { mutableStateListOf<PlacementSmoother>() }
+                while (smoothers.size < frameForSticker.faces.size) {
+                    smoothers.add(PlacementSmoother())
+                }
                 val progress by animateLottieCompositionAsState(
                     composition = comp,
                     iterations = Int.MAX_VALUE,
                     isPlaying = comp != null && drawStickers,
                 )
-                frameForSticker.faces.forEach { face ->
-                    val head = face.headTop ?: return@forEach
-                    val fw = face.bounds?.width ?: return@forEach
+                frameForSticker.faces.forEachIndexed { faceIndex, face ->
+                    val head = face.headTop ?: return@forEachIndexed
+                    val fw = face.bounds?.width ?: return@forEachIndexed
                     val place = stickerAtHeadTop(
                         map,
                         head,
@@ -235,8 +242,10 @@ fun CameraFxGrantedContent(
                         face.tiltDeg,
                         widthFractionOfFace = 1.05f,
                     )
-                    val half = place.sizePx / 2f
-                    val stickerSize = with(density) { place.sizePx.toDp() }
+                    // 尺寸也要跟着平滑值走，否则 offset 平滑、size 逐帧跳，等于没平滑
+                    val placeFinal = smoothers.getOrElse(faceIndex) { PlacementSmoother() }.smooth(place)
+                    val half = placeFinal.sizePx / 2f
+                    val stickerSize = with(density) { placeFinal.sizePx.toDp() }
                     if (comp != null) {
                         LottieAnimation(
                             composition = comp,
@@ -245,12 +254,12 @@ fun CameraFxGrantedContent(
                                 .zIndex(2f)
                                 .offset {
                                     IntOffset(
-                                        (place.centerX - half).roundToInt(),
-                                        (place.centerY - half).roundToInt(),
+                                        (placeFinal.centerX - half).roundToInt(),
+                                        (placeFinal.centerY - half).roundToInt(),
                                     )
                                 }
                                 .size(stickerSize)
-                                .rotate(place.rotationDeg),
+                                .rotate(placeFinal.rotationDeg),
                         )
                     } else {
                         Canvas(
@@ -258,8 +267,8 @@ fun CameraFxGrantedContent(
                                 .zIndex(2f)
                                 .offset {
                                     IntOffset(
-                                        (place.centerX - half).roundToInt(),
-                                        (place.centerY - half).roundToInt(),
+                                        (placeFinal.centerX - half).roundToInt(),
+                                        (placeFinal.centerY - half).roundToInt(),
                                     )
                                 }
                                 .size(stickerSize),
