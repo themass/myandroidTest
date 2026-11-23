@@ -13,10 +13,10 @@ val FACE_OVAL: IntArray = intArrayOf(
     54, 103, 67, 109,
 )
 
-/** 左眉（人物视角的左，未镜像画面里在右边），5 点折线。 */
+/** 左眉（人物视角的左，未镜像画面里在右边），5 点**开**折线（首尾不闭合）。 */
 val FACE_BROW_LEFT: IntArray = intArrayOf(70, 63, 105, 66, 107)
 
-/** 右眉，5 点折线。 */
+/** 右眉，5 点开折线。 */
 val FACE_BROW_RIGHT: IntArray = intArrayOf(46, 53, 64, 101, 99)
 
 /** 左眼轮廓 6 点折线（首尾闭合）。 */

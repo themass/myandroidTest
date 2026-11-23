@@ -16,9 +16,12 @@ import kotlin.math.max
  * 一帧的识别结果（UI 只消费这个）：关键点已按稀疏表采样、锚点已用纯函数算好，
  * Canvas 只负责映射 + 画，不再有任何计算。
  */
+/** 一条稀疏折线；[closed]=false 用于眉（开路径），true 用于脸廓/眼/唇。 */
+data class FacePolyline(val points: List<Point2d>, val closed: Boolean)
+
 data class FaceFx(
-    /** 稀疏采样的折线（外廓/眉/眼/唇），每条首尾自动闭合。 */
-    val polylines: List<List<Point2d>>,
+    /** 稀疏采样的折线（外廓/眉/眼/唇）。 */
+    val polylines: List<FacePolyline>,
     val bounds: Rect2d?,
     val headTop: Point2d?,
     val eyeLine: Segment2d?,
@@ -169,13 +172,13 @@ class FxAnalyzer(
             }
             FaceFx(
                 polylines = listOf(
-                    oval,
-                    pick(lm, FACE_BROW_LEFT),
-                    pick(lm, FACE_BROW_RIGHT),
-                    pick(lm, FACE_EYE_LEFT),
-                    pick(lm, FACE_EYE_RIGHT),
-                    pick(lm, FACE_LIPS_OUTER),
-                ).filter { it.size >= 2 },
+                    FacePolyline(oval, closed = true),
+                    FacePolyline(pick(lm, FACE_BROW_LEFT), closed = false),
+                    FacePolyline(pick(lm, FACE_BROW_RIGHT), closed = false),
+                    FacePolyline(pick(lm, FACE_EYE_LEFT), closed = true),
+                    FacePolyline(pick(lm, FACE_EYE_RIGHT), closed = true),
+                    FacePolyline(pick(lm, FACE_LIPS_OUTER), closed = true),
+                ).filter { it.points.size >= 2 },
                 bounds = bounds,
                 headTop = headTopAnchor(oval, bounds),
                 eyeLine = eyes,

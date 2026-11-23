@@ -293,19 +293,19 @@ private fun DrawScope.drawFx(fx: FrameFx) {
     }
 
     for (face in fx.faces) {
-        // 面部稀疏折线（外廓/眉/眼/唇，闭合）
-        val path = Path()
+        // 每条折线独立 Path：眉是开路径，不能 close()，否则与下一折线首尾相接画出交叉三角
         for (line in face.polylines) {
-            if (line.size < 2) continue
-            val first = map.map(line.first())
+            if (line.points.size < 2) continue
+            val path = Path()
+            val first = map.map(line.points.first())
             path.moveTo(first.x, first.y)
-            for (p in line.drop(1)) {
+            for (p in line.points.drop(1)) {
                 val o = map.map(p)
                 path.lineTo(o.x, o.y)
             }
-            path.close()
+            if (line.closed) path.close()
+            drawPath(path, color = Color(0xFFFFEB3B), style = Stroke(width = 2.5f))
         }
-        drawPath(path, color = Color(0xFFFFEB3B), style = Stroke(width = 2.5f))
 
         // 人脸框（白虚线）
         face.bounds?.let { b ->
