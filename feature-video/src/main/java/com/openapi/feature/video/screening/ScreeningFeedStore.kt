@@ -16,7 +16,8 @@ import com.openapi.core.model.RecommendVo
  * 走的是 app 自己的网络层（`BaseService` + `awaitInfoList`），不自己拼 OkHttp：
  * 服务端返回体是 AES 加密的、密钥来自请求自己的 User-Agent（见 `BaseRequest.authkey`），
  * 绕开 `BaseRequest`/`GsonRequest` 根本解不出来。接口、参数、模型都跟旧频道页同一套
- * （`LegacyChannelEntries` / `GSYAutoVideoListFragment`），所以这里取到的就是首页那批真实数据。
+ * （旧 `GSYAutoVideoListFragment` 那一族；`LegacyChannelEntries` 已随正式化删除），
+ * 所以这里取到的就是首页那批真实数据。
  *
  * 只读：不改任何现有页面，也不往现有页面写状态。
  */
