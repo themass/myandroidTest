@@ -76,6 +76,14 @@ class DhEngineDownloadGateTest {
     }
 
     @Test
+    fun live2d_no_online_pack_shows_reason_not_fake_download() {
+        assertEquals(
+            EngineClickAction.UNAVAILABLE_REASON,
+            gate().actionFor(row(DhEngineId.LIVE2D)),
+        )
+    }
+
+    @Test
     fun engine_available_by_its_own_check_selects_even_with_empty_asset_manifest() {
         // ATRI 是 adb 推的、清单为空：AssetStore 永远说没就绪，但引擎自判可用 → 必须能直接选。
         val g = gate(available = setOf(DhEngineId.LIVE2D))
