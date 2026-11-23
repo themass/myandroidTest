@@ -666,6 +666,18 @@ class CompanionViewModel(
         _state.update { it.copy(error = null) }
     }
 
+    /**
+     * 通话中断线或建连失败后重试：断开旧房间、按当前角色/case 重新 [start]。
+     * 通话页仍开着时 [callActive] 不变，用户不必先挂断再点电话。
+     */
+    fun retryConnection() {
+        val id = characterId ?: return
+        viewModelScope.launch {
+            runCatching { transport.disconnect() }
+            start(id, activeCaseId)
+        }
+    }
+
     fun onAvatarEvent(raw: String) {
         // 协议解析只有一处（AvatarEventMapper）。这里曾自带一份 state/emotion 的
         // 正则，与 mapper 各解各的，改协议时必漏一边——现在只翻译指令 → UI state 字段。
