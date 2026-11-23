@@ -71,20 +71,16 @@ internal class MessageCache {
 
     /**
      * 本地行还引用着的附件路径（跨会话，只算没到 SENT 的）。给暂存清扫当白名单，
-     * 为什么必须有：见 [ChatRepository.localAttachmentPathsInUse] 的注释。
-     * 与 [localPending] 一样走全局库；查不动就回空集合（清扫照旧，只是少一批白名单）。
+     * 为什么必须有：见 [ChatRepository.localAttachmentPathsInUse] 的注释；
+     * 逐行判据与 [LocalChatStore.localAttachmentPathsInUse] 共用 [keptAttachmentPaths]
+     * （两份会漂，复审 nit 4），包括那条「宽在哪」的实话：按 `local-` 前缀取行、
+     * **不筛 role**，所以 `local-assistant-*` / `local-pending-*` / `local-voice-*` 也在批里，
+     * 与 [localPending] 的判据不同 —— 最坏是过留一轮回收，不会误删。
+     * 这里与 [localPending] 一样走全局库；查不动就回空集合（清扫照旧，只是少一批白名单）。
      */
-    fun localAttachmentPathsInUse(): Set<String> {
-        val rows = runCatching { AppDatabase.getInstance().chatLogDao().localRows() }
-            .getOrDefault(emptyList())
-        val out = LinkedHashSet<String>()
-        rows.forEach { log ->
-            val message = log.toDomainOrNull() ?: return@forEach
-            if (message.delivery == DeliveryStatus.SENT) return@forEach
-            out += ChatLogMapper.localAttachmentPaths(message)
-        }
-        return out
-    }
+    fun localAttachmentPathsInUse(): Set<String> = keptAttachmentPaths(
+        runCatching { AppDatabase.getInstance().chatLogDao().localRows() }.getOrDefault(emptyList()),
+    )
 
     fun clearLocal(sessionId: Long) {
         AppDatabase.getInstance().chatLogDao().deleteBySession(sessionId)

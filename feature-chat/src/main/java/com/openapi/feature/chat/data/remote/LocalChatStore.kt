@@ -82,24 +82,14 @@ class LocalChatStore @JvmOverloads constructor(
      * 图没了也能走签名 URL，那些字节是真的孤儿。
      *
      * 投递状态存在 content 的 JSON 里（不是列），SQL 判不了，所以按 `local-` 前缀取行、
-     * 映射完再筛（与 [localPending] 同一个判据，只是不限会话）。
+     * 映射完再筛。**判据与 [localPending] 不完全相同**（复审 nit 3，这里写实话）：
+     * 那条还要 `role == USER`，这里不筛 role —— `local-assistant-*` / `local-pending-*` /
+     * `local-voice-*` 也在捞出来的批里。为什么不补谓词：助手占位行没有附件，voice 行的字节在
+     * `cache/voice` 而不是暂存目录，筛了结果不变；最坏后果是**过留**（多活一轮 GC），不会误删。
+     * 逐行汇 paths 的循环与 [MessageCache] 共用 [keptAttachmentPaths]（两份会漂）。
      */
-    fun localAttachmentPathsInUse(): Set<String> {
-        val rows = runCatching { db().chatLogDao().localRows() }.getOrDefault(emptyList())
-        val out = LinkedHashSet<String>()
-        rows.forEach { log ->
-            val message = com.openapi.feature.chat.data.mapper.ChatLogMapper.toDomain(
-                chatId = log.chatId,
-                who = log.who,
-                msgType = log.msgType,
-                rawContent = log.content,
-                createdAtMillis = log.createTime?.time ?: 0L,
-            ) ?: return@forEach
-            if (message.delivery == com.openapi.feature.chat.domain.model.DeliveryStatus.SENT) return@forEach
-            out += com.openapi.feature.chat.data.mapper.ChatLogMapper.localAttachmentPaths(message)
-        }
-        return out
-    }
+    fun localAttachmentPathsInUse(): Set<String> =
+        keptAttachmentPaths(runCatching { db().chatLogDao().localRows() }.getOrDefault(emptyList()))
 
     private fun toLog(sessionId: Long, message: ChatMessage): com.openapi.core.model.ChatLog {
         val log = com.openapi.core.model.ChatLog()
