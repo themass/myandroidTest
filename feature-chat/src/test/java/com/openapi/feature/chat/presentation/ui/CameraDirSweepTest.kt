@@ -58,7 +58,8 @@ class CameraDirSweepTest {
         val stale = staleFile(camera, "photo_old.jpg")
         val fresh = File(camera, "photo_new.jpg").apply { writeText("bytes") }
 
-        AttachmentStager.stagingDir(context)
+        // 白名单必传（复审 nit 1）：这里两个文件都没有任何引用方，空要写出来
+        AttachmentStager.stagingDir(context, keep = emptySet())
 
         assertFalse("取消拍摄留下的超龄字节必须被下一次选图回收", stale.exists())
         assertTrue("没到龄的不碰", fresh.exists())

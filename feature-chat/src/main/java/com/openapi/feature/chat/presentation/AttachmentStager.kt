@@ -59,13 +59,15 @@ object AttachmentStager {
      * 这条路与 `camera/` 的清扫都在调用方的 IO 线程上（选择器回来就在 IO），
      * 所以点「拍摄」那一刻主线程只建一个目录，不再 `listFiles` + 删文件（复审 minor）。
      *
-     * [keep] 是调用方给的「还不能当垃圾删」的绝对路径白名单（复审 Important）：
+     * [keep] 是调用方给的「还不能当垃圾删」的绝对路径白名单（复审 Important），**必传**：
      * `chat_attachments` 里的字节不全都是孤儿——一条没到 SENT 的本地 `local-` 行，
      * 手里只有这些文件（服务端那张直传票据 10 分钟就废，ADR-011），扫掉就等于
      * 把那条消息的重发能力永久删掉。白名单由 [SendActions] 从仓库 + 托盘 + 屏幕上
      * 带附件的消息现问现取；不在名单里的超龄文件照旧回收。
+     * 刻意不给默认空值：默认空 = 每个新调用方默认就少一批白名单，而这正是被复审点到的 bug。
+     * 真要「这个目录没有引用」也写 `emptySet()`，让决定落在调用点上看得见。
      */
-    fun stagingDir(context: Context, keep: Set<String> = emptySet()): File {
+    fun stagingDir(context: Context, keep: Set<String>): File {
         val dir = File(context.filesDir, DIR).apply { mkdirs() }
         com.openapi.common.media.StagingGc.sweep(dir, keep = keep)
         // `camera/` 是第二个累积点：同一次经过顺手扫掉，年龄规矩与上面完全同一份。
@@ -80,18 +82,15 @@ object AttachmentStager {
      */
     fun cameraDir(context: Context): File = File(context.filesDir, CAMERA_DIR).apply { mkdirs() }
 
-    fun stage(context: Context, kind: MessageKind, uri: Uri): StageOutcome =
-        stage(context, kind, uri, emptySet())
-
     /**
-     * 可注入 [keep]（清扫白名单，见 [stagingDir]）与 [meta] 的重载：
-     * 视频时长/首帧在 JVM 测试里读不了真编码器，换假的进来跑全流程。
+     * 把选择器返回的 uri 落到暂存目录。[keep] 必传（理由见 [stagingDir]：默认空 = 默认少白名单）。
+     * [meta] 是测试接缝：视频时长/首帧在 JVM 测试里读不了真编码器，换假的进来跑全流程。
      */
     internal fun stage(
         context: Context,
         kind: MessageKind,
         uri: Uri,
-        keep: Set<String> = emptySet(),
+        keep: Set<String>,
         meta: VideoMetaSource = AndroidVideoMeta,
     ): StageOutcome {
         val dir = stagingDir(context, keep)

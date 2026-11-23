@@ -29,7 +29,9 @@ class AttachmentStagerGcTest {
         assertTrue("设 mtime 失败", orphan.setLastModified(System.currentTimeMillis() - StagingGc.MAX_AGE_MILLIS - 60_000))
         val fresh = File(dir, "img_fresh.jpg").apply { writeText("fresh") }
 
-        val opened = AttachmentStager.stagingDir(context)
+        // 这两个文件没有任何本地行/托盘引用（这个用例只钉「这条路会扫」），
+        // 所以白名单是空的——空必须写出来，不给默认值（复审 nit 1）。
+        val opened = AttachmentStager.stagingDir(context, keep = emptySet())
 
         assertTrue("打开的是那个目录本身（不是别的名字）", opened.absolutePath.endsWith("chat_attachments"))
         assertFalse("超龄孤儿必须走", orphan.exists())
