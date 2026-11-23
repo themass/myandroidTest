@@ -50,9 +50,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.openapi.feature.video.screening.kernel.KernelHost
-import com.openapi.cast.DlnaDevice
-import com.openapi.cast.DlnaDiscoveryCallback
-import com.openapi.cast.JavaCaster
 import com.openapi.common.net.http.NetConfig
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.feature.video.subtitle.local.ScreeningCaption
@@ -265,10 +262,6 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     LaunchedEffect(swipeSeconds) {
         if (swipeSeconds != null) { delay(900); swipeSeconds = null }
     }
-    val discovery = remember { DlnaDiscoveryCallback() }
-    val caster = remember { JavaCaster(context) }
-    var devices by remember { mutableStateOf<List<DlnaDevice>>(emptyList()) }
-    var scanning by remember { mutableStateOf(false) }
     fun refresh() {
         host.tick()
         position = host.position
@@ -301,7 +294,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
         onDispose {
             onSave(host.position)
             activity.lifecycle.removeObserver(lifecycle)
-            host.release(); discovery.close(); caster.close()
+            host.release()
             if (full) activity.immersive(false)
         }
     }
@@ -415,12 +408,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 Icon(if (liked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, null, Modifier.size(16.dp))
                 Text(if (liked) " 已收藏" else " 收藏")
             }
-            TextButton(onClick = {
-                panel = "电视投屏"; info = ""; devices = emptyList(); scanning = true
-                discovery.discover { devices = it; scanning = false }
-            }) {
-                Icon(Icons.Default.Cast, null, Modifier.size(17.dp)); Text(" 电视投屏")
-            }
+            // DLNA 投屏入口正式口径下线（没有可验证的真电视设备；旧 :cast 模块和旧页面原样保留）。
         }
     }
     // 画面内发送栏（互联网播放器惯例）：弹幕开着时贴在走带下方，胶囊输入框 + 发送键，回车即发。
@@ -600,39 +588,6 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                         Setting("填满画面", "可能裁掉画面边缘", fill) { fill = true }
                         Setting("弹幕设置", if (danmaku) "弹幕来源与发送状态" else "当前已关闭", panel == "弹幕设置") { panel = "弹幕设置" }
                     }
-                    // 内核不在这开面板：用户不选内核，失败时 KernelHost 自动换另一个顶上去（无感）。
-                    "电视投屏" -> {
-                        Text("手机和电视须连接同一局域网。字幕和弹幕仅在手机显示。", color = Muted)
-                        if (scanning) Text("正在搜索电视…", Modifier.padding(top = 12.dp))
-                        else if (devices.isEmpty()) Text("未发现可投屏的电视。", Modifier.padding(top = 12.dp))
-                        devices.forEach { device ->
-                            Setting(device.friendlyName, "DLNA") {
-                                info = "正在准备投屏…"
-                                scope.launch {
-                                    val file = withContext(Dispatchers.IO) {
-                                        runCatching {
-                                            val input = source.asset?.let { context.assets.open("$it.mp4") }
-                                                ?: source.uri?.let(context.contentResolver::openInputStream)
-                                            checkNotNull(input).use { stream ->
-                                                File.createTempFile("screening-", ".mp4", context.cacheDir).also { out ->
-                                                    try { out.outputStream().use { stream.copyTo(it) } }
-                                                    catch (failure: Exception) { out.delete(); throw failure }
-                                                }
-                                            }
-                                        }.getOrNull()
-                                    }
-                                    if (file == null) {
-                                        info = "无法读取视频文件。"
-                                    } else {
-                                        caster.castLocal(device, file.path, source.title) { failure ->
-                                            info = failure?.let { "投屏失败：$it" } ?: "已发送到 ${device.friendlyName}"
-                                            if (failure == null) host.pause()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
         }
         if (info.isNotEmpty()) Text(info, Modifier.padding(top = 9.dp), color = Mint)
     }
@@ -798,7 +753,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                             .padding(horizontal = 20.dp, vertical = 8.dp),
                     ) {
                         seekBlock()
-                        // 影院态底部只要走带+图标工具台（设计稿）：收藏/投屏留在信息态
+                        // 影院态底部只要走带+图标工具台（设计稿）：收藏留在信息态
                         toolsRow(true)
                         // 弹幕开着就把发送栏挂在最底下（互联网播放器惯例：进度条→工具→输入行）
                         if (danmaku) danmakuSendRow()
