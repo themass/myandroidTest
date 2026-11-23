@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.airbnb.lottie.compose.LottieAnimation
@@ -179,7 +180,11 @@ fun CameraFxGrantedContent(
 
         val fx = frame
         if (fx != null && drawWireframe) {
-            Canvas(Modifier.fillMaxSize()) {
+            Canvas(
+                Modifier
+                    .fillMaxSize()
+                    .zIndex(1f),
+            ) {
                 drawFxWireframe(fx)
             }
         }
@@ -207,6 +212,7 @@ fun CameraFxGrantedContent(
                         composition = comp,
                         iterations = Int.MAX_VALUE,
                         modifier = Modifier
+                            .zIndex(1f)
                             .offset {
                                 IntOffset(
                                     (place.centerX - half).roundToInt(),
@@ -224,7 +230,8 @@ fun CameraFxGrantedContent(
             Column(
                 Modifier
                     .align(Alignment.TopStart)
-                    .padding(12.dp)
+                    .padding(start = 12.dp, top = 56.dp, end = 12.dp)
+                    .zIndex(2f)
                     .background(Color(0x99000000))
                     .padding(8.dp),
             ) {
@@ -248,6 +255,20 @@ fun CameraFxGrantedContent(
                 Text("本机处理 · 不上传 · 不落盘", color = Color(0xFF9FFF9F), fontSize = 11.sp)
                 fatal?.let {
                     Text(it, color = Color(0xFFFF8080), fontSize = 12.sp)
+                }
+                if (f != null && faceN == 0) {
+                    Text(
+                        "未识别人脸：正对镜头、光线充足；线框/贴纸需脸>0",
+                        color = Color(0xFFFFCC80),
+                        fontSize = 11.sp,
+                    )
+                }
+                if (f != null && faceN > 0 && handN == 0) {
+                    Text(
+                        "手部：把手放进画面；手势每 2 帧更新",
+                        color = Color(0xFFFFCC80),
+                        fontSize = 11.sp,
+                    )
                 }
             }
         }
