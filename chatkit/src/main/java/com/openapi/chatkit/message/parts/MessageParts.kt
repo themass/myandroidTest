@@ -315,8 +315,6 @@ fun ImageGrid(
             val onTap: (Int) -> Unit = { index -> viewerStart = index }
             val onLong: (Int) -> Unit = { index -> onLongPress(sources[index]) }
             val theme = if (androidx.compose.foundation.isSystemInDarkTheme()) MediaTheme.Dark else MediaTheme.Light
-            // 角标的读屏说法归 chatkit（语言资源在这里，mediaview 不新增文案，cleanup 项 12）
-            val positionDescription = stringResource(R.string.chatkit_stack_position)
             Box(modifier) {
                 when (arrangement) {
                     ImageArrangement.Carousel -> MediaCarousel(
@@ -330,9 +328,13 @@ fun ImageGrid(
                     else -> MediaStack(
                         items = items,
                         theme = theme,
-                        // 「1/3」是给人眼看的进度，读屏换成语义说法（cleanup 项 12）
+                        // 「1/3」是给人眼看的进度，读屏换成语义说法（cleanup 项 12）。
+                        // 格式化走 stringResource(res, arg…) —— 与 MessageSelection 里
+                        // `chatkit_selected_count` 同一写法（复审 minor 4）：以前先取回带 %d
+                        // 的模板再 String.format，等于绕过了仓库里「资源参数由 stringResource
+                        // 一次填好」的约定，位置参数换语言时容易填错顺序。
                         positionDescription = { current, total ->
-                            String.format(positionDescription, current, total)
+                            stringResource(R.string.chatkit_stack_position, current, total)
                         },
                         onClick = onTap,
                         onLongClick = onLong,

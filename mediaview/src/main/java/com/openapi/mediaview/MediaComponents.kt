@@ -108,8 +108,12 @@ fun MediaStack(
      * 右上角位置角标的**读屏**说法（「第 2 张，共 3 张」）。null = 维持现状，读屏直接念
      * 「2/3」这个字面（cleanup 项 12 登记的就是这个：角标是给人眼看的进度，念出来不像话）。
      * 语言归调用方（chatkit 已有中英两份），mediaview 不新增文案。
+     *
+     * `@Composable` 是必须的：调用方拿到的是带占位符的语言资源
+     * （`stringResource(R.string.chatkit_stack_position, current, total)`），
+     * 而 `stringResource` 只在组合里能用。在这里调用它的地方本身就是组合上下文。
      */
-    positionDescription: ((current: Int, total: Int) -> String?)? = null,
+    positionDescription: (@Composable (current: Int, total: Int) -> String?)? = null,
 ) {
     if (items.isEmpty()) return
     val count = items.size
