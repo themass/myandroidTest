@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -102,6 +103,9 @@ class AttachmentSweepKeepTest {
         assertTrue("被非 SENT 本地行引用的字节必须留下——重发全靠它", referenced.exists())
         assertFalse("同目录里没人引用的超龄孤儿照旧走", orphan.exists())
         assertTrue("没到龄的文件不能碰", fresh.exists())
+        // 白名单是问出来的，不是硬编码出来的（复审 nit 5）：一次选图问一次仓库。
+        // 问两次以上说明清扫在循环里跑（每张图扫一遍整个目录），那是性能回归的形状。
+        assertEquals("一次选图只问一次仓库白名单", 1, h.repo.attachmentPathsInUseCalls.size)
     }
 
     @Test
