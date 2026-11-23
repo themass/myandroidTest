@@ -51,7 +51,8 @@ CLI --input 仅吃 PSD，Layout 走官方应用 MCP：project_import_layout → 
 
 1. 完整解码所有图片，导出新 moc3/model3/cdi3/贴图，检查 model3 全部引用存在。
 2. 在真实 Cubism runtime 加载新模型，确认每套参数 0/1 的可见性、遮挡、动作变形和互斥；检查全关时基线符合交付要求。
-3. 保存模型哈希和各套显隐截图；不能用 cdi3 有参数或 moc3 字符串命中代替显隐验收。
+3. 结构自检（不代替显隐）：`python3 -I scripts/dh-lab/psd2live-eval/inspect_export.py /path/to/export --prefix layout` ——按 `wardrobe-spec.json` 断言 `ParamWear_lace|sport|cat` 同时出现在 moc3 字符串表与 cdi3；`runtime_verified` 仍为 false。
+4. 保存模型哈希和各套显隐截图；不能用 cdi3 有参数或 moc3 字符串命中代替显隐验收。
 4. 将验证后的模型作为独立模型配置接入，完成现有上衣/鞋/手持/表情的兼容性验证。新模型不能沿用旧 ATRI 的 Param17 等绑定。
 5. 此后再把对应 spec 变体转 active，补 verifiedFrom，更新 naming.order 与 Kotlin 绑定，生成 exp3/model3 并跑四处同源测试。
 
