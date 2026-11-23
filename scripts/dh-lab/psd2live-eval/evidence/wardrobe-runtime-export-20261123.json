@@ -1,0 +1,14 @@
+{
+  "runtime_verified": "editor_only",
+  "moc3": "/tmp/psd2live-wardrobe-export-20261123/layout.moc3",
+  "moc3_size": 1001984,
+  "ParamWear_test_in_moc3": true,
+  "view_render_poses": "ParamWear_test 0 / 0.5 / 1 — vest off / semi / on",
+  "android_runtime_verified": false,
+  "pipeline": [
+    "project_import_layout",
+    "rig_generate",
+    "project_export_target moc3",
+    "view_render_poses"
+  ]
+}
