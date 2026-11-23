@@ -241,11 +241,13 @@ class CompanionViewModel(
      * 所以这里用 CAS 而不是 `lastStagingStamp = …`：同一个旧值只有一个线程换得动，
      * 换不动就重读重试。
      */
-    private var lastStagingStamp = 0L
-    private fun nextStagingStamp(): Long {
-        val now = System.currentTimeMillis()
-        lastStagingStamp = if (now > lastStagingStamp) now else lastStagingStamp + 1
-        return lastStagingStamp
+    private val lastStagingStamp = java.util.concurrent.atomic.AtomicLong(0L)
+    internal fun nextStagingStamp(): Long {
+        while (true) {
+            val previous = lastStagingStamp.get()
+            val candidate = maxOf(System.currentTimeMillis(), previous + 1)
+            if (lastStagingStamp.compareAndSet(previous, candidate)) return candidate
+        }
     }
 
     /**
