@@ -33,7 +33,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -86,6 +89,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import com.openapi.feature.user.home.domain.ProfileEntry
 import androidx.compose.foundation.layout.size
+
+/** 左侧抽屉与屏幕边缘留白，避免整屏铺满不像「抽屉」。 */
+private val HomeDrawerInset = 12.dp
+private val HomeDrawerCorner = 20.dp
+private val HomeDrawerMaxWidth = 320.dp
 
 internal enum class HomeTab(@StringRes val label: Int, val icon: ImageVector) {
     Chat(R.string.home_tab_chat, Icons.Filled.ChatBubble),
@@ -172,7 +180,20 @@ fun HomeScreen() {
             callVisible = companionCallActive,
         ),
         drawerContent = {
-            ModalDrawerSheet {
+            ModalDrawerSheet(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(
+                        start = HomeDrawerInset,
+                        top = HomeDrawerInset,
+                        bottom = HomeDrawerInset,
+                    )
+                    .widthIn(max = HomeDrawerMaxWidth),
+                drawerShape = RoundedCornerShape(
+                    topEnd = HomeDrawerCorner,
+                    bottomEnd = HomeDrawerCorner,
+                ),
+            ) {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
                     ProfileHeader(profile) {
                         scope.launch { drawerState.close() }
