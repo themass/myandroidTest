@@ -29,6 +29,13 @@ python3 -m venv /tmp/barkenv
 cd /Users/gqli/work/sound/bark && /tmp/barkenv/bin/pip install -e .
 ```
 
+装依赖走国内镜像，别直连 PyPI：torch 那 ~800 MB 走默认源在这台机器上 35 分钟没装完（和权重下载抢同一条带宽），换镜像几分钟就完。
+
+```bash
+VIRTUAL_ENV=/tmp/barkenv uv pip install -r requirements.txt \
+  --index-url https://mirrors.aliyun.com/pypi/simple/
+```
+
 权重（小集 3 个文件，4.68 GB）：
 
 ```bash
