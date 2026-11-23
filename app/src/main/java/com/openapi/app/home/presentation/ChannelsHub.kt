@@ -1,41 +1,18 @@
 package com.openapi.app.home.presentation
 
-
-import com.openapi.feature.content.home.presentation.ChannelsScreen
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import com.openapi.common.ui.theme.AppColors
-import com.openapi.feature.video.local.LocalVideoScreen
-import com.openapi.app.R
+import com.openapi.feature.video.screening.ScreeningRoute
 
-/** 频道页：顶部两个 tab，「频道」是在线频道列表，「本地视频」是手机里的视频（按文件夹分组、播放、删除）。 */
+/**
+ * 首页「频道」标签：放映场整屏内嵌（正式入口）。
+ *
+ * 旧实现在这里挂 feature-content 的 ChannelsScreen + 「本地视频」tab——旧卡片页点进去
+ * 会路由到旧列表/旧详情，就是 kimi 报的「首页新二级旧」。放映场已迁 main 源集，
+ * 标签直接内嵌它（同一套 UI：频道/图集两个看法、协议分发全在页内、取不到就空态），
+ * 不复制页面也不开第二个 Activity。「本地视频」不在放映场里有正式口径（随包样片已下线），
+ * 旧 LocalVideo 页面原样保留在 :feature-video，需要时从旧入口进。
+ */
 @Composable
 fun ChannelsHub() {
-    var tab by rememberSaveable { mutableIntStateOf(0) }
-    Column(Modifier.fillMaxSize()) {
-        TabRow(
-            selectedTabIndex = tab,
-            containerColor = AppColors.ChatBackground,
-            contentColor = AppColors.Primary,
-        ) {
-            Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.home_tab_channels)) })
-            Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.localvideo_title)) })
-        }
-        Box(Modifier.fillMaxWidth().fillMaxSize()) {
-            if (tab == 0) ChannelsScreen() else LocalVideoScreen(onBack = null)
-        }
-    }
+    ScreeningRoute()
 }

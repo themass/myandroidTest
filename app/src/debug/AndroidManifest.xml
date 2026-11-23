@@ -6,14 +6,5 @@
             android:authorities="${applicationId}.dev-companion-server"
             android:exported="false"
             android:initOrder="100" />
-        <activity android:name="com.openapi.feature.video.screening.ScreeningActivity"
-            android:label="放映场 · 原生预览" android:theme="@style/NewPlayerTheme"
-            android:exported="true" android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|smallestScreenSize|keyboardHidden|screenLayout">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
     </application>
 </manifest>
