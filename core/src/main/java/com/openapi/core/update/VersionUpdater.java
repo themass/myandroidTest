@@ -22,7 +22,7 @@ import com.openapi.core.R;
 
 /**
  * 应用版本：读取本机版本号，检查服务端是否有新版本，并应用服务端下发的配置。
- * 更新提示框见 {@link UpdateDialogs}，下载安装见 {@link ApkDownloader}。
+ * 更新提示见 {@link UpdateDialogs}（跳转应用商店，不在应用内下载 APK）。
  */
 public class VersionUpdater {
     private static final String VERSION_TAG = "REQUEST_VERSION_CHECK";

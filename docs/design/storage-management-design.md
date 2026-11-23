@@ -49,7 +49,7 @@ App 会把数据写到十几个目录，但**用户完全看不到**：
 | 路径 | 用途 | 状态 |
 |---|---|---|
 | `getExternalFilesDir(DOWNLOADS)/ADeepseek/myglide/` | Glide 磁盘缓存（100MB 上限），见 `AppGlideConfig` | **已纳入** |
-| `Environment.getExternalStorageDirectory()/tencent/vpn/freevpn.apk` | APK 下载（旧代码） | 未纳入 |
+| ~~公共目录 APK 自更新~~ | 已移除：`UpdateDialogs` 仅跳商店；`TEMP_PATH`/`ApkDownloader` 已删 | — |
 
 > `getExternalFilesDir` 是 App 私有目录，不需要任何权限，卸载时删除。
 > 旧代码里 `Environment.getExternalStorageDirectory()` 那条走的是公共目录，需要 `WRITE_EXTERNAL_STORAGE`，不纳入。
@@ -152,7 +152,7 @@ data class Usage(entry, path, sizeBytes, fileCount, missing)
 |---|---|---|
 | 1 | ~~外部存储 Glide 缓存未纳入~~ | **已完成**：`EXTERNAL_DOWNLOADS` + `onClear` 走 Glide 自己的清理 |
 | 2 | ~~头像/背景是文件不是目录~~ | **已完成**：`Kind.FILES` + `|` 分隔 |
-| 2b | APK 下载（公共存储 + 需要写权限） | 属于历史遗留下载逻辑，建议直接去掉而不是让用户管理 |
+| 2b | ~~APK 公共目录下载~~ | **已完成**（2026-11-23）：不再自更新到 `/tencent/vpn` |
 | 3 | 历史记录图片占空间，只能整体删除 | 加「只保留文字、不留图」或「超过 N 条自动清理最早」 |
 | 3b | 解题历史已确定**只存客户端**、不做服务端同步 | 详见 `photo-solve-design.md` 风险 12；因此这一项目录的体积上限就是用户设备上的真实上限，没有"云端还有一份"的兜底 |
 | 4 | 路径信息对普通用户意义不大 | 可藏在「开发者模式」下 |

@@ -20,22 +20,6 @@ public class PathUtil {
     public static final String BROWSER_SCHEMA = "browser://config?url=%s";
     private static final String FILEPATH = "freevpn";
 
-    public static File getFileDiskCacheDir(Context context, String fileName) throws IOException {
-        return getFileDiskCacheDir(context, fileName, true);
-    }
-
-    public static File getFileDiskCacheDir(Context context, String fileName, boolean isCreate) throws IOException {
-        File folder = getDiskCacheDir(context, FILEPATH);
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-        File file = new File(folder, fileName);
-        if (!file.exists() && isCreate) {
-            file.createNewFile();
-        }
-        return file;
-    }
-
     /**
      * Get a usable cache directory (external if available, internal otherwise).
      *

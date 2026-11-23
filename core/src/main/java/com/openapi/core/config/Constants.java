@@ -121,7 +121,6 @@ public class Constants {
     //用户反馈
     public static final String DEFAULT_FEEDBACK_APPKEY = "23575056";
     public static final String SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME = "SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME";
-    public static final String TEMP_PATH = "/tencent/vpn";
     public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
 
     public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
