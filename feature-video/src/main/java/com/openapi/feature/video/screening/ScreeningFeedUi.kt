@@ -62,6 +62,9 @@ internal class FeedPager(
     val items = mutableStateListOf<RemoteEntry>()
     var loading by mutableStateOf(false)
         private set
+    /** 下拉刷新在路上（[refresh] 置真、取回即假）。[loading] 还盖着翻页，刷新指示只认这个。 */
+    var refreshing by mutableStateOf(false)
+        private set
     var hasMore by mutableStateOf(false)
         private set
     /** 上次取数失败的原因；null = 没失败过。页面据此显示错误 + 重试，而不是假数据。 */
@@ -96,7 +99,28 @@ internal class FeedPager(
         request(start, append = true)
     }
 
-    private fun request(start: Int, append: Boolean) {
+    /**
+     * 下拉刷新：重取第一页，但不先清屏。
+     *
+     * 用户定的规矩：数据只在他自己下拉时动。刷新路上旧列表原样留在屏上，
+     * 新数据到了才换；失败也保留旧列表、只报错误——用户自己拉的就自动补一次不补，
+     * 那和 [reload]（失败界面上的重试）是两回事。
+     */
+    fun refresh() {
+        if (loading) return
+        requested = true
+        refreshing = true
+        request(0, append = false, retryOnFail = false, keepOnFail = true)
+    }
+
+    private fun request(
+        start: Int,
+        append: Boolean,
+        /** 首屏失败补一枪；翻页、下拉刷新不补（屏上有内容，失败说清楚就够）。 */
+        retryOnFail: Boolean = !append,
+        /** 失败时是否保留屏上已有列表（首屏清场，翻页/刷新保留）。 */
+        keepOnFail: Boolean = append,
+    ) {
         loading = true
         scope.launch(Dispatchers.Main) {
             // 目视验证钩子：`adb shell setprop log.tag.FeedPagerDbg DEBUG` 后每次取数慢 5 秒，
@@ -106,12 +130,13 @@ internal class FeedPager(
                 // 首屏失败自动补一次（短退避）：一次网络抖动不该逼用户去找「重试」按钮；
                 // 只补这一次，再失败就落到 error，不会无限打服务端。
                 // 翻页失败不补——屏上已有列表，保留它、说清失败就够了。
-                if (append) throw cause
+                if (!retryOnFail) throw cause
                 Log.i(TAG, "首屏取数失败，${RETRY_BACKOFF_MS}ms 后自动重试: ${cause.message}")
                 delay(RETRY_BACKOFF_MS)
                 fetch(start)
             }
             loading = false
+            refreshing = false
             page.fold(
                 onSuccess = { data ->
                     if (!append) items.clear()
@@ -124,7 +149,7 @@ internal class FeedPager(
                     // 首屏失败清干净，别让半截列表冒充数据；翻页失败保留已加载的部分。
                     // nextStart 保持 0：空列表时触底判定恒真会反复调 loadMore()，
                     // 由 loadMore 的「空列表且 start==0 直接返回」挡住，首屏只归 load()/reload() 管。
-                    if (!append) { items.clear(); nextStart = 0; hasMore = false }
+                    if (!append && !keepOnFail) { items.clear(); nextStart = 0; hasMore = false }
                     Log.w(TAG, "取数最终失败(append=$append): ${cause.message}")
                     error = friendlyFeedError(cause)
                 },
