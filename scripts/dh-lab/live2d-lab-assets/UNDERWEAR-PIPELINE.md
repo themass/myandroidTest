@@ -53,7 +53,7 @@ python3 scripts/dh-lab/live2d-lab-assets/wardrobe_layout.py /path/to/art/source.
 ```
 
 输出为 psd2live v1 Layout，内衣图层得到 variant.type=toggle / parameter=ParamWear_lace 等。
-布局契约来源：psd2live v3.8.4 的 docs/zh/spec/LAYOUT_MANIFEST.md；前次实跑证据见 ../psd2live-eval/EVAL.md。
+布局契约来源：psd2live v3.8.4 的 docs/zh/spec/LAYOUT_MANIFEST.md。证据：[`../psd2live-eval/EVAL.md`](../psd2live-eval/EVAL.md)、[`../../../docs/design/psd2live-wardrobe-evidence-20261123.md`](../../../docs/design/psd2live-wardrobe-evidence-20261123.md)、Editor 开关三联图 [`../psd2live-eval/evidence/wardrobe-poses-editor-20261123.png`](../psd2live-eval/evidence/wardrobe-poses-editor-20261123.png)。
 CLI --input 仅吃 PSD，Layout 走官方应用 MCP：project_import_layout → rig_generate → project_export_target moc3。
 本脚本不启动外部工具、不写运行时资产、不改变 active 状态。
 

@@ -60,6 +60,15 @@ Layout 摘录见 [`evidence/layout-variant-excerpt.json`](evidence/layout-varian
 - `layout.cdi3.json` Parameters 含 `{Id: ParamWear_test, GroupId: ParamGroupCustom}`
 - 无头 CLI `--input layout.json` → 「不是有效的 PSD 文件」；差分必须走 MCP/GUI
 
+## Editor 马甲冒烟（2026-11-23 续）
+
+合成样件 `make_wardrobe_fixture.py` → MCP 全链 → `layout.moc3`（1,001,984 B，`ParamWear_test`）。`view_render_poses`：**0 / 0.5 / 1** 三联图马甲关/半透/全开（[`evidence/wardrobe-poses-editor-20261123.png`](evidence/wardrobe-poses-editor-20261123.png)）。`runtime_verified` = **editor_only**（见 [`evidence/wardrobe-runtime-export-20261123.json`](evidence/wardrobe-runtime-export-20261123.json)）。索引：[`docs/design/psd2live-wardrobe-evidence-20261123.md`](../../../docs/design/psd2live-wardrobe-evidence-20261123.md)。
+
+### 变形与 cmo3 闭环（同日补测）
+
+- **变形**：马甲随 `ParamBodyAngleX ±10` 旋转、`ParamAngleZ 20` 头部侧倾，标注框贴合、无撕裂（[`evidence/wardrobe-deform-body-20261123.png`](evidence/wardrobe-deform-body-20261123.png)）。该 rig 的 `ParamBodyAngleX` 范围实测 **±10**；±15 会被 `outOfRangeParameters` 标记并回退。wardrobe-spec 新轴 value/范围必须按实测，不能猜。
+- **cmo3 闭环**：`project_import_cmo3`（demo.cmo3）→ 新 project → `project_export_target moc3` 成功（1,105,344 B，字符串含 `ParamAngleX`/`ArtMeshTopwear`）。atri_8 头饰扫参仍需真实 `.cmo3`（无 moc3 导入入口），结论不变。数值见 [`evidence/wardrobe-deform-cmo3-20261123.json`](evidence/wardrobe-deform-cmo3-20261123.json)。
+
 ## 未完成 / 后续
 
 1. 头饰验证：**未跑**。MCP 产品入口只有 `project_import_cmo3`（无 `project_import_moc3`）；引擎有 `Moc3Import` 代码但产品未暴露。atri_8 手头只有 `.moc3`，无 `.cmo3` 可喂。扫 Param4–7/23–30 仍待有 cmo3 或 GUI 时再测。

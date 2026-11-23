@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-23",
+  "deformation": {
+    "tool": "view_render_poses (PSD2Live MCP 3.8.4)",
+    "project": "wardrobe vest fixture re-imported via project_import_layout + rig_generate",
+    "param_body_angle_x_range": {"min": -10.0, "max": 10.0},
+    "note_range": "首次尝试 ParamBodyAngleX=±15 被 tiles.outOfRangeParameters 标记、画面回退；改 ±10（范围内）后 A/B/C 三联全部渲染，wardrobe_vest 标注框随躯干变形，C 为 ParamAngleZ=20 头部侧倾",
+    "pose_sheet": "wardrobe-deform-body-20261123.png (A: BodyAngleX -10, B: +10, C: AngleZ 20)",
+    "verdict": "editor 内变形正常：马甲 ArtMesh 随 ParamBodyAngleX 整体旋转、无撕裂；合成样件，非正式美术",
+    "editor_only": true,
+    "android_runtime_verified": false
+  },
+  "cmo3_roundtrip": {
+    "import": "project_import_cmo3 /tmp/psd2live-gen/out/demo.cmo3 -> 新 project（独立 project_id、state 递增）",
+    "reexport": "project_export_target moc3 -> demo.moc3 1,105,344 B，字符串表含 ParamAngleX 与 ArtMeshTopwear",
+    "verdict": "MCP 的 cmo3 导入→再导出闭环可用；atri_8 头饰扫参仍需真实 .cmo3（MCP 无 moc3 导入入口），保持未验证"
+  }
+}

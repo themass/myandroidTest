@@ -66,6 +66,8 @@ import com.openapi.ks.myapp.dh.DhLabGate
 import com.openapi.ks.myapp.dh.DhLabPreferences
 import com.openapi.ks.myapp.dh.DigitalHumanLabHost
 import com.openapi.ks.myapp.dh.dhEngineMenuRows
+import com.openapi.ks.myapp.dh.dhEngineSeedHint
+import com.openapi.ks.myapp.dh.mapEnsureFailureMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -103,6 +105,8 @@ fun CompanionRoute(
     onLaunchCallHandled: () -> Unit = {},
     /** 全屏通话覆盖层的挂起状态上报：宿主据此关掉抽屉滑动（VRM 舞台手势要完整序列）。 */
     onCallActiveChanged: (Boolean) -> Unit = {},
+    /** 建会话返回 401 时由 app 层负责跳转登录。 */
+    onLoginRequired: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current.applicationContext
     val tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.common.net.http.NetConfig.tokenHeader(), null) }
@@ -486,14 +490,17 @@ fun CompanionRoute(
                 isMuted = uiState.isMuted,
                 cameraActive = false,
                 // 她的音量：驱动呼吸环与「她在说话」的视觉强度。
-                audioLevel = if (previewActive) { if (preview.speaker == "ai") preview.level else 0f } else mouthLevel,
-                // 你的音量：驱动底部波形。静音时读 0。
-                selfLevel = if (previewActive) { if (preview.speaker == "user") preview.level else 0f } else if (uiState.isMuted) 0f else selfLevel,
-                // 你的声音的频段：决定波形的形状（低沉/尖细、元音/辅音）。试听时取试听音频的频段。
-                selfBands = if (previewActive) {
-                    if (preview.speaker == "user") preview.bands else FloatArray(0)
-                } else if (uiState.isMuted) FloatArray(0) else selfBands,
-                isAgentSpeaking = uiState.messages.lastOrNull()?.streaming == true,
+                audioLevel = if (callConnection != CallConnection.CONNECTED) 0f
+                    else if (previewActive) { if (preview.speaker == "ai") preview.level else 0f } else mouthLevel,
+                // 你的音量：驱动底部波形。静音或连接断开时归零，防止断线后残留最后一帧电平。
+                selfLevel = if (callConnection != CallConnection.CONNECTED || uiState.isMuted) 0f
+                    else if (previewActive) { if (preview.speaker == "user") preview.level else 0f } else selfLevel,
+                // 你的声音的频段：断线/静音清空；试听时取试听音频的频段。
+                selfBands = if (callConnection != CallConnection.CONNECTED || uiState.isMuted) FloatArray(0)
+                    else if (previewActive) {
+                        if (preview.speaker == "user") preview.bands else FloatArray(0)
+                    } else selfBands,
+                isAgentSpeaking = callConnection == CallConnection.CONNECTED && uiState.messages.lastOrNull()?.streaming == true,
                 connection = callConnection,
                 statusHint = when (uiState.connection) {
                     CompanionConnection.ERROR ->
@@ -501,6 +508,7 @@ fun CompanionRoute(
                     CompanionConnection.RECONNECTING -> "正在重连…"
                     else -> null
                 },
+                loginRequired = uiState.callLoginRequired,
             ),
             // 摄像头目前不支持；由按钮显示不可用状态，不注入点击回调。
             cameraAvailable = false,
@@ -529,7 +537,8 @@ fun CompanionRoute(
                 saveCallTheme(context, next)
             },
             onHangUp = { chatViewModel.endCall() },
-            onRetryConnect = if (uiState.connection == CompanionConnection.ERROR) {
+            onLoginRequired = onLoginRequired,
+            onRetryConnect = if (uiState.connection == CompanionConnection.ERROR && !uiState.callLoginRequired) {
                 { chatViewModel.retryConnection(characterId, scriptCaseId) }
             } else {
                 null
@@ -578,8 +587,15 @@ fun CompanionRoute(
             live2dModelSwitchHint = "只推了这一个形象",
             onEngineMenuClick = { row ->
                 when (engineGate.actionFor(row)) {
-                    EngineClickAction.UNAVAILABLE_REASON ->
-                        toast(context, row.detail ?: "这个形象现在不能用")
+                    EngineClickAction.UNAVAILABLE_REASON -> {
+                        val id = row.id
+                        val msg = when {
+                            id != null && row.detail?.contains("seed") == true ->
+                                dhEngineSeedHint(id) ?: row.detail
+                            else -> row.detail ?: "这个形象现在不能用"
+                        }
+                        toast(context, msg)
+                    }
                     EngineClickAction.SELECT -> {
                         // 用户主动再选 = 解除上次崩溃留下的熔断（再崩会重新熔断）。
                         row.id?.let { DhEngineWatchdog(context).clear(it) }
@@ -617,7 +633,8 @@ fun CompanionRoute(
                                         toast(context, "$name 正在下载…")
                                     is DhEngineDownloadGate.Outcome.Failed -> {
                                         engineMenuTick++
-                                        toast(context, "$name 下载失败：${outcome.reason}")
+                                        val why = mapEnsureFailureMessage(id, outcome.reason)
+                                        toast(context, "$name：$why")
                                     }
                                 }
                             }

@@ -71,4 +71,7 @@ object AssetManifest {
         EngineAssets.TAO -> tao
         EngineAssets.VRM -> vrm
     }
+
+    /** false = 应用内 [AssetStore.ensure] 无法拉包，只能 adb / seed 脚本推送（Live2D、Tao 模型等）。 */
+    fun hasDownloadablePacks(engine: EngineAssets): Boolean = assetsFor(engine).isNotEmpty()
 }
