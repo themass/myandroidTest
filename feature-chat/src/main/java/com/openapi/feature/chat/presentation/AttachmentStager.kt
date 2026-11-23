@@ -43,12 +43,29 @@ object AttachmentStager {
     /** 文件体积上限（原始大小）。 */
     const val MAX_FILE_BYTES = 20L * 1024 * 1024
 
+    /**
+     * 暂存目录，顺带扫掉超龄的孤儿文件（cleanup 项 5）。
+     *
+     * 孤儿的来源是这条路的形状：选多张时超出附件额度那张被闸挡下、选完就退出、编辑半途取消、
+     * 拍照取消——那些字节从没进过任何托盘，以前**没有任何回收路径**（Task 4 报告 §9 登记的就是
+     * 这个缺口）。清扫逻辑在 :common 的 [com.openapi.common.media.StagingGc]，两处页面共用一份
+     * （feature 之间不许互相依赖，第 0 层是唯一能共用的地方）。
+     *
+     * 挂在「用到目录的时候」而不是 Application 启动：年龄阈值 7 天意味着任何一次经过这里
+     * 都够把陈旧孤儿清掉，不必给 app 加一条启动时序，也不会误删另一次会话正在用的文件。
+     */
+    fun stagingDir(context: Context): File {
+        val dir = File(context.filesDir, DIR).apply { mkdirs() }
+        com.openapi.common.media.StagingGc.sweep(dir)
+        return dir
+    }
+
     fun stage(context: Context, kind: MessageKind, uri: Uri): StageOutcome =
         stage(context, kind, uri, AndroidVideoMeta)
 
     /** 可注入 [meta] 的重载：视频时长/首帧在 JVM 测试里读不了真编码器，换假的进来跑全流程。 */
     internal fun stage(context: Context, kind: MessageKind, uri: Uri, meta: VideoMetaSource): StageOutcome {
-        val dir = File(context.filesDir, DIR).apply { mkdirs() }
+        val dir = stagingDir(context)
         val stamp = System.currentTimeMillis()
         return when (kind) {
             MessageKind.IMAGE -> stageImage(context, uri, dir, stamp)

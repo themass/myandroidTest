@@ -21,7 +21,8 @@ import java.io.File
 /** 对话页用到的平台能力：剪贴板、分享、打开文件、拍照文件、语音样式偏好。 */
 internal object ChatPlatform {
 
-    private const val FILE_PROVIDER = "com.openapi.ks.chat.fileprovider"
+    /** 收口到 :common（cleanup 项 14）：这一处 + 陪伴页 + :app 导出分享，以前是三份字面量。 */
+    private const val FILE_PROVIDER = com.openapi.common.ui.AppFileProvider.AUTHORITY
 
     fun copy(context: Context, text: String) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -53,7 +54,10 @@ internal object ChatPlatform {
 
     /** 拍照用的输出地址：放在 files/camera 下（FileProvider 已授权 files 根目录）。 */
     fun newCameraUri(context: Context): Uri {
+        // `camera/` 是第二个累积点（cleanup 项 5）：拍一张就取消一次，留一个字节。
+        // 同一份 :common 的清扫，不另写一套年龄规则。
         val dir = File(context.filesDir, "camera").apply { mkdirs() }
+        com.openapi.common.media.StagingGc.sweep(dir)
         val file = File(dir, "photo_${System.currentTimeMillis()}.jpg")
         return FileProvider.getUriForFile(context, FILE_PROVIDER, file)
     }
