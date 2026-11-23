@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.SystemClock
 import android.provider.OpenableColumns
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
@@ -103,7 +104,7 @@ internal fun dragSeekMs(totalDragPx: Float, viewportWidthPx: Float): Long {
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSource, channel: String, initial: Long,
+internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSource, channel: String, initial: Long,
                                onExit: () -> Unit, onSave: (Long) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -265,7 +266,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     fun jump(delta: Long) {
         host.seekTo((host.position + delta).coerceIn(0, width)); refresh(); interaction++
     }
-    fun setFull(value: Boolean) { full = value; locked = false; chrome = true; activity.immersive(value) }
+    fun setFull(value: Boolean) { full = value; locked = false; chrome = true; activity.setScreeningImmersive(value) }
     BackHandler {
         when { panel != null -> panel = null; locked -> { locked = false; interaction++ }; full -> setFull(false); else -> onExit() }
     }
@@ -276,7 +277,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
             onSave(host.position)
             activity.lifecycle.removeObserver(lifecycle)
             host.release()
-            if (full) activity.immersive(false)
+            if (full) activity.setScreeningImmersive(false)
         }
     }
     LaunchedEffect(host) { while (true) { refresh(); delay(125) } }

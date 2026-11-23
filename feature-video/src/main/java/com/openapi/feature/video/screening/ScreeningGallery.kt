@@ -54,7 +54,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
  */
 @Composable
 internal fun ScreeningGallery(
-    activity: ScreeningActivity,
     store: ScreeningFeedStore,
     /** 从首页图片卡进来时带的频道；null 就直说没有可看的频道，不演样例。 */
     channelParam: String?,

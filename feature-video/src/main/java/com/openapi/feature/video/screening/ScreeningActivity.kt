@@ -1,10 +1,12 @@
 package com.openapi.feature.video.screening
 
+import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -68,31 +70,62 @@ internal val Peach = Color(0xFFFFC1A4)
 internal val White = Color(0xFFF7F5F0)
 internal val Tile = RoundedCornerShape(13.dp)
 
+/**
+ * 放映场的独立 Activity 壳：返回键出口和全屏沉浸都挂在宿主 Activity 上，这个壳保留这套结构。
+ * 正式入口不是它——首页「频道」标签内嵌 [ScreeningRoute]（同一套 UI）。它不导出、无 LAUNCHER，
+ * 桌面没有图标（debug 期那个「放映场 · 原生预览」第二图标已随本次迁正式删掉）。
+ */
 class ScreeningActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        setContent {
-            MaterialTheme(colorScheme = darkColorScheme(primary = Mint, onPrimary = Ink, background = Ink,
-                onBackground = White, surface = Ink, onSurface = White, surfaceVariant = Lift, onSurfaceVariant = Muted)) {
-                ScreeningHome(this)
-            }
-        }
-    }
-
-    internal fun immersive(on: Boolean) {
         WindowCompat.getInsetsController(window, window.decorView).apply {
-            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             isAppearanceLightStatusBars = false
             isAppearanceLightNavigationBars = false
-            if (on) hide(WindowInsetsCompat.Type.systemBars()) else show(WindowInsetsCompat.Type.systemBars())
         }
-        requestedOrientation = if (on) ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        setContent {
+            ScreeningTheme { ScreeningHome(this, onBack = { finish() }) }
+        }
     }
 }
 
 @Composable
-private fun ScreeningHome(activity: ScreeningActivity) {
+internal fun ScreeningTheme(content: @Composable () -> Unit) {
+    MaterialTheme(colorScheme = darkColorScheme(primary = Mint, onPrimary = Ink, background = Ink,
+        onBackground = White, surface = Ink, onSurface = White, surfaceVariant = Lift, onSurfaceVariant = Muted)) {
+        content()
+    }
+}
+
+/**
+ * 放映场整屏内容，供首页「频道」标签直接内嵌（正式入口）。
+ * [onBack] 非空时顶栏画返回箭头（独立 Activity 场景）；标签内嵌传 null——离开走切标签，
+ * 这里不该有个把用户扔出首页的箭头。
+ */
+@Composable
+fun ScreeningRoute(onBack: (() -> Unit)? = null) {
+    val host = checkNotNull(LocalActivity.current as? ComponentActivity) {
+        "ScreeningRoute 要挂在 ComponentActivity 里（独立入口或首页标签都是）"
+    }
+    ScreeningTheme { ScreeningHome(host, onBack) }
+}
+
+/**
+ * 全屏沉浸切换：任何宿主 Activity 都行（独立的 ScreeningActivity、内嵌它的 HomeActivity
+ * 走的是同一条）。横屏全屏收起系统栏，退出恢复并切回竖屏。
+ */
+internal fun Activity.setScreeningImmersive(on: Boolean) {
+    WindowCompat.getInsetsController(window, window.decorView).apply {
+        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        isAppearanceLightStatusBars = false
+        isAppearanceLightNavigationBars = false
+        if (on) hide(WindowInsetsCompat.Type.systemBars()) else show(WindowInsetsCompat.Type.systemBars())
+    }
+    requestedOrientation = if (on) ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+}
+
+@Composable
+private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
     val scope = rememberCoroutineScope()
     val store = remember { ScreeningFeedStore(activity) }
     var channelPage by remember { mutableStateOf<ScreeningChannelPage?>(null) }
@@ -213,7 +246,7 @@ private fun ScreeningHome(activity: ScreeningActivity) {
                     }
                 }
                 is GalleryScreen -> holder.SaveableStateProvider("gallery") {
-                    ScreeningGallery(activity, store, target.channelParam) { forward = false; gallery = false }
+                    ScreeningGallery(store, target.channelParam) { forward = false; gallery = false }
                 }
                 is LibraryScreen -> holder.SaveableStateProvider(target.page.title) {
                     // 真频道的 pager 随这一页建、离开即弃（缓存策略不同）。
@@ -239,7 +272,7 @@ private fun ScreeningHome(activity: ScreeningActivity) {
                     HomeTabs(store, feedScope, homeTab, { homeTab = it },
                         channelFilter, { channelFilter = it }, channelPagers,
                         progress, preferences,
-                        onBack = { activity.finish() },
+                        onBack = onBack,
                         onChannel = openChannel, onPlay = openEntry, onWeb = openWeb,
                         onGallery = { entry -> openGallery(entry) })
                 }
@@ -274,7 +307,8 @@ private fun HomeTabs(
     channelPagers: MutableMap<FeedCategory, FeedPager>,
     progress: MutableMap<String, Long>,
     preferences: android.content.SharedPreferences,
-    onBack: () -> Unit,
+    /** null = 内嵌首页标签（离开走切标签，不画返回箭头）；非 null = 独立 Activity。 */
+    onBack: (() -> Unit)?,
     onChannel: (RemoteEntry) -> Unit,
     onPlay: (RemoteEntry) -> Unit,
     onWeb: (RemoteEntry) -> Unit,
@@ -369,12 +403,14 @@ private fun GalleryFeed(allPager: FeedPager, onOpen: (RemoteEntry) -> Unit) {
  * 说清「你在哪、点它会怎样」），点已有 pager 的标签瞬间切换、零请求。
  */
 @Composable
-private fun TabHeader(tab: Int, onBack: () -> Unit, onSelect: (Int) -> Unit) {
+private fun TabHeader(tab: Int, onBack: (() -> Unit)?, onSelect: (Int) -> Unit) {
     val tabs = listOf("频道", "图集")
     Column(Modifier.padding(horizontal = 18.dp)) {
         Row(Modifier.fillMaxWidth().height(52.dp), verticalAlignment = Alignment.CenterVertically) {
-            // 放映场是独立 Activity，系统返回之外得有个看得见的退出口
-            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") }
+            // 独立 Activity 才画返回箭头；内嵌首页标签时返回会把人扔出首页，不该有
+            if (onBack != null) {
+                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") }
+            }
             Icon(Icons.Default.PlayArrow, null, tint = Mint)
             Text("放映场", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
         }
