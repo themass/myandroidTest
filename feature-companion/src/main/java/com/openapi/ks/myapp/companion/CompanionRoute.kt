@@ -527,6 +527,11 @@ fun CompanionRoute(
                 callTheme = next
                 saveCallTheme(context, next)
             },
+            onRetryConnect = if (uiState.connection == CompanionConnection.ERROR) {
+                { chatViewModel.retryConnection() }
+            } else {
+                null
+            },
             onHangUp = { chatViewModel.endCall() },
             onToggleMute = {
                 // 静音状态下点「取消静音」就是真的要开麦，没权限得先申请。

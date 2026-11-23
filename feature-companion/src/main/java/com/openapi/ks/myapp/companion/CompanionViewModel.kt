@@ -601,17 +601,16 @@ class CompanionViewModel(
                     TransportConnection.DISCONNECTED -> CompanionConnection.ERROR
                 }
                 _state.update { current ->
+                    val err = when {
+                        mapped == CompanionConnection.ERROR && current.error.isNullOrBlank() ->
+                            "连接已断开，可点下方重试"
+                        else -> current.error
+                    }
                     current.copy(
                         connection = mapped,
-                        // cleanup 项 3：连接状态变化**不**清 error。
-                        //
-                        // 以前 CONNECTED / RECONNECTING / CONNECTING 三条边都把 error 抹成 null，
-                        // 于是「部分图片上传失败，已保留待重发」会被一次普通的断线重连（LiveKit
-                        // 的常态）带走：图还在待发条里，线索却没了，用户以为已经发出去了。
-                        // 错误条只有两个正当的消失时机：用户自己关掉（[clearError]），
-                        // 或开了一通新会话（[start] 开头就把 error 清掉）。
-                        // 连接本身的状态由 [CompanionUiState.connection] 单独表达，不需要借 error 说话。
-                        error = current.error,
+                        // cleanup 项 3：连接状态变化**不**清 error（上传失败等仍保留）。
+                        // 仅在上面的 DISCONNECTED→ERROR 且尚无文案时补一句，供通话页重试条使用。
+                        error = err,
                     )
                 }
             }
@@ -644,6 +643,18 @@ class CompanionViewModel(
 
     fun clearError() {
         _state.update { it.copy(error = null) }
+    }
+
+    /**
+     * 通话中断线或建连失败后重试：断开旧房间、按当前角色/case 重新 [start]。
+     * 通话页仍开着时 [callActive] 不变，用户不必先挂断再点电话。
+     */
+    fun retryConnection() {
+        val id = characterId ?: return
+        viewModelScope.launch {
+            runCatching { transport.disconnect() }
+            start(id, activeCaseId)
+        }
     }
 
     fun onAvatarEvent(raw: String) {
