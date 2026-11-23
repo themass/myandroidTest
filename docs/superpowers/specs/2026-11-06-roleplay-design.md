@@ -30,7 +30,7 @@
 | 10 | 账号删除时删除全部数据 |
 | 11 | 官方角色由我们设计 |
 | 12 | 端上 2D 人物 + agent |
-| 13 | LiveKit Cloud，不自建 |
+| 13 | **实时房间与现有主线一致**：自建 LiveKit SFU（官方二进制 + systemd，或 Mac/验收栈 `livekit-server --dev`）；**不写死 LiveKit Cloud**。客户端 URL 由服务端 `/v1/voice/sessions` 下发的 `livekit_url` 决定，与 `LIVEKIT_URL` 环境变量同源（Cloud 仅作可选灾备，非架构前提） |
 | 14 | v1 形象简单动画，不做跟随拖动 |
 | 15 | companion 服务独立部署，登录复用 App 现有体系 |
 | 16 | 文字走 LiveKit 房间，必须流式 |
