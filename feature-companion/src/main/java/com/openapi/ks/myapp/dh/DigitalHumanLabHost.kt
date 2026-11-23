@@ -1,7 +1,9 @@
 package com.openapi.ks.myapp.dh
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.pm.PackageManager
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
@@ -38,6 +40,8 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import com.openapi.feature.camerafx.CameraFxStickerPip
 import com.openapi.feature.companion.fx.LottieFxLayer
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.AvatarTouch
@@ -114,6 +118,8 @@ fun DigitalHumanLabHost(
     particles: Boolean = true,
     /** dh-lab 门内「特效测试」按钮；null = 不显示。Route 接到 emitStageGesture("pat_head"). */
     onLabFxTest: (() -> Unit)? = null,
+    /** 通话页右下角小窗：前置相机 + 头顶 Lottie（仅 debug+已授相机权限）。 */
+    labFaceCameraPip: Boolean = false,
 ) {
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
@@ -436,6 +442,20 @@ fun DigitalHumanLabHost(
                     .clickable { onLabFxTest.invoke() }
                     .padding(horizontal = 14.dp, vertical = 6.dp),
             )
+        }
+        // 集成竖切二：小窗人脸贴纸（本机处理，不上传）；不抢舞台 pointerInput。
+        if (labFaceCameraPip && DhLabGate.isEnabled(context)) {
+            val camOk = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED
+            if (camOk) {
+                CameraFxStickerPip(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 12.dp, bottom = 120.dp)
+                        .size(132.dp, 176.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                )
+            }
         }
         // ======================================================================
 

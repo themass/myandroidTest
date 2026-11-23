@@ -653,6 +653,7 @@ fun CompanionRoute(
                             particles = waveOptions.particles,
                             // dh-lab 调试按钮 → 同一条 Gesture 词表（pat_head）。
                             onLabFxTest = { chatViewModel.emitStageGesture("pat_head") },
+                            labFaceCameraPip = labEnabled,
                         )
                         }
                         if (actionTrayOpen) {
