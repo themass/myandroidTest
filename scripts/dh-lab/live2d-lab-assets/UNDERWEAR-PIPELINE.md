@@ -34,6 +34,16 @@ source.json 示例（PNG 必须真实存在，image 尺寸必须与 PNG 匹配�
 sport / cat 同样以 wardrobe.slot/token 声明；一套可由多个图层组成，共享参数。
 示例仅说明格式与坐标，不能作为真实美术规格。工具检查 PNG 头部尺寸，不替代完整解码与视觉验收。
 
+## 交付前自检（美术目录）
+
+```bash
+python3 scripts/dh-lab/live2d-lab-assets/check_delivery_ready.py /path/to/art/source.json
+```
+
+通过表示：spec 声明的三套内衣 token 均有图层、PNG 路径与头部尺寸合法、可生成 Layout。**不**表示可上架。
+
+结构样例（占位 PNG，非正式）：`examples/underwear-delivery-minimal/`。
+
 ## 生成
 
 在仓库目录运行（替换路径），输出必须与输入在同一目录，保持图片相对路径有效；已有输出不会被覆盖。
@@ -53,8 +63,8 @@ CLI --input 仅吃 PSD，Layout 走官方应用 MCP：project_import_layout → 
 2. 在真实 Cubism runtime 加载新模型，确认每套参数 0/1 的可见性、遮挡、动作变形和互斥；检查全关时基线符合交付要求。
 3. 结构自检（不代替显隐）：`python3 -I scripts/dh-lab/psd2live-eval/inspect_export.py /path/to/export --prefix layout` ——按 `wardrobe-spec.json` 断言 `ParamWear_lace|sport|cat` 同时出现在 moc3 字符串表与 cdi3；`runtime_verified` 仍为 false。
 4. 保存模型哈希和各套显隐截图；不能用 cdi3 有参数或 moc3 字符串命中代替显隐验收。
-4. 将验证后的模型作为独立模型配置接入，完成现有上衣/鞋/手持/表情的兼容性验证。新模型不能沿用旧 ATRI 的 Param17 等绑定。
-5. 此后再把对应 spec 变体转 active，补 verifiedFrom，更新 naming.order 与 Kotlin 绑定，生成 exp3/model3 并跑四处同源测试。
+5. 将验证后的模型作为独立模型配置接入，完成现有上衣/鞋/手持/表情的兼容性验证。新模型不能沿用旧 ATRI 的 Param17 等绑定。
+6. 此后再把对应 spec 变体转 active，补 verifiedFrom，更新 naming.order 与 Kotlin 绑定，生成 exp3/model3 并跑四处同源测试。
 
 ## 测试
 

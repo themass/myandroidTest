@@ -1,0 +1,31 @@
+{
+  "name": "underwear-delivery-minimal",
+  "comment": "STRUCTURE ONLY — run materialize_placeholders.py then check_delivery_ready.py; not production art.",
+  "canvas": { "width": 512, "height": 1024 },
+  "layers": [
+    {
+      "name": "body base",
+      "image": { "path": "body.png", "width": 1, "height": 1 },
+      "rect": { "left": 0, "top": 0, "width": 512, "height": 1024 },
+      "tags": ["body"]
+    },
+    {
+      "name": "underwear lace",
+      "image": { "path": "lace.png", "width": 1, "height": 1 },
+      "rect": { "left": 156, "top": 400, "width": 200, "height": 220 },
+      "wardrobe": { "slot": "underwear", "token": "lace" }
+    },
+    {
+      "name": "underwear sport",
+      "image": { "path": "sport.png", "width": 1, "height": 1 },
+      "rect": { "left": 156, "top": 400, "width": 200, "height": 220 },
+      "wardrobe": { "slot": "underwear", "token": "sport" }
+    },
+    {
+      "name": "underwear cat",
+      "image": { "path": "cat.png", "width": 1, "height": 1 },
+      "rect": { "left": 156, "top": 400, "width": 200, "height": 220 },
+      "wardrobe": { "slot": "underwear", "token": "cat" }
+    }
+  ]
+}
