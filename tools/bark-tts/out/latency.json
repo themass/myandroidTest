@@ -1,0 +1,43 @@
+{
+  "device": "mps",
+  "small_models": true,
+  "cold_model_load_s": 53.57,
+  "samples": [
+    {
+      "id": "01-laugh",
+      "speaker": "v2/zh_speaker_3",
+      "text": "哈哈，你这个地方说得太好了。[laughs] 我真的没想到你会这么说。",
+      "semantic_tokens": 479,
+      "audio_s": 9.59,
+      "semantic_s": 49.61,
+      "waveform_s": 94.03,
+      "total_s": 143.64,
+      "rtf": 14.98,
+      "wav": "/Users/gqli/work/myandroidTest/.claude/worktrees/dazzling-booth-2316e5/tools/bark-tts/out/01-laugh.wav"
+    },
+    {
+      "id": "02-sigh",
+      "speaker": "v2/zh_speaker_7",
+      "text": "今天真的好累啊。[sighs] 不过看到你，还是觉得挺开心的。",
+      "semantic_tokens": 472,
+      "audio_s": 9.45,
+      "semantic_s": 31.56,
+      "waveform_s": 66.74,
+      "total_s": 98.3,
+      "rtf": 10.4,
+      "wav": "/Users/gqli/work/myandroidTest/.claude/worktrees/dazzling-booth-2316e5/tools/bark-tts/out/02-sigh.wav"
+    },
+    {
+      "id": "03-gasp",
+      "speaker": "v2/zh_speaker_5",
+      "text": "等等——[gasps] 你不会真的要走吧？我还有话没说完呢。",
+      "semantic_tokens": 587,
+      "audio_s": 11.76,
+      "semantic_s": 32.83,
+      "waveform_s": 111.94,
+      "total_s": 144.77,
+      "rtf": 12.31,
+      "wav": "/Users/gqli/work/myandroidTest/.claude/worktrees/dazzling-booth-2316e5/tools/bark-tts/out/03-gasp.wav"
+    }
+  ]
+}

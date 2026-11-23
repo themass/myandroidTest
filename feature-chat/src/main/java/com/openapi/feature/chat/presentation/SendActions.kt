@@ -236,10 +236,15 @@ internal class SendActions(
         if (message.text.isBlank() || state.value.speakingMessageId != null) return
         scope.launch {
             state.update { it.copy(speakingMessageId = message.id) }
-            val spokenOnDevice = runCatching { DeviceSpeech.speakChinese(context, message.text) }.getOrDefault(false)
-            if (spokenOnDevice) {
-                state.update { it.copy(speakingMessageId = null) }
-                return@launch
+            // 情绪 TTS（Bark）开启时跳过设备朗读：设备 TTS 一定成功，但它读不出
+            // [laughs]。关掉开关（默认）时这一句为假，顺序和以前完全一致。
+            val barkOn = com.openapi.speech.tts.BarkEmotionalTts.enabled
+            if (!barkOn) {
+                val spokenOnDevice = runCatching { DeviceSpeech.speakChinese(context, message.text) }.getOrDefault(false)
+                if (spokenOnDevice) {
+                    state.update { it.copy(speakingMessageId = null) }
+                    return@launch
+                }
             }
             val uri = runCatching { repository.synthesizeSpeech(message.id, message.text) }.getOrNull()
             state.update { it.copy(speakingMessageId = null) }
@@ -251,3 +256,4 @@ internal class SendActions(
         }
     }
 }
+
