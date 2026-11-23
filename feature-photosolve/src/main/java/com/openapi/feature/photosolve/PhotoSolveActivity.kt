@@ -36,6 +36,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.anggrayudi.storage.SimpleStorageHelper
 import com.openapi.common.image.ImageUtils.decodeUriApplyingExifOrientation
 import com.openapi.feature.photosolve.presentation.PhotoSolveStep
+import com.openapi.feature.photosolve.presentation.CaptureFlow
 import com.openapi.feature.photosolve.presentation.QuestionFrameCheck
 import com.openapi.feature.photosolve.presentation.PhotoSolveViewModel
 import com.openapi.feature.photosolve.ui.CropAssistSettingsSheet
@@ -265,6 +266,10 @@ private fun PhotoSolveApp(
                     bitmap = bitmap,
                     quad = quad,
                     detecting = uiState.detecting,
+                    // 检测判负也走到这一页（默认框），必须说清这个框不是模型认出来的，
+                    // 否则用户会奇怪「框为什么不对」，也看不懂「自动识别」是干什么的。
+                    notice = uiState.frameCheck?.takeIf { !CaptureFlow.autoDetected(it) }
+                        ?.let { context.getString(R.string.photosolve_quad_no_auto) },
                     onQuadChange = viewModel::onQuadChanged,
                     onRedetect = viewModel::onRedetect,
                     onConfirm = viewModel::onQuadConfirmed,

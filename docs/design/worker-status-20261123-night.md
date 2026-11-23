@@ -1,10 +1,21 @@
 # Worker 全线续跑 · 状态总结（2026-11-23 夜，第二版）
 
-**主线 tip：** `origin/weifu-refactor` → **`fddbf38a`**
-（`a0b05092` 测试基线修复 → **`fddbf38a` 通话字幕修复**；其下含 `b02c869e` qvod_user 片单层、`0464c151` ReplyStreamerStreamTest 修、`7c80f7d8` 401 通话 UI）
+**主线 tip：** `origin/weifu-refactor` → **`ece403c2`**
+（其下含 `4b1c2b37` photo-edit S3、`cbe826e1` camera-fx 手势→舞台 cue、`4b758dea` screening scheme 交回、`fddbf38a` 通话字幕修复、`a0b05092` 测试基线修复）
+
+**头像修未装机：** `ece403c2`（对话页用户头像插槽，design-3-tasks）不在手机当前包（4b1c2b37/1.1.0.71）里。等 lottie-fx 的模块图收口进 tip 后，由协调会话**单次**重装并公告（versionName+lastUpdateTime+tip sha），S2 验收等公告后跑。
+
+**架构债分诊（tip ece403c2 独立复跑确认）：** `:app` `ModuleGraphTest` 3/4 红，全部由 camera-fx 线进主线未登记模块图引起——①包名 `camerafx`≠机械推导 `camera-fx`；②`:feature-companion→:feature-camera-fx` feature 互依（`DigitalHumanLabHost` 直接 import `CameraFxStickerPip`）；③「声明未用」假阳性。归 **lottie-fx**（camera-fx 线作者）处理，已派单，要求按 `a256bc9d` 登记包名豁免 + **正解解耦**（PIP 内容提升到 :app 组合根经参数注入，删 `feature-companion/build.gradle:52`），不要登记 feature 互依豁免边。
 
 **装机纪律：** 仅现场 `assembleChatDebug`。已在 tip `fddbf38a` 现场构建成功（exit 0，`app-chat-debug.apk` 322MB）。
-V2279A（serial `10CE7P1G56004B7`）曾出现幽灵版本 1001000070（worker 从本地 worktree 装，版本号来路不明）→ 协调会话已 `adb install -r -d` 覆盖为 **tip fddbf38a / 1001000066 / 1.1.0.66（22:23:30）**。
+V2279A（serial `10CE7P1G56004B7`）曾出现幽灵版本 1001000070（worker 从本地 worktree 装，版本号来路不明）→ 协调会话已 `adb install -r -d` 覆盖；当前装机 **tip 4b1c2b37 / 1001000071 / 1.1.0.71（22:39:02）**，含字幕修复 + photo-edit S3 + screening 收口。
+
+**引擎舞台字幕修复 · 真机验收 PASS（attempt=b3a67d32，22:51 第二通）：** prefs 预置 `companion.dh_call_stage=SIMPLE` 后用户拨通，截图（`/tmp/stage_simple.png`）里字幕两条真实渲染（「你：你好。」「林澈：你好。上午出去溜了一圈…」）叠在波形上方、控件栏之上——`fddbf38a` 修复生效。
+- 引擎舞台判定：截图出现「特效测试」胶囊（仅 `DigitalHumanLabHost` 引擎舞台绘制，`DigitalHumanLabHost.kt:473`）；形象是分层立绘 + 「轻触她的头、脸或手」= Simple 引擎的 `simpleFallback`（角色没有旧格式形象包时的既定回退，见 `CompanionRoute.kt:673`），不是「原来的形象」分栏。
+- 用户此前「UI 非常旧」的观感 = 包没问题、页面停在「原来的形象」路径（call_stage=ORIGINAL）。
+- ⚠ 通话中 prefs 被应用改回 **ORIGINAL**（唯一写点是引擎菜单点击 → 用户在 ⋮ 菜单里点过「原来的形象」）。下一通验引擎舞台要先在 ⋮ 菜单重选 Simple，别只看装机版本。
+
+**第二通协议四项（p0-5-p2 复跑中）：** 上麦 1.9s ✓；hello 握手重试 5 次共 12.4s 才 ack（偏慢，记录在案）；下行首帧 rms=0.0339（拨出后 ~48s，F16 慢启动同源）；打断 ✓（barge_in playedMs=814 → speech_cancel user_barge_in，下行 maxLevel=0.867）；随后用户连说 70s 下行全零 = server 空回复（said=''）仍在，归 tos 线。22:53:09 通话被主动 force-stop（exit-info reason=10 USER_REQUESTED，非崩溃，watchdog 无隔离）。
 
 **装机纪律（新增，已广播全体 worker）：** 只有协调会话可以 adb install 到 V2279A；worker 只 build 不装机、不 bump versionCode、不复用旧 apk；需要自带插桩上机先回报协调人按序合入再装机公告。
 
@@ -58,7 +69,8 @@ V2279A（serial `10CE7P1G56004B7`）曾出现幽灵版本 1001000070（worker �
 | P1 | 数字人 Simple/seed、「未下载」 | **session** | 已在跑 |
 | P2 | 图片编辑 S2+ 实现 | design-3-tasks | delivered |
 | P2 | P2-13 位置/视频消息 | p2-13 | delivered |
-| P2 | P1-12 流式单槽（需 rebase 到 0464c151 之后） | p1-12-markdown | delivered |
+| ~~P2~~ | ~~P1-12 流式单槽~~ | p1-12-markdown | ✅ **PASS**（08cd430a/3a4ea771 已在主线祖先链；tip 上实现均在） |
+| P2 | SSE 集成测试挂死 `AgentSseReconnectIntegrationTest.sseFrameIdsAndEventFieldsSurviveRealParsing`（runTest 60s 超时；:feature-chat 215 例唯一失败，基线问题） | 新任务卡 | 立项待启动 |
 | P2 | TTS 25–32s 慢启动 RCA | tts-25-32s-f16 | delivered |
 | ✅ | P1-10 图片失败重试 | gallant | 已闭环（weifu `4d380f89` + 基线修 `0464c151`） |
 | ✅ | testserverV 拍题 maxTokens | testserverV | 链 `f0de0021`→`a48e2425`→`cbc260d9`，41 测 0 失败；**push 等用户本人** |

@@ -24,6 +24,33 @@ sealed interface QuestionFrameCheck {
     data class DetectorUnavailable(val reason: String) : QuestionFrameCheck
 }
 
+/**
+ * 一张**已经拍下**的图在几何检测之后应该落到哪个界面。
+ *
+ * 关键规则：判负**不**把用户退回取景页。图已经在手里了，退回取景页等于把它丢掉，
+ * 用户只能重拍；而检测判负是常态（见 [PhotoSolveViewModel.onPhotoCaptured] 里的真机取证），
+ * 于是界面就死在「画面里没找到题目，请把题目放进取景框后再拍」——题本身是对的也发不出去。
+ * 端上只做几何预筛（见本文件顶部的说明），语义判断归服务端，所以这里没有否决用户的资格：
+ * 检测不到就交给用户手动对齐。
+ *
+ * 单独成表是为了让这条规则有地方被单测钉住：它以前直接写在状态机里，
+ * 改回「退回取景页」不会有任何测试变红。
+ */
+object CaptureFlow {
+
+    fun stepAfter(check: QuestionFrameCheck): PhotoSolveStep = when (check) {
+        // 检测到真实边框 → 用户只需微调
+        is QuestionFrameCheck.Found -> PhotoSolveStep.QuadAdjust
+        // 判负 → 默认框 + 手动拖角（QuadAdjust 有四个角和四条边，比旧裁剪页好拖）
+        is QuestionFrameCheck.NotFound -> PhotoSolveStep.QuadAdjust
+        // 连检测器都没有 → 退化成旧的手动矩形框选
+        is QuestionFrameCheck.DetectorUnavailable -> PhotoSolveStep.Crop
+    }
+
+    /** 界面上要不要说明「这个框不是自动找到的」，免得用户以为贴边的框是检测出来的。 */
+    fun autoDetected(check: QuestionFrameCheck): Boolean = check is QuestionFrameCheck.Found
+}
+
 /** 拍照页的状态：取景 → 检测 → （找到就）进入角点微调。 */
 data class CaptureState(
     val detecting: Boolean = false,

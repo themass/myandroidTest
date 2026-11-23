@@ -107,7 +107,7 @@ if echo " $ENGINES " | grep -q " duix "; then
     ra "mkdir -p $DATA/files/dh-engines/duix/native-libs/arm64-v8a && cp $stage/*.so $DATA/files/dh-engines/duix/native-libs/arm64-v8a/"
     echo "== duix/native-libs/arm64-v8a 三件套已推送（libgjduix/libncnn/libonnxruntime）"
   else
-    echo "!! 跳过 duix native：先构建 Duix-Mobile（产物在 $DUIX_JNI），否则引擎里 Duix 显示 native 库缺失"
+    echo "!! 跳过 duix native：未找到 Duix-Mobile JNI 三件套（预期位于 ~/work/android/Duix-Mobile/.../jni/arm64-v8a）；Duix 会显示 native 库缺失"
   fi
 fi
 

@@ -20,18 +20,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Icon
@@ -439,9 +435,19 @@ internal fun formatFileSize(bytes: Long): String = when {
 }
 
 /**
- * 视频卡片：有缩略图显示缩略图（右下角时长角标 + 中央播放键），没有就退化成
- * 「MP4 徽标 + 文件名 + 时长」。点击把 [MessageAction.OpenVideo] 交给调用方——
- * 播放用的是本机文件还是现签的 URL、用什么播放器，都是业务侧的事，组件不碰。
+ * 视频卡片。**有首帧就走收纳盒口径**（mediaview 的 [MediaStack]，一张也是收纳盒的顶卡），
+ * 与图片消息共用同一块卡片皮肤，▶ 角标是 [MediaItem.isVideo] 自带的——不再自画
+ * 「缩略图 + 中央播放键 + 卡内时长角标」的第二套视觉（口径：视频复用 MediaStack）。
+ *
+ * 卡片尺寸同样是 MediaStack 的硬值（190×140dp + 14dp 错位），调用方给的 `maxWidth`
+ * 在这条臂上不起作用：与 [ImageGrid] 收纳盒分支登记的偏差（cleanup 项 11）同一件事，
+ * 同样只在代码侧钉注释，尺寸是设计稿的事，要走真机窗口。
+ *
+ * 时长与文件名放收纳盒**下方一行题注**，不做卡内角标：MediaStack 没有时长槽位，
+ * 往 mediaview 里加一个是 mediaview 的视觉决策，不该由视频这条线顺手改。
+ * 没有首帧（历史侧常态，服务端不产缩略图）退化成与 [FileCard] 同款行卡。
+ * 点击把 [MessageAction.OpenVideo] 交给调用方——播放用本机文件还是现签的 URL、
+ * 用什么播放器，都是业务侧的事，组件不碰网络也不碰文件。
  */
 @Composable
 fun VideoCard(
@@ -451,90 +457,70 @@ fun VideoCard(
     modifier: Modifier = Modifier,
 ) {
     val colors = ChatKit.colors
-    val hasThumb = video.thumbnailPath.isNotBlank()
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = colors.surface,
-        border = BorderStroke(1.dp, colors.divider),
-        modifier = modifier
-            .widthIn(min = 200.dp, max = 260.dp)
-            .combinedClickable(onClick = onClick, onLongClick = onLongPress),
-    ) {
-        Column {
-            if (hasThumb) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 160.dp)
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                        .background(colors.surfaceVariant),
-                ) {
-                    AsyncImage(
+    if (video.thumbnailPath.isNotBlank()) {
+        // 资源要在 lambda 外取：MediaStack 的回调不是 @Composable，stringResource 进不去
+        val videoDescription = stringResource(R.string.chatkit_video)
+        val theme = if (androidx.compose.foundation.isSystemInDarkTheme()) MediaTheme.Dark else MediaTheme.Light
+        Column(modifier, horizontalAlignment = Alignment.Start) {
+            MediaStack(
+                items = listOf(
+                    MediaItem(
                         model = imageModel(video.thumbnailPath),
-                        contentDescription = stringResource(R.string.chatkit_video),
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                    // 中央播放键：静态图标即可，点击热区是整个卡片
-                    Box(
-                        Modifier
-                            .align(Alignment.Center)
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black.copy(alpha = 0.45f)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            Icons.Filled.PlayArrow,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp),
-                        )
-                    }
-                    if (video.durationSeconds > 0) {
-                        Text(
-                            formatDuration(video.durationSeconds),
-                            color = Color.White,
-                            fontSize = 11.sp,
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(6.dp)
-                                .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(4.dp))
-                                .padding(horizontal = 5.dp, vertical = 2.dp),
-                        )
-                    }
+                        isVideo = true,
+                        contentDescription = videoDescription,
+                    ),
+                ),
+                theme = theme,
+                onClick = { onClick() },
+                onLongClick = { onLongPress() },
+            )
+            // 题注：文件名 + 时长。缺哪个就少一段，两个都缺不占位
+            val caption = buildString {
+                if (video.name.isNotBlank()) append(video.name)
+                if (video.durationSeconds > 0) {
+                    if (isNotEmpty()) append(" · ")
+                    append(formatDuration(video.durationSeconds))
                 }
-                Spacer(Modifier.height(8.dp))
+            }
+            if (caption.isNotEmpty()) {
+                Spacer(Modifier.height(6.dp))
                 Text(
-                    video.name,
-                    color = colors.bubbleText,
-                    fontSize = ChatKit.typography.secondary,
+                    caption,
+                    color = colors.secondaryText,
+                    fontSize = ChatKit.typography.caption,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(start = 12.dp, end = 12.dp),
                 )
-                Spacer(Modifier.height(10.dp))
-            } else {
-                // 历史侧/缩略图缺失：退化成与文件卡片同款的行卡
-                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            video.name,
-                            color = colors.bubbleText,
-                            fontSize = ChatKit.typography.secondary,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            if (video.durationSeconds > 0) formatDuration(video.durationSeconds) else "",
-                            color = colors.secondaryText,
-                            fontSize = ChatKit.typography.caption,
-                        )
-                    }
-                    Spacer(Modifier.width(10.dp))
-                    FileBadge(extension = "MP4")
+            }
+        }
+    } else {
+        // 历史侧/缩略图缺失：退化成与文件卡片同款的行卡
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = colors.surface,
+            border = BorderStroke(1.dp, colors.divider),
+            modifier = modifier
+                .widthIn(min = 200.dp, max = 260.dp)
+                .combinedClickable(onClick = onClick, onLongClick = onLongPress),
+        ) {
+            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        video.name,
+                        color = colors.bubbleText,
+                        fontSize = ChatKit.typography.secondary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        if (video.durationSeconds > 0) formatDuration(video.durationSeconds) else "",
+                        color = colors.secondaryText,
+                        fontSize = ChatKit.typography.caption,
+                    )
                 }
+                Spacer(Modifier.width(10.dp))
+                FileBadge(extension = "MP4")
             }
         }
     }

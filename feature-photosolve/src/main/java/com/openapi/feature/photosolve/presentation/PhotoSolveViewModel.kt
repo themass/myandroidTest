@@ -29,13 +29,15 @@ import kotlinx.coroutines.withContext
  * 拍照解题的状态机：
  *
  * ```
- * Home → Capture → （检测到四边形）QuadAdjust → 透视矫正 → 质量检查 → Recognizing → Result
- *                └（没检测到 / 检测器不可用）→ 提示 → 仍可手动 Crop → 质量检查 → Recognizing → Result
+ * Home → Capture →（检测到四边形）→ QuadAdjust → 透视矫正 → 质量检查 → Recognizing → Result
+ *                ├（检测判负）→ QuadAdjust（默认框 + 手动拖角）→ 同上
+ *                └（检测器不可用）→ Crop（手动框选）→ 同上
  * ```
  *
- * 和旧流程的区别：拍照后先判断「画面里有没有题目区域」，有就让用户微调四个角再透视矫正；
- * 没有就明确提示（而不是静默裁一个框把背景发给模型）。真正的「这是不是题目」最终由服务端
- * 模型判断（40002），端上只做几何层面的预筛。
+ * 拍照后先做**几何**预筛（画面里有没有一个像纸面的四边形）。判负不退回取景页：
+ * 图已经在手里，退回等于丢掉它，用户只能重拍——真机上这就是「一直提示边框、就是不拍照」
+ * 的成因（见 [CaptureFlow] 与 [onPhotoCaptured] 里的取证）。真正的「这是不是题目」由服务端
+ * 模型判断（40002），端上那道闸门没有否决用户的资格。
  */
 class PhotoSolveViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -79,7 +81,8 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
      * 拍完/选完图：先在端上找题目区域。
      *
      * 检测在 IO/Default 线程做（模型推理几百毫秒），期间界面显示「检测中」；
-     * 检测到就进四角微调页，检测不到就提示用户重新对准（仍允许手动裁剪）。
+     * 检测完落到哪一页由 [CaptureFlow.stepAfter] 决定——**任何结果都不退回取景页**
+     * （图已经在手里了，退回取景页等于把它丢掉）。
      */
     fun onPhotoCaptured(bitmap: Bitmap) {
         _uiState.update {
@@ -92,38 +95,35 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
             )
         }
         viewModelScope.launch {
-            val available = quadDetector.isAvailable()
-            if (!available) {
-                _uiState.update {
-                    it.copy(
-                        detecting = false,
-                        frameCheck = QuestionFrameCheck.DetectorUnavailable("检测模型未安装"),
-                        // 没有检测器时退化为手动框选：直接进裁剪页，不让用户卡在这一步
-                        step = PhotoSolveStep.Crop,
-                        quad = quadDetector.defaultQuad(),
-                    )
-                }
-                return@launch
-            }
-            val quad = quadDetector.detect(bitmap)
-            if (quad == null) {
-                _uiState.update {
-                    it.copy(
-                        detecting = false,
-                        frameCheck = QuestionFrameCheck.NotFound("未检测到题目边缘"),
-                        // 留在取景页，用户可以直接重拍；也可以选择手动框选
-                        step = PhotoSolveStep.Capture,
-                    )
-                }
+            val check: QuestionFrameCheck = if (!quadDetector.isAvailable()) {
+                QuestionFrameCheck.DetectorUnavailable("检测模型未安装")
             } else {
-                _uiState.update {
-                    it.copy(
-                        step = PhotoSolveStep.QuadAdjust,
-                        detecting = false,
-                        frameCheck = QuestionFrameCheck.Found(quad, quadDetector.displayName, 0),
-                        quad = quad,
+                quadDetector.detect(bitmap)?.let { quad ->
+                    QuestionFrameCheck.Found(quad, quadDetector.displayName, 0)
+                } ?: run {
+                    // 检测判负是常态，不是异常。真机取证（V2279A，2026-11-23 22:40~22:42 的
+                    // 四张 `paizhao_capture_*.jpg`）：用户拍的是**屏幕里的题目**（翻拍屏幕），
+                    // DocQuadNet 只在真实纸面上训练过（makeacopy 数据集），四个角点里有几个
+                    // 过不了 `MIN_CORNER_CONFIDENCE = 0.5`（实测 sigmoid 0.03~0.39，四角里通常
+                    // 只有 0~2 个过线），于是每次都判负。旧代码据此把用户退回取景页重拍，
+                    // 界面就死在「画面里没找到题目」——题本身是对的也发不出去（解题历史目录
+                    // 在 22:40 建好，img/ 里一张都没有）。
+                    // 语义层由服务端判（40002），端上这道几何闸门没有否决用户的资格：
+                    // 检测不到就交给用户手动对齐。
+                    android.util.Log.i(
+                        "PhotoSolveQuad",
+                        "几何检测判负：不退回取景页，改用默认边框进四角微调（翻拍屏幕/低对比度常见）",
                     )
+                    QuestionFrameCheck.NotFound("未检测到题目边缘")
                 }
+            }
+            _uiState.update {
+                it.copy(
+                    detecting = false,
+                    frameCheck = check,
+                    step = CaptureFlow.stepAfter(check),
+                    quad = (check as? QuestionFrameCheck.Found)?.quad ?: quadDetector.defaultQuad(),
+                )
             }
         }
     }
@@ -172,7 +172,9 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun onCropCancelled() {
-        _uiState.update { it.copy(step = PhotoSolveStep.Capture, capturedBitmap = null) }
+        // 回到取景页重拍：连上一次的检测结论一起清掉，不然取景页会挂着一条
+        // 「没找到题目」的陈旧提示（图都已经丢了）。
+        _uiState.update { it.copy(step = PhotoSolveStep.Capture, capturedBitmap = null, frameCheck = null) }
     }
 
     /** 旧的手动裁剪页确认（没有检测器或用户主动改框时使用）。 */
@@ -268,9 +270,12 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
                         ),
                         errorCode = code,
                     )
-                    // 不是题目：回到取景页，明确提示重新对准（而不是只弹一个 toast）
+                    // 不是题目：回到四角微调页（图还在手里），让用户把框拖到真正的题目上再提交。
+                    // 不退回取景页：那等于丢掉这张图，用户只能重拍。
                     PhotoSolveError.NOT_A_QUESTION -> state.copy(
-                        step = PhotoSolveStep.Capture,
+                        step = PhotoSolveStep.QuadAdjust,
+                        capturedBitmap = state.capturedBitmap,
+                        quad = state.quad ?: quadDetector.defaultQuad(),
                         errorCode = code,
                         errorMessage = PhotoSolveError.userMessage(code),
                     )

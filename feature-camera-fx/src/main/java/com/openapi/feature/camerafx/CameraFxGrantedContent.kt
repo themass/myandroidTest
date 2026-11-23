@@ -60,11 +60,16 @@ import kotlin.math.roundToInt
 /**
  * 已授权相机后的预览 + 可选 HUD + Lottie 头顶贴纸。
  * [drawWireframe] 关时仅贴纸（通话页小窗）；开时与全屏 lab 一致。
+ *
+ * [onStageGesture]：把本机手势翻成**舞台词表 cue**（`wave`/`pat_head`，见
+ * [CameraGestureCue]）。由上层喂 `emitStageGesture`，本模块**不**依赖
+ * `feature-companion`、不自造总线（架构 spec §纪律1）。null = 不联动舞台。
  */
 @Composable
 fun CameraFxGrantedContent(
     modifier: Modifier = Modifier,
     overlayPolicy: CameraFxOverlayPolicy = CameraFxOverlayPolicy(),
+    onStageGesture: ((String) -> Unit)? = null,
 ) {
     val showDebugHud = overlayPolicy.showDebugHud
     val drawWireframe = overlayPolicy.drawWireframe
@@ -158,6 +163,17 @@ fun CameraFxGrantedContent(
     val stickerCompositionResult = rememberLottieComposition(LottieCompositionSpec.Asset(stickerAssetPath))
     val stickerComposition = stickerCompositionResult.value
 
+    // 手势 → 舞台 cue：边沿检测在纯函数层（JVM 钉死），这里只喂帧 + 转发。
+    // 选「主手」= 第一个非 NONE 手势的手，都没有则第一只手。
+    val gestureEdge = remember { StageGestureEdge() }
+    LaunchedEffect(frame?.seq) {
+        val f = frame ?: return@LaunchedEffect
+        if (onStageGesture == null) return@LaunchedEffect
+        val primary = f.hands.firstOrNull { it.gesture != HandGestureKind.NONE } ?: f.hands.firstOrNull()
+        val cue = gestureEdge.update(primary?.gesture ?: HandGestureKind.NONE)
+        if (cue != null) onStageGesture.invoke(cue)
+    }
+
     Box(
         modifier
             .background(Color.Black)
@@ -205,29 +221,54 @@ fun CameraFxGrantedContent(
             val density = LocalDensity.current
             val comp = stickerComposition
             key(stickerAssetPath, comp != null) {
-                // 每张贴纸一路 EMA；下标不是身份（MediaPipe 不保证多脸顺序），
-                // 所以跳脸由 smoother 内部的位移阈值 snap，见 [PlacementSmoother]。
-                val smoothers = remember { mutableStateListOf<PlacementSmoother>() }
-                while (smoothers.size < frameForSticker.faces.size) {
-                    smoothers.add(PlacementSmoother())
+                // 每张贴纸一路 EMA + 一路丢失容错；下标不是身份（MediaPipe 不保证
+                // 多脸顺序），跳脸由 smoother 内部阈值 snap，见 [PlacementSmoother]；
+                // 单帧漏检由 tracker 钉在最后一次成功位置，见 [StickerHoldTracker]。
+                val slots = remember { mutableStateListOf<StickerSlotState>() }
+                val faceCount = frameForSticker.faces.size
+                // 脸数会因单帧漏检变化：以 faces 与已挂槽位的较大者为准，漏掉的下标按 miss 推进。
+                val slotCount = maxOf(faceCount, slots.count { it.lastPlacement != null })
+                while (slots.size < slotCount) {
+                    slots.add(StickerSlotState())
                 }
                 val progress by animateLottieCompositionAsState(
                     composition = comp,
                     iterations = Int.MAX_VALUE,
                     isPlaying = comp != null && drawStickers,
                 )
-                frameForSticker.faces.forEachIndexed { faceIndex, face ->
-                    val head = face.headTop ?: return@forEachIndexed
-                    val fw = face.bounds?.width ?: return@forEachIndexed
-                    val place = stickerAtHeadTop(
-                        map,
-                        head,
-                        fw,
-                        face.tiltDeg,
-                        widthFractionOfFace = 1.05f,
-                    )
-                    // 尺寸也要跟着平滑值走，否则 offset 平滑、size 逐帧跳，等于没平滑
-                    val placeFinal = smoothers.getOrElse(faceIndex) { PlacementSmoother() }.smooth(place)
+                for (slotIndex in 0 until slotCount) {
+                    val face = frameForSticker.faces.getOrNull(slotIndex)
+                    val slot = slots[slotIndex]
+                    val head = face?.headTop
+                    val fw = face?.bounds?.width
+                    val track = slot.tracker.advance(hasAnchor = head != null && fw != null)
+                    // 从 Held/Off 恢复到 Anchored：头可能已在漏检期间移动，直接 snap 回跟随。
+                    val placeFinal: StickerPlacementPx = when (track) {
+                        is StickerTrack.Anchored -> {
+                            val wasHeld = slot.lastPlacement != null && !slot.lastWasAnchored
+                            if (wasHeld) slot.smoother.reset()
+                            val place = stickerAtHeadTop(
+                                map,
+                                head!!,
+                                fw!!,
+                                face.tiltDeg,
+                                widthFractionOfFace = 1.05f,
+                            )
+                            // 尺寸也要跟着平滑值走，否则 offset 平滑、size 逐帧跳，等于没平滑
+                            slot.smoother.smooth(place).also {
+                                slot.lastPlacement = it
+                                slot.lastWasAnchored = true
+                            }
+                        }
+                        is StickerTrack.Held ->
+                            // 漏检宽限内：钉在最后一次成功位置，不喂 smoother（否则把
+                            // 「没有观测」当「目标不动」，EMA 会被拉死在旧值附近）。
+                            slot.lastPlacement ?: continue
+                        StickerTrack.Off -> {
+                            slot.reset()
+                            continue
+                        }
+                    }
                     val half = placeFinal.sizePx / 2f
                     val stickerSize = with(density) { placeFinal.sizePx.toDp() }
                     if (comp != null) {
@@ -323,9 +364,14 @@ fun CameraFxGrantedContent(
     }
 }
 
-/** 通话页右下角小窗：仅贴纸，无 HUD/线框。 */
+/**
+ * 通话页右下角小窗：仅贴纸，无 HUD/线框；手势联动舞台 cue（如上层传了 [onStageGesture]）。
+ */
 @Composable
-fun CameraFxStickerPip(modifier: Modifier = Modifier) {
+fun CameraFxStickerPip(
+    modifier: Modifier = Modifier,
+    onStageGesture: ((String) -> Unit)? = null,
+) {
     CameraFxGrantedContent(
         modifier = modifier,
         overlayPolicy = CameraFxOverlayPolicy(
@@ -333,6 +379,7 @@ fun CameraFxStickerPip(modifier: Modifier = Modifier) {
             drawStickers = true,
             showDebugHud = false,
         ),
+        onStageGesture = onStageGesture,
     )
 }
 

@@ -107,6 +107,12 @@ fun CompanionRoute(
     onCallActiveChanged: (Boolean) -> Unit = {},
     /** 建会话返回 401 时由 app 层负责跳转登录。 */
     onLoginRequired: (() -> Unit)? = null,
+    /**
+     * 通话页右下角人脸贴纸小窗的**内容注入**（组合根 HomeScreen 传
+     * `CameraFxStickerPip`）。feature 互不依赖，:feature-companion 不 import
+     * :feature-camera-fx（ModuleGraphTest 分层规则）。null = 无小窗。
+     */
+    faceCameraPipContent: (@Composable (Modifier, onGesture: (String) -> Unit) -> Unit)? = null,
 ) {
     val context = LocalContext.current.applicationContext
     val tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.common.net.http.NetConfig.tokenHeader(), null) }
@@ -688,6 +694,14 @@ fun CompanionRoute(
                             // dh-lab 调试按钮 → 同一条 Gesture 词表（pat_head）。
                             onLabFxTest = { chatViewModel.emitStageGesture("pat_head") },
                             labFaceCameraPip = labEnabled && faceCameraOn,
+                            // 小窗手势 → 同一条 Gesture 词表（张→wave、捏→pat_head）。
+                            // 词表映射钉在 feature-camera-fx 的 CameraGestureCue（单一事实源）。
+                            onCameraStageGesture = if (faceCameraOn) {
+                                { cue -> chatViewModel.emitStageGesture(cue) }
+                            } else {
+                                null
+                            },
+                            faceCameraPipContent = faceCameraPipContent,
                         )
                         }
                         if (actionTrayOpen) {

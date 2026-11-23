@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
@@ -64,6 +65,13 @@ import com.openapi.feature.chat.roles.presentation.RoleAvatar
 const val LOCATION_DRAFT_ID = "draft-location"
 
 /**
+ * 用户侧头像的语义锚点。`ChatUserAvatarRenderTest` 靠它断言这一位真的接上了
+ * `userAvatar` 插槽——这个 bug 的形态是「头像 lambda 写在 `avatar` 的 User 分支里，
+ * 而 chatkit 从不在用户行调用 `avatar`」，不钉住就会再犯一次。
+ */
+const val USER_AVATAR_TAG = "chat-user-avatar"
+
+/**
  * 对话页的组装层：角色头部 + 消息列表 + 输入栏 + 业务弹窗。
  *
  * 消息和输入的 UI 全部来自组件库 `:chatkit`；这里只做三件事：
@@ -81,6 +89,8 @@ fun ChatScreen(
     onSend: () -> Unit,
     onStop: () -> Unit,
     onRemoveDraft: (String) -> Unit,
+    /** 长按草稿托盘里的图片再编辑（S3）。不传 = 该页不提供编辑。 */
+    onEditDraftImage: (String) -> Unit = {},
     onCancelEdit: () -> Unit = {},
     onVoiceDraftSendText: (String) -> Unit = {},
     onVoiceDraftSendAudio: () -> Unit = {},
@@ -208,17 +218,24 @@ fun ChatScreen(
                     attachScope.launch { AttachmentActions.perform(appContext, target, kind) }
                 },
                 menuStyle = ChatPlatform.messageMenuStyle,
-                avatar = { item ->
-                    if (item.sender == Sender.User) {
-                        Image(
-                            painter = painterResource(R.drawable.ic_default_nan),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize().clip(CircleShape),
-                        )
-                    } else {
-                        RoleAvatar(emoji = identity.emoji, colorArgb = identity.colorArgb, size = 36, imageRes = identity.avatarRes)
-                    }
+                // 助手侧头像（连续同一发送者的第一条才画，见 ChatMessageList）。
+                avatar = {
+                    RoleAvatar(emoji = identity.emoji, colorArgb = identity.colorArgb, size = 36, imageRes = identity.avatarRes)
+                },
+                // 用户侧头像：陪伴页先有（2f4d4824），对话页此前一直没接这个插槽，
+                // 右侧气泡贴到屏幕边（listHorizontalPadding 只有 2dp），看起来像边距坏了。
+                // 接上后用户行右侧得到与助手行对称的 28dp 头像位 + 8dp 间距。
+                // 素材沿用旧版默认头像（feature-chat 自带 ic_default_nan）；账号头像 URL 到位后只换这里。
+                userAvatar = {
+                    Image(
+                        painter = painterResource(R.drawable.ic_default_nan),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        // testTag 是给 ChatUserAvatarRenderTest 的锚点：这个 bug 就是「头像写进了
+                        // avatar 的 User 分支」——那段代码在用户行永远不会被调用，肉眼在 JVM 上看不出，
+                        // 而没有稳定锚点的渲染测试只能去比几何（Robolectric 的字体量不准）。
+                        modifier = Modifier.fillMaxSize().clip(CircleShape).testTag(USER_AVATAR_TAG),
+                    )
                 },
                 text = { item, value ->
                     if (item.sender == Sender.Assistant) {
@@ -271,6 +288,7 @@ fun ChatScreen(
                 onSend = onSend,
                 onStop = onStop,
                 onRemoveDraft = onRemoveDraft,
+                onEditDraftImage = onEditDraftImage,
                 onVoiceStart = onVoiceRecordStart,
                 onVoiceStop = onVoiceRecordStop,
                 onVoiceCancel = onVoiceRecordCancel,
