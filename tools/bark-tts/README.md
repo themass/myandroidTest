@@ -89,6 +89,15 @@ curl -s localhost:8088/tts -H 'content-type: application/json' \
 - `SUNO_ENABLE_MPS` — Mac 上 True；CUDA 机器设 False
 - `SUNO_OFFLOAD_CPU` — 显存紧张时 True，代价是每次生成都要在 CPU/GPU 之间搬权重
 
+**torch 版本钉在 2.5.1 是有原因的，别随手升。** `generation.py:212` 是
+`torch.load(ckpt_path, map_location=device)`，没传 `weights_only`；torch 2.6 起
+`weights_only` 默认改成 True，加载 bark checkpoint 会抛 `UnpicklingError`。
+升到 2.6+ 必须自己加 `weights_only=False`（checkpoint 来自 HF 官方仓库，
+但这是「信任来源」的假设，升级时重新评估）。
+
+MPS 这条路 PoC 里没验证过：encodec 在 mps 上会主动退回 cpu（`generation.py:288-290`），
+`SUNO_ENABLE_MPS` 上游默认也是 False。跑不通就把 `BARK_MPS=False` 退回 CPU 出数。
+
 ## 时延实测
 
 （本机实测数据见 `out/latency.json`，下表在跑完后填写。）
