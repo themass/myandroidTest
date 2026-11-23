@@ -102,6 +102,8 @@ App 侧必须知道的硬限制（都在 `bark/generation.py`）：
 
 另一个可参考的现成运行时开关范式是 `dh/DhLabGate.kt:7-13`（debuggable OR SharedPreferences `companion.dh_lab`），如果希望不重新打包就能开关，走这条而不是 buildConfig。PoC 用 buildConfig 是因为它默认关得干净，不需要 UI。
 
+顺带记一笔：设置页那个「TTS 开关」`CommonConstants.TTS_OPEN` 在本分支**只有写没有读**——`SettingActivity.kt:175/286` 读写偏好，但全仓找不到消费它的代码。`docs/tts-options.md:5` 说「新回复自动播报走这条链路」已经不成立。别把它当成现成的 TTS 引擎开关来复用。
+
 ## 4. 角色 → 音色
 
 PoC 写死 `BARK_SPEAKER = "v2/zh_speaker_3"`。真正的映射要等角色数据里有 voice 字段：`CompanionModels` / `CharacterVo` 目前只有形象（`avatarPackId`），没有音色。建议届时形如：
