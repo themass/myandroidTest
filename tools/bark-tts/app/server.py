@@ -194,11 +194,15 @@ def stats() -> dict:
 @app.post("/tts")
 def tts(req: TtsRequest) -> Response:
     speaker = _resolve_speaker(req)
-    _STATS["requests"] += 1
+    # Speaker validation happens before the lock so a 400 for a bogus name
+    # does not queue the generation queue. Timing starts AFTER the lock is
+    # acquired — otherwise X-Realtime-Factor / X-Generation-Seconds include
+    # queue wait and poison /stats for every concurrent caller.
 
-    t0 = time.perf_counter()
     try:
         with _GEN_LOCK:
+            _STATS["requests"] += 1
+            t0 = time.perf_counter()
             # Deliberately not generate_audio(): going a level lower lets us cap
             # the output duration explicitly instead of silently being cut at
             # 768 tokens by the generation loop.
@@ -214,14 +218,13 @@ def tts(req: TtsRequest) -> Response:
                 temp=req.waveform_temp,
                 silent=True,
             )
+            gen_s = time.perf_counter() - t0
     except HTTPException:
         raise
     except Exception as exc:
         _STATS["errors"] += 1
         log.exception("generation failed")
         raise HTTPException(status_code=500, detail=f"generation failed: {exc}") from exc
-
-    gen_s = time.perf_counter() - t0
     wav = _wav_bytes(audio)
     audio_s = len(audio) / SAMPLE_RATE
 
