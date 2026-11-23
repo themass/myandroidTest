@@ -373,4 +373,15 @@ class ScreeningFeedTest {
         assertTrue(isSoundConfigAction("sound://config?channel=nvyou"))
         assertFalse(isSoundConfigAction("sound://play?id=1"))
     }
+
+    @Test
+    fun `qvod_user 子频道行走 user 接口族不是片单接口`() {
+        val videoHub = remoteEntry(1L, 0, "用户上传", null, null, 1f, "qvod_user", false, dataType = 5, param = "tv_all")!!
+        assertEquals(ScreeningPageKind.VIDEO_USERS, videoChannelPageKind(videoHub))
+        assertEquals("tv_all", videoUserListChannelKey(videoHub))
+        val movieHub = remoteEntry(2L, 0, "用户上传", null, null, 1f, "movie://x", false, dataType = 5, param = "qvod_user")!!
+        assertTrue(isVideoUserHubEntry(movieHub))
+        assertEquals(ScreeningPageKind.VIDEO_USERS, videoChannelPageKind(movieHub))
+        assertEquals("qvod_user", videoUserListChannelKey(movieHub))
+    }
 }
