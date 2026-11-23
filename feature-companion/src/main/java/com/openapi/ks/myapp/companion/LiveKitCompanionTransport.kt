@@ -647,15 +647,7 @@ class LiveKitCompanionTransport(
             )
             return false
         }
-        // JSONArray 手动装：Android 的 org.json 没有 `JSONArray(Collection)` 这个构造器
-        // （那是桌面版 org.json 的），`putJSONArray` 同样不存在。逐个 put 出来的字节
-        // 与它们完全一样。
-        val idsJson = JSONArray()
-        uploadIds.forEach { idsJson.put(it) }
-        val args = JSONObject()
-            .put("kind", "attachments")
-            .put("upload_ids", idsJson)
-            .put("client_msg_id", clientMsgId)
+        val args = attachmentsArgs(uploadIds, clientMsgId)
         val bytes = protocolLink.outgoing(
             topic = ProtocolCatalog.TOPIC_IN,
             eventType = "control.input",
@@ -674,6 +666,7 @@ class LiveKitCompanionTransport(
             logWarn("attempt=$activeAttemptId event=attachments_publish_failed type=${it.javaClass.simpleName}")
         }.isSuccess
     }
+
 
     /**
      * §10.1：用户开口打断。先本地作废时间线，再发 ``control.barge_in``。
@@ -1375,4 +1368,26 @@ class LiveKitCompanionTransport(
         message.orEmpty()
             .replace(Regex("(?i)(token|authorization|bearer)\\s*[:=]\\s*[^ ,;]+"), "$1=<redacted>")
             .take(180)
+}
+
+/**
+ * `control.input` 的 attachments 参数体（cleanup 项 1：从 [sendAttachments] 里抽出的纯函数）。
+ *
+ * 三个键名 `kind` / `upload_ids` / `client_msg_id` 与 `kind` 的值 `"attachments"` 都是
+ * **与服务端逐字约定的 wire 串**（服务端 `companion` 侧按 `args["kind"]` 分派、按
+ * `args["upload_ids"]` 取 id、按 `args["client_msg_id"]` 去重）。以前它们是内联字面量，
+ * 没有任何测试钉着：改一个字母编译照过、两端照连，只是图片**永远静默落不进回合**
+ * ——和 `media.image` 那个 capability 串同款的错配风险，而那种风险我们已经吃过一次。
+ * 抽出来就是为了那三个断言能直接跑（[sendAttachments] 本体需要 Room 级环境）。
+ *
+ * JSONArray 手动装：Android 的 org.json 没有 `JSONArray(Collection)` 这个构造器
+ * （那是桌面版 org.json 的），`putJSONArray` 同样不存在。逐个 put 出来的字节与它们完全一样。
+ */
+internal fun attachmentsArgs(uploadIds: List<String>, clientMsgId: String): JSONObject {
+    val idsJson = JSONArray()
+    uploadIds.forEach { idsJson.put(it) }
+    return JSONObject()
+        .put("kind", "attachments")
+        .put("upload_ids", idsJson)
+        .put("client_msg_id", clientMsgId)
 }
