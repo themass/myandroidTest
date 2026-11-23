@@ -361,7 +361,6 @@ class ScreeningFeedTest {
         val img = remoteEntry(8L, 0, "好看的图片", null, null, 1f, "img://config?channel=porn_sex", false, dataType = 5)!!
         assertEquals(FeedRoute.ALBUM, routeOf(img))
     }
-}
 
     @Test
     fun `text config 走 TEXT 路由`() {
@@ -374,3 +373,4 @@ class ScreeningFeedTest {
         assertTrue(isSoundConfigAction("sound://config?channel=nvyou"))
         assertFalse(isSoundConfigAction("sound://play?id=1"))
     }
+}
