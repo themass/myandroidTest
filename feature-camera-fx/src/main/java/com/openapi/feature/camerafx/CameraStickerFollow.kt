@@ -80,3 +80,22 @@ private fun hypotLike(dx: Float, dy: Float): Float {
     // 免 sqrt：用 max + 0.4*min 的近似（单测只钉单调性，不需要精确欧氏距离）
     return if (ax >= ay) ax + 0.4f * ay else ay + 0.4f * ax
 }
+
+/**
+ * 单张贴纸的跨帧状态：一路平滑器 + 一路丢失容错 tracker + 最后一次成功摆放。
+ * 放在 composable 的 `remember` 列表里按槽位复用；槽位下标不是身份，
+ * 跳脸由 smoother snap、漏检由 tracker 决定。
+ */
+class StickerSlotState {
+    val smoother = PlacementSmoother()
+    val tracker = StickerHoldTracker()
+    var lastPlacement: StickerPlacementPx? = null
+    var lastWasAnchored: Boolean = false
+
+    fun reset() {
+        smoother.reset()
+        tracker.reset()
+        lastPlacement = null
+        lastWasAnchored = false
+    }
+}
