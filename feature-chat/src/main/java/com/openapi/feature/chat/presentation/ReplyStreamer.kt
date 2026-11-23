@@ -221,15 +221,18 @@ internal class ReplyStreamer(
     }
 
     /**
-     * 定点替换：只重建列表一次、只复制一次目标消息（整改清单 P1-12）。
-     * 吐字节拍约 25 次/秒，旧写法每拍都 `map` 全列表；没命中时直接返回，
-     * 连列表都不碰。语义与旧的 `map` 版完全一致（由 ReplyStreamerStreamTest 表征钉住）。
+     * 流式期高频更新：按 key 定位后原位替换，避免每 tick 对整表 map 拷贝（P1-12）。
      */
     fun updateByKey(key: String, transform: (ChatMessage) -> ChatMessage) {
         state.update { current ->
-            val i = current.messages.indexOfFirst { it.key == key }
-            if (i < 0) return@update current
-            current.copy(messages = current.messages.updatedAt(i) { transform(it) })
+            val index = current.messages.indexOfLast { it.key == key }
+            if (index < 0) return@update current
+            val previous = current.messages[index]
+            val next = transform(previous)
+            if (previous === next) return@update current
+            val messages = current.messages.toMutableList()
+            messages[index] = next
+            current.copy(messages = messages)
         }
     }
 
