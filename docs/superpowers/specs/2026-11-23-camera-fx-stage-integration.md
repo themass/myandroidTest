@@ -47,6 +47,16 @@
 
 - [x] 关通话页自动小窗
 - [x] `CameraFxOverlayPolicy` + lab SharedPreferences
-- [ ] 通话 debug 菜单「人脸贴纸」接 `labFaceCameraPip` + prefs
+- [x] 通话 debug 菜单「人脸贴纸」接 `labFaceCameraPip` + prefs
 - [ ] 画 Pose 手指数（15–22）可选开关
-- [ ] Hand landmark / GestureRecognizer → emitStageGesture
+- [x] Hand landmark / 启发式手势 → `emitStageGesture`（`CameraGestureCue` 单一事实源：
+  张→`wave`、捏→`pat_head`、拳→不映射；`StageGestureEdge` 稳定 2 帧 + 冷却 24 帧 +
+  收手复位；小窗经 `onCameraStageGesture` 接到 Route 的 `emitStageGesture`）
+
+## 分工（与 lottie-fx-mvp 会话，2026-11-23 夜）
+
+- **本会话（camera-fx 线）**：cue/锚点单一事实源 = `CameraGestureCue`（词表映射 +
+  边沿检测 + 单测）；`CameraFxGrantedContent(onStageGesture)` / `CameraFxStickerPip(onStageGesture)` /
+  `DigitalHumanLabHost(onCameraStageGesture)` 三层接线。**礼物层本体不在这里做。**
+- **lottie-fx-mvp 会话**：通话页礼物层（`LottieFxLayer` 侧 ff / 资产 / 渲染策略），
+  消费同一 gesture 词表（`StageEffectMapper`），勿再实现相机手势映射。

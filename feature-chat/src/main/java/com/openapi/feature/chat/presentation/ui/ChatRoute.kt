@@ -212,6 +212,21 @@ fun ChatRoute(
                 // 位置 chip 不是 DraftAttachment（状态里是单值字段），按固定 id 分流
                 if (id == LOCATION_DRAFT_ID) viewModel.onRemoveLocationDraft() else viewModel.onRemoveDraft(id)
             },
+            onEditDraftImage = { id ->
+                // 长按草稿里的图片再编辑：解析暂存文件 → 解码 → 复用同一个全屏编辑器。
+                // 草稿不在/文件已丢/不是图片时静默不动（正常竞态，报错是噪音）。
+                val file = viewModel.onDraftImageForEdit(id)
+                if (file != null) {
+                    scope.launch {
+                        val bitmap = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            com.openapi.mediaview.edit.PhotoEditExporter.decode(
+                                android.net.Uri.fromFile(file), context.contentResolver,
+                            )
+                        }
+                        if (bitmap != null) pendingEdit = file to bitmap
+                    }
+                }
+            },
             onCancelEdit = viewModel::onCancelEdit,
             onVoiceDraftSendText = viewModel::onVoiceDraftSendText,
             onVoiceDraftSendAudio = viewModel::onVoiceDraftSendAudio,

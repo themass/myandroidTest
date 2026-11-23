@@ -96,7 +96,9 @@ internal fun isPlayableMediaUrl(actionUrl: String?): Boolean {
  * 列子频道、下一层才 items.json 取片单。放映场以前只认 `video://`，teleplay/movie 的
  * channel 值（channelType 列）被直接发去 items.json，查不到行（errno/0 行）——就是「点进去没内容」。
  */
-private val SUBCHANNEL_SCHEMES = setOf("video", "teleplay", "movie")
+// video_item_user 旧路由也交 VideoChannleActivity（ConfigActionJump 注册表），
+// 第一层同一个 channel.json——不注册的话这种卡会被发 items.json（channelType 查空）。
+private val SUBCHANNEL_SCHEMES = setOf("video", "teleplay", "movie", "video_item_user")
 internal fun isConfigAction(actionUrl: String?): Boolean =
     schemeOf(actionUrl) in SUBCHANNEL_SCHEMES && !channelParamOf(actionUrl).isNullOrEmpty()
 
@@ -110,6 +112,19 @@ internal fun isSoundConfigAction(actionUrl: String?): Boolean =
 
 /** @deprecated 放映场已不再把 sound/text 交回 ConfigActionJump；保留给单测兼容命名。 */
 internal fun isLegacyOnlyAction(actionUrl: String?): Boolean = false
+
+/**
+ * 放映场已经接住的协议族（routeOf 的分层判定只对它们成立）。
+ * 对照旧分发器注册表 `ConfigActionJump.configMap`：其余注册项——browser→浏览器页、
+ * local_chat→首页、local_sound→本地播放器——放映场没有对应 Compose 页；
+ * pic/video_item/local 压根没注册（旧行为就是「版本太低」提示）。
+ * 这些一律交回 WEB 原路由，不许拿 param 当频道 key、更不许落到 PLAY 兜底（黑屏）。
+ */
+private val ABSORBED_SCHEMES = SUBCHANNEL_SCHEMES +
+    setOf("videolist", "videolist1", "sound", "text", "img", "http", "https")
+
+internal fun isForeignScheme(actionUrl: String?): Boolean =
+    schemeOf(actionUrl)?.let { it !in ABSORBED_SCHEMES } ?: true
 
 /**
  * 视频频道内页取数用的 key。原页面 `VideoChannelListFragment.getUrl` 传的是 `vo.param`：

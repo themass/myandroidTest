@@ -47,6 +47,7 @@ Adobe `FileHeader`：`struct.pack(">4sH6xHIIHH", b"8BPS", 1, 3, rows, cols, 8, 3
 - `moc3-strings.json`：从 demo.moc3 扫出的 Param*/ArtMesh* 字符串表
 - `layout-moc3-strings.json` / `layout-variant-excerpt.json` / `layout.*.json`：ParamWear_test 差分专项证据
 - `wardrobe-poses-editor-20261123.png` / `wardrobe-runtime-export-20261123.json`：Editor 0/0.5/1 姿态验收
+- `wardrobe-deform-body-20261123.png` / `wardrobe-deform-cmo3-20261123.json`：BodyAngleX ±10 变形跟随 + cmo3 导入再导出闭环
 - `wardrobe-source-comparison.png`：源图合成（非 runtime）
 - `demo-merged.png`：输入 PSD 合成预览
 - `cli-run.txt`：CLI 输出摘要

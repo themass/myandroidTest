@@ -25,6 +25,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -59,11 +60,16 @@ import kotlin.math.roundToInt
 /**
  * 已授权相机后的预览 + 可选 HUD + Lottie 头顶贴纸。
  * [drawWireframe] 关时仅贴纸（通话页小窗）；开时与全屏 lab 一致。
+ *
+ * [onStageGesture]：把本机手势翻成**舞台词表 cue**（`wave`/`pat_head`，见
+ * [CameraGestureCue]）。由上层喂 `emitStageGesture`，本模块**不**依赖
+ * `feature-companion`、不自造总线（架构 spec §纪律1）。null = 不联动舞台。
  */
 @Composable
 fun CameraFxGrantedContent(
     modifier: Modifier = Modifier,
     overlayPolicy: CameraFxOverlayPolicy = CameraFxOverlayPolicy(),
+    onStageGesture: ((String) -> Unit)? = null,
 ) {
     val showDebugHud = overlayPolicy.showDebugHud
     val drawWireframe = overlayPolicy.drawWireframe
@@ -157,6 +163,17 @@ fun CameraFxGrantedContent(
     val stickerCompositionResult = rememberLottieComposition(LottieCompositionSpec.Asset(stickerAssetPath))
     val stickerComposition = stickerCompositionResult.value
 
+    // 手势 → 舞台 cue：边沿检测在纯函数层（JVM 钉死），这里只喂帧 + 转发。
+    // 选「主手」= 第一个非 NONE 手势的手，都没有则第一只手。
+    val gestureEdge = remember { StageGestureEdge() }
+    LaunchedEffect(frame?.seq) {
+        val f = frame ?: return@LaunchedEffect
+        if (onStageGesture == null) return@LaunchedEffect
+        val primary = f.hands.firstOrNull { it.gesture != HandGestureKind.NONE } ?: f.hands.firstOrNull()
+        val cue = gestureEdge.update(primary?.gesture ?: HandGestureKind.NONE)
+        if (cue != null) onStageGesture.invoke(cue)
+    }
+
     Box(
         modifier
             .background(Color.Black)
@@ -204,14 +221,20 @@ fun CameraFxGrantedContent(
             val density = LocalDensity.current
             val comp = stickerComposition
             key(stickerAssetPath, comp != null) {
+                // 每张贴纸一路 EMA；下标不是身份（MediaPipe 不保证多脸顺序），
+                // 所以跳脸由 smoother 内部的位移阈值 snap，见 [PlacementSmoother]。
+                val smoothers = remember { mutableStateListOf<PlacementSmoother>() }
+                while (smoothers.size < frameForSticker.faces.size) {
+                    smoothers.add(PlacementSmoother())
+                }
                 val progress by animateLottieCompositionAsState(
                     composition = comp,
                     iterations = Int.MAX_VALUE,
                     isPlaying = comp != null && drawStickers,
                 )
-                frameForSticker.faces.forEach { face ->
-                    val head = face.headTop ?: return@forEach
-                    val fw = face.bounds?.width ?: return@forEach
+                frameForSticker.faces.forEachIndexed { faceIndex, face ->
+                    val head = face.headTop ?: return@forEachIndexed
+                    val fw = face.bounds?.width ?: return@forEachIndexed
                     val place = stickerAtHeadTop(
                         map,
                         head,
@@ -219,8 +242,10 @@ fun CameraFxGrantedContent(
                         face.tiltDeg,
                         widthFractionOfFace = 1.05f,
                     )
-                    val half = place.sizePx / 2f
-                    val stickerSize = with(density) { place.sizePx.toDp() }
+                    // 尺寸也要跟着平滑值走，否则 offset 平滑、size 逐帧跳，等于没平滑
+                    val placeFinal = smoothers.getOrElse(faceIndex) { PlacementSmoother() }.smooth(place)
+                    val half = placeFinal.sizePx / 2f
+                    val stickerSize = with(density) { placeFinal.sizePx.toDp() }
                     if (comp != null) {
                         LottieAnimation(
                             composition = comp,
@@ -229,12 +254,12 @@ fun CameraFxGrantedContent(
                                 .zIndex(2f)
                                 .offset {
                                     IntOffset(
-                                        (place.centerX - half).roundToInt(),
-                                        (place.centerY - half).roundToInt(),
+                                        (placeFinal.centerX - half).roundToInt(),
+                                        (placeFinal.centerY - half).roundToInt(),
                                     )
                                 }
                                 .size(stickerSize)
-                                .rotate(place.rotationDeg),
+                                .rotate(placeFinal.rotationDeg),
                         )
                     } else {
                         Canvas(
@@ -242,8 +267,8 @@ fun CameraFxGrantedContent(
                                 .zIndex(2f)
                                 .offset {
                                     IntOffset(
-                                        (place.centerX - half).roundToInt(),
-                                        (place.centerY - half).roundToInt(),
+                                        (placeFinal.centerX - half).roundToInt(),
+                                        (placeFinal.centerY - half).roundToInt(),
                                     )
                                 }
                                 .size(stickerSize),
@@ -314,9 +339,14 @@ fun CameraFxGrantedContent(
     }
 }
 
-/** 通话页右下角小窗：仅贴纸，无 HUD/线框。 */
+/**
+ * 通话页右下角小窗：仅贴纸，无 HUD/线框；手势联动舞台 cue（如上层传了 [onStageGesture]）。
+ */
 @Composable
-fun CameraFxStickerPip(modifier: Modifier = Modifier) {
+fun CameraFxStickerPip(
+    modifier: Modifier = Modifier,
+    onStageGesture: ((String) -> Unit)? = null,
+) {
     CameraFxGrantedContent(
         modifier = modifier,
         overlayPolicy = CameraFxOverlayPolicy(
@@ -324,6 +354,7 @@ fun CameraFxStickerPip(modifier: Modifier = Modifier) {
             drawStickers = true,
             showDebugHud = false,
         ),
+        onStageGesture = onStageGesture,
     )
 }
 

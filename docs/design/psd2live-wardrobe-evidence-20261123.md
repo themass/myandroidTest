@@ -10,6 +10,8 @@
 | `ParamWear_*` toggle 能否进模型？ | 能 | `layout.moc3` 字符串表；[`evidence/layout-moc3-strings.json`](../scripts/dh-lab/psd2live-eval/evidence/layout-moc3-strings.json) |
 | Layout 管线端到端？ | Editor MCP 已跑通 | [`WARDROBE-SMOKE.md`](../scripts/dh-lab/psd2live-eval/WARDROBE-SMOKE.md)、[`evidence/wardrobe-runtime-export-20261123.json`](../scripts/dh-lab/psd2live-eval/evidence/wardrobe-runtime-export-20261123.json) |
 | 开关 0/0.5/1 画面？ | Editor `view_render_poses` 已验 | [`evidence/wardrobe-poses-editor-20261123.png`](../scripts/dh-lab/psd2live-eval/evidence/wardrobe-poses-editor-20261123.png)（合成测试角色，非正式美术） |
+| 身体变形下马甲跟随？ | Editor 已验（BodyAngleX ±10 / AngleZ 20） | [`evidence/wardrobe-deform-body-20261123.png`](../scripts/dh-lab/psd2live-eval/evidence/wardrobe-deform-body-20261123.png)；范围与判定见 [`evidence/wardrobe-deform-cmo3-20261123.json`](../scripts/dh-lab/psd2live-eval/evidence/wardrobe-deform-cmo3-20261123.json) |
+| cmo3 导入→再导出闭环？ | 已验（demo.cmo3 → moc3 1,105,344 B） | 同上 JSON；atri_8 头饰扫参仍未验（无真实 cmo3） |
 | Android Cubism runtime？ | **未验** | — |
 | atri_8 头饰扫参？ | **未验**（无 moc3 import 产品入口） | — |
 

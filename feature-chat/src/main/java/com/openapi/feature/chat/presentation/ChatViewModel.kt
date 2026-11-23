@@ -328,6 +328,12 @@ class ChatViewModel : ViewModel() {
 
 
     /**
+     * 草稿托盘里长按图片（S3「再编辑」）：解析出这条草稿的暂存图片文件。
+     * 返回 null = 不可编辑（草稿已不在、文件已丢、或不是图片），界面什么都不做。
+     */
+    fun onDraftImageForEdit(draftId: String): java.io.File? = send.draftImageForEdit(draftId)
+
+    /**
      * 编辑完成：用编辑后的图片替换草稿里的暂存文件。失败时保留原图，不阻断发送。
      */
     fun onReplaceDraftImage(target: java.io.File, edited: android.net.Uri, context: android.content.Context) =

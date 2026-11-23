@@ -31,7 +31,7 @@
 | S0 | `PhotoEdits` / `PhotoRenderer` / `PhotoEditor` + 单测 | **已合入** `weifu-refactor` |
 | S1 | 对话选图/拍照首张 → `PhotoEditor` → 回草稿 | **已合入** `ChatRoute.kt` |
 | S2 | 真机五项 + 存储抽检 | **进行中** → `docs/qa/photo-edit-device-checklist.md`、`photo-edit-device-result-*.md` |
-| S3 | 草稿托盘项「再编辑」（长按菜单） | **未做**（可选；S2 通过后） |
+| S3 | 草稿托盘图片**长按再编辑** | **已实现**（`DraftTray.onEditImage` + `ChatRoute.onEditDraftImage` + `SendActions.draftImageForEdit`；单测 `DraftTrayEditTest` 7 个） |
 | S4 | 拍照解题结果页标注 | **不做**（除非你另行拍板） |
 
 ---
