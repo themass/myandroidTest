@@ -81,6 +81,29 @@ internal class ScreeningFeedStore(context: Context) {
         return Page(items, nextStart = if (more) raw!!.pageNum else null, hasMore = more)
     }
 
+    /** 声音馆频道（sound/channel.json）。 */
+    suspend fun soundChannelHub(channelParam: String, start: Int = 0): Page<RemoteEntry> =
+        page(Constants.getUrlWithParam(Constants.API_SOUND_CHANNLE_URL, start, channelParam))
+
+    /** 声音馆曲目（sound/items.json），channel 用 vo.param。 */
+    suspend fun soundTracks(channelParam: String, start: Int = 0, keyword: String = ""): Page<RemoteEntry> =
+        soundItemsPage(channelParam, start, keyword).let { raw ->
+            Page(
+                items = raw.items.mapIndexed { index, vo -> vo.toSoundListEntry(index) },
+                nextStart = raw.nextStart,
+                hasMore = raw.hasMore,
+            )
+        }
+
+    private suspend fun soundItemsPage(channelParam: String, start: Int, keyword: String): Page<SoundItemsVo> {
+        val url = Constants.getUrlWithParam(Constants.API_SOUND_ITEMS_URL, start, channelParam, keyword)
+        val raw: InfoListVo<*>? = service.awaitInfoList(url, SoundItemsVo::class.java, NET_TAG)
+        @Suppress("UNCHECKED_CAST")
+        val items = (raw?.voList as? List<SoundItemsVo>).orEmpty()
+        val more = raw?.hasMore == true
+        return Page(items, nextStart = if (more) raw!!.pageNum else null, hasMore = more)
+    }
+
     /** 图集列表（图片频道）。 */
     suspend fun albums(channelParam: String, start: Int = 0): Page<RemoteEntry> =
         page(Constants.getUrlWithParam(Constants.API_IMG_CHANNLE_URL, start, channelParam))
@@ -229,4 +252,28 @@ internal fun TextItemsVo.toTextListEntry(index: Int): RemoteEntry {
 internal fun RemoteEntry.textArticleRef(): TextArticleRef? {
     val itemId = key.removePrefix("text:item:").toLongOrNull() ?: return null
     return TextArticleRef(itemId, title, actionUrl)
+}
+
+
+/** Gson：sound/items.json 行（字段对齐 [com.openapi.core.model.SoundItemsVo]）。 */
+internal class SoundItemsVo {
+    @JvmField var name: String? = null
+    @JvmField var file: String? = null
+    @JvmField var fileDate: String? = null
+}
+
+internal fun SoundItemsVo.toSoundListEntry(index: Int): RemoteEntry {
+    val url = file.orEmpty()
+    return RemoteEntry(
+        key = "sound:item:$index:$url",
+        title = name.orEmpty().ifBlank { "未命名" },
+        description = fileDate.orEmpty().trim(),
+        imageUrl = null,
+        ratio = 1f,
+        actionUrl = url,
+        needsLazyUrl = false,
+        channelParam = null,
+        param = null,
+        isImageCard = false,
+    )
 }

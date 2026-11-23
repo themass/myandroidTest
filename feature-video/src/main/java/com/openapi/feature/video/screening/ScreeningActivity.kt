@@ -133,6 +133,8 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
     var gallery by remember { mutableStateOf(false) }
     var textHub by remember { mutableStateOf(false) }
     var textChannel by remember { mutableStateOf<String?>(null) }
+    var soundHub by remember { mutableStateOf(false) }
+    var soundChannel by remember { mutableStateOf<String?>(null) }
     /** 从首页图片卡进图集时带的 `channel=`；null 时图集页直接给空态，不演样例。 */
     var galleryChannel by remember { mutableStateOf<String?>(null) }
     /**
@@ -203,6 +205,11 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
         textChannel = entry.channelParam
         textHub = true
     }
+    val openSound: (RemoteEntry) -> Unit = { entry ->
+        forward = true
+        soundChannel = entry.channelParam
+        soundHub = true
+    }
     /**
      * 按 routeOf 派发一张卡的点击：内页里的行和首页网格走同一套判定，
      * 子频道行下钻开新内页、可播行进播放器、纯网页行交回 WebView——
@@ -214,10 +221,11 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
             FeedRoute.CHANNEL -> openChannel(entry)
             FeedRoute.ALBUM -> openGallery(entry)
             FeedRoute.TEXT -> openText(entry)
+            FeedRoute.SOUND -> openSound(entry)
             FeedRoute.WEB -> openWeb(entry)
         }
     }
-    BackHandler(channelPage != null && selection == null && !textHub && !gallery) { forward = false; channelPage = null }
+    BackHandler(channelPage != null && selection == null && !textHub && !soundHub && !gallery) { forward = false; channelPage = null }
     val motion = remember { MotionPlan(isReduceMotion(activity)) }
     val density = LocalDensity.current
     val slidePx = remember(density) { with(density) { motion.slideDistanceDp().dp.toPx() } }
@@ -231,6 +239,7 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
         current != null -> LibraryScreen(current)
         gallery -> GalleryScreen(galleryChannel)
         textHub -> TextScreen(textChannel)
+        soundHub -> SoundScreen(soundChannel)
         else -> HomeScreen
     }
     Surface(Modifier.fillMaxSize()) {
@@ -263,6 +272,9 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
                         onOpenWeb = { url, title -> openUrl(url, title) },
                     )
                 }
+                is SoundScreen -> holder.SaveableStateProvider("sound") {
+                    ScreeningSound(store, target.channelParam) { forward = false; soundHub = false }
+                }
                 is LibraryScreen -> holder.SaveableStateProvider(target.page.title) {
                     // 真频道的 pager 随这一页建、离开即弃（缓存策略不同）。
                     // scope 用首页层的 feedScope：退场动画播的同时，在途请求不该被组合拆散牵连取消。
@@ -288,7 +300,7 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
                         channelFilter, { channelFilter = it }, channelPagers,
                         progress, preferences,
                         onBack = onBack,
-                        onChannel = openChannel, onPlay = openEntry, onWeb = openWeb, onText = openText,
+                        onChannel = openChannel, onPlay = openEntry, onWeb = openWeb, onText = openText, onSound = openSound,
                         onGallery = { entry -> openGallery(entry) })
                 }
             }
@@ -329,6 +341,7 @@ private fun HomeTabs(
     onWeb: (RemoteEntry) -> Unit,
     onGallery: (RemoteEntry?) -> Unit,
     onText: (RemoteEntry) -> Unit,
+    onSound: (RemoteEntry) -> Unit,
 ) {
     val motion = LocalScreeningMotion.current
     // 切 tab 的位移：推页距离的一半不到（10dp），换算成像素给转场用
@@ -361,7 +374,7 @@ private fun HomeTabs(
                     }, onGallery,
                 )
                 else -> ChannelsFeed(store, feedScope, channelPagers, channelFilter, onChannelFilter,
-                    onChannel, onPlay, onWeb, onGallery, onText)
+                    onChannel, onPlay, onWeb, onGallery, onText, onSound)
             }
         }
     }
@@ -473,6 +486,7 @@ private fun ChannelsFeed(
     onWeb: (RemoteEntry) -> Unit,
     onGallery: (RemoteEntry?) -> Unit,
     onText: (RemoteEntry) -> Unit,
+    onSound: (RemoteEntry) -> Unit,
 ) {
     // 分类跟旧频道页同口径：只有电影/夜色。老装机存过已删的「全部」：取不到就落回电影，
     // 高亮和取数用同一个 category，不会出现没选中的空档。
@@ -514,6 +528,7 @@ private fun ChannelsFeed(
                             FeedRoute.CHANNEL -> onChannel(entry)
                             FeedRoute.ALBUM -> onGallery(entry)
                             FeedRoute.TEXT -> onText(entry)
+                            FeedRoute.SOUND -> onSound(entry)
                             FeedRoute.WEB -> onWeb(entry)
                         }
                     }) {
@@ -536,6 +551,7 @@ private fun ChannelsFeed(
                                     FeedRoute.CHANNEL -> onChannel(entry)
                                     FeedRoute.ALBUM -> onGallery(entry)
                                     FeedRoute.TEXT -> onText(entry)
+                            FeedRoute.SOUND -> onSound(entry)
                                     FeedRoute.WEB -> onWeb(entry)
                                         }
                             }, shape = RoundedCornerShape(9.dp), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)) {
@@ -567,6 +583,7 @@ private fun ChannelsFeed(
                                         FeedRoute.CHANNEL -> onChannel(entry)
                                         FeedRoute.ALBUM -> onGallery(entry)
                                         FeedRoute.TEXT -> onText(entry)
+                            FeedRoute.SOUND -> onSound(entry)
                                         FeedRoute.WEB -> onWeb(entry)
                                                 }
                                 }) {
@@ -597,6 +614,7 @@ private object HomeScreen
 private data class LibraryScreen(val page: ScreeningChannelPage)
 private data class GalleryScreen(val channelParam: String?)
 private data class TextScreen(val channelParam: String?)
+private data class SoundScreen(val channelParam: String?)
 private data class PlayScreen(val source: ScreeningSource, val channel: String)
 
 /** 进度存的键：所有条目（样例和真实）都按 [RemoteEntry.key] 存，一条规则。 */

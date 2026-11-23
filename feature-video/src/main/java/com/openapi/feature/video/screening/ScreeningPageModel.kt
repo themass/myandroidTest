@@ -29,7 +29,7 @@ internal class ScreeningChannelPage(
  * 交回原路由 ConfigActionJump 进 WebView。CONFIG 已删——夜色配置频道卡（`video://config?channel=`）
  * 由内页吸收：进去先列子频道（[videoChannelPageKind] 判取哪种接口），不再掉旧频道页。
  */
-internal enum class FeedRoute { CHANNEL, ALBUM, TEXT, PLAY, WEB }
+internal enum class FeedRoute { CHANNEL, ALBUM, TEXT, SOUND, PLAY, WEB }
 
 /**
  * 放映场内页的取数方式。
@@ -72,13 +72,14 @@ internal val RemoteEntry.isGroupEntry: Boolean
  * 可播条目）；查不到行的频道（se8成人动漫）errno 也是 0 空列表，由内页诚实空态 +
  * [webFallbackUrl] 「在网页里打开」兜底，不拿旧页面填空。配置频道卡（夜色/teleplay/movie）
  * 也进 CHANNEL，内页按 [videoChannelPageKind] 先列子频道再下钻。
- * WEB：http(s) 交 WebView，以及 `sound://` 交回原分发（音频页待迁）。
- * TEXT：`text://` 走 [ScreeningText]（text 接口族）。
+ * TEXT/SOUND：走 ScreeningText / ScreeningSound。
+ * WEB：纯 http(s) 等外链。
  */
 internal fun routeOf(entry: RemoteEntry): FeedRoute = when {
     entry.isImageCard -> FeedRoute.ALBUM
     isPlayableMediaUrl(entry.actionUrl) -> FeedRoute.PLAY
     isTextConfigAction(entry.actionUrl) -> FeedRoute.TEXT
+    isSoundConfigAction(entry.actionUrl) -> FeedRoute.SOUND
     isLegacyOnlyAction(entry.actionUrl) -> FeedRoute.WEB
     isConfigAction(entry.actionUrl) -> FeedRoute.CHANNEL
     !entry.videoChannelKey().isNullOrEmpty() -> FeedRoute.CHANNEL

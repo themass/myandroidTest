@@ -334,11 +334,11 @@ class ScreeningFeedTest {
     @Test
     fun `sound 和 text 交回原分发，不进视频内页`() {
         // sound:// 仍交回 SoundChannleActivity；text:// 已进 FeedRoute.TEXT（ScreeningText）。
-        assertTrue(isLegacyOnlyAction("sound://config?channel=nvyou"))
+        assertFalse(isLegacyOnlyAction("sound://config?channel=nvyou"))
         assertFalse(isLegacyOnlyAction("text://config?channel=小说"))
         assertFalse(isLegacyOnlyAction("video://config?channel=nvyou"))
         val sound = remoteEntry(7L, 0, "好听的音乐", null, null, 1f, "sound://config?channel=nvyou", false, dataType = 5)!!
-        assertEquals(FeedRoute.WEB, routeOf(sound))
+        assertEquals(FeedRoute.SOUND, routeOf(sound))
         val text = remoteEntry(11L, 0, "好看的文字", null, null, 1f, "text://config?channel=小说", false, dataType = 5)!!
         assertEquals(FeedRoute.TEXT, routeOf(text))
     }
@@ -367,4 +367,10 @@ class ScreeningFeedTest {
     fun `text config 走 TEXT 路由`() {
         assertTrue(isTextConfigAction("text://config?channel=小说"))
         assertFalse(isTextConfigAction("text://play?id=1"))
+    }
+
+    @Test
+    fun `sound config 走 SOUND 路由`() {
+        assertTrue(isSoundConfigAction("sound://config?channel=nvyou"))
+        assertFalse(isSoundConfigAction("sound://play?id=1"))
     }

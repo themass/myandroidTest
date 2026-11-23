@@ -100,16 +100,16 @@ private val SUBCHANNEL_SCHEMES = setOf("video", "teleplay", "movie")
 internal fun isConfigAction(actionUrl: String?): Boolean =
     schemeOf(actionUrl) in SUBCHANNEL_SCHEMES && !channelParamOf(actionUrl).isNullOrEmpty()
 
-/**
- * 声音馆（`sound://`）尚未迁入放映场（音频播放器在独立模块），交回原分发。
- * `text://` 已走 [FeedRoute.TEXT] + [ScreeningText]，不再经过这里。
- */
-private val LEGACY_ONLY_SCHEMES = setOf("sound")
-internal fun isLegacyOnlyAction(actionUrl: String?): Boolean = schemeOf(actionUrl) in LEGACY_ONLY_SCHEMES
-
-/** `text://config?channel=` 配置入口：第一层发 /text/channel.json。 */
+/** `text://config?channel=` → /text/channel.json。 */
 internal fun isTextConfigAction(actionUrl: String?): Boolean =
     schemeOf(actionUrl) == "text" && !channelParamOf(actionUrl).isNullOrEmpty()
+
+/** `sound://config?channel=` → /sound/channel.json。 */
+internal fun isSoundConfigAction(actionUrl: String?): Boolean =
+    schemeOf(actionUrl) == "sound" && !channelParamOf(actionUrl).isNullOrEmpty()
+
+/** @deprecated 放映场已不再把 sound/text 交回 ConfigActionJump；保留给单测兼容命名。 */
+internal fun isLegacyOnlyAction(actionUrl: String?): Boolean = false
 
 /**
  * 视频频道内页取数用的 key。原页面 `VideoChannelListFragment.getUrl` 传的是 `vo.param`：
