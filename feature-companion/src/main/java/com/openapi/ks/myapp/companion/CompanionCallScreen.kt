@@ -202,6 +202,7 @@ data class CompanionCallState(
     val connection: CallConnection = CallConnection.CONNECTING,
     val avatarEmoji: String? = null,
     val statusHint: String? = null,
+    val loginRequired: Boolean = false,
 )
 
 /**
@@ -389,6 +390,7 @@ fun CompanionCallScreen(
     live2dModelLabel: String? = null,
     onLive2dModelSwitch: (() -> Unit)? = null,
     live2dModelSwitchHint: String? = null,
+    onLoginRequired: (() -> Unit)? = null,
 ) {
     val reducedMotion = rememberReducedMotion()
 
@@ -504,8 +506,10 @@ fun CompanionCallScreen(
         ) {
             if (state.connection == CallConnection.ENDED) {
                 CallDisconnectedBanner(
-                    message = state.statusHint ?: "连接失败或已断开",
-                    onRetry = onRetryConnect,
+                    message = if (state.loginRequired) "请先登录，再开始通话" else state.statusHint ?: "连接失败或已断开",
+                    loginRequired = state.loginRequired,
+                    onRetry = if (state.loginRequired) null else onRetryConnect,
+                    onLogin = onLoginRequired,
                 )
                 Spacer(Modifier.height(12.dp))
             }
@@ -2573,7 +2577,9 @@ private fun RemoteVideoPlaceholder(state: CompanionCallState) {
 @Composable
 private fun CallDisconnectedBanner(
     message: String,
+    loginRequired: Boolean,
     onRetry: (() -> Unit)?,
+    onLogin: (() -> Unit)?,
 ) {
     Column(
         modifier = Modifier
@@ -2592,7 +2598,11 @@ private fun CallDisconnectedBanner(
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
         )
-        if (onRetry != null) {
+        if (loginRequired && onLogin != null) {
+            OutlinedButton(onClick = onLogin) {
+                Text("去登录", color = CallColors.TextPrimary)
+            }
+        } else if (onRetry != null) {
             OutlinedButton(onClick = onRetry) {
                 Text("重新连接", color = CallColors.TextPrimary)
             }

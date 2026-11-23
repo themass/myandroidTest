@@ -1,8 +1,8 @@
 # Worker 收口与任务总图（2026-11-23）
 
-**主线：** `origin/weifu-refactor` → **`58a48481`**（含 TextureView 修、Screening text/sound、camera-fx、断线重试 Banner、dh wardrobe 文档证据等）。
+**主线：** `origin/weifu-refactor` → **`3d859c44`**（含抽屉留白、TextureView/Screening/camera-fx、断线重试 Banner、dh wardrobe 等）。夜间状态见 **`worker-status-20261123-night.md`**。
 
-**真机装机纪律：** 仅从 **`weifu-refactor` tip 现场 `assembleChatDebug`**，禁止复用旧 apk。当前 tip md5 示例：`a3c4a7f2296e0b41601ea1e1512ba88c`（`58a48481`）。
+**真机装机纪律：** 仅从 **`weifu-refactor` tip 现场 `assembleChatDebug`**，禁止复用旧 apk。
 
 **服务端 F16：** 104 **`2808748`**（touch gate 第四刀）保持，直至协调会话另有部署。
 
@@ -32,7 +32,7 @@
 | **session** | 三引擎接入 + Duix/Live2D 稳定 | Duix TextureView 背景门；Live2D GL onResume；热换模 `changeModel`；VRM seed | weifu 含 `canApplyThemeBackgroundToView`；热换、1.22x scale 曾推真机 | VRM 选人+scene.bundle；纯黑主题 edge | 通话进房不 FATAL；换装 ParamWear 真机 |
 | **lottie-fx** | 特效层调研 + 通话叠加 | cmp.cue→Lottie 全屏礼物；reducedMotion；陪伴页特效测试入口 | 设计见 `2026-11-23-换装抽象与特效层设计.md` §二 | **通话页 Lottie MVP 未合主线** | 礼物 cue 真机 |
 | **lottie-fx-mvp** | 通话页 Lottie spike | architecture-first 叠加层，不改原 UI | spike 分支可能未 ff weifu | 与 lottie-fx 合并排期 | spike 通过后再装机 |
-| **psd2live-eval** | 素材管线 / wardrobe 证据 | psd→live 评估；MCP editor pose 导出 | `417a618f` wardrobe runtime smoke 证据进 repo | 内衣/头饰 pending-art | editor 姿态 vs 真机 |
+| **psd2live-eval** | 素材管线 / wardrobe 证据 | psd→live 评估；MCP editor pose 导出 | `58a48481` 线含 `docs/design/psd2live-wardrobe-evidence-20261123.md` + wardrobe 证据 PNG/JSON | 内衣 pending-art；Android runtime；头饰 | editor 0/0.5/1 已验；真机 Cubism 未验 |
 | **avatar-2d-design** | 2D 形象选型 | 文档 + PR#1（已关） | 研究交付 | 产品拍板未绑实现 | — |
 | **ui-weifu-refactor** | 通话 UI 收尾 | retry Banner、波形/字幕（前端 skill 约束） | `cfbb94b1` merge goldwasser | compile 绿，**全量/真机未跑** | 断线重试 UX |
 | **p0-5-p2** | 协议真机对账 | PENDING barge 只认 PLAYING（`8a7c909e`） | 1/4 PASS on 旧栈；自掐已修代码 | emotion 陪伴真机 PARTIAL；first_ms 25–32s | 生产 LiveKit 四项复测 |
@@ -82,7 +82,7 @@
 
 ## 立即动作清单（协调人）
 
-1. **所有 Android worker**：pull **`58a48481`** 再 `assembleChatDebug` 装机。
+1. **所有 Android worker**：pull **`3d859c44`** 再 `assembleChatDebug` 装机。
 2. **MkoJY 教训**：ad92c627/5250715d 未同步 tip 会误判 F16——以 **HEAD md5** 为准。
 3. **开发优先排序（建议）**：  
    - P0：端 **LiveKit hello + 麦克风发布**（unblocks F16）  
@@ -96,6 +96,6 @@
 
 ## 推送状态（2026-11-23 晚间）
 
-- **weifu-refactor**：已与 origin 同步 **`58a48481`**（gifted-jepsen worktree 已对齐 tip）。
+- **weifu-refactor**：已与 origin 同步 **`3d859c44`**；**2026-11-23 夜** 已唤醒 17+ 子会话续跑。
 - 部分会话自报 merge 停在 **cfbb94b1 / 5250715d / 36435a7b**——重启前 **必须 pull**。
 - **companion-agent**：main **`2808748`** 由 tos 维护，Android 与 server attempt 须同窗口对齐。

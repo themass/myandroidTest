@@ -173,8 +173,17 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
         // （VideoChannleBodyFragment 就是拿 CONFIG_PARAM 的 channel 发 channel.json）；
         // 片单页才用 param 优先（VideoChannelListFragment.getUrl 用 vo.param）。
         // 以前不分层，config 卡的 param（若有）会顶掉 channelType 键，第一层就查空。
-        val kind = videoChannelPageKind(entry)
-        val fetchKey = if (kind == ScreeningPageKind.SUBCHANNELS) entry.channelParam else entry.videoChannelKey()
+        val kind = when {
+            isVideoUserHubEntry(entry) -> ScreeningPageKind.VIDEO_USERS
+            channelPage?.kind == ScreeningPageKind.VIDEO_USERS -> ScreeningPageKind.VIDEO_USER_ITEMS
+            else -> videoChannelPageKind(entry)
+        }
+        val fetchKey = when (kind) {
+            ScreeningPageKind.SUBCHANNELS -> entry.channelParam
+            ScreeningPageKind.VIDEO_USERS -> videoUserListChannelKey(entry)
+            ScreeningPageKind.VIDEO_USER_ITEMS -> entry.actionUrl
+            else -> entry.videoChannelKey()
+        }
         channelPage = ScreeningChannelPage(
             title = entry.title,
             detail = entry.description,
@@ -285,6 +294,10 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
                                 // 夜色配置频道页：先列子频道（channel.json），点一行再下钻片单
                                 param != null && target.page.kind == ScreeningPageKind.SUBCHANNELS ->
                                     store.subchannels(param, start)
+                                param != null && target.page.kind == ScreeningPageKind.VIDEO_USERS ->
+                                    store.videoUsers(param, start)
+                                param != null && target.page.kind == ScreeningPageKind.VIDEO_USER_ITEMS ->
+                                    store.videoUserItems(param, start)
                                 param != null -> store.videos(param, start)
                                 // 没有取数键（路由判定下理论上不出现）：诚实空页，不拿随包样片填屏
                                 else -> ScreeningFeedStore.Page(emptyList(), null, false)
@@ -703,7 +716,12 @@ private fun Library(
             }
             Row(Modifier.fillMaxWidth().padding(top = 9.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    if (page.kind == ScreeningPageKind.SUBCHANNELS) "子频道" else "全部视频",
+                    when (page.kind) {
+                        ScreeningPageKind.SUBCHANNELS -> "子频道"
+                        ScreeningPageKind.VIDEO_USERS -> "用户"
+                        ScreeningPageKind.VIDEO_USER_ITEMS -> "Ta 的视频"
+                        else -> "全部视频"
+                    },
                     Modifier.weight(1f), fontSize = 19.sp, fontWeight = FontWeight.Black,
                 )
                 IconButton(onClick = { poster = !poster }) { Icon(if (poster) Icons.Default.ViewList else Icons.Default.GridView, if (poster) "切换列表视图" else "切换海报视图") }

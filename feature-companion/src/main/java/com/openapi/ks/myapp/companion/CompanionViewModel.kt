@@ -107,7 +107,14 @@ class CompanionViewModel(
         }
         this.characterId = characterId
         this.activeCaseId = caseId
-        _state.update { it.copy(connection = CompanionConnection.CONNECTING, error = null, connectionError = null) }
+        _state.update {
+            it.copy(
+                connection = CompanionConnection.CONNECTING,
+                error = null,
+                connectionError = null,
+                callLoginRequired = false,
+            )
+        }
         startupJob?.cancel()
         // 新一通会话开始了：还在途的那串「上传 → attachments → 文本」属于上一个房间，
         // 让它跑完只会把一条消息发进一个已经不存在的房间里。
@@ -141,12 +148,14 @@ class CompanionViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                val msg = e.message ?: "连接失败"
+                val unauthorized = (e as? CompanionApiException)?.statusCode == 401
+                val msg = if (unauthorized) "登录后才能使用通话" else e.message ?: "连接失败"
                 _state.update {
                     it.copy(
                         connection = CompanionConnection.ERROR,
                         error = msg,
                         connectionError = msg,
+                        callLoginRequired = unauthorized,
                     )
                 }
             }
