@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.SystemClock
 import android.provider.OpenableColumns
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
@@ -68,6 +69,13 @@ import java.io.File
 import java.io.InputStreamReader
 import java.io.StringReader
 import kotlin.math.roundToInt
+
+/**
+ * 开发入口显形开关：`adb shell setprop log.tag.ScreeningDbg DEBUG`。
+ * 和 FeedPagerDbg 同一套路——默认关，正常构建零影响；调试弹幕这类入口不渲染进用户面板，
+ * 但代码保留，联调时一条 setprop 就回来，不需要改代码重装。
+ */
+internal const val TAG_SCREENING_DBG = "ScreeningDbg"
 
 /**
  * 一个可播放的东西。
@@ -208,10 +216,10 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
         }
     }
     var danmaku by remember { mutableStateOf(serverVideoId != null) }
-    // 弹幕来源：正式默认在线——服务端条目一进来就挂真时间轴（弹幕默认开着，互联网惯例）；
-    // 随包样片/手机文件没有服务端轴，退回本地样例且默认关。
-    // 假服务端只留在「更多 → 弹幕设置」里做离线链路联调，不再当默认（用户点名弹幕要正式样式）。
-    var danmakuSource by remember { mutableStateOf(if (serverVideoId != null) DANMAKU_ONLINE else DANMAKU_SAMPLE) }
+    // 弹幕来源：正式默认在线——服务端条目一进来就挂真时间轴（弹幕默认开着，互联网惯例）。
+    // 手机文件没有服务端轴，来源仍走在线实现（拉不到内容、发出去也没人看），弹幕默认关。
+    // 样例/假服务端只留在 setprop 显形的开发入口里，不再当任何默认。
+    var danmakuSource by remember { mutableStateOf(DANMAKU_ONLINE) }
     val danmakuToken = remember { { PreferenceUtils.getPrefString(context, NetConfig.tokenHeader(), null) } }
     val feed = remember(danmakuSource, id) {
         DanmakuFeed(
@@ -554,14 +562,19 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                         // 开/关走播放页的弹幕键或下面这一条；这里只调来源。正式默认在线（服务端条目）。
                         Setting("关闭弹幕", "立即清屏，不影响字幕和播放", !danmaku) { danmaku = false }
                         // 来源切换：两个来源实现同一个 TimedCommentSource，渲染和车道调度完全共用
-                        Setting("在线弹幕", if (serverVideoId != null) "默认：登录后发送，所有人共用这条时间轴" else "随包样片没有服务端时间轴，这里看不到弹幕", danmaku && danmakuSource == DANMAKU_ONLINE) {
+                        Setting("在线弹幕", if (serverVideoId != null) "默认：登录后发送，所有人共用这条时间轴" else "这条媒体没有服务端时间轴，这里看不到弹幕", danmaku && danmakuSource == DANMAKU_ONLINE) {
                             danmakuSource = DANMAKU_ONLINE; danmaku = true
                         }
-                        Setting("本地样例弹幕", "离线演示用：随包内置，无需网络", danmaku && danmakuSource == DANMAKU_SAMPLE) {
-                            danmakuSource = DANMAKU_SAMPLE; danmaku = true
-                        }
-                        Setting("链路自测弹幕", "开发用：内置假服务端，验证拉取/发送/重试/撤回链路", danmaku && danmakuSource == DANMAKU_SERVER) {
-                            danmakuSource = DANMAKU_SERVER; danmaku = true
+                        // 样例弹幕/链路自测是开发入口，用户面板里不出现（正式化整改拍板）。
+                        // 联调时 `adb shell setprop log.tag.ScreeningDbg DEBUG` 显形，默认零影响；
+                        // 两套来源实现和切换逻辑原样保留，只是面板上不渲染。
+                        if (Log.isLoggable(TAG_SCREENING_DBG, Log.DEBUG)) {
+                            Setting("本地样例弹幕", "离线演示用：随包内置，无需网络", danmaku && danmakuSource == DANMAKU_SAMPLE) {
+                                danmakuSource = DANMAKU_SAMPLE; danmaku = true
+                            }
+                            Setting("链路自测弹幕", "开发用：内置假服务端，验证拉取/发送/重试/撤回链路", danmaku && danmakuSource == DANMAKU_SERVER) {
+                                danmakuSource = DANMAKU_SERVER; danmaku = true
+                            }
                         }
                         danmakuState.outgoing.lastOrNull()?.let { mine ->
                             val label = when (mine.state) {
