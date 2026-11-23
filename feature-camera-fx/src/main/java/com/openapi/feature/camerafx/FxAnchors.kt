@@ -92,9 +92,11 @@ fun uprightDims(width: Int, height: Int, rotationDegrees: Int): Pair<Int, Int> =
  * 归一化正立图像 → 画布像素的映射。
  *
  * CameraX 默认预览缩放是 FILL_CENTER：等比放大到铺满画布、超出部分裁掉。
- * [mirrorX] 对应前置摄像头：CameraX 1.4.2 的 PreviewView 对前摄默认镜像显示
- * （1.5 才有 MirroringMode API），而关键点来自未镜像的分析图，所以画之前要在
- * 归一化空间翻 x。映射本身保持纯函数，真机上对齐后这个开关就不动了。
+ * [mirrorX] **只处理前置摄像头的显示镜像**（CameraX 1.4.2 的 PreviewView 对前摄默认镜像，
+ * 1.5 才有 MirroringMode API）：关键点来自未镜像的分析图，画之前要在归一化空间翻 x。
+ * 注意这与「sensor 旋转」是两回事——旋转由 [uprightDims] + ImageProcessingOptions 在
+ * 进模型前就换算掉，到这里坐标系已经是正立的；别再往 mirrorX 上挂旋转语义。
+ * 映射本身保持纯函数，真机上对齐后这个开关就不动了。
  */
 class CanvasMap(
     val canvasW: Float,

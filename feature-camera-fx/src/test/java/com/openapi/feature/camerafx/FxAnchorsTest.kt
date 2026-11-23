@@ -147,4 +147,20 @@ class FxAnchorsTest {
         val tilt = lineTiltDegrees(Point2d(0.5f, 0.9f), Point2d(0.501f, 0.1f), mirrorX = true)
         assertTrue(tilt > -90f && tilt <= 90f)
     }
+
+    // 旋转语义钉桩（上级会话要求）：渲染层拿到的必须是「正立空间」关键点——
+    // 正立脸的双眼 y 相同 → 倾角 ≈ 0；谁再喂 sensor 空间点（两眼 x 相同、y 差大半屏），
+    // 这条会算出 ~90° 直接红。真机缺陷（89.4°）就长这样。
+
+    @Test
+    fun `正立空间双眼水平 - 倾角约 0`() {
+        val tilt = lineTiltDegrees(Point2d(0.38f, 0.42f), Point2d(0.62f, 0.44f), mirrorX = true)
+        assertTrue("正立脸的双眼倾角应 <10°，实际 $tilt", kotlin.math.abs(tilt) < 10f)
+    }
+
+    @Test
+    fun `头歪 30 度 - 正立空间读数约 30`() {
+        val tilt = lineTiltDegrees(Point2d(0.35f, 0.40f), Point2d(0.65f, 0.40f + 0.3f * tan30), mirrorX = false)
+        assertEquals(30f, tilt, 0.5f)
+    }
 }
