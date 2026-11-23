@@ -1,8 +1,8 @@
 # Worker 收口与任务总图（2026-11-23）
 
-**主线：** `origin/weifu-refactor` → **`58a48481`**（含 TextureView 修、Screening text/sound、camera-fx、断线重试 Banner、dh wardrobe 文档证据等）。
+**主线：** `origin/weifu-refactor` → **`3d859c44`**（含抽屉留白、TextureView/Screening/camera-fx、断线重试 Banner、dh wardrobe 等）。夜间状态见 **`worker-status-20261123-night.md`**。
 
-**真机装机纪律：** 仅从 **`weifu-refactor` tip 现场 `assembleChatDebug`**，禁止复用旧 apk。当前 tip md5 示例：`a3c4a7f2296e0b41601ea1e1512ba88c`（`58a48481`）。
+**真机装机纪律：** 仅从 **`weifu-refactor` tip 现场 `assembleChatDebug`**，禁止复用旧 apk。
 
 **服务端 F16：** 104 **`2808748`**（touch gate 第四刀）保持，直至协调会话另有部署。
 
@@ -82,7 +82,7 @@
 
 ## 立即动作清单（协调人）
 
-1. **所有 Android worker**：pull **`58a48481`** 再 `assembleChatDebug` 装机。
+1. **所有 Android worker**：pull **`3d859c44`** 再 `assembleChatDebug` 装机。
 2. **MkoJY 教训**：ad92c627/5250715d 未同步 tip 会误判 F16——以 **HEAD md5** 为准。
 3. **开发优先排序（建议）**：  
    - P0：端 **LiveKit hello + 麦克风发布**（unblocks F16）  
@@ -96,6 +96,6 @@
 
 ## 推送状态（2026-11-23 晚间）
 
-- **weifu-refactor**：已与 origin 同步 **`58a48481`**（gifted-jepsen worktree 已对齐 tip）。
+- **weifu-refactor**：已与 origin 同步 **`3d859c44`**；**2026-11-23 夜** 已唤醒 17+ 子会话续跑。
 - 部分会话自报 merge 停在 **cfbb94b1 / 5250715d / 36435a7b**——重启前 **必须 pull**。
 - **companion-agent**：main **`2808748`** 由 tos 维护，Android 与 server attempt 须同窗口对齐。
