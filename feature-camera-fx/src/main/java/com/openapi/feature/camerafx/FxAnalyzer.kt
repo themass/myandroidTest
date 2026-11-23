@@ -69,6 +69,8 @@ class FxAnalyzer(
     private var face: FaceLandmarker? = null
     private var pose: PoseLandmarker? = null
     private var hand: HandLandmarker? = null
+    /** 手部模型加载或推理失败时跳过 hand，避免拖垮脸/姿态（vivo 上曾连续失败）。 */
+    private var handUnavailable = false
     private var disabled = false
     private var consecutiveErrors = 0
 
@@ -119,7 +121,20 @@ class FxAnalyzer(
             // 姿态比脸贵：每 poseEvery 帧跑一次，中间帧沿用上一次的骨架
             val runPose = seq % poseEvery == 0L
             val poseLandmarks = if (runPose) pose!!.detectForVideo(mp, ipOptions, tsMs).landmarks() else lastPoseLandmarks
-            val handLandmarks = if (runPose) hand!!.detectForVideo(mp, ipOptions, tsMs).landmarks() else lastHandLandmarks
+            val handLandmarks = when {
+                handUnavailable -> lastHandLandmarks
+                runPose && hand != null -> {
+                    try {
+                        hand!!.detectForVideo(mp, ipOptions, tsMs).landmarks()
+                    } catch (_: Throwable) {
+                        handUnavailable = true
+                        hand?.close()
+                        hand = null
+                        emptyList()
+                    }
+                }
+                else -> lastHandLandmarks
+            }
             val (w, h) = uprightCropDims(bmp.width, bmp.height, rotation)
             val fx = buildFrame(faceResult.faceLandmarks(), poseLandmarks, handLandmarks, w, h)
             lastPoseLandmarks = poseLandmarks
@@ -166,16 +181,20 @@ class FxAnalyzer(
                     .build(),
             )
         }
-        if (hand == null) {
-            val base = BaseOptions.builder().setModelAssetPath(MODEL_HAND).build()
-            hand = HandLandmarker.createFromOptions(
-                context,
-                HandLandmarker.HandLandmarkerOptions.builder()
-                    .setBaseOptions(base)
-                    .setRunningMode(RunningMode.VIDEO)
-                    .setNumHands(2)
-                    .build(),
-            )
+        if (hand == null && !handUnavailable) {
+            try {
+                val base = BaseOptions.builder().setModelAssetPath(MODEL_HAND).build()
+                hand = HandLandmarker.createFromOptions(
+                    context,
+                    HandLandmarker.HandLandmarkerOptions.builder()
+                        .setBaseOptions(base)
+                        .setRunningMode(RunningMode.VIDEO)
+                        .setNumHands(2)
+                        .build(),
+                )
+            } catch (_: Throwable) {
+                handUnavailable = true
+            }
         }
     }
 

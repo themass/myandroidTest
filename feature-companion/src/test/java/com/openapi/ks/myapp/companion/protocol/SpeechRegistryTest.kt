@@ -92,6 +92,17 @@ class SpeechRegistryTest {
     }
 
     @Test
+    fun `onAudioFrame 低于能量门限不标 t0——静音预缓冲不得假 PLAYING 触发 barge_in`() {
+        val r = registry()
+        r.onSeg(seg("sp_1", idx = 0))
+        assertNull(r.activeSpeechId())
+        assertFalse(r.onAudioFrame(now = t0, captureTs = 1L, rms = 0.0, minRms = 0.02))
+        assertNull(r.activeSpeechId())
+        assertTrue(r.onAudioFrame(now = t0, captureTs = 2L, rms = 0.05, minRms = 0.02))
+        assertEquals("sp_1", r.activeSpeechId())
+    }
+
+    @Test
     fun `playedMs 在 t0 标定前为 0，标定后按单调钟差值`() {
         val r = registry()
         r.onSeg(seg("sp_1", idx = 0))

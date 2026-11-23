@@ -171,9 +171,18 @@ class SpeechRegistry<P>(
      * §9.4 的公式是 `t0 = now - (nowCapture - firstCapture)`，`firstCapture` 必须是
      * **这句语音**的第一帧。sink 只告诉我们这一帧的采集时刻，所以第一帧得自己记。
      * 记住的时机取"该时间线第一次出现在待标定位置"，这也正是它的首帧。
+     *
+     * [minRms] 与 [FirstAudioDetector] 同阈：LiveKit 会先推引导静音，把首帧当 t0 会进入假
+     * PLAYING，用户一开口就 barge_in → 服务端 TTS `frames=0`（190d782a / 5313185b）。
      */
     @Synchronized
-    fun onAudioFrame(now: Long, captureTs: Long?): Boolean {
+    fun onAudioFrame(
+        now: Long,
+        captureTs: Long?,
+        rms: Double = Double.MAX_VALUE,
+        minRms: Double = 0.0,
+    ): Boolean {
+        if (rms <= minRms) return false
         val id = timebasePendingId()
         if (id == null) {
             armedId = null

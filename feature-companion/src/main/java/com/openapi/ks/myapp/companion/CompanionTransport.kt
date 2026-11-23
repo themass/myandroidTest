@@ -197,6 +197,13 @@ interface CompanionTransport {
      * 统一到 `cmp.ctl`，届时再按那个契约新增方法，而不是复活这个名字。
      */
 
+    /**
+     * 最近一次断线/建连失败的可读原因。默认恒为 null：替身没有真实房间可掉线。
+     * 界面在 [TransportConnection.DISCONNECTED] 时读它，与上传失败等 [CompanionUiState.error] 分开。
+     */
+    val lastConnectionError: StateFlow<String?>
+        get() = defaultLastConnectionError
+
     val events: Flow<CompanionEvent>
 
     suspend fun disconnect()
@@ -205,6 +212,9 @@ interface CompanionTransport {
 /** [CompanionTransport.connection] 的默认值：没有建连过程就等于一直连着。 */
 private val defaultConnected: StateFlow<TransportConnection> =
     MutableStateFlow(TransportConnection.CONNECTED).asStateFlow()
+
+private val defaultLastConnectionError: StateFlow<String?> =
+    MutableStateFlow<String?>(null).asStateFlow()
 
 /** [CompanionTransport.mouthLevel] 的默认值：没有音频轨就等于一直闭着嘴。 */
 private val silentMouth: StateFlow<Float> = MutableStateFlow(0f).asStateFlow()

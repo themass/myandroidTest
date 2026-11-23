@@ -45,10 +45,12 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.concurrent.Executors
@@ -152,7 +154,8 @@ fun CameraFxGrantedContent(
 
     val frame by frameFlow.collectAsState()
     val fatal by fatalFlow.collectAsState()
-    val stickerComposition by rememberLottieComposition(LottieCompositionSpec.Asset(stickerAssetPath))
+    val stickerCompositionResult = rememberLottieComposition(LottieCompositionSpec.Asset(stickerAssetPath))
+    val stickerComposition = stickerCompositionResult.value
 
     Box(
         modifier
@@ -179,43 +182,79 @@ fun CameraFxGrantedContent(
 
         val fx = frame
         if (fx != null && drawWireframe) {
-            Canvas(Modifier.fillMaxSize()) {
+            Canvas(
+                Modifier
+                    .fillMaxSize()
+                    .zIndex(1f),
+            ) {
                 drawFxWireframe(fx)
             }
         }
 
-        if (drawStickers) {
-            val comp = stickerComposition
-            val frameForSticker = frame
+        if (drawStickers && frame != null && layoutW > 0 && layoutH > 0) {
+            val frameForSticker = frame!!
+            val map = CanvasMap(
+                canvasW = layoutW.toFloat(),
+                canvasH = layoutH.toFloat(),
+                imgW = frameForSticker.imgW,
+                imgH = frameForSticker.imgH,
+                fill = true,
+                mirrorX = true,
+            )
             val density = LocalDensity.current
-            if (comp != null && frameForSticker != null && layoutW > 0 && layoutH > 0) {
-                val map = CanvasMap(
-                    canvasW = layoutW.toFloat(),
-                    canvasH = layoutH.toFloat(),
-                    imgW = frameForSticker.imgW,
-                    imgH = frameForSticker.imgH,
-                    fill = true,
-                    mirrorX = true,
+            val comp = stickerComposition
+            key(stickerAssetPath, comp != null) {
+                val progress by animateLottieCompositionAsState(
+                    composition = comp,
+                    iterations = Int.MAX_VALUE,
+                    isPlaying = comp != null && drawStickers,
                 )
                 frameForSticker.faces.forEach { face ->
                     val head = face.headTop ?: return@forEach
                     val fw = face.bounds?.width ?: return@forEach
-                    val place = stickerAtHeadTop(map, head, fw, face.tiltDeg)
+                    val place = stickerAtHeadTop(
+                        map,
+                        head,
+                        fw,
+                        face.tiltDeg,
+                        widthFractionOfFace = 1.05f,
+                    )
                     val half = place.sizePx / 2f
                     val stickerSize = with(density) { place.sizePx.toDp() }
-                    LottieAnimation(
-                        composition = comp,
-                        iterations = Int.MAX_VALUE,
-                        modifier = Modifier
-                            .offset {
-                                IntOffset(
-                                    (place.centerX - half).roundToInt(),
-                                    (place.centerY - half).roundToInt(),
-                                )
-                            }
-                            .size(stickerSize)
-                            .rotate(place.rotationDeg),
-                    )
+                    if (comp != null) {
+                        LottieAnimation(
+                            composition = comp,
+                            progress = { progress },
+                            modifier = Modifier
+                                .zIndex(2f)
+                                .offset {
+                                    IntOffset(
+                                        (place.centerX - half).roundToInt(),
+                                        (place.centerY - half).roundToInt(),
+                                    )
+                                }
+                                .size(stickerSize)
+                                .rotate(place.rotationDeg),
+                        )
+                    } else {
+                        Canvas(
+                            Modifier
+                                .zIndex(2f)
+                                .offset {
+                                    IntOffset(
+                                        (place.centerX - half).roundToInt(),
+                                        (place.centerY - half).roundToInt(),
+                                    )
+                                }
+                                .size(stickerSize),
+                        ) {
+                            drawCircle(
+                                color = Color(0xCCFF4081),
+                                radius = size.minDimension / 2f,
+                                style = Stroke(width = 4f),
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -224,7 +263,8 @@ fun CameraFxGrantedContent(
             Column(
                 Modifier
                     .align(Alignment.TopStart)
-                    .padding(12.dp)
+                    .padding(start = 12.dp, top = 56.dp, end = 12.dp)
+                    .zIndex(2f)
                     .background(Color(0x99000000))
                     .padding(8.dp),
             ) {
@@ -246,8 +286,28 @@ fun CameraFxGrantedContent(
                     fontSize = 13.sp,
                 )
                 Text("本机处理 · 不上传 · 不落盘", color = Color(0xFF9FFF9F), fontSize = 11.sp)
+                Text(
+                    "lab-b3 · 贴纸 ${if (stickerComposition != null) "OK" else "加载…"} · $stickerAssetPath" +
+                        " · 线框=${if (drawWireframe) "开" else "关"} 贴=${if (drawStickers) "开" else "关"}",
+                    color = Color(0xFFB0BEC5),
+                    fontSize = 10.sp,
+                )
                 fatal?.let {
                     Text(it, color = Color(0xFFFF8080), fontSize = 12.sp)
+                }
+                if (f != null && faceN == 0) {
+                    Text(
+                        "未识别人脸：正对镜头、光线充足；线框/贴纸需脸>0",
+                        color = Color(0xFFFFCC80),
+                        fontSize = 11.sp,
+                    )
+                }
+                if (f != null && faceN > 0 && handN == 0) {
+                    Text(
+                        "手部：把手放进画面；手势每 2 帧更新",
+                        color = Color(0xFFFFCC80),
+                        fontSize = 11.sp,
+                    )
                 }
             }
         }

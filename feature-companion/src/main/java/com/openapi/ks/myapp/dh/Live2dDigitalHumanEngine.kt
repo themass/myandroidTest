@@ -23,17 +23,21 @@ import com.openapi.ks.myapp.avatar.TouchResult
  * 的根治），再经 `nativeApplyExpression` 交给 native 交叉淡入淡出。表情名对应的 exp3
  * 资产由 lab 清单注册（scripts/dh-lab/live2d-lab-assets/，seed-assets.sh live2d 推送）。
  *
- * 多形象（用户 2026-11-23「demo里有好几个形象」）：[modelDirName] 选 ATRI / Amadeus /
+ * 多形象（用户 2026-11-23「demo里有好几个形象」）：[activeModelDir] 选 ATRI / Amadeus /
  * Yuuka。后两个没有上游已验证的换装参数（盘点：Yuuka 零 exp3、Amadeus 只有 logo 开关），
  * 只有跨模型语义一致的 ParamCheek——所以它们走 [Live2dTouchReaction.stepFaceOnly]
  * 最小层（点头 正常↔脸红），换装托盘只给脸轴；其余区域回 Ignored，不做假轴。
  */
 class Live2dDigitalHumanEngine(
-    private val modelDirName: String = Live2dRuntime.DEFAULT_MODEL_DIR,
-    private val modelJsonName: String = "$modelDirName.model3.json",
+    private val initialModelDirName: String = Live2dRuntime.DEFAULT_MODEL_DIR,
 ) : DigitalHumanEngine {
 
     override val id: DhEngineId = DhEngineId.LIVE2D
+
+    /** 热换形象后更新；构造时的 [initialModelDirName] 只是首帧默认。 */
+    private var activeModelDir: String = initialModelDirName
+
+    private val modelJsonName get() = "$activeModelDir.model3.json"
 
     override val capabilities: Set<AvatarCapability> = setOf(
         AvatarCapability.MOUTH,
@@ -44,7 +48,7 @@ class Live2dDigitalHumanEngine(
     )
 
     /** 只有 ATRI 有全套已验证换装资产；其余模型走最小脸轴（见类注释）。 */
-    private val fullWardrobe: Boolean get() = modelDirName == "ATRI"
+    private val fullWardrobe: Boolean get() = activeModelDir == "ATRI"
 
     private var runtime: Live2dRuntime? = null
     private var viewCreated = false
@@ -133,7 +137,7 @@ class Live2dDigitalHumanEngine(
         runtime?.takeIf { viewCreated }?.setExpression(expression)
         Log.i(
             TAG,
-            "tap model=$modelDirName region=$region top=${reaction.top} shoes=${reaction.shoes} " +
+            "tap model=$activeModelDir region=$region top=${reaction.top} shoes=${reaction.shoes} " +
                 "held=${reaction.held} face=${reaction.face} expression=$expression",
         )
         return TouchResult.Handled(region)
@@ -157,10 +161,25 @@ class Live2dDigitalHumanEngine(
             Live2dTouchReaction.expressionForFaceOnly(reaction)
         }
         runtime?.takeIf { viewCreated }?.setExpression(expression)
-        Log.i(TAG, "wardrobe model=$modelDirName axis=$axis expression=$expression")
+        Log.i(TAG, "wardrobe model=$activeModelDir axis=$axis expression=$expression")
     }
 
-    override fun modelLabel(): String = modelDirName
+    override fun modelLabel(): String = activeModelDir
+
+    /** 同一块 GL View 热换形象目录；素材未就绪时 false。 */
+    fun switchToModel(context: Context, targetDirName: String): Boolean {
+        if (released || !viewCreated) return false
+        if (targetDirName == activeModelDir) return true
+        val probe = Live2dRuntime(context, DhLabBootstrap.assetStore(context), targetDirName)
+        val ok = probe.availability().available
+        probe.release()
+        if (!ok) return false
+        runtime(context).changeModel(targetDirName, "$targetDirName.model3.json")
+        activeModelDir = targetDirName
+        reaction = live2dReactionAfterModelSwitch(targetDirName)
+        Log.i(TAG, "hotswap model->$targetDirName")
+        return true
+    }
 
     override fun release() {
         if (released) return
@@ -196,7 +215,7 @@ class Live2dDigitalHumanEngine(
         runtime ?: Live2dRuntime(
             context,
             DhLabBootstrap.assetStore(context),
-            modelDirName,
+            activeModelDir,
             modelJsonName,
         ).also { runtime = it }
 

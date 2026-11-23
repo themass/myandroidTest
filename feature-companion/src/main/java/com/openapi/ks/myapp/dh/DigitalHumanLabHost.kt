@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.content.Intent
 import android.content.IntentFilter
+import android.opengl.GLSurfaceView
 import android.os.Build
 import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
@@ -146,7 +147,16 @@ fun DigitalHumanLabHost(
     // 双指缩放/拖动：Live2D 人物太小看不到唇形，所有引擎统一支持 1..4x 捏合放大，
     // 放大后单指拖动，1x 时单指事件原样透传给引擎（点击触发形象动画、Live2D 视线）。
     val stage = rememberAvatarStageTransform()
-    LaunchedEffect(engine) { stage.reset() }
+    LaunchedEffect(engine) {
+        if (engine.id == DhEngineId.LIVE2D) {
+            // 真机「人太小看不清唇形」：Live2D 默认略放大，其它引擎仍 1x。
+            stage.scale = 1.22f
+            stage.offsetX = 0f
+            stage.offsetY = 0f
+        } else {
+            stage.reset()
+        }
+    }
 
     // 点她一下的本地脉冲：按下缩 2% 抬手弹回。减弱动态时缩放归零，只剩震动。
     val reducedMotion = remember(context) {
@@ -257,15 +267,22 @@ fun DigitalHumanLabHost(
     LaunchedEffect(live2dModel, engine) {
         val current = bridge.current()
         if (current.id != DhEngineId.LIVE2D) return@LaunchedEffect
-        val currentModel = (current as? Live2dDigitalHumanEngine)?.modelLabel() ?: return@LaunchedEffect
+        val live2d = current as? Live2dDigitalHumanEngine ?: return@LaunchedEffect
+        val currentModel = live2d.modelLabel()
         if (live2dModel == currentModel) return@LaunchedEffect
-        val candidate = Live2dDigitalHumanEngine(modelDirName = live2dModel)
+        swapping = true
+        if (live2d.switchToModel(context, live2dModel)) {
+            swapping = false
+            onEngineChanged?.invoke(bridge.current())
+            return@LaunchedEffect
+        }
+        swapping = false
+        val candidate = Live2dDigitalHumanEngine(initialModelDirName = live2dModel)
         if (!candidate.availability(context).available) {
             candidate.release()
             return@LaunchedEffect
         }
         if (bridge.current() !== current) {
-            // 探测期间引擎被切走（例如切到 Duix）：这个候选不能顶替别的引擎。
             candidate.release()
             return@LaunchedEffect
         }
@@ -362,6 +379,11 @@ fun DigitalHumanLabHost(
             else -> key(e) {
                 val view = remember(e) { e.createView(context) }
                 if (view != null) {
+                    // Compose AndroidView 不会自动调 GLSurfaceView.onResume()——不设则 GL 线程不跑，只有黑底无模型。
+                    DisposableEffect(view) {
+                        (view as? GLSurfaceView)?.onResume()
+                        onDispose { (view as? GLSurfaceView)?.onPause() }
+                    }
                     // 变换直接写 View 自身的 scale/translation——Compose 的 graphicsLayer
                     // 到不了 AndroidView 里的 View。update 里读 stage 的快照状态，state
                     // 一变就重执行。手势（捏合/拖图/轻触/长按）全在 avatarStageTransform
@@ -400,10 +422,9 @@ fun DigitalHumanLabHost(
                             v.scaleY = stage.scale * pulse
                             v.translationX = stage.offsetX
                             v.translationY = stage.offsetY
-                            // Live2D 视口常为 TextureView：Android 禁止 setBackgroundColor，主题
-                            // 已由 LaunchedEffect → engine.setBackground(native) 推进，此处勿再碰 View。
-                            if (e.id != DhEngineId.LIVE2D) {
-                                theme?.let {
+                            // TextureView（含 Live2D）禁止 setBackgroundColor；用 canApplyThemeBackgroundToView 统一门禁。
+                            theme?.let {
+                                if (canApplyThemeBackgroundToView(v)) {
                                     val argb = stageClearColorArgb(it.topArgb, it.midArgb, it.bottomArgb)
                                     v.setBackgroundColor(argb)
                                 }
@@ -494,9 +515,14 @@ fun DigitalHumanLabHost(
         }
 
         if (swapping) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            // 角标加载：全屏 spinner 会把数字人整块盖住，误认「人不见了」。
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 52.dp)
+                    .size(28.dp),
+                strokeWidth = 2.5.dp,
+            )
         }
 
         // 请求了 native 引擎却落在基础形象：说明原因，别只剩一个「形象准备中」。
@@ -525,7 +551,7 @@ fun DigitalHumanLabHost(
  */
 private fun createLabEngine(context: android.content.Context, id: DhEngineId, live2dModel: String): DigitalHumanEngine =
     if (id == DhEngineId.LIVE2D) {
-        Live2dDigitalHumanEngine(modelDirName = Live2dModels.sanitize(live2dModel))
+        Live2dDigitalHumanEngine(initialModelDirName = Live2dModels.sanitize(live2dModel))
     } else {
         DhEngineRegistry.create(context, id)
     }

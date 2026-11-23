@@ -333,16 +333,14 @@ class ScreeningFeedTest {
 
     @Test
     fun `sound 和 text 交回原分发，不进视频内页`() {
-        // 旧路由：sound:// → SoundChannleActivity（/sound/channel.json→/sound/items.json+音频播放器）、
-        // text:// → TextChannleActivity（/text/*）。放映场没有对应页；以前这两种被当视频频道
-        // 发 items.json，点进去两头落空。交回 WEB 分支（openWeb 发 ConfigActionEvent，原分发接住）。
-        assertTrue(isLegacyOnlyAction("sound://config?channel=nvyou"))
-        assertTrue(isLegacyOnlyAction("text://config?channel=小说"))
+        // sound:// 仍交回 SoundChannleActivity；text:// 已进 FeedRoute.TEXT（ScreeningText）。
+        assertFalse(isLegacyOnlyAction("sound://config?channel=nvyou"))
+        assertFalse(isLegacyOnlyAction("text://config?channel=小说"))
         assertFalse(isLegacyOnlyAction("video://config?channel=nvyou"))
         val sound = remoteEntry(7L, 0, "好听的音乐", null, null, 1f, "sound://config?channel=nvyou", false, dataType = 5)!!
-        assertEquals(FeedRoute.WEB, routeOf(sound))
+        assertEquals(FeedRoute.SOUND, routeOf(sound))
         val text = remoteEntry(11L, 0, "好看的文字", null, null, 1f, "text://config?channel=小说", false, dataType = 5)!!
-        assertEquals(FeedRoute.WEB, routeOf(text))
+        assertEquals(FeedRoute.TEXT, routeOf(text))
     }
 
     @Test
@@ -364,3 +362,15 @@ class ScreeningFeedTest {
         assertEquals(FeedRoute.ALBUM, routeOf(img))
     }
 }
+
+    @Test
+    fun `text config 走 TEXT 路由`() {
+        assertTrue(isTextConfigAction("text://config?channel=小说"))
+        assertFalse(isTextConfigAction("text://play?id=1"))
+    }
+
+    @Test
+    fun `sound config 走 SOUND 路由`() {
+        assertTrue(isSoundConfigAction("sound://config?channel=nvyou"))
+        assertFalse(isSoundConfigAction("sound://play?id=1"))
+    }
