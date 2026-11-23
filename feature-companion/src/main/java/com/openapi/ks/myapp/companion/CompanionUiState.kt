@@ -104,6 +104,8 @@ data class CompanionUiState(
     val error: String? = null,
     /** 房间断线原因，与 [error] 里的上传/动作失败分开，通话页状态条读它。 */
     val connectionError: String? = null,
+    /** 建会话被服务端 401 拒绝：通话页显示登录专用提示与登录入口，不显示普通重试。 */
+    val callLoginRequired: Boolean = false,
     /** 有主动来电时非空：界面切到来电页，而不是插一条消息。 */
     val incomingCall: ProactiveKind? = null,
     /** 形象区是否展开。默认收起——那个占屏 42% 的大框用户根本不知道是什么。 */
