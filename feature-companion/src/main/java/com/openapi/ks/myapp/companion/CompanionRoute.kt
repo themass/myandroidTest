@@ -696,8 +696,20 @@ internal fun saveWaveOptions(context: Context, options: WaveOptions) {
 }
 
 object CompanionConfig {
+    /**
+     * 本地真机验收用的地址覆盖（runbook `local-livekit-device-runbook.md` §1，Phase 2 D4 前置）。
+     *
+     * **只有 debug 包能填上它**：唯一的写入方是 debug 源集里的 `DevCompanionServer`
+     * （`app/src/debug/`，release 的源码与清单里都没有这个类），它读 app 私有 prefs 的
+     * `companion_base_url` 键。release 下这个字段恒为 null，`baseUrl` 与改动前逐字节相同。
+     *
+     * 刻意**不动 `Constants.BASE_IP`**：那只把陪伴 API 指本地，频道/放映厅等其它功能仍走生产，
+     * 不互相踩。APK 里因此不含任何环境地址——指哪套全在装机后用 adb 写 prefs。
+     */
+    var debugOverride: String? = null
+
     /** 服务端与主站同一网关，路径由 HttpCompanionApi 拼上 /companion/... 前缀。 */
-    val baseUrl: String get() = "https://${Constants.BASE_IP}"
+    val baseUrl: String get() = debugOverride ?: "https://${Constants.BASE_IP}"
 }
 
 /** 默认角色。角色列表选过之后以列表为准，这里只保证第一次进来有一个角色。 */
