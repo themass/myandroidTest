@@ -5,8 +5,9 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.opengl.GLSurfaceView
 import android.util.Log
+import javax.microedition.khronos.egl.EGLConfig
+import javax.microedition.khronos.opengles.GL10
 import android.view.View
-import com.openapi.ks.dh.live2d.GLRenderer
 import com.openapi.ks.dh.live2d.JniBridgeJava
 import java.io.File
 
@@ -117,16 +118,33 @@ class Live2dRuntime internal constructor(
             JniBridgeJava.SetActivityInstance(activity)
         }
         JniBridgeJava.SetContext(appContext ?: host.applicationContext)
+        val modelPath = File(root, modelDirName).absolutePath + File.separator
+        val json = modelJsonName
+        var modelLoadedOnGl = false
         val view = GLSurfaceView(host).apply {
             setEGLContextClientVersion(2)
-            setRenderer(GLRenderer())
+            setRenderer(object : GLSurfaceView.Renderer {
+                override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
+                    JniBridgeJava.nativeOnSurfaceCreated()
+                    if (!modelLoadedOnGl) {
+                        modelLoadedOnGl = true
+                        JniBridgeJava.nativeProjectChangeTo(modelPath, json)
+                        JniBridgeJava.nativeAutoBlinkEyes(true)
+                        Log.i(TAG, "model load on GL surface: $json")
+                    }
+                }
+
+                override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
+                    JniBridgeJava.nativeOnSurfaceChanged(width, height)
+                }
+
+                override fun onDrawFrame(gl: GL10) {
+                    JniBridgeJava.nativeOnDrawFrame()
+                }
+            })
             renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
         }
         JniBridgeJava.nativeOnStart()
-        // Absolute path so LoadFile uses FileInputStream, not assets.
-        val modelPath = File(root, modelDirName).absolutePath + File.separator
-        JniBridgeJava.nativeProjectChangeTo(modelPath, modelJsonName)
-        JniBridgeJava.nativeAutoBlinkEyes(true)
         // view 还没挂上就允许 setExpression 等调用（先建 view 后触发的顺序在通话页成立），
         // 此刻起所有场景变更走 GL 队列；queueEvent 在 surface 未创建时也会排队给 GL 线程。
         dispatcher = JniDispatcher { block -> view.queueEvent(block) }
@@ -178,6 +196,25 @@ class Live2dRuntime internal constructor(
         }
     }
 
+    /**
+     * 同一块 GLSurfaceView 上换模型目录（不换 View、不拆 Cubism 全流程）。
+     * 通话页切 ATRI/Amadeus/Yuuka 走这条路，避免 replaceWith 整引擎时的黑屏闪一下。
+     */
+    fun changeModel(modelDirName: String, modelJsonName: String = "$modelDirName.model3.json") {
+        if (!started || released || modelDirName.isEmpty()) return
+        val root = env.cacheRoot() ?: return
+        val modelPath = File(root, modelDirName).absolutePath + File.separator
+        val d = dispatcher ?: return
+        runCatching {
+            d.post {
+                runCatching {
+                    JniBridgeJava.nativeProjectChangeTo(modelPath, modelJsonName)
+                    JniBridgeJava.nativeAutoBlinkEyes(true)
+                }
+            }
+        }
+    }
+
     /** Applies a named expression (e.g. "Angry", "Smile") if the model defines it. */
     fun setExpression(name: String) {
         if (!started || released || name.isEmpty()) return
@@ -199,7 +236,12 @@ class Live2dRuntime internal constructor(
         if (!started || released) return
         val d = dispatcher ?: return
         runCatching {
-            d.post { runCatching { JniBridgeJava.nativeSetBackgroundColor(r, g, b) } }
+            d.post {
+                runCatching { JniBridgeJava.nativeSetBackgroundColor(r, g, b) }
+                    .onFailure { t ->
+                        Log.w(TAG, "nativeSetBackgroundColor failed — 舞台会保持黑底（检查 fork .so）", t)
+                    }
+            }
         }
     }
 
