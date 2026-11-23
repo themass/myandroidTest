@@ -376,6 +376,13 @@ fun CompanionCallScreen(
     engineMenu: List<DhEngineMenuRow>? = null,
     selectedEngine: com.openapi.ks.myapp.dh.DhEngineId? = null,
     onEngineMenuClick: ((DhEngineMenuRow) -> Unit)? = null,
+    /** 右侧收纳盒：Live2D 换装轴（与 [com.openapi.ks.myapp.dh.Live2dTouchReaction.wardrobeRows] 同源）。 */
+    wardrobeRows: List<com.openapi.ks.myapp.dh.Live2dWardrobeRow> = emptyList(),
+    wardrobeRefreshTick: Int = 0,
+    onWardrobeAxisClick: ((com.openapi.ks.myapp.dh.Live2dWardrobeAxis) -> Unit)? = null,
+    live2dModelLabel: String? = null,
+    onLive2dModelSwitch: (() -> Unit)? = null,
+    live2dModelSwitchHint: String? = null,
 ) {
     val reducedMotion = rememberReducedMotion()
 
@@ -421,6 +428,7 @@ fun CompanionCallScreen(
     var captionsVisible by rememberSaveable { mutableStateOf(true) }
     // 背景调色弹窗：从收纳盒的「背景」行点开。
     var themePickerOpen by rememberSaveable { mutableStateOf(false) }
+    val wardrobeRowsForDrawer = remember(wardrobeRows, wardrobeRefreshTick) { wardrobeRows }
 
     // 主角模式：形象铺满整屏做最底层，顶栏与操作条以浮层压在上面（各带渐变遮罩）；
     // 其余布局保持原有「顶栏 / 舞台 / 操作条」纵向排布。摄像头开着时仍走视频舞台。
@@ -528,15 +536,21 @@ fun CompanionCallScreen(
                         captionsVisible = captionsVisible,
                         theme = theme,
                         voiceLabel = callVoiceChipText(state.voiceLabel),
+                        wardrobeRows = wardrobeRowsForDrawer,
+                        modelLabel = live2dModelLabel,
+                        modelSwitchEnabled = onLive2dModelSwitch != null,
+                        modelSwitchHint = live2dModelSwitchHint,
                     ),
-                    onRowClick = { action ->
-                        when (action) {
+                    onRowClick = { row ->
+                        when (row.action) {
                             DrawerAction.LISTEN_USER -> onPreviewAudio?.invoke("user")
                             DrawerAction.LISTEN_AI -> onPreviewAudio?.invoke("ai")
                             DrawerAction.TOGGLE_CAPTIONS -> captionsVisible = !captionsVisible
                             DrawerAction.THEME -> themePickerOpen = true
                             // 只读展示行：服务端换音色接口还没开，点了不响应。
                             DrawerAction.VOICE -> Unit
+                            DrawerAction.WARDROBE_AXIS -> row.wardrobeAxis?.let { onWardrobeAxisClick?.invoke(it) }
+                            DrawerAction.SWITCH_MODEL -> onLive2dModelSwitch?.invoke()
                         }
                     },
                     modifier = Modifier.align(Alignment.CenterEnd),

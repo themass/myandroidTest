@@ -537,6 +537,28 @@ fun CompanionRoute(
             characterHero = callStage != null,
             engineMenu = engineMenu,
             selectedEngine = callStage,
+            wardrobeRows = stageEngine?.wardrobeRows().orEmpty(),
+            wardrobeRefreshTick = wardrobeTick,
+            onWardrobeAxisClick = if (callStage != null) {
+                { axis ->
+                    stageEngine?.advanceWardrobe(axis)
+                    wardrobeTick++
+                }
+            } else null,
+            live2dModelLabel = stageEngine?.modelLabel(),
+            onLive2dModelSwitch = if (callStage != null) {
+                val present = com.openapi.ks.myapp.dh.live2dPresentModels(context)
+                val model = stageEngine?.modelLabel()
+                if (present.size > 1 && model != null) {
+                    {
+                        val next = com.openapi.ks.myapp.dh.Live2dModels.next(model, present)
+                        live2dModel = next
+                        dhPrefs.live2dModel = next
+                        wardrobeTick++
+                    }
+                } else null
+            } else null,
+            live2dModelSwitchHint = "只推了这一个形象",
             onEngineMenuClick = { row ->
                 when (engineGate.actionFor(row)) {
                     EngineClickAction.UNAVAILABLE_REASON ->
@@ -611,7 +633,7 @@ fun CompanionRoute(
                             // 点她一下：本地立刻有反馈（舞台脉冲），区域上报给 agent 决定回不回。
                             onTapped = chatViewModel::onAvatarTapped,
                             // 长按她：动作托盘弹出；选了可点动作 = 把文案当用户的话发出去。
-                            onLongPressed = { actionTrayOpen = true },
+                            onLongPressed = { actionTrayOpen = true }, // 托盘仅保留聊天类动作；换装在收纳盒
                             // 测试语音 rig 走生产注入路径：PCM 从远端音频轨回调共用的
                             // 下游入口进 transport，下游电平→嘴型与真通话完全同路。
                             audioInjector = chatViewModel::injectLabAudioPcm16k,
@@ -634,9 +656,6 @@ fun CompanionRoute(
                         )
                         }
                         if (actionTrayOpen) {
-                            val wardrobe = stageEngine?.wardrobeRows().orEmpty()
-                            val model = stageEngine?.modelLabel()
-                            val present = com.openapi.ks.myapp.dh.live2dPresentModels(context)
                             AvatarActionTray(
                                 actions = avatarActions(),
                                 onActionClick = { action ->
@@ -647,23 +666,6 @@ fun CompanionRoute(
                                     actionTrayOpen = false
                                 },
                                 onDismiss = { actionTrayOpen = false },
-                                // 换装行：点一行推进一根轴、托盘不关——四轴循环换着看。
-                                wardrobeRows = wardrobe,
-                                onWardrobeClick = { axis ->
-                                    stageEngine?.advanceWardrobe(axis)
-                                    wardrobeTick++
-                                },
-                                modelLabel = model,
-                                onModelSwitch = if (present.size > 1 && model != null) {
-                                    {
-                                        val next = com.openapi.ks.myapp.dh.Live2dModels.next(model, present)
-                                        live2dModel = next
-                                        dhPrefs.live2dModel = next
-                                        wardrobeTick++
-                                    }
-                                } else null,
-                                modelSwitchHint = "只推了这一个形象",
-                                refreshTick = wardrobeTick,
                             )
                         }
                         }

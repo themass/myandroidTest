@@ -12,6 +12,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,11 +28,27 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.openapi.ks.myapp.dh.Live2dWardrobeAxis
+import com.openapi.ks.myapp.dh.Live2dWardrobeRow
 
 /** 收纳盒里一行的动作。 */
-internal enum class DrawerAction { LISTEN_USER, LISTEN_AI, TOGGLE_CAPTIONS, THEME, VOICE }
+internal enum class DrawerAction {
+    LISTEN_USER, LISTEN_AI, TOGGLE_CAPTIONS, THEME, VOICE,
+    /** Live2D 换装轴（点一下推进到下一套）。 */
+    WARDROBE_AXIS,
+    /** 在同一引擎内切换已推送的 Live2D 模型目录。 */
+    SWITCH_MODEL,
+}
 
-internal data class DrawerRow(val action: DrawerAction, val label: String, val active: Boolean)
+internal data class DrawerRow(
+    val action: DrawerAction,
+    val label: String,
+    val active: Boolean,
+    /** [DrawerAction.WARDROBE_AXIS] 时指向哪根轴。 */
+    val wardrobeAxis: Live2dWardrobeAxis? = null,
+    /** pending / 只读行：点了不响应，但仍要看见原因。 */
+    val enabled: Boolean = true,
+)
 
 /**
  * 收纳盒里有哪些行（纯函数，JVM 测试钉住）。
@@ -45,7 +63,28 @@ internal fun heroDrawerRows(
     captionsVisible: Boolean,
     theme: CallTheme,
     voiceLabel: String? = null,
+    wardrobeRows: List<Live2dWardrobeRow> = emptyList(),
+    modelLabel: String? = null,
+    modelSwitchEnabled: Boolean = false,
+    modelSwitchHint: String? = null,
 ): List<DrawerRow> = buildList {
+    modelLabel?.let { label ->
+        val can = modelSwitchEnabled
+        val text = if (can) "换形象 · $label →" else "换形象 · $label · ${modelSwitchHint ?: "只有一个可用"}"
+        add(DrawerRow(DrawerAction.SWITCH_MODEL, text, active = can, enabled = can))
+    }
+    wardrobeRows.forEach { row ->
+        val text = if (row.enabled) "${row.label} · ${row.value}" else "${row.label} · ${row.disabledReason}"
+        add(
+            DrawerRow(
+                DrawerAction.WARDROBE_AXIS,
+                text,
+                active = row.enabled,
+                wardrobeAxis = row.axis,
+                enabled = row.enabled,
+            ),
+        )
+    }
     if (previewAvailable) {
         add(DrawerRow(DrawerAction.LISTEN_USER, if (previewSpeaker == "user") "■ 停止用户试听" else "▶ 用户试听", previewSpeaker == "user"))
         add(DrawerRow(DrawerAction.LISTEN_AI, if (previewSpeaker == "ai") "■ 停止 AI 试听" else "▶ AI 试听", previewSpeaker == "ai"))
@@ -61,7 +100,7 @@ internal fun heroDrawerRows(
     val voice = voiceLabel?.trim()?.takeIf { it.isNotEmpty() }
     if (voice != null) {
         // active=false：当前是只读展示行（点不响应），将来接口开了再变可点。
-        add(DrawerRow(DrawerAction.VOICE, "声音 · $voice", active = false))
+        add(DrawerRow(DrawerAction.VOICE, "声音 · $voice", active = false, enabled = false))
     }
 }
 
@@ -74,7 +113,7 @@ internal fun HeroSideDrawer(
     expanded: Boolean,
     onToggleExpanded: () -> Unit,
     rows: List<DrawerRow>,
-    onRowClick: (DrawerAction) -> Unit,
+    onRowClick: (DrawerRow) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val panelShape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)
@@ -102,6 +141,8 @@ internal fun HeroSideDrawer(
         ) {
             Column(
                 modifier = Modifier
+                    .height(IntrinsicHeightDp)
+                    .verticalScroll(rememberScrollState())
                     .background(PANEL_BG, panelShape)
                     .border(1.dp, PANEL_BORDER, panelShape)
                     .padding(horizontal = 10.dp, vertical = 10.dp),
@@ -111,14 +152,18 @@ internal fun HeroSideDrawer(
                 rows.forEach { row ->
                     Text(
                         text = row.label,
-                        color = if (row.active) TEXT_PRIMARY else TEXT_SECONDARY,
+                        color = when {
+                            !row.enabled -> TEXT_DISABLED
+                            row.active -> TEXT_PRIMARY
+                            else -> TEXT_SECONDARY
+                        },
                         fontSize = 13.sp,
                         modifier = Modifier
                             .background(
                                 if (row.active) ROW_ACTIVE_BG else Color.Transparent,
                                 RoundedCornerShape(8.dp),
                             )
-                            .clickable { onRowClick(row.action) }
+                            .clickable(enabled = row.enabled) { onRowClick(row) }
                             .padding(horizontal = 10.dp, vertical = 8.dp),
                     )
                 }
@@ -127,8 +172,7 @@ internal fun HeroSideDrawer(
     }
 }
 
-// 5 行（试听×2 + 字幕 + 背景 + 声音）时每行约 34dp + 8dp 间距 + 20dp 内边距；
-// 声音行是第 5 行加进来的，200 会把行尾裁掉，留到 248。
+// 换装 + 换形象行从收纳盒进，面板可纵向滚；把手高度仍固定。
 private val IntrinsicHeightDp = 248.dp
 private val HANDLE_BG = Color(0x990B1122)
 private val PANEL_BG = Color(0xCC0B1122)
@@ -136,3 +180,4 @@ private val PANEL_BORDER = Color(0x33FFFFFF)
 private val ROW_ACTIVE_BG = Color(0x338B7CF6)
 private val TEXT_PRIMARY = Color(0xFFF3F5FF)
 private val TEXT_SECONDARY = Color(0xFFA3ADCB)
+private val TEXT_DISABLED = Color(0xFF6B7591)

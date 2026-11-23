@@ -1,6 +1,9 @@
 package com.openapi.ks.myapp.companion
 
+import com.openapi.ks.myapp.dh.Live2dWardrobeAxis
+import com.openapi.ks.myapp.dh.Live2dWardrobeRow
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class HeroSideDrawerTest {
@@ -81,5 +84,38 @@ class HeroSideDrawerTest {
         assertEquals("声音 · 痣妖姐姐", withVoice.last().label)
         // 服务端还没开换音色接口：声音行只读，点了不响应（active=false 兼作「不可点」标记）。
         assertEquals(false, withVoice.last().active)
+    }
+
+    @Test
+    fun `wardrobe rows sit above call chrome when engine exposes slots`() {
+        val wardrobe = listOf(
+            Live2dWardrobeRow(Live2dWardrobeAxis.TOP, "上衣", "睡衣"),
+            Live2dWardrobeRow(Live2dWardrobeAxis.UNDERWEAR, "内衣", "待素材",
+                enabled = false, disabledReason = "需要 Cubism 重制"),
+        )
+        val rows = heroDrawerRows(
+            previewAvailable = false, previewSpeaker = null, captionsVisible = true,
+            theme = CallTheme.Default, wardrobeRows = wardrobe,
+        )
+        assertEquals(DrawerAction.WARDROBE_AXIS, rows[0].action)
+        assertEquals(Live2dWardrobeAxis.TOP, rows[0].wardrobeAxis)
+        assertEquals("上衣 · 睡衣", rows[0].label)
+        assertTrue(rows[0].enabled)
+        assertEquals("内衣 · 需要 Cubism 重制", rows[1].label)
+        assertEquals(false, rows[1].enabled)
+        assertEquals(DrawerAction.TOGGLE_CAPTIONS, rows[2].action)
+    }
+
+    @Test
+    fun `model switch row appears when label set`() {
+        val rows = heroDrawerRows(
+            previewAvailable = false, previewSpeaker = null, captionsVisible = false,
+            theme = CallTheme.Default,
+            modelLabel = "demo",
+            modelSwitchEnabled = true,
+        )
+        assertEquals(DrawerAction.SWITCH_MODEL, rows.first().action)
+        assertEquals("换形象 · demo →", rows.first().label)
+        assertTrue(rows.first().enabled)
     }
 }
