@@ -131,7 +131,15 @@ PoC 有意省掉的东西，别当成可以直接部署：
 
 注意 `pyproject.toml` 里 `license = {file = "LICENSE"}` 上方有一行过时的 `# Apache 2.0` 注释——以 LICENSE 文件为准（MIT）。随产物保留版权声明即可。
 
-依赖许可要一起看：`encodec`（MIT）、`torch`（BSD）、`transformers`（Apache-2.0）、`numpy/scipy`（BSD）。没有 GPL 传染项。EnCodec 权重是 Meta 的 CC-BY-NC 吗？——Bark 用的是 `EncodecModel.encodec_model_24khz()`，会从 Meta 的仓库下载权重（非 HF 托管），**这一条要在正式商用前单独核实**，PoC 阶段没查。
+依赖许可要一起看：`encodec` 代码 MIT、`torch` BSD、`transformers` Apache-2.0、`numpy/scipy` BSD。没有 GPL 传染项。
+
+**但 EnCodec 的「权重」许可没查到，这是商用前必须解决的一条，别当成已放行。** 已核实的：
+
+- EnCodec **代码**是 MIT：`facebookresearch/encodec` 的 `LICENSE` 原文「MIT License / Copyright (c) Meta Platforms, Inc. and affiliates」。
+- Bark 用的不是 HF 上的 `facebook/encodec_24khz`，而是 `EncodecModel.encodec_model_24khz()` 从 Meta CDN 直接拉 `dl.fbaipublicfiles.com/encodec/v0/encodec_24khz-d7cc33bc.th`（88.9 MB，缓存到 `~/.cache/torch/hub/checkpoints/`）。那个下载点**旁边没有 LICENSE 文件**。
+- HF 上 `facebook/encodec_24khz` / `encodec_32khz` 两个 model card 的 `license` 字段和 tags **都是空的**（查过 API），所以也没在 HF 侧给出权重许可。
+
+也就是说：代码可商用有据，权重可商用**无据**。要在商用前找 Meta 书面确认，或换成许可明确的 codec。PoC/内部测试不阻塞。
 
 ## 还没做
 
