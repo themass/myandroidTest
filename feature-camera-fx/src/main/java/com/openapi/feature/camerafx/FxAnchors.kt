@@ -89,6 +89,16 @@ fun uprightDims(width: Int, height: Int, rotationDegrees: Int): Pair<Int, Int> =
     if (rotationDegrees == 90 || rotationDegrees == 270) Pair(height, width) else Pair(width, height)
 
 /**
+ * 分析帧上报给画布的尺寸：必须用 [ImageProxy.cropRect] 的宽高，不能用全缓冲。
+ *
+ * `ImageProxy.toBitmap()` 返回的是 sensor 全缓冲；与 PreviewView 同 FOV 的有效区域在
+ * cropRect（UseCaseGroup+ViewPort 绑定时尤其如此）。拿全缓冲尺寸去做 CanvasMap，
+ * 覆盖层会相对预览整体偏移（真机：框/折线掉到脖子胸口）。
+ */
+fun uprightCropDims(cropWidth: Int, cropHeight: Int, rotationDegrees: Int): Pair<Int, Int> =
+    uprightDims(cropWidth, cropHeight, rotationDegrees)
+
+/**
  * 归一化正立图像 → 画布像素的映射。
  *
  * CameraX 默认预览缩放是 FILL_CENTER：等比放大到铺满画布、超出部分裁掉。

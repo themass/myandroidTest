@@ -163,4 +163,16 @@ class FxAnchorsTest {
         val tilt = lineTiltDegrees(Point2d(0.35f, 0.40f), Point2d(0.65f, 0.40f + 0.3f * tan30), mirrorX = false)
         assertEquals(30f, tilt, 0.5f)
     }
+
+    // FOV 对齐：CanvasMap 必须吃 crop 正立尺寸。全缓冲 1280x960 与 viewport crop 720x960
+    // 旋转后宽高比不同；误用全缓冲 → 覆盖层相对预览整体偏移（真机掉到脖子/胸口）。
+
+    @Test
+    fun `uprightCropDims 用 crop 不是全缓冲`() {
+        val fromCrop = uprightCropDims(cropWidth = 720, cropHeight = 960, rotationDegrees = 90)
+        val fromFull = uprightDims(1280, 960, 90)
+        assertEquals(Pair(960, 720), fromCrop)
+        assertEquals(Pair(960, 1280), fromFull)
+        assertTrue("crop 与全缓冲正立尺寸必须不同，否则 FOV 错位测不出来", fromCrop != fromFull)
+    }
 }

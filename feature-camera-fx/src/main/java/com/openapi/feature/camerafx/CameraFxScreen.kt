@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
+import androidx.camera.core.UseCaseGroup
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
@@ -136,6 +137,8 @@ fun CameraFxScreen() {
 
     var provider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
+    // ViewPort 要非零宽高；记下 PreviewView 布局尺寸，变了才重绑
+    var viewSize by remember { mutableStateOf(0 to 0) }
     LaunchedEffect(Unit) {
         if (provider == null) {
             val future = ProcessCameraProvider.getInstance(context)
@@ -152,14 +155,16 @@ fun CameraFxScreen() {
         }
     }
 
-    LaunchedEffect(provider, previewView, lifecycleOwner) {
+    LaunchedEffect(provider, previewView, lifecycleOwner, viewSize) {
         val p = provider ?: return@LaunchedEffect
         val view = previewView ?: return@LaunchedEffect
+        if (viewSize.first == 0 || viewSize.second == 0) return@LaunchedEffect
         try {
             p.unbindAll()
             // 预览与分析钉死同一 4:3 视野 + 有界分辨率：
             //  - 两个 use case 比例不一致 → 覆盖层与预览画面取景范围不同，看着就是「错位」
             //  - 分析不封顶 → 每帧全分辨率送进模型，fps 掉到 ~12（真机实测）
+            // 再用 UseCaseGroup+ViewPort 把两路裁到同一 PreviewView FOV；analyzer 侧吃 cropRect。
             val selector = ResolutionSelector.Builder()
                 .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
                 .setResolutionStrategy(
@@ -177,13 +182,22 @@ fun CameraFxScreen() {
                 .setResolutionSelector(selector)
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                // 缓冲直接转成 target 正立；rotationDegrees=0。
+                // UseCaseGroup+ViewPort 后若不启用，crop 后的帧常报 rotation=0 但内容仍是
+                // sensor 横图 → MediaPipe 不转 → 倾角又回到 ~89°（真机 FOV 修复轮复现）。
+                .setOutputImageRotationEnabled(true)
                 .build()
                 .also { it.setAnalyzer(analysisExecutor, analyzer) }
+            val viewPort = view.viewPort
+                ?: view.getViewPort(preview.targetRotation)
+            val groupBuilder = UseCaseGroup.Builder()
+                .addUseCase(preview)
+                .addUseCase(analysis)
+            if (viewPort != null) groupBuilder.setViewPort(viewPort)
             p.bindToLifecycle(
                 lifecycleOwner,
                 CameraSelector.DEFAULT_FRONT_CAMERA,
-                preview,
-                analysis,
+                groupBuilder.build(),
             )
         } catch (t: Throwable) {
             fatalFlow.value = "相机启动失败：${t.javaClass.simpleName}"
@@ -202,7 +216,17 @@ fun CameraFxScreen() {
             factory = { ctx ->
                 PreviewView(ctx).apply {
                     scaleType = PreviewView.ScaleType.FILL_CENTER
-                }.also { previewView = it }
+                    // PERFORMANCE 模式下 getViewPort 可能不准；COMPATIBLE 保证 ViewPort=所见
+                    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                }.also { v ->
+                    previewView = v
+                    v.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+                        val next = v.width to v.height
+                        if (next.first > 0 && next.second > 0 && next != viewSize) {
+                            viewSize = next
+                        }
+                    }
+                }
             },
             modifier = Modifier.fillMaxSize(),
         )
@@ -228,7 +252,8 @@ fun CameraFxScreen() {
             val tilt = f?.faces?.firstOrNull()?.tiltDeg
             Text(
                 "fx ${f?.fps?.let { "%.1f fps".format(it) } ?: "--"} · 脸 $faceN · 姿态 $poseN" +
-                    (if (tilt != null) " · 倾角 %.1f°".format(tilt) else ""),
+                    (if (tilt != null) " · 倾角 %.1f°".format(tilt) else "") +
+                    (f?.let { " · ${it.imgW}x${it.imgH}" } ?: ""),
                 color = Color.White,
                 fontSize = 13.sp,
             )

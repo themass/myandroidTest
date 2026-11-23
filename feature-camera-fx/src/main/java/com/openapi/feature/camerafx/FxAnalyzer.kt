@@ -81,11 +81,23 @@ class FxAnalyzer(
         }
         try {
             ensureLoaded()
-            // toBitmap() 给的是 sensor 空间（竖持时横屏）的位图：旋转必须显式交给
-            // MediaPipe 的 ImageProcessingOptions，关键点才落在正立空间；上报宽高同样要交换
-            // （真机缺陷回归：漏了这步 → 覆盖层转 90°、倾角 89.4°）。
+            // 旋转：优先靠 ImageAnalysis.setOutputImageRotationEnabled(true) 让缓冲本身正立
+            // （此时 rotationDegrees=0）。若未启用，toBitmap() 仍是 sensor 横图，必须把
+            // rotationDegrees 交给 MediaPipe ImageProcessingOptions，并 uprightDims 交换宽高
+            // （真机：漏了 → 覆盖层转 90°、倾角 89.4°）。
+            //
+            // FOV：toBitmap() 是全缓冲；与 PreviewView 同视野的有效区在 cropRect
+            // （UseCaseGroup+ViewPort）。必须裁到 crop 再送模型，上报尺寸也用 crop 正立
+            // （真机：全缓冲映射 → 框/折线掉到脖子胸口）。
             val rotation = image.imageInfo.rotationDegrees
-            val bmp = image.toBitmap()
+            val crop = image.cropRect
+            val full = image.toBitmap()
+            val bmp = if (crop.left == 0 && crop.top == 0 && crop.width() == full.width && crop.height() == full.height) {
+                full
+            } else {
+                android.graphics.Bitmap.createBitmap(full, crop.left, crop.top, crop.width(), crop.height())
+                    .also { full.recycle() }
+            }
             val mp = BitmapImageBuilder(bmp).build()
             val ipOptions = ImageProcessingOptions.builder().setRotationDegrees(rotation).build()
             val tsNanos = System.nanoTime()
@@ -94,7 +106,7 @@ class FxAnalyzer(
             // 姿态比脸贵：每 poseEvery 帧跑一次，中间帧沿用上一次的骨架
             val runPose = seq % poseEvery == 0L
             val poseLandmarks = if (runPose) pose!!.detectForVideo(mp, ipOptions, tsMs).landmarks() else lastPoseLandmarks
-            val (w, h) = uprightDims(mp.getWidth(), mp.getHeight(), rotation)
+            val (w, h) = uprightCropDims(bmp.width, bmp.height, rotation)
             val fx = buildFrame(faceResult.faceLandmarks(), poseLandmarks, w, h)
             lastPoseLandmarks = poseLandmarks
             mp.close()
