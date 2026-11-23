@@ -1360,6 +1360,9 @@ private fun VoiceStage(
                     waveform(Modifier.align(Alignment.BottomCenter).padding(bottom = HERO_CONTROL_BAR_DP.dp))
                 }
                 // 字幕叠层：坐在波形上方，上限两行滚动；不再从人物身上切走一栏。
+                // 修饰符顺序不能反：`heightIn` 写在 `padding(bottom=218)` 前面时，
+                // 内容按 max(0, 150−218)=0 高测量，引擎舞台的字幕整条隐形（真机 bug）。
+                // 必须先让位（padding）再封顶（heightIn），内容才拿到 0..150dp 的真实高度。
                 if (captionsVisible) CaptionStack(
                     captions = state.captions,
                     speakerCaptions = state.speakerCaptions,
@@ -1367,9 +1370,9 @@ private fun VoiceStage(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .heightIn(max = 150.dp)
                         .padding(horizontal = 16.dp)
-                        .padding(bottom = (HERO_CONTROL_BAR_DP + 110f).dp),
+                        .padding(bottom = (HERO_CONTROL_BAR_DP + 110f).dp)
+                        .heightIn(max = 150.dp),
                 )
             }
         } else {
