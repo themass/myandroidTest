@@ -25,6 +25,6 @@
 
 ### Task 2: 真机 lab 验收（独占 adb）
 
-### Task 3: 通话页 debug 小窗相机 → headTop 锚 Lottie（companion 依赖 camera-fx，DhLabGate）
+### Task 3: 通话页 debug 小窗相机 → headTop 锚 Lottie — **DONE** (`CameraFxStickerPip` + `labFaceCameraPip`)
 
 ### Task 4: Lottie C 收尾 + LiveKit（设备队列，并行会话）

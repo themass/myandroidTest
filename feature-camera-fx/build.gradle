@@ -33,6 +33,7 @@ dependencies {
     implementation platform(libs.androidx.compose.bom)
     implementation libs.androidx.compose.ui
     implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.ui.tooling.preview
     implementation libs.androidx.compose.material3
     implementation libs.androidx.activity.compose
     implementation libs.androidx.lifecycle.viewmodel.compose
@@ -44,7 +45,10 @@ dependencies {
 
     // 锚点纯函数（归一化坐标 → 人脸框/头顶锚点/两眼倾角/画布映射）的 JVM 单测
     testImplementation 'junit:junit:4.13.2'
+
+    debugImplementation libs.androidx.compose.ui.tooling
 }
+
 
 // 与 :feature-photosolve 一致：CameraX 1.4.2 会带 concurrent-futures-ktx:1.1.0，
 // 本机离线缓存里只有 1.2.0 的 jar，不 force 会在离线跑单测时解析失败。
