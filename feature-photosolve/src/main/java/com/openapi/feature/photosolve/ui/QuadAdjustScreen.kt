@@ -74,6 +74,13 @@ fun QuadAdjustScreen(
     onRedetect: () -> Unit,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
+    /**
+     * 「这个框不是自动找到的」说明（null = 框是检测出来的）。
+     *
+     * 检测判负时也会进这一页（默认框 + 手动拖角），不说明的话用户会以为贴边的框
+     * 是模型认出来的题目，然后奇怪「为什么框不对」。
+     */
+    notice: String? = null,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxSize().background(Color.Black)) {
@@ -91,6 +98,9 @@ fun QuadAdjustScreen(
                     color = Color.White.copy(alpha = 0.7f),
                     style = MaterialTheme.typography.bodySmall,
                 )
+                notice?.let {
+                    Text(it, color = Color(0xFFFFCC00), style = MaterialTheme.typography.bodySmall)
+                }
             }
             if (detecting) {
                 Text(stringResource(R.string.photosolve_detecting), color = Color.White.copy(alpha = 0.7f))
