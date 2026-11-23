@@ -320,6 +320,12 @@ fun HomeScreen() {
                             launchCallOnOpen = callLaunchPending,
                             onLaunchCallHandled = { callLaunchPending = false },
                             onCallActiveChanged = { companionCallActive = it },
+                            onLoginRequired = {
+                                context.startActivity(
+                                    Intent(context, com.openapi.feature.user.login.LoginActivity::class.java)
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                                )
+                            },
                         )
                         HomeTab.Channels -> ChannelsHub()
                         HomeTab.AgentChat -> AgentChatEntry()
