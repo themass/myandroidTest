@@ -1,6 +1,6 @@
 # 最小服装开关样件（2026-11-23）
 
-状态：**输入样件已生成；本轮导出与运行时渲染被权限阻塞，未验收**。
+状态：**输入样件 + wardrobe_layout 单测 9/9 通过；Editor 导出与 view_render_poses 仍待 MCP（token 须 `secrets.token_urlsafe`，启动 PSD2Live 可能被自动审批拦截）**。
 
 没有找到可用的真实角色 PSD/cmo3。本样件复用我们自己的合成角色分层绘图，在蓝色上衣之上加绿色马甲，避免把缺失原画当成已解决。不修改生产 wardrobe-spec、APK 资产或 UI。
 
