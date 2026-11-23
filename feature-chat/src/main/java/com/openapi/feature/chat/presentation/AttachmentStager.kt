@@ -68,6 +68,8 @@ object AttachmentStager {
     fun stagingDir(context: Context, keep: Set<String> = emptySet()): File {
         val dir = File(context.filesDir, DIR).apply { mkdirs() }
         com.openapi.common.media.StagingGc.sweep(dir, keep = keep)
+        // `camera/` 是第二个累积点：同一次经过顺手扫掉，年龄规矩与上面完全同一份。
+        com.openapi.common.media.StagingGc.sweep(cameraDir(context), keep = keep)
         return dir
     }
 

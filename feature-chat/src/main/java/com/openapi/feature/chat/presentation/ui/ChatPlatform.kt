@@ -52,12 +52,18 @@ internal object ChatPlatform {
         }
     }
 
-    /** 拍照用的输出地址：放在 files/camera 下（FileProvider 已授权 files 根目录）。 */
+    /**
+     * 拍照用的输出地址：放在 files/camera 下（FileProvider 已授权 files 根目录）。
+     *
+     * 这里**不做超龄清扫**（复审 minor）：这条路由「+」面板的点击 lambda 直接调
+     * （`ChatRoute` 的 `launchCamera`），跑在主线程上——`listFiles()` + 逐个删文件在慢存储上
+     * 就是点一下拍摄卡一下。清扫挂在
+     * [com.openapi.feature.chat.presentation.AttachmentStager.stagingDir]（选图/拍照结果回来时
+     * 已经在 IO 线程），`camera/` 与 `chat_attachments` 同一次扫、同一份年龄规矩；
+     * 这里只留 FileProvider 要求的 `mkdirs()`（一次系统调用，与整改前基线一致）。
+     */
     fun newCameraUri(context: Context): Uri {
-        // `camera/` 是第二个累积点（cleanup 项 5）：拍一张就取消一次，留一个字节。
-        // 同一份 :common 的清扫，不另写一套年龄规则。
-        val dir = File(context.filesDir, "camera").apply { mkdirs() }
-        com.openapi.common.media.StagingGc.sweep(dir)
+        val dir = com.openapi.feature.chat.presentation.AttachmentStager.cameraDir(context)
         val file = File(dir, "photo_${System.currentTimeMillis()}.jpg")
         return FileProvider.getUriForFile(context, FILE_PROVIDER, file)
     }
