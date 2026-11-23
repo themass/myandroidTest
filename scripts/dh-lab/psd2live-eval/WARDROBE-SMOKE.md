@@ -19,16 +19,16 @@
 - source-vest-0.png / source-vest-1.png / source-comparison.png：**仅源图合成，不能当作模型运行时截图**。
 - fixture-summary.json：明确 runtime_verified=false，源图差异包围框为 [254,375,387,546]。
 
-## 待完成的验证
+## 验证清单
 
-1. 用官方 PSD2Live 的 MCP project_import_layout 导入 layout.json，rig_generate，再 project_export_target moc3 导出。不能把 layout.json 传给只接受 PSD 的 CLI --input。
-2. 检查输出模型、纹理引用与 ParamWear_test 的范围/默认值；实际检查马甲网格的 Opacity 关键形，不能只检查参数字符串存在。
-3. view_render_poses 固定同一画布视角，比较参数 0、0.5、1；0 隐藏、1 显示，0.5 检查插值。再分别在 ParamBodyAngleX=-15/15 和 ParamAngleX=-15/15 下比较开关；确认参数存在且范围允许后才给值。检查马甲是否跟随身体、是否穿过手臂、是否出现裂缝。
-4. 编辑器姿态渲染和导出 moc3 的运行时加载是两次验证。还需用实际 Cubism runtime 加载导出结果、设置同一组参数并更新模型，检查 drawable opacity、顶点与画面。不将编辑器内部求值称为 Android 验收。
-5. 保存模型哈希、工具版本、参数读数、截图和结论后再决定是否接入真实角色。真实角色美术质量仍需分层原画。
+1. ~~MCP import → rig → export~~ 已完成；~~0/0.5/1 显隐~~ 已完成；~~变形对比~~ 已完成（见下）。
+2. **未做**：编辑器姿态渲染和导出 moc3 的运行时加载是两次验证。还需用实际 Cubism runtime 加载导出结果、设置同一组参数并更新模型，检查 drawable opacity、顶点与画面。不将编辑器内部求值称为 Android 验收。
+3. **未做**：保存模型哈希后再决定是否接入真实角色。真实角色美术质量仍需分层原画。
 
 ## 本轮实际结果
 
 生成脚本运行成功；18 层、两个 Overwrite 表情文件和源图预览齐全。绿色马甲的源图合成差异限定在衣服区域，图像已目视检查。
 
-启动官方发布包的本地 MCP 被自动审批拒绝，原因为 `[Code from External]`。未绕过拒绝，未做新的模型导出、变形或运行时验证。恢复验证需要允许启动已下载的官方 PSD2Live 可执行文件；授权不涉及 adb 或 APK 发布。
+MCP 全链（经用户当面授权启动官方包）：`project_import_layout` → `rig_generate` → `project_export_target moc3`（`layout.moc3` 1,001,984 B，字符串表含 `ParamWear_test`）→ `view_render_poses` 0/0.5/1 三联图（A 关 / B 半透 / C 全开，已目视）→ 变形：`ParamBodyAngleX` 实际范围 **-10…10**（±15 被 `outOfRangeParameters` 标记并回退为未变形），改用 **±10 + ParamAngleZ 20** 后马甲标注框随躯干旋转、头部侧倾，无撕裂（[`evidence/wardrobe-deform-body-20261123.png`](evidence/wardrobe-deform-body-20261123.png)）。另测 cmo3 闭环：`project_import_cmo3` demo.cmo3 → 新 project → `project_export_target moc3` 成功（1,105,344 B，`ParamAngleX`/`ArtMeshTopwear` 命中）。数值与判定见 [`evidence/wardrobe-deform-cmo3-20261123.json`](evidence/wardrobe-deform-cmo3-20261123.json)。
+
+**给正式管线的答案**：toggle 显隐与身体变形在 Editor 侧都成立；但参数范围按实测（此模型 BodyAngleX ±10，非 ±30），新模型接入 wardrobe-spec 前必须先读实际范围。
