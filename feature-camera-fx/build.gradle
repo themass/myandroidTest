@@ -39,6 +39,9 @@ dependencies {
     implementation libs.androidx.lifecycle.runtime.compose
     implementation libs.kotlinx.coroutines.android
 
+    // 头顶贴纸 MVP：与 companion fx 同资产 fx_pat_head（仓库自制）
+    implementation 'com.airbnb.android:lottie-compose:6.7.1'
+
     // 锚点纯函数（归一化坐标 → 人脸框/头顶锚点/两眼倾角/画布映射）的 JVM 单测
     testImplementation 'junit:junit:4.13.2'
 }

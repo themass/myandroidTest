@@ -36,6 +36,9 @@ JVM 单测钉死（`FxAnchorsTest`）：
 sticker 后续接法：`graphicsLayer { translationX/Y = map(headTop); rotationZ = tiltDeg }`，
 贴纸本体（Lottie）挂在上面。
 
+**已落地（竖切 MVP）：** `CameraFxScreen` 在头顶锚点叠 `fx/fx_pat_head.json`（Lottie），
+位置/旋转由 [CameraStickerPlacement] + [CanvasMap] 与 HUD 一致。二期：可选进陪伴通话 PiP/小窗相机。
+
 ## 运行方式
 
 debug 包：抽屉「实验室」分组 → 摄像头定位 Demo。release 包没有这个入口

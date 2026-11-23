@@ -15,6 +15,8 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +35,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -46,7 +52,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.rememberLottieComposition
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlin.math.roundToInt
 import java.util.concurrent.Executors
 
 /**
@@ -139,6 +149,8 @@ fun CameraFxScreen() {
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
     // ViewPort 要非零宽高；记下 PreviewView 布局尺寸，变了才重绑
     var viewSize by remember { mutableStateOf(0 to 0) }
+    var layoutW by remember { mutableStateOf(0) }
+    var layoutH by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
         if (provider == null) {
             val future = ProcessCameraProvider.getInstance(context)
@@ -207,10 +219,13 @@ fun CameraFxScreen() {
     val frame by frameFlow.collectAsState()
     val fatal by fatalFlow.collectAsState()
 
+    val stickerComposition by rememberLottieComposition(LottieCompositionSpec.Asset("fx/fx_pat_head.json"))
+
     Box(
         Modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(Color.Black)
+            .onSizeChanged { layoutW = it.width; layoutH = it.height },
     ) {
         AndroidView(
             factory = { ctx ->
@@ -235,6 +250,41 @@ fun CameraFxScreen() {
         if (fx != null) {
             Canvas(Modifier.fillMaxSize()) {
                 drawFx(fx)
+            }
+        }
+
+        // 头顶 Lottie（集成竖切 MVP）：与 HUD 共用 CanvasMap；无脸不画
+        val comp = stickerComposition
+        val frameForSticker = frame
+        val density = LocalDensity.current
+        if (comp != null && frameForSticker != null && layoutW > 0 && layoutH > 0) {
+            val map = CanvasMap(
+                canvasW = layoutW.toFloat(),
+                canvasH = layoutH.toFloat(),
+                imgW = frameForSticker.imgW,
+                imgH = frameForSticker.imgH,
+                fill = true,
+                mirrorX = true,
+            )
+            frameForSticker.faces.forEachIndexed { index, face ->
+                val head = face.headTop ?: return@forEachIndexed
+                val fw = face.bounds?.width ?: return@forEachIndexed
+                val place = stickerAtHeadTop(map, head, fw, face.tiltDeg)
+                val half = place.sizePx / 2f
+                val stickerSize = with(density) { place.sizePx.toDp() }
+                LottieAnimation(
+                    composition = comp,
+                    iterations = Int.MAX_VALUE,
+                    modifier = Modifier
+                        .offset {
+                            IntOffset(
+                                (place.centerX - half).roundToInt(),
+                                (place.centerY - half).roundToInt(),
+                            )
+                        }
+                        .size(stickerSize)
+                        .rotate(place.rotationDeg),
+                )
             }
         }
 
