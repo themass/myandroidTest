@@ -15,5 +15,5 @@ class ResourceCompanionStrings(private val context: Context) : CompanionStrings 
     override fun uploadUnsupported() = context.getString(R.string.companion_upload_unsupported)
     override fun attachmentDeliveryFailed() = context.getString(R.string.companion_attachment_delivery_failed)
     override fun uploadInProgress() = context.getString(R.string.companion_upload_in_progress)
-    override fun imageLimitReached(max: Int) = context.getString(R.string.companion_attachment_limit_reached, max)
+    override fun imageLimitReached(max: Int) = context.getString(R.string.companion_image_limit_reached, max)
 }

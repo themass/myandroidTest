@@ -66,5 +66,8 @@
     <string name="companion_upload_unsupported">This connection can\'t carry photos. Please re-enter the conversation</string>
     <string name="companion_attachment_delivery_failed">The photos couldn\'t be sent. They are kept — press send again</string>
     <string name="companion_upload_in_progress">Photos are still sending, please wait a moment</string>
-    <string name="companion_attachment_limit_reached">A message can carry at most %1$d photos</string>
+    <!-- 键名叫 image 而不是 attachment（复审 minor 3）：陪伴页只发图片，这条闸数的就是图片张数。
+         「一条消息最多 N 个附件」那套（chat_attachment_limit_reached）是「对话」页的规则——
+         那里图片与视频共用同一条 attachments。名字对齐措辞，免得以后有人把两边「统一」成一条。 -->
+    <string name="companion_image_limit_reached">A message can carry at most %1$d photos</string>
 </resources>
