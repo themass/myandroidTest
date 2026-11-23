@@ -43,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import com.openapi.feature.camerafx.CameraFxStickerPip
 import com.openapi.feature.companion.fx.LottieFxLayer
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.AvatarTouch
@@ -124,6 +123,12 @@ fun DigitalHumanLabHost(
     labFaceCameraPip: Boolean = false,
     /** 小窗手势 → 舞台 cue（"wave"/"pat_head"）；Route 接到 emitStageGesture，不另起总线。 */
     onCameraStageGesture: ((String) -> Unit)? = null,
+    /**
+     * 小窗内容本体由**组合根注入**：feature 互不依赖（ModuleGraphTest 分层规则，
+     * 2026-11-23 正解），:feature-companion 不 import :feature-camera-fx——
+     * HomeScreen（:app）传 `CameraFxStickerPip`。null = 不渲染小窗。
+     */
+    faceCameraPipContent: (@Composable (Modifier, onGesture: (String) -> Unit) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
@@ -489,13 +494,13 @@ fun DigitalHumanLabHost(
             val camOk = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
                 PackageManager.PERMISSION_GRANTED
             if (camOk) {
-                CameraFxStickerPip(
-                    modifier = Modifier
+                faceCameraPipContent?.invoke(
+                    Modifier
                         .align(Alignment.BottomEnd)
                         .padding(end = 12.dp, bottom = 120.dp)
                         .size(132.dp, 176.dp)
                         .clip(RoundedCornerShape(12.dp)),
-                    onStageGesture = onCameraStageGesture,
+                    onCameraStageGesture ?: {},
                 )
             }
         }

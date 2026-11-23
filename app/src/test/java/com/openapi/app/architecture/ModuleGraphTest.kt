@@ -37,15 +37,18 @@ class ModuleGraphTest {
         "subtitle" to "speech",
     )
 
-    private val packageRuleExempt = setOf("retromusic", "feature-companion", "dh-engines")
+    private val packageRuleExempt = setOf("retromusic", "feature-companion", "dh-engines", "feature-camera-fx")
 
     /**
      * 包名与「模块名推出来的根包」不一致的模块：依赖使用检查要用它**真实**的根包，
      * 否则会把「声明了但没用到」误报出来（:dh-engines 的代码在 com.openapi.ks.dh 下）。
+     * :feature-camera-fx 模块名有连字符，机械推导会得到非法的 `camera-fx` 包段，
+     * 真实根包是 com.openapi.feature.camerafx（a256bc9d 同款处理）。
      */
     private val rootPackageOverride = mapOf(
         "retromusic" to "com.openapi.retromusic",
         "dh-engines" to "com.openapi.ks.dh",
+        "feature-camera-fx" to "com.openapi.feature.camerafx",
     )
 
     /**
@@ -74,6 +77,7 @@ class ModuleGraphTest {
 
     private fun rootPackage(module: String): String = when {
         module == "dh-engines" -> "com.openapi.ks.dh"
+        module == "feature-camera-fx" -> "com.openapi.feature.camerafx"
         module.startsWith("feature-") -> "com.openapi.feature." + module.removePrefix("feature-")
         else -> "com.openapi.$module"
     }

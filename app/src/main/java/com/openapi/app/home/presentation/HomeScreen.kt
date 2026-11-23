@@ -326,6 +326,14 @@ fun HomeScreen() {
                                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                                 )
                             },
+                            // 通话页右下角人脸贴纸小窗：内容从组合根注入——
+                            // feature 互不依赖（ModuleGraphTest），:app 可同时依赖两个 feature。
+                            faceCameraPipContent = { mod, onGesture ->
+                                com.openapi.feature.camerafx.CameraFxStickerPip(
+                                    modifier = mod,
+                                    onStageGesture = onGesture,
+                                )
+                            },
                         )
                         HomeTab.Channels -> ChannelsHub()
                         HomeTab.AgentChat -> AgentChatEntry()
