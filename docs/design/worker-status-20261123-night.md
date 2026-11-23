@@ -1,10 +1,17 @@
 # Worker 全线续跑 · 状态总结（2026-11-23 夜，第二版）
 
-**主线 tip：** `origin/weifu-refactor` → **`fddbf38a`**
-（`a0b05092` 测试基线修复 → **`fddbf38a` 通话字幕修复**；其下含 `b02c869e` qvod_user 片单层、`0464c151` ReplyStreamerStreamTest 修、`7c80f7d8` 401 通话 UI）
+**主线 tip：** `origin/weifu-refactor` → **`b1bf4a88`**
+（其下含 `4b1c2b37` photo-edit S3、`cbe826e1` camera-fx 手势→舞台 cue、`4b758dea` screening scheme 交回、`fddbf38a` 通话字幕修复、`a0b05092` 测试基线修复）
 
 **装机纪律：** 仅现场 `assembleChatDebug`。已在 tip `fddbf38a` 现场构建成功（exit 0，`app-chat-debug.apk` 322MB）。
-V2279A（serial `10CE7P1G56004B7`）曾出现幽灵版本 1001000070（worker 从本地 worktree 装，版本号来路不明）→ 协调会话已 `adb install -r -d` 覆盖为 **tip fddbf38a / 1001000066 / 1.1.0.66（22:23:30）**。
+V2279A（serial `10CE7P1G56004B7`）曾出现幽灵版本 1001000070（worker 从本地 worktree 装，版本号来路不明）→ 协调会话已 `adb install -r -d` 覆盖；当前装机 **tip 4b1c2b37 / 1001000071 / 1.1.0.71（22:39:02）**，含字幕修复 + photo-edit S3 + screening 收口。
+
+**引擎舞台字幕修复 · 真机验收 PASS（attempt=b3a67d32，22:51 第二通）：** prefs 预置 `companion.dh_call_stage=SIMPLE` 后用户拨通，截图（`/tmp/stage_simple.png`）里字幕两条真实渲染（「你：你好。」「林澈：你好。上午出去溜了一圈…」）叠在波形上方、控件栏之上——`fddbf38a` 修复生效。
+- 引擎舞台判定：截图出现「特效测试」胶囊（仅 `DigitalHumanLabHost` 引擎舞台绘制，`DigitalHumanLabHost.kt:473`）；形象是分层立绘 + 「轻触她的头、脸或手」= Simple 引擎的 `simpleFallback`（角色没有旧格式形象包时的既定回退，见 `CompanionRoute.kt:673`），不是「原来的形象」分栏。
+- 用户此前「UI 非常旧」的观感 = 包没问题、页面停在「原来的形象」路径（call_stage=ORIGINAL）。
+- ⚠ 通话中 prefs 被应用改回 **ORIGINAL**（唯一写点是引擎菜单点击 → 用户在 ⋮ 菜单里点过「原来的形象」）。下一通验引擎舞台要先在 ⋮ 菜单重选 Simple，别只看装机版本。
+
+**第二通协议四项（p0-5-p2 复跑中）：** 上麦 1.9s ✓；hello 握手重试 5 次共 12.4s 才 ack（偏慢，记录在案）；下行首帧 rms=0.0339（拨出后 ~48s，F16 慢启动同源）；打断 ✓（barge_in playedMs=814 → speech_cancel user_barge_in，下行 maxLevel=0.867）；随后用户连说 70s 下行全零 = server 空回复（said=''）仍在，归 tos 线。22:53:09 通话被主动 force-stop（exit-info reason=10 USER_REQUESTED，非崩溃，watchdog 无隔离）。
 
 **装机纪律（新增，已广播全体 worker）：** 只有协调会话可以 adb install 到 V2279A；worker 只 build 不装机、不 bump versionCode、不复用旧 apk；需要自带插桩上机先回报协调人按序合入再装机公告。
 
