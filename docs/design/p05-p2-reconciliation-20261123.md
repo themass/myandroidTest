@@ -51,7 +51,7 @@ Owner：elastic-mendeleev 会话（`claude/elastic-mendeleev-ab3d36` @ `5db985a9
 | 2 | 首帧 blocked imports | **PARTIAL** | redis/VAD/langgraph 已进 prewarm；`first_ms` 仍 25–32s（F16 候选，见 `f16-measured.md` / `f16-voice-fragments-shipped.md`）。**不等于** 2019 快照里的 `osc_data._core` 998ms 仍在——那条已过时，但「首帧够快」还没过线。 |
 | 3 | `presentation.emotion` 陪伴通话真机 | **PARTIAL** | 代码两跳已合入；剧本房见过 cue；陪伴通话 PASS 窗**没有**单独把端侧 `event=emotion*` 钉成主证据。`remote-pcm-rca.md` 有一条 calm 到达后 `cue_dropped … CANCELLED`——说明 cue 能到端，但被 cancel 清掉，**听感/脸感未单独验收**。 |
 | — | 统一构建回归冒烟 | **OPEN（不抢设备）** | `unified-device-window-schedule` Phase2 第 11 项：A1/F11 在**当刻 tip** 上一眼复现。协调会话已切生产 LiveKit=`wss://livekit.ok123find.top`，主冒烟归它。 |
-| — | 本会话新缺陷：PENDING barge-in 自掐 | **OPEN（代码未合）** | 见 §4 |
+| — | 本会话新缺陷：PENDING barge-in 自掐 | **代码已修，真机待验** | 修复提交 `8a7c909e`；见 §4 |
 
 ## 4. 本会话进展（2026-11-23，elastic-mendeleev）
 
@@ -69,10 +69,11 @@ Owner：elastic-mendeleev 会话（`claude/elastic-mendeleev-ab3d36` @ `5db985a9
 
 与 §10.1「她在说 + 你开始出声」不一致：PENDING ≠ 她在说。
 
-修复点（未改码，留给后续或不抢设备的代码任务）：
-- `activeSpeechId()` 或 gate 接线只认 **PLAYING**（t0 已标定）；
-- TDD：`SpeechRegistryTest` / `BargeInGateTest` 先红后绿；
-- 合入 `weifu-refactor` 后才谈统一构建复测。
+代码修复（`8a7c909e`）：
+- `activeSpeechId()` 只认 **PLAYING**（t0 已标定），同步 gate 参数注释；
+- `SpeechRegistryTest` 两条回归先红：PENDING 返回 null、较新的 PENDING 不遮住已有 PLAYING；修改后转绿；
+- `SpeechRegistryTest` / `BargeInGateTest` 及模块全量 `:feature-companion:testDebugUnitTest` 已通过；
+- 真机仍待在生产 LiveKit 上验证首帧前不误打断、播放中仍能打断，不以单测代替真机验收。
 
 ### 4.3 基线变更（协调会话通知）
 
@@ -83,5 +84,5 @@ Owner：elastic-mendeleev 会话（`claude/elastic-mendeleev-ab3d36` @ `5db985a9
 1. **P0.5/P2 四项：1 与 4 在 2026-11-22 栈上 PASS；2 与 3 仍是 PARTIAL。** 不能再沿用 11-19 的「全线 FAIL」口径，也不能声称 §17 全过。
 2. **对账报告此前只活在 notes 碎片里**；本文件是正式落盘。仓库副本：`docs/design/p05-p2-reconciliation-20261123.md`（同文）。
 3. **本会话不抢设备**。线上冒烟 / CLAIM 窗口归协调会话。
-4. **下一步（代码，可不占设备）**：修 PENDING barge-in；单测红→绿→合 `weifu-refactor`。真机复测等协调会话排窗或统一构建冒烟时顺带。
+4. **PENDING barge-in 代码已修**（`8a7c909e`），单测红→绿已完成。下一步为真机复测，等协调会话排窗或统一构建冒烟时顺带。
 5. **F16 first_ms 25–32s** 与 emotion 听感/脸感专项仍开放，不在本次对账关闭范围内。
