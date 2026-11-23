@@ -17,10 +17,16 @@ import com.openapi.ks.myapp.avatar.TouchResult
  * [DhEngineAvailability.needsDownload]；JNI 包装库缺失时回「native 库缺失」并 blocked。
  * 口型走 [Live2dRuntime.setMouth]，情绪走 [Live2dRuntime.setExpression]。
  *
- * 触点互动（demo #2）：[onTouch] 吃舞台层认出的轻触（归一化坐标），用
- * [Live2dTouchReaction] 纯状态机决定表情名——点头切换脸红、点身体循环换装——
- * 再经 `nativeApplyExpression` 交给 native 交叉淡入淡出。表情名对应的 exp3 资产
- * 由 lab 清单注册（scripts/dh-lab/live2d-lab-assets/，seed-assets.sh live2d 推送）。
+ * 触点互动（demo #2 → v2）：[onTouch] 吃舞台层认出的轻触（归一化坐标），用
+ * [Live2dTouchReaction] 纯状态机决定表情名——四根轴各自循环（头→表情、躯干→上衣、
+ * 手→手持、脚→鞋），每次点击都进新的可见状态（真机投诉 2026-11-23「只能点一次」
+ * 的根治），再经 `nativeApplyExpression` 交给 native 交叉淡入淡出。表情名对应的 exp3
+ * 资产由 lab 清单注册（scripts/dh-lab/live2d-lab-assets/，seed-assets.sh live2d 推送）。
+ *
+ * 多形象（用户 2026-11-23「demo里有好几个形象」）：[modelDirName] 选 ATRI / Amadeus /
+ * Yuuka。后两个没有上游已验证的换装参数（盘点：Yuuka 零 exp3、Amadeus 只有 logo 开关），
+ * 只有跨模型语义一致的 ParamCheek——所以它们走 [Live2dTouchReaction.stepFaceOnly]
+ * 最小层（点头 正常↔脸红），换装托盘只给脸轴；其余区域回 Ignored，不做假轴。
  */
 class Live2dDigitalHumanEngine(
     private val modelDirName: String = Live2dRuntime.DEFAULT_MODEL_DIR,
@@ -37,11 +43,14 @@ class Live2dDigitalHumanEngine(
         AvatarCapability.TOUCH_TAP,
     )
 
+    /** 只有 ATRI 有全套已验证换装资产；其余模型走最小脸轴（见类注释）。 */
+    private val fullWardrobe: Boolean get() = modelDirName == "ATRI"
+
     private var runtime: Live2dRuntime? = null
     private var viewCreated = false
     private var released = false
 
-    /** 触点互动状态（(服装,脸红,kani,凉鞋)）；release 后重建引擎会回到初始态——与画面一致。 */
+    /** 触点互动状态（四轴循环位）；release 后重建引擎会回到初始态——与画面一致。 */
     private var reaction = Live2dTouchReactionState()
 
     /**
@@ -100,23 +109,58 @@ class Live2dDigitalHumanEngine(
 
     /**
      * 舞台层认出的轻触（归一化坐标）。用 [live2dTapZone] 细分区（头/躯干/手/脚，
-     * 阈值来自真机截图实测）→ 状态机迁移 → 表情名 → native 淡入淡出。
-     * 上报给 agent 的 [stageTapRegion] 仍是 head/body 老语义——换引擎不换服务端契约。
-     * 每次轻触一行 `Live2dTouch` 日志：真机验收的硬证据通道（同 demo #1 的 dhvrm）。
+     * 阈值来自真机截图实测）→ v2 循环状态机 → 表情名 → native 淡入淡出。
+     * ATRI 四轴全开；Amadeus/Yuuka 只有头轴有效（最小脸层），其余区域回 Ignored
+     * ——「点了没动静」的假轴不做。上报给 agent 的 [stageTapRegion] 仍是 head/body
+     * 老语义——换引擎不换服务端契约。每次轻触一行 `Live2dTouch` 日志：真机验收的
+     * 硬证据通道（同 demo #1 的 dhvrm）。
      */
     override fun onTouch(event: AvatarTouch): TouchResult {
         if (event.kind != AvatarTouchKind.TAP) return TouchResult.Ignored
         val region = live2dTapZone(event.x, event.y)
-        reaction = Live2dTouchReaction.step(reaction, region)
-        val expression = Live2dTouchReaction.expressionFor(reaction)
+        val before = reaction
+        reaction = if (fullWardrobe) {
+            Live2dTouchReaction.step(reaction, region)
+        } else {
+            Live2dTouchReaction.stepFaceOnly(reaction, region)
+        }
+        if (reaction == before) return TouchResult.Ignored
+        val expression = if (fullWardrobe) {
+            Live2dTouchReaction.expressionFor(reaction)
+        } else {
+            Live2dTouchReaction.expressionForFaceOnly(reaction)
+        }
         runtime?.takeIf { viewCreated }?.setExpression(expression)
         Log.i(
             TAG,
-            "tap region=$region costume=${reaction.costume} blushed=${reaction.blushed} " +
-                "crab=${reaction.crab} sandal=${reaction.sandal} expression=$expression",
+            "tap model=$modelDirName region=$region top=${reaction.top} shoes=${reaction.shoes} " +
+                "held=${reaction.held} face=${reaction.face} expression=$expression",
         )
         return TouchResult.Handled(region)
     }
+
+    // ---- 换装托盘（长按呼出）：轴推进与分区点击共用同一状态机 ----
+
+    override fun wardrobeRows(): List<Live2dWardrobeRow> =
+        if (fullWardrobe) {
+            Live2dTouchReaction.wardrobeRows(reaction)
+        } else {
+            Live2dTouchReaction.wardrobeRows(reaction).filter { it.axis == Live2dWardrobeAxis.FACE }
+        }
+
+    override fun advanceWardrobe(axis: Live2dWardrobeAxis) {
+        if (!fullWardrobe && axis != Live2dWardrobeAxis.FACE) return
+        reaction = Live2dTouchReaction.advanceWardrobe(reaction, axis)
+        val expression = if (fullWardrobe) {
+            Live2dTouchReaction.expressionFor(reaction)
+        } else {
+            Live2dTouchReaction.expressionForFaceOnly(reaction)
+        }
+        runtime?.takeIf { viewCreated }?.setExpression(expression)
+        Log.i(TAG, "wardrobe model=$modelDirName axis=$axis expression=$expression")
+    }
+
+    override fun modelLabel(): String = modelDirName
 
     override fun release() {
         if (released) return

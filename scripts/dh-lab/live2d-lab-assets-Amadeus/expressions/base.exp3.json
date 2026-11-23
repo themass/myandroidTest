@@ -1,0 +1,13 @@
+{
+	"Type": "Live2D Expression",
+	"Comment": "lab 触点互动（多形象最小层）：base。必须自带上游 fix 的 logo=0.01——kurisu.moc3 里 logo 是绘制总闸（默认 0 不画），上游靠常驻注册 fix.exp3.json 打开它；lab 用表情切换状态机，旧表情淡出时闸会落回 0 → 全黑只剩两点（2026-11-23 真机投诉）。钉桩见 Live2dTouchReactionTest。",
+	"FadeInTime": 0.2,
+	"FadeOutTime": 0.2,
+	"Parameters": [
+		{
+			"Id": "logo",
+			"Value": 0.01,
+			"Blend": "Add"
+		}
+	]
+}

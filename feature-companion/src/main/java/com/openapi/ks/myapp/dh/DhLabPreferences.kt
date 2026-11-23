@@ -36,11 +36,22 @@ class DhLabPreferences(context: Context) {
             prefs.edit().putBoolean(KEY_LAB_FORCED, value).apply()
         }
 
+    /**
+     * Live2D 当前形象（多形象切换，用户 2026-11-23）。存原始字符串、读时过
+     * [Live2dModels.sanitize] 白名单——脏值回落 ATRI，永远回一个合法目录名。
+     */
+    var live2dModel: String
+        get() = Live2dModels.sanitize(prefs.getString(KEY_LIVE2D_MODEL, null))
+        set(value) {
+            prefs.edit().putString(KEY_LIVE2D_MODEL, Live2dModels.sanitize(value)).apply()
+        }
+
     companion object {
         const val PREFS = "companion_dh_lab"
         private const val KEY_ENGINE = "companion.dh_engine"
         private const val KEY_CALL_STAGE = "companion.dh_call_stage"
         private const val KEY_LAB_FORCED = "companion.dh_lab"
+        private const val KEY_LIVE2D_MODEL = "companion.dh_live2d_model"
         private const val ORIGINAL = "ORIGINAL"
     }
 }

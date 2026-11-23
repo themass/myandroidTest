@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.SystemClock
 import android.provider.OpenableColumns
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
@@ -49,9 +50,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.openapi.feature.video.screening.kernel.KernelHost
-import com.openapi.cast.DlnaDevice
-import com.openapi.cast.DlnaDiscoveryCallback
-import com.openapi.cast.JavaCaster
 import com.openapi.common.net.http.NetConfig
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.feature.video.subtitle.local.ScreeningCaption
@@ -68,6 +66,13 @@ import java.io.File
 import java.io.InputStreamReader
 import java.io.StringReader
 import kotlin.math.roundToInt
+
+/**
+ * 开发入口显形开关：`adb shell setprop log.tag.ScreeningDbg DEBUG`。
+ * 和 FeedPagerDbg 同一套路——默认关，正常构建零影响；调试弹幕这类入口不渲染进用户面板，
+ * 但代码保留，联调时一条 setprop 就回来，不需要改代码重装。
+ */
+internal const val TAG_SCREENING_DBG = "ScreeningDbg"
 
 /**
  * 一个可播放的东西。
@@ -208,10 +213,10 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
         }
     }
     var danmaku by remember { mutableStateOf(serverVideoId != null) }
-    // 弹幕来源：正式默认在线——服务端条目一进来就挂真时间轴（弹幕默认开着，互联网惯例）；
-    // 随包样片/手机文件没有服务端轴，退回本地样例且默认关。
-    // 假服务端只留在「更多 → 弹幕设置」里做离线链路联调，不再当默认（用户点名弹幕要正式样式）。
-    var danmakuSource by remember { mutableStateOf(if (serverVideoId != null) DANMAKU_ONLINE else DANMAKU_SAMPLE) }
+    // 弹幕来源：正式默认在线——服务端条目一进来就挂真时间轴（弹幕默认开着，互联网惯例）。
+    // 手机文件没有服务端轴，来源仍走在线实现（拉不到内容、发出去也没人看），弹幕默认关。
+    // 样例/假服务端只留在 setprop 显形的开发入口里，不再当任何默认。
+    var danmakuSource by remember { mutableStateOf(DANMAKU_ONLINE) }
     val danmakuToken = remember { { PreferenceUtils.getPrefString(context, NetConfig.tokenHeader(), null) } }
     val feed = remember(danmakuSource, id) {
         DanmakuFeed(
@@ -257,10 +262,6 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     LaunchedEffect(swipeSeconds) {
         if (swipeSeconds != null) { delay(900); swipeSeconds = null }
     }
-    val discovery = remember { DlnaDiscoveryCallback() }
-    val caster = remember { JavaCaster(context) }
-    var devices by remember { mutableStateOf<List<DlnaDevice>>(emptyList()) }
-    var scanning by remember { mutableStateOf(false) }
     fun refresh() {
         host.tick()
         position = host.position
@@ -293,7 +294,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
         onDispose {
             onSave(host.position)
             activity.lifecycle.removeObserver(lifecycle)
-            host.release(); discovery.close(); caster.close()
+            host.release()
             if (full) activity.immersive(false)
         }
     }
@@ -407,12 +408,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 Icon(if (liked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, null, Modifier.size(16.dp))
                 Text(if (liked) " 已收藏" else " 收藏")
             }
-            TextButton(onClick = {
-                panel = "电视投屏"; info = ""; devices = emptyList(); scanning = true
-                discovery.discover { devices = it; scanning = false }
-            }) {
-                Icon(Icons.Default.Cast, null, Modifier.size(17.dp)); Text(" 电视投屏")
-            }
+            // DLNA 投屏入口正式口径下线（没有可验证的真电视设备；旧 :cast 模块和旧页面原样保留）。
         }
     }
     // 画面内发送栏（互联网播放器惯例）：弹幕开着时贴在走带下方，胶囊输入框 + 发送键，回车即发。
@@ -554,14 +550,19 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                         // 开/关走播放页的弹幕键或下面这一条；这里只调来源。正式默认在线（服务端条目）。
                         Setting("关闭弹幕", "立即清屏，不影响字幕和播放", !danmaku) { danmaku = false }
                         // 来源切换：两个来源实现同一个 TimedCommentSource，渲染和车道调度完全共用
-                        Setting("在线弹幕", if (serverVideoId != null) "默认：登录后发送，所有人共用这条时间轴" else "随包样片没有服务端时间轴，这里看不到弹幕", danmaku && danmakuSource == DANMAKU_ONLINE) {
+                        Setting("在线弹幕", if (serverVideoId != null) "默认：登录后发送，所有人共用这条时间轴" else "这条媒体没有服务端时间轴，这里看不到弹幕", danmaku && danmakuSource == DANMAKU_ONLINE) {
                             danmakuSource = DANMAKU_ONLINE; danmaku = true
                         }
-                        Setting("本地样例弹幕", "离线演示用：随包内置，无需网络", danmaku && danmakuSource == DANMAKU_SAMPLE) {
-                            danmakuSource = DANMAKU_SAMPLE; danmaku = true
-                        }
-                        Setting("链路自测弹幕", "开发用：内置假服务端，验证拉取/发送/重试/撤回链路", danmaku && danmakuSource == DANMAKU_SERVER) {
-                            danmakuSource = DANMAKU_SERVER; danmaku = true
+                        // 样例弹幕/链路自测是开发入口，用户面板里不出现（正式化整改拍板）。
+                        // 联调时 `adb shell setprop log.tag.ScreeningDbg DEBUG` 显形，默认零影响；
+                        // 两套来源实现和切换逻辑原样保留，只是面板上不渲染。
+                        if (Log.isLoggable(TAG_SCREENING_DBG, Log.DEBUG)) {
+                            Setting("本地样例弹幕", "离线演示用：随包内置，无需网络", danmaku && danmakuSource == DANMAKU_SAMPLE) {
+                                danmakuSource = DANMAKU_SAMPLE; danmaku = true
+                            }
+                            Setting("链路自测弹幕", "开发用：内置假服务端，验证拉取/发送/重试/撤回链路", danmaku && danmakuSource == DANMAKU_SERVER) {
+                                danmakuSource = DANMAKU_SERVER; danmaku = true
+                            }
                         }
                         danmakuState.outgoing.lastOrNull()?.let { mine ->
                             val label = when (mine.state) {
@@ -586,39 +587,6 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                         Setting("适应画面", "保留原始比例", !fill) { fill = false }
                         Setting("填满画面", "可能裁掉画面边缘", fill) { fill = true }
                         Setting("弹幕设置", if (danmaku) "弹幕来源与发送状态" else "当前已关闭", panel == "弹幕设置") { panel = "弹幕设置" }
-                    }
-                    // 内核不在这开面板：用户不选内核，失败时 KernelHost 自动换另一个顶上去（无感）。
-                    "电视投屏" -> {
-                        Text("手机和电视须连接同一局域网。字幕和弹幕仅在手机显示。", color = Muted)
-                        if (scanning) Text("正在搜索电视…", Modifier.padding(top = 12.dp))
-                        else if (devices.isEmpty()) Text("未发现可投屏的电视。", Modifier.padding(top = 12.dp))
-                        devices.forEach { device ->
-                            Setting(device.friendlyName, "DLNA") {
-                                info = "正在准备投屏…"
-                                scope.launch {
-                                    val file = withContext(Dispatchers.IO) {
-                                        runCatching {
-                                            val input = source.asset?.let { context.assets.open("$it.mp4") }
-                                                ?: source.uri?.let(context.contentResolver::openInputStream)
-                                            checkNotNull(input).use { stream ->
-                                                File.createTempFile("screening-", ".mp4", context.cacheDir).also { out ->
-                                                    try { out.outputStream().use { stream.copyTo(it) } }
-                                                    catch (failure: Exception) { out.delete(); throw failure }
-                                                }
-                                            }
-                                        }.getOrNull()
-                                    }
-                                    if (file == null) {
-                                        info = "无法读取视频文件。"
-                                    } else {
-                                        caster.castLocal(device, file.path, source.title) { failure ->
-                                            info = failure?.let { "投屏失败：$it" } ?: "已发送到 ${device.friendlyName}"
-                                            if (failure == null) host.pause()
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
         }
         if (info.isNotEmpty()) Text(info, Modifier.padding(top = 9.dp), color = Mint)
@@ -785,7 +753,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                             .padding(horizontal = 20.dp, vertical = 8.dp),
                     ) {
                         seekBlock()
-                        // 影院态底部只要走带+图标工具台（设计稿）：收藏/投屏留在信息态
+                        // 影院态底部只要走带+图标工具台（设计稿）：收藏留在信息态
                         toolsRow(true)
                         // 弹幕开着就把发送栏挂在最底下（互联网播放器惯例：进度条→工具→输入行）
                         if (danmaku) danmakuSendRow()

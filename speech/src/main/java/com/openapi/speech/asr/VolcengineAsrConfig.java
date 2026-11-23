@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.common.util.lang.StringUtils;
+import com.openapi.speech.BuildConfig;
 
 /**
  * 火山豆包流式 ASR 凭证（设置页或 Preference 写入）。
@@ -19,9 +20,14 @@ public final class VolcengineAsrConfig {
 
     private static final String DEFAULT_RESOURCE_ID = "volc.bigasr.sauc.duration";
     private static final String DEFAULT_CLUSTER = "volcengine_input_common";
-    /** 设置页未填写时使用（可在设置中覆盖） */
-    private static final String BUILTIN_APP_KEY = "4319026663";
-    private static final String BUILTIN_ACCESS_KEY = "YJYBl-jGgkv-AZfQrwObHWfbwa5w3aAX";
+    /**
+     * 设置页未填写时的兜底（可在设置中覆盖）。值不再写死在源码里（正式化整改）：
+     * 由构建注入（见 speech/build.gradle 的 VOLC_ASR_* buildConfigField，
+     * 来源 -P/gradle.properties/local.properties/环境变量）。没注入就是空串，
+     * isConfigured() 为假，实时字幕走「提示去设置页填凭证」的明示路径。
+     */
+    private static final String FALLBACK_APP_KEY = BuildConfig.VOLC_ASR_APP_KEY;
+    private static final String FALLBACK_ACCESS_KEY = BuildConfig.VOLC_ASR_ACCESS_KEY;
     private static final String WS_V3 = "wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async";
     private static final String WS_V2 = "wss://openspeech.bytedance.com/api/v2/asr";
 
@@ -43,10 +49,10 @@ public final class VolcengineAsrConfig {
         String appKey = trim(PreferenceUtils.getPrefString(context, PREF_APP_KEY, ""));
         String accessKey = trim(PreferenceUtils.getPrefString(context, PREF_ACCESS_KEY, ""));
         if (!StringUtils.hasText(appKey)) {
-            appKey = BUILTIN_APP_KEY;
+            appKey = FALLBACK_APP_KEY;
         }
         if (!StringUtils.hasText(accessKey)) {
-            accessKey = BUILTIN_ACCESS_KEY;
+            accessKey = FALLBACK_ACCESS_KEY;
         }
         String resourceId = trim(PreferenceUtils.getPrefString(context, PREF_RESOURCE_ID, DEFAULT_RESOURCE_ID));
         if (!StringUtils.hasText(resourceId)) {

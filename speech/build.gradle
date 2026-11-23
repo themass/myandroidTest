@@ -7,8 +7,24 @@ plugins {
 // 翻译接口与实时字幕（subtitle/）。实时字幕组合识别和覆盖层，所以放在同一个模块。
 apply from: rootProject.file('gradle/android-library.gradle')
 
+// 火山 ASR 凭证构建注入（正式化整改：主源码集不留明文 key）。
+// 取值优先级：-PvolcAsrAppKey / gradle.properties / local.properties（gitignore）> 同名环境变量 > 空。
+// 空不报错：VolcengineAsrConfig.isConfigured() 为假，实时字幕走「去设置页填凭证」的明示路径。
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) localPropsFile.withInputStream { localProps.load(it) }
+def asrSecret = { String name ->
+    def value = project.findProperty(name) ?: localProps.getProperty(name) ?: System.getenv(name) ?: ""
+    "\"${value.toString().replace('\\', '\\\\').replace('"', '\\"')}\""
+}
+
 android {
     namespace = 'com.openapi.speech'
+    buildFeatures { buildConfig = true }
+    defaultConfig {
+        buildConfigField "String", "VOLC_ASR_APP_KEY", asrSecret('volcAsrAppKey')
+        buildConfigField "String", "VOLC_ASR_ACCESS_KEY", asrSecret('volcAsrAccessKey')
+    }
 }
 
 dependencies {

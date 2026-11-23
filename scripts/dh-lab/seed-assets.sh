@@ -127,7 +127,7 @@ if echo " $ENGINES " | grep -q " live2d "; then
     ra "rm -rf $DATA/files/dh-engines/live2d/ATRI"
     ra "mkdir -p $DATA/files/dh-engines/live2d/ATRI && cp -R $local_stage/. $DATA/files/dh-engines/live2d/ATRI/"
     echo "== live2d/ATRI 已推送（无 marker：ATRI 不在清单里，靠目录存在判定）"
-    # lab 触点互动覆盖层（demo #2）：带 Expressions 的 model3.json + 六个 exp3。
+    # lab 触点互动覆盖层（demo #2）：带 Expressions 的 model3.json + 180 个组合 exp3。
     # 顺序不能在上面的整目录推送之前——rm -rf 会把覆盖层一起清掉。
     LAB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/live2d-lab-assets"
     if [ -f "$LAB_DIR/ATRI.model3.json" ]; then
@@ -142,6 +142,32 @@ if echo " $ENGINES " | grep -q " live2d "; then
   else
     echo "!! 跳过 Live2D：把 ATRI 模型目录放到 $PACKS/ATRI/ 再运行"
   fi
+  # 多形象（用户 2026-11-23「demo里有好几个形象，是否可以都集成建立可切换」）：
+  # Amadeus / Yuuka 来自上游 ChatWaifu_Mobile 的 assets（本地 clone 在
+  # ~/work/android/ChatWaifu_Mobile/Live2D/src/main/assets/Live2DModels/），
+  # 各自的 lab 覆盖层（base+blush 最小层 + model3.json）叠在上游内容之上。
+  # 没有覆盖层的模型点头没有表情反馈——推了模型也要推 lab，否则换过去是「点了没反应」。
+  DH_LAB="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  for model in Amadeus Yuuka; do
+    if [ -d "$PACKS/$model" ]; then
+      m_stage="$DEVICE_TMP/live2d-$model"
+      "${ADB[@]}" shell "rm -rf '$m_stage' && mkdir -p '$m_stage'"
+      "${ADB[@]}" push "$PACKS/$model/." "$m_stage/" >/dev/null
+      ra "rm -rf $DATA/files/dh-engines/live2d/$model"
+      ra "mkdir -p $DATA/files/dh-engines/live2d/$model && cp -R $m_stage/. $DATA/files/dh-engines/live2d/$model/"
+      o_stage="$DEVICE_TMP/live2d-lab-$model"
+      if [ -f "$DH_LAB/live2d-lab-assets-$model/$model.model3.json" ]; then
+        "${ADB[@]}" shell "rm -rf '$o_stage' && mkdir -p '$o_stage'"
+        "${ADB[@]}" push "$DH_LAB/live2d-lab-assets-$model/." "$o_stage/" >/dev/null
+        ra "mkdir -p $DATA/files/dh-engines/live2d/$model && cp -R $o_stage/. $DATA/files/dh-engines/live2d/$model/"
+        echo "== live2d/$model 模型+lab 覆盖层已推送"
+      else
+        echo "!! live2d/$model 模型已推但缺 lab 覆盖层（scripts/dh-lab/live2d-lab-assets-$model）——换形象后触点无表情"
+      fi
+    else
+      echo "!! 跳过 $model：模型目录放 $PACKS/$model/（上游 ChatWaifu_Mobile Live2D assets）再运行"
+    fi
+  done
 fi
 
 if echo " $ENGINES " | grep -q " tao "; then

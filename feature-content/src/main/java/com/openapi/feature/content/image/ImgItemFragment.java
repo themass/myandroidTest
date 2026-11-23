@@ -40,7 +40,12 @@ import com.openapi.feature.content.R;
 public class ImgItemFragment extends RecommendFragment implements SaveImageCallBack, OnBackKeyDownListener, MyFavoriteView.OnFavoriteItemClick {
     private static final String IMG_ITEM_TAG = "Img_ITEM_TAG";
     MyFavoriteView myFavoriteView;
-    RelativeLayout fullView;
+    /**
+     * @id/full_view 现在在 layout_img_big_page_view 里是 FrameLayout（8f7d4744 把根从
+     * RelativeLayout 改成 FrameLayout，字段没跟着改）—— findViewById 给字段插的 checkcast
+     * 因此每次进详情页都 ClassCastException。这里只用到 setVisibility/动画，声明成 View。
+     */
+    View fullView;
     RelativeLayout listView;
     ViewPager2 viewPager;
     TextView tvPage;
@@ -78,6 +83,8 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         viewPager = view.findViewById(R.id.vp_big_container);
         tvPage = view.findViewById(R.id.tv_page);
         view.findViewById(R.id.iv_save).setOnClickListener(this::onSave);
+        // 工具栏关着（全屏看图），iv_back 是页内唯一返回入口——以前布局里有、代码没接
+        view.findViewById(R.id.iv_back).setOnClickListener(v -> requireActivity().finish());
     }
 
     @Override
