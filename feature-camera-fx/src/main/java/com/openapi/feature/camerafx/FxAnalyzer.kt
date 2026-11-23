@@ -8,6 +8,7 @@ import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.vision.core.ImageProcessingOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker
+import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.max
@@ -30,9 +31,15 @@ data class FaceFx(
 
 data class PoseFx(val segments: List<Segment2d>)
 
+data class HandFx(
+    val segments: List<Segment2d>,
+    val gesture: HandGestureKind,
+)
+
 data class FrameFx(
     val faces: List<FaceFx>,
     val poses: List<PoseFx>,
+    val hands: List<HandFx>,
     /** 正立显示空间的宽高（已按 rotationDegrees 交换）；归一化坐标就是相对它说的。 */
     val imgW: Int,
     val imgH: Int,
@@ -54,13 +61,14 @@ class FxAnalyzer(
     private val context: Context,
     private val onFrame: (FrameFx) -> Unit,
     private val onFatal: (String) -> Unit,
-    /** 姿态每 N 帧跑一次（脸每帧都跑）：spike 实测全分辨率双模型 ~12fps，降半姿态频率换帧率。 */
+    /** 姿态/手部每 N 帧跑一次（脸每帧都跑）：三模型全帧 ~12fps，降半 pose+hand 换帧率。 */
     private val poseEvery: Int = 2,
 ) : ImageAnalysis.Analyzer {
 
     private val inFlight = AtomicBoolean(false)
     private var face: FaceLandmarker? = null
     private var pose: PoseLandmarker? = null
+    private var hand: HandLandmarker? = null
     private var disabled = false
     private var consecutiveErrors = 0
 
@@ -71,6 +79,8 @@ class FxAnalyzer(
 
     // 姿态降频（poseEvery）期间沿用上一次的骨架；只在 analysis executor 上读写。
     private var lastPoseLandmarks: List<List<com.google.mediapipe.tasks.components.containers.NormalizedLandmark>> =
+        emptyList()
+    private var lastHandLandmarks: List<List<com.google.mediapipe.tasks.components.containers.NormalizedLandmark>> =
         emptyList()
 
     override fun analyze(image: ImageProxy) {
@@ -109,9 +119,11 @@ class FxAnalyzer(
             // 姿态比脸贵：每 poseEvery 帧跑一次，中间帧沿用上一次的骨架
             val runPose = seq % poseEvery == 0L
             val poseLandmarks = if (runPose) pose!!.detectForVideo(mp, ipOptions, tsMs).landmarks() else lastPoseLandmarks
+            val handLandmarks = if (runPose) hand!!.detectForVideo(mp, ipOptions, tsMs).landmarks() else lastHandLandmarks
             val (w, h) = uprightCropDims(bmp.width, bmp.height, rotation)
-            val fx = buildFrame(faceResult.faceLandmarks(), poseLandmarks, w, h)
+            val fx = buildFrame(faceResult.faceLandmarks(), poseLandmarks, handLandmarks, w, h)
             lastPoseLandmarks = poseLandmarks
+            lastHandLandmarks = handLandmarks
             mp.close()
             bmp.recycle()
 
@@ -154,11 +166,23 @@ class FxAnalyzer(
                     .build(),
             )
         }
+        if (hand == null) {
+            val base = BaseOptions.builder().setModelAssetPath(MODEL_HAND).build()
+            hand = HandLandmarker.createFromOptions(
+                context,
+                HandLandmarker.HandLandmarkerOptions.builder()
+                    .setBaseOptions(base)
+                    .setRunningMode(RunningMode.VIDEO)
+                    .setNumHands(2)
+                    .build(),
+            )
+        }
     }
 
     private fun buildFrame(
         faceLandmarks: List<List<com.google.mediapipe.tasks.components.containers.NormalizedLandmark>>,
         poseLandmarks: List<List<com.google.mediapipe.tasks.components.containers.NormalizedLandmark>>,
+        handLandmarks: List<List<com.google.mediapipe.tasks.components.containers.NormalizedLandmark>>,
         w: Int,
         h: Int,
     ): FrameFx {
@@ -197,8 +221,18 @@ class FxAnalyzer(
             }
             PoseFx(segments)
         }
+        val hands = handLandmarks.map { lm ->
+            val pts = lm.map { it.toPoint() }
+            val segments = HAND_CONNECTIONS.mapNotNull { pair ->
+                val i = pair[0]
+                val j = pair[1]
+                if (i !in lm.indices || j !in lm.indices) return@mapNotNull null
+                Segment2d(lm[i].toPoint(), lm[j].toPoint())
+            }
+            HandFx(segments = segments, gesture = classifyHandGesture(pts))
+        }
         seq += 1
-        return FrameFx(faces = faces, poses = poses, imgW = w, imgH = h, seq = seq, fps = fps)
+        return FrameFx(faces = faces, poses = poses, hands = hands, imgW = w, imgH = h, seq = seq, fps = fps)
     }
 
     private fun trackFps(nowNanos: Long) {
@@ -219,13 +253,16 @@ class FxAnalyzer(
     fun close() {
         face?.close()
         pose?.close()
+        hand?.close()
         face = null
         pose = null
+        hand = null
     }
 
     companion object {
         const val MODEL_FACE = "camerafx/face_landmarker.task"
         const val MODEL_POSE = "camerafx/pose_landmarker_lite.task"
+        const val MODEL_HAND = "camerafx/hand_landmarker.task"
         private const val FATAL_ERROR_LIMIT = 5
     }
 }

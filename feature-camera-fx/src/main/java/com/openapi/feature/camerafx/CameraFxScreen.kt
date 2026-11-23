@@ -299,9 +299,12 @@ fun CameraFxScreen() {
             val f = frame
             val faceN = f?.faces?.size ?: 0
             val poseN = f?.poses?.count { it.segments.isNotEmpty() } ?: 0
+            val handN = f?.hands?.count { it.segments.isNotEmpty() } ?: 0
+            val gestures = f?.hands?.map { it.gesture.hudLabel() }?.filter { it != "—" }?.joinToString(",") ?: ""
             val tilt = f?.faces?.firstOrNull()?.tiltDeg
             Text(
-                "fx ${f?.fps?.let { "%.1f fps".format(it) } ?: "--"} · 脸 $faceN · 姿态 $poseN" +
+                "fx ${f?.fps?.let { "%.1f fps".format(it) } ?: "--"} · 脸 $faceN · 姿态 $poseN · 手 $handN" +
+                    (if (gestures.isNotEmpty()) " · 手势 $gestures" else "") +
                     (if (tilt != null) " · 倾角 %.1f°".format(tilt) else "") +
                     (f?.let { " · ${it.imgW}x${it.imgH}" } ?: ""),
                 color = Color.White,
@@ -328,7 +331,7 @@ private fun DrawScope.drawFx(fx: FrameFx) {
         mirrorX = true,
     )
 
-    // 姿态骨架（先画，脸叠在上面）
+    // 姿态骨架（先画，脸/手叠在上面）
     for (pose in fx.poses) {
         for (seg in pose.segments) {
             val a = map.map(seg.a)
@@ -338,6 +341,20 @@ private fun DrawScope.drawFx(fx: FrameFx) {
                 start = Offset(a.x, a.y),
                 end = Offset(b.x, b.y),
                 strokeWidth = 4f,
+            )
+        }
+    }
+
+    // HandLandmarker 21 点骨架（橙）
+    for (hand in fx.hands) {
+        for (seg in hand.segments) {
+            val a = map.map(seg.a)
+            val b = map.map(seg.b)
+            drawLine(
+                color = Color(0xFFFF9800),
+                start = Offset(a.x, a.y),
+                end = Offset(b.x, b.y),
+                strokeWidth = 3f,
             )
         }
     }
