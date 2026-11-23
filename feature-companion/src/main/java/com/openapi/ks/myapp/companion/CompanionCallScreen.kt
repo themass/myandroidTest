@@ -56,6 +56,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Slider
@@ -386,6 +387,8 @@ fun CompanionCallScreen(
     live2dModelLabel: String? = null,
     onLive2dModelSwitch: (() -> Unit)? = null,
     live2dModelSwitchHint: String? = null,
+    /** 通话已断开时底部「重试」；null 时不显示按钮。 */
+    onRetryConnect: (() -> Unit)? = null,
 ) {
     val reducedMotion = rememberReducedMotion()
 
@@ -495,6 +498,14 @@ fun CompanionCallScreen(
         }
     }
     val controls: @Composable () -> Unit = {
+        if (state.connection == CallConnection.ENDED && onRetryConnect != null) {
+            OutlinedButton(
+                onClick = onRetryConnect,
+                modifier = Modifier.padding(bottom = 12.dp),
+            ) {
+                Text("重试", color = CallColors.TextPrimary)
+            }
+        }
         CallControlBar(
             isMuted = state.isMuted,
             cameraActive = state.cameraActive,

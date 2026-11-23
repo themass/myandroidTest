@@ -79,7 +79,7 @@ class LiveKitCompanionTransport(
     private val bus = MutableSharedFlow<CompanionEvent>(extraBufferCapacity = EVENT_BUFFER)
     private val _connection = MutableStateFlow(TransportConnection.DISCONNECTED)
     private val _lastConnectionError = MutableStateFlow<String?>(null)
-    val lastConnectionError: StateFlow<String?> = _lastConnectionError.asStateFlow()
+    override val lastConnectionError: StateFlow<String?> = _lastConnectionError.asStateFlow()
     private var room: Room? = null
 
     /** 正在跑健康上报的那个 `Room`。同一房间重复 `Connected` 时不另起一个循环。 */

@@ -107,7 +107,7 @@ class CompanionViewModel(
         }
         this.characterId = characterId
         this.activeCaseId = caseId
-        _state.update { it.copy(connection = CompanionConnection.CONNECTING, error = null) }
+        _state.update { it.copy(connection = CompanionConnection.CONNECTING, error = null, connectionError = null) }
         startupJob?.cancel()
         // 新一通会话开始了：还在途的那串「上传 → attachments → 文本」属于上一个房间，
         // 让它跑完只会把一条消息发进一个已经不存在的房间里。
@@ -141,10 +141,12 @@ class CompanionViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                val msg = e.message ?: "连接失败"
                 _state.update {
                     it.copy(
                         connection = CompanionConnection.ERROR,
-                        error = e.message ?: "连接失败",
+                        error = msg,
+                        connectionError = msg,
                     )
                 }
             }
@@ -556,6 +558,17 @@ class CompanionViewModel(
     }
 
     /**
+     * 通话中断线后用户点「重试」：先干净断开当前房间，再按同一角色/case 重建会话。
+     * 保持 [CompanionUiState.callActive]，仍在全屏通话里等重连。
+     */
+    fun retryConnection(characterId: String, scriptCaseId: String? = null) {
+        viewModelScope.launch {
+            runCatching { transport.disconnect() }
+            start(characterId, scriptCaseId)
+        }
+    }
+
+    /**
      * 静音开关。状态先改、再通知传输层：麦克风发布是异步的，如果等它回来再更新按钮，
      * 用户点了会有近一秒「没反应」，会以为按钮坏了。
      */
@@ -601,6 +614,12 @@ class CompanionViewModel(
                     TransportConnection.DISCONNECTED -> CompanionConnection.ERROR
                 }
                 _state.update { current ->
+                    val connectionError = when (transportConnection) {
+                        TransportConnection.DISCONNECTED ->
+                            transport.lastConnectionError.value?.takeIf { it.isNotBlank() } ?: "连接已断开"
+                        TransportConnection.CONNECTED, TransportConnection.CONNECTING -> null
+                        TransportConnection.RECONNECTING -> current.connectionError
+                    }
                     current.copy(
                         connection = mapped,
                         // cleanup 项 3：连接状态变化**不**清 error。
@@ -612,6 +631,7 @@ class CompanionViewModel(
                         // 或开了一通新会话（[start] 开头就把 error 清掉）。
                         // 连接本身的状态由 [CompanionUiState.connection] 单独表达，不需要借 error 说话。
                         error = current.error,
+                        connectionError = connectionError,
                     )
                 }
             }
