@@ -7,7 +7,7 @@ import com.openapi.core.config.Constants
  *
  * 随包样片清单已随「本地视频」标签下线：频道/片单/图集一律真接口，取不到就报空或报错，
  * 不再拿 assets 里的演示素材填屏。
- * 分类和旧频道页（LegacyChannelEntries）保持同口径：只有电影和夜色，「自定义」分类已下线。
+ * 分类口径沿用旧频道页（其实现已随正式化删除）：只有电影和夜色，「自定义」分类已下线。
  */
 internal enum class FeedCategory(
     val label: String,
