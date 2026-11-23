@@ -26,6 +26,11 @@ import org.junit.Test
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class CompanionCallStateTest {
+    init {
+        // JVM 单测没有资源环境：VM 的错误文案走标记串（cleanup 项 2）。
+        // 装在这里而不是逐个构造点传参——VM 的 `strings` 有默认值，38 处构造点不必各自记一次。
+        CompanionDependencies.installStrings(FakeCompanionStrings())
+    }
 
     private val dispatcher = StandardTestDispatcher()
 
