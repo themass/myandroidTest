@@ -130,7 +130,10 @@ class AgentChatRemoteUploadTest {
         val message = f.message.orEmpty()
 
         assertTrue("这句话里必须带上限数字，实际=「$message」", message.contains("9"))
-        assertTrue("要说得出是图片太多，实际=「$message」", message.contains("图片"))
+        // cleanup P0：被服务端裁的是 **attachments** 这条 list（图+视频同一条），
+        // 这句却断言「图片」——9 图 + 1 视频时它会指挥用户去删一张其实没超的图。
+        assertTrue("要说得出是附件太多（图与视频共用同一额度），实际=「$message」", message.contains("附件"))
+        assertFalse("不能再只说「图片」：溢出的可能是视频，实际=「$message」", message.contains("张图片"))
         assertEquals(422, f.status)
         assertEquals("422 也要走翻译（有 warn 日志）", 1, translateLogs().size)
     }
@@ -146,7 +149,7 @@ class AgentChatRemoteUploadTest {
         val f = uploadFailure()
         val message = f.message.orEmpty()
 
-        assertFalse("认错对象就会误导用户：「$message」", message.contains("图片"))
+        assertFalse("认错对象就会误导用户：「$message」", message.contains("附件"))
         assertFalse("不该再掉回裸 HTTP 码", message.contains("HTTP 422"))
         assertEquals(422, f.status)
     }

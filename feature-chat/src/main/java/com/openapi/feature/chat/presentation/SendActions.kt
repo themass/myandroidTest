@@ -115,15 +115,16 @@ internal class SendActions(
     }
 
     /**
-     * 进草稿托盘，超了图片上限就说清楚（终评 I-1）。
+     * 进草稿托盘，超了附件额度（图片+视频合计）就说清楚（终评 I-1）。
      *
-     * 走 `Rejected` 那条已有的「说得出原因」的路径，而不是静默丢掉这一张：从「文件」里选图片
-     * 也到这里，那条路的选择器压根没有条数上限（它一次只给一张），到顶完全可能发生。
+     * 走 `Rejected` 那条已有的「说得出原因」的路径，而不是静默丢掉这一个：从「文件」里选图片
+     * 也到这里，那条路的选择器压根没有条数上限（它一次只给一张），到顶完全可能发生；
+     * 「拍摄/视频」同理，它在 wire 上与图片共用同一条 attachments。
      */
     private fun rejectIfOverLimit(kind: MessageKind, staged: StagedAttachment) {
         if (!composer.addDraft(kind, staged)) {
             state.update {
-                it.copy(error = strings.imageLimitReached(com.openapi.common.media.MAX_MESSAGE_IMAGES))
+                it.copy(error = strings.attachmentLimitReached(com.openapi.common.media.MAX_MESSAGE_IMAGES))
             }
         }
     }
@@ -144,7 +145,7 @@ internal class SendActions(
                         // 剩下几张也解码压缩一遍，白费等用户看着进度条跑完。
                         if (!composer.addDraft(MessageKind.IMAGE, staged)) {
                             state.update {
-                                it.copy(error = strings.imageLimitReached(com.openapi.common.media.MAX_MESSAGE_IMAGES))
+                                it.copy(error = strings.attachmentLimitReached(com.openapi.common.media.MAX_MESSAGE_IMAGES))
                             }
                             return@launch
                         }
