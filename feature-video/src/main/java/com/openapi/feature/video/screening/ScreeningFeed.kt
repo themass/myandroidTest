@@ -101,13 +101,15 @@ internal fun isConfigAction(actionUrl: String?): Boolean =
     schemeOf(actionUrl) in SUBCHANNEL_SCHEMES && !channelParamOf(actionUrl).isNullOrEmpty()
 
 /**
- * 声音馆（`sound://`）和文字馆（`text://`）：放映场没有对应页（音频播放器/文字阅读器不在
- * 这个模块的现有形状里），交回原分发（`ConfigActionJump` → 旧 `SoundChannleActivity` /
- * `TextChannleActivity`）。以前这两个 scheme 被当视频频道去发 items.json，两头落空。
- * 新模块做出对应的 Compose 页后，这里再收回来。
+ * 声音馆（`sound://`）尚未迁入放映场（音频播放器在独立模块），交回原分发。
+ * `text://` 已走 [FeedRoute.TEXT] + [ScreeningText]，不再经过这里。
  */
-private val LEGACY_ONLY_SCHEMES = setOf("sound", "text")
+private val LEGACY_ONLY_SCHEMES = setOf("sound")
 internal fun isLegacyOnlyAction(actionUrl: String?): Boolean = schemeOf(actionUrl) in LEGACY_ONLY_SCHEMES
+
+/** `text://config?channel=` 配置入口：第一层发 /text/channel.json。 */
+internal fun isTextConfigAction(actionUrl: String?): Boolean =
+    schemeOf(actionUrl) == "text" && !channelParamOf(actionUrl).isNullOrEmpty()
 
 /**
  * 视频频道内页取数用的 key。原页面 `VideoChannelListFragment.getUrl` 传的是 `vo.param`：
