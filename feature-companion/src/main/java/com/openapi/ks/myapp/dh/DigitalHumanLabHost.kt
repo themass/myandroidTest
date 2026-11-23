@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.content.Intent
 import android.content.IntentFilter
+import android.opengl.GLSurfaceView
 import android.os.Build
 import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
@@ -378,6 +379,11 @@ fun DigitalHumanLabHost(
             else -> key(e) {
                 val view = remember(e) { e.createView(context) }
                 if (view != null) {
+                    // Compose AndroidView 不会自动调 GLSurfaceView.onResume()——不设则 GL 线程不跑，只有黑底无模型。
+                    DisposableEffect(view) {
+                        (view as? GLSurfaceView)?.onResume()
+                        onDispose { (view as? GLSurfaceView)?.onPause() }
+                    }
                     // 变换直接写 View 自身的 scale/translation——Compose 的 graphicsLayer
                     // 到不了 AndroidView 里的 View。update 里读 stage 的快照状态，state
                     // 一变就重执行。手势（捏合/拖图/轻触/长按）全在 avatarStageTransform

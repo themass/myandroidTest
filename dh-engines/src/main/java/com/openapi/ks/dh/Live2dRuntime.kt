@@ -5,8 +5,9 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.opengl.GLSurfaceView
 import android.util.Log
+import javax.microedition.khronos.egl.EGLConfig
+import javax.microedition.khronos.opengles.GL10
 import android.view.View
-import com.openapi.ks.dh.live2d.GLRenderer
 import com.openapi.ks.dh.live2d.JniBridgeJava
 import java.io.File
 
@@ -117,16 +118,33 @@ class Live2dRuntime internal constructor(
             JniBridgeJava.SetActivityInstance(activity)
         }
         JniBridgeJava.SetContext(appContext ?: host.applicationContext)
+        val modelPath = File(root, modelDirName).absolutePath + File.separator
+        val json = modelJsonName
+        var modelLoadedOnGl = false
         val view = GLSurfaceView(host).apply {
             setEGLContextClientVersion(2)
-            setRenderer(GLRenderer())
+            setRenderer(object : GLSurfaceView.Renderer {
+                override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
+                    JniBridgeJava.nativeOnSurfaceCreated()
+                    if (!modelLoadedOnGl) {
+                        modelLoadedOnGl = true
+                        JniBridgeJava.nativeProjectChangeTo(modelPath, json)
+                        JniBridgeJava.nativeAutoBlinkEyes(true)
+                        Log.i(TAG, "model load on GL surface: $json")
+                    }
+                }
+
+                override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
+                    JniBridgeJava.nativeOnSurfaceChanged(width, height)
+                }
+
+                override fun onDrawFrame(gl: GL10) {
+                    JniBridgeJava.nativeOnDrawFrame()
+                }
+            })
             renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
         }
         JniBridgeJava.nativeOnStart()
-        // Absolute path so LoadFile uses FileInputStream, not assets.
-        val modelPath = File(root, modelDirName).absolutePath + File.separator
-        JniBridgeJava.nativeProjectChangeTo(modelPath, modelJsonName)
-        JniBridgeJava.nativeAutoBlinkEyes(true)
         // view 还没挂上就允许 setExpression 等调用（先建 view 后触发的顺序在通话页成立），
         // 此刻起所有场景变更走 GL 队列；queueEvent 在 surface 未创建时也会排队给 GL 线程。
         dispatcher = JniDispatcher { block -> view.queueEvent(block) }
