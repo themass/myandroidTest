@@ -49,6 +49,61 @@ internal class ScreeningFeedStore(context: Context) {
     suspend fun subchannels(channelParam: String, start: Int = 0): Page<RemoteEntry> =
         page(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNLE_URL, start, channelParam))
 
+    /** 文字馆频道列表（text/channel.json），对齐 TextChannleBodyFragment。 */
+    suspend fun textChannelHub(channelParam: String, start: Int = 0): Page<RemoteEntry> =
+        page(Constants.getUrlWithParam(Constants.API_TEXT_CHANNLE_URL, start, channelParam))
+
+    /** 文字馆文章列表（text/items.json），channel 用 vo.param。 */
+    suspend fun textArticles(channelParam: String, start: Int = 0, keyword: String = ""): Page<RemoteEntry> =
+        textItemsPage(channelParam, start, keyword).let { raw ->
+            Page(
+                items = raw.items.mapIndexed { index, vo -> vo.toTextListEntry(index) },
+                nextStart = raw.nextStart,
+                hasMore = raw.hasMore,
+            )
+        }
+
+    /** 正文 HTML（text/item.json），对齐 TextItemsFragment。 */
+    suspend fun textArticleBody(id: Long): String? {
+        val fetched = service.awaitGet(
+            Constants.getUrlWithParam(Constants.API_TEXT_ITEM_URL, id.toString()),
+            TextItemVo::class.java, NET_TAG,
+        )
+        return fetched.file
+    }
+
+    private suspend fun textItemsPage(channelParam: String, start: Int, keyword: String): Page<TextItemsVo> {
+        val url = Constants.getUrlWithParam(Constants.API_TEXT_ITEMS_URL, start, channelParam, keyword)
+        val raw: InfoListVo<*>? = service.awaitInfoList(url, TextItemsVo::class.java, NET_TAG)
+        @Suppress("UNCHECKED_CAST")
+        val items = (raw?.voList as? List<TextItemsVo>).orEmpty()
+        val more = raw?.hasMore == true
+        return Page(items, nextStart = if (more) raw!!.pageNum else null, hasMore = more)
+    }
+
+    /** 声音馆频道（sound/channel.json）。 */
+    suspend fun soundChannelHub(channelParam: String, start: Int = 0): Page<RemoteEntry> =
+        page(Constants.getUrlWithParam(Constants.API_SOUND_CHANNLE_URL, start, channelParam))
+
+    /** 声音馆曲目（sound/items.json），channel 用 vo.param。 */
+    suspend fun soundTracks(channelParam: String, start: Int = 0, keyword: String = ""): Page<RemoteEntry> =
+        soundItemsPage(channelParam, start, keyword).let { raw ->
+            Page(
+                items = raw.items.mapIndexed { index, vo -> vo.toSoundListEntry(index) },
+                nextStart = raw.nextStart,
+                hasMore = raw.hasMore,
+            )
+        }
+
+    private suspend fun soundItemsPage(channelParam: String, start: Int, keyword: String): Page<SoundItemsVo> {
+        val url = Constants.getUrlWithParam(Constants.API_SOUND_ITEMS_URL, start, channelParam, keyword)
+        val raw: InfoListVo<*>? = service.awaitInfoList(url, SoundItemsVo::class.java, NET_TAG)
+        @Suppress("UNCHECKED_CAST")
+        val items = (raw?.voList as? List<SoundItemsVo>).orEmpty()
+        val more = raw?.hasMore == true
+        return Page(items, nextStart = if (more) raw!!.pageNum else null, hasMore = more)
+    }
+
     /** 图集列表（图片频道）。 */
     suspend fun albums(channelParam: String, start: Int = 0): Page<RemoteEntry> =
         page(Constants.getUrlWithParam(Constants.API_IMG_CHANNLE_URL, start, channelParam))
@@ -160,3 +215,65 @@ internal class SubtitleContentVo {
  */
 @Suppress("UNCHECKED_CAST")
 private fun InfoListVo<*>.rows(): List<RecommendVo> = voList as List<RecommendVo>
+
+
+/** Gson：`text/items.json` 行。 */
+internal class TextItemsVo {
+    @JvmField var id: Int? = null
+    @JvmField var name: String? = null
+    @JvmField var channel: String? = null
+    @JvmField var fileDate: String? = null
+    @JvmField var fileUrl: String? = null
+}
+
+internal class TextItemVo {
+    @JvmField var name: String? = null
+    @JvmField var channel: String? = null
+    @JvmField var file: String? = null
+}
+
+internal fun TextItemsVo.toTextListEntry(index: Int): RemoteEntry {
+    val itemId = id ?: index
+    val url = fileUrl.orEmpty()
+    return RemoteEntry(
+        key = "text:item:$itemId",
+        title = name.orEmpty().ifBlank { "未命名" },
+        description = fileDate.orEmpty().trim(),
+        imageUrl = null,
+        ratio = 1f,
+        actionUrl = url,
+        needsLazyUrl = false,
+        channelParam = channel,
+        param = channel,
+        isImageCard = false,
+    )
+}
+
+internal fun RemoteEntry.textArticleRef(): TextArticleRef? {
+    val itemId = key.removePrefix("text:item:").toLongOrNull() ?: return null
+    return TextArticleRef(itemId, title, actionUrl)
+}
+
+
+/** Gson：sound/items.json 行（字段对齐 [com.openapi.core.model.SoundItemsVo]）。 */
+internal class SoundItemsVo {
+    @JvmField var name: String? = null
+    @JvmField var file: String? = null
+    @JvmField var fileDate: String? = null
+}
+
+internal fun SoundItemsVo.toSoundListEntry(index: Int): RemoteEntry {
+    val url = file.orEmpty()
+    return RemoteEntry(
+        key = "sound:item:$index:$url",
+        title = name.orEmpty().ifBlank { "未命名" },
+        description = fileDate.orEmpty().trim(),
+        imageUrl = null,
+        ratio = 1f,
+        actionUrl = url,
+        needsLazyUrl = false,
+        channelParam = null,
+        param = null,
+        isImageCard = false,
+    )
+}

@@ -14,6 +14,10 @@ import json
 import sys
 from pathlib import Path
 
+_PKG = Path(__file__).resolve().parent
+if str(_PKG) not in sys.path:
+    sys.path.insert(0, str(_PKG))
+
 from wardrobe_export import detect_prefix, inspect_directory, load_spec
 
 DEFAULT_SPEC = Path(__file__).resolve().parents[1] / "live2d-lab-assets" / "wardrobe-spec.json"

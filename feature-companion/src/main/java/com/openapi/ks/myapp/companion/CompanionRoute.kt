@@ -348,6 +348,8 @@ fun CompanionRoute(
         // 默认（callStage == null）仍是原来的圆头像 / 分层立绘；选了引擎才换舞台。
         DhLabBootstrap.ensureDefaults()
         val labEnabled = remember(context) { DhLabGate.isEnabled(context) }
+        val faceCamPrefs = remember(context) { CompanionFaceCameraPrefs(context) }
+        var faceCameraOn by remember { mutableStateOf(faceCamPrefs.enabled) }
         val dhPrefs = remember(context) { DhLabPreferences(context) }
         var callStage by remember { mutableStateOf(dhPrefs.callStage) }
         // 用户在菜单里再点已勾选的引擎 = 「解除熔断再试一次」。引擎 id 没变，Compose 不会重组，
@@ -493,10 +495,11 @@ fun CompanionRoute(
                 } else if (uiState.isMuted) FloatArray(0) else selfBands,
                 isAgentSpeaking = uiState.messages.lastOrNull()?.streaming == true,
                 connection = callConnection,
-                statusHint = if (uiState.connection == CompanionConnection.ERROR) {
-                    uiState.error ?: "连接已断开"
-                } else {
-                    null
+                statusHint = when (uiState.connection) {
+                    CompanionConnection.ERROR ->
+                        uiState.connectionError ?: uiState.error ?: "连接已断开"
+                    CompanionConnection.RECONNECTING -> "正在重连…"
+                    else -> null
                 },
             ),
             // 摄像头目前不支持；由按钮显示不可用状态，不注入点击回调。
@@ -511,12 +514,26 @@ fun CompanionRoute(
                 waveOptions = next
                 saveWaveOptions(context, next)
             },
+            faceCameraEnabled = faceCameraOn,
+            onFaceCameraChange = if (labEnabled) {
+                { on ->
+                    faceCameraOn = on
+                    faceCamPrefs.enabled = on
+                }
+            } else {
+                null
+            },
             theme = callTheme,
             onThemeChange = { next ->
                 callTheme = next
                 saveCallTheme(context, next)
             },
             onHangUp = { chatViewModel.endCall() },
+            onRetryConnect = if (uiState.connection == CompanionConnection.ERROR) {
+                { chatViewModel.retryConnection(characterId, scriptCaseId) }
+            } else {
+                null
+            },
             onToggleMute = {
                 // 静音状态下点「取消静音」就是真的要开麦，没权限得先申请。
                 if (uiState.isMuted && !hasMicPermission(context)) {
@@ -653,19 +670,37 @@ fun CompanionRoute(
                             particles = waveOptions.particles,
                             // dh-lab 调试按钮 → 同一条 Gesture 词表（pat_head）。
                             onLabFxTest = { chatViewModel.emitStageGesture("pat_head") },
+                            labFaceCameraPip = labEnabled && faceCameraOn,
                         )
                         }
                         if (actionTrayOpen) {
+                            val wardrobe = stageEngine?.wardrobeRows().orEmpty()
+                            val model = stageEngine?.modelLabel()
+                            val present = com.openapi.ks.myapp.dh.live2dPresentModels(context)
                             AvatarActionTray(
                                 actions = avatarActions(),
                                 onActionClick = { action ->
                                     action.messageText?.let(chatViewModel::sendActionText)
-                                    // 特效并进既有 Gesture 词表（与服务端 cue 同路）；
-                                    // mapper 不认的 id（sit_close 等）回 null，不播。
                                     chatViewModel.emitStageGesture(action.id)
                                     actionTrayOpen = false
                                 },
                                 onDismiss = { actionTrayOpen = false },
+                                wardrobeRows = wardrobe,
+                                onWardrobeClick = { axis ->
+                                    stageEngine?.advanceWardrobe(axis)
+                                    wardrobeTick++
+                                },
+                                modelLabel = model,
+                                onModelSwitch = if (present.size > 1 && model != null) {
+                                    {
+                                        val next = com.openapi.ks.myapp.dh.Live2dModels.next(model, present)
+                                        live2dModel = next
+                                        dhPrefs.live2dModel = next
+                                        wardrobeTick++
+                                    }
+                                } else null,
+                                modelSwitchHint = "只推了这一个形象",
+                                refreshTick = wardrobeTick,
                             )
                         }
                         }

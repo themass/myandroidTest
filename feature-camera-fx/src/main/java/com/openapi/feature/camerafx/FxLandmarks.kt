@@ -38,8 +38,8 @@ val FACE_LIPS_OUTER: IntArray = intArrayOf(
 const val FACE_LANDMARK_COUNT = 478
 
 /**
- * BlazePose 骨架连线（关节索引对）。只保留头颈肩躯干四肢主干，
- * 手指段（17..22）没画——33 点里它们太密，demo 不需要。
+ * BlazePose 骨架连线（关节索引对）。主干 + 腕连指尖（粗粒度「手」扇形）。
+ * 精细 21 点手型走 HandLandmarker（见 [HAND_CONNECTIONS]）。
  */
 val POSE_CONNECTIONS: Array<IntArray> = arrayOf(
     // 头
@@ -49,6 +49,9 @@ val POSE_CONNECTIONS: Array<IntArray> = arrayOf(
     intArrayOf(11, 12), intArrayOf(11, 23), intArrayOf(12, 24), intArrayOf(23, 24),
     // 手臂
     intArrayOf(11, 13), intArrayOf(13, 15), intArrayOf(12, 14), intArrayOf(14, 16),
+    // BlazePose 手腕→指尖（15/16 腕，17–22 指尖）
+    intArrayOf(15, 17), intArrayOf(15, 19), intArrayOf(15, 21),
+    intArrayOf(16, 18), intArrayOf(16, 20), intArrayOf(16, 22),
     // 腿
     intArrayOf(23, 25), intArrayOf(25, 27), intArrayOf(24, 26), intArrayOf(26, 28),
     intArrayOf(27, 29), intArrayOf(29, 31), intArrayOf(28, 30), intArrayOf(30, 32),

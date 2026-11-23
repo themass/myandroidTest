@@ -26,12 +26,10 @@ import androidx.compose.ui.unit.sp
 /**
  * 长按她之后弹出的动作托盘：盖在舞台上的一层薄纱 + 底部一张小卡。
  *
- * 换装 / 换形象已迁到通话页右侧 [com.openapi.ks.myapp.companion.HeroSideDrawer]；
- * 此处只保留「对她说点什么」类聊天通道动作。
- *
- * - 可点动作：发一条聊天通道消息（内容由 [AvatarAction.messageText] 定），发完收起。
- * - 置灰动作：行尾直接写出原因（如「等模型动作素材」），点了不响应。
- * - 薄纱任意处点击 = 收起。不用 Dialog：托盘贴着人物，挂断时随舞台一起消失。
+ * - **换装行**（[wardrobeRows]）：与右侧收纳盒同源；点一行推进一根轴、托盘不关。
+ * - **换形象行**：多模型时在可用列表里循环。
+ * - 可点动作：发一条聊天通道消息，发完收起。
+ * - 薄纱任意处点击 = 收起。
  */
 @Composable
 fun AvatarActionTray(
@@ -39,7 +37,15 @@ fun AvatarActionTray(
     onActionClick: (AvatarAction) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    wardrobeRows: List<Live2dWardrobeRow> = emptyList(),
+    onWardrobeClick: (Live2dWardrobeAxis) -> Unit = {},
+    modelLabel: String? = null,
+    onModelSwitch: (() -> Unit)? = null,
+    modelSwitchHint: String? = null,
+    /** 引擎内部状态不是 Compose state——调用方推进轴后 +1，托盘重读当前值。 */
+    refreshTick: Int = 0,
 ) {
+    @Suppress("UNUSED_PARAMETER") val _refresh = refreshTick
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -59,6 +65,37 @@ fun AvatarActionTray(
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
+            if (wardrobeRows.isNotEmpty() || modelLabel != null) {
+                Text("换装 · 点一行换一个", color = SECTION_TEXT, fontSize = 12.sp)
+                modelLabel?.let { label ->
+                    val can = onModelSwitch != null
+                    val text = if (can) "换形象 · $label →" else "换形象 · $label · ${modelSwitchHint ?: "只有一个可用"}"
+                    Text(
+                        text = text,
+                        color = if (can) TEXT_PRIMARY else TEXT_DISABLED,
+                        fontSize = 15.sp,
+                        modifier = Modifier
+                            .semantics { contentDescription = text }
+                            .clickable(enabled = can) { onModelSwitch?.invoke() }
+                            .fillMaxWidth()
+                            .padding(vertical = 7.dp, horizontal = 6.dp),
+                    )
+                }
+                wardrobeRows.forEach { row ->
+                    val label = if (row.enabled) "${row.label} · ${row.value}"
+                        else "${row.label} · ${row.disabledReason}"
+                    Text(
+                        text = label,
+                        color = if (row.enabled) TEXT_PRIMARY else TEXT_DISABLED,
+                        fontSize = 15.sp,
+                        modifier = Modifier
+                            .semantics { contentDescription = label }
+                            .clickable(enabled = row.enabled) { onWardrobeClick(row.axis) }
+                            .fillMaxWidth()
+                            .padding(vertical = 7.dp, horizontal = 6.dp),
+                    )
+                }
+            }
             Text("想对她做点什么？", color = TEXT_PRIMARY, fontSize = 13.sp)
             actions.forEach { action ->
                 val label = if (action.enabled) action.label else "${action.label} · ${action.disabledReason}"
@@ -82,3 +119,4 @@ private val CARD_BG = Color(0xF2101731)
 private val CARD_BORDER = Color(0x33FFFFFF)
 private val TEXT_PRIMARY = Color(0xFFF3F5FF)
 private val TEXT_DISABLED = Color(0xFF6B7591)
+private val SECTION_TEXT = Color(0xFF9AA6C4)

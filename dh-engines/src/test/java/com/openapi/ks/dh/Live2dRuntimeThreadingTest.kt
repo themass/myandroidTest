@@ -76,6 +76,13 @@ class Live2dRuntimeThreadingTest {
     }
 
     @Test
+    fun `changeModel 走 GL 调度而不是在调用线程直调 native`() {
+        val d = RecordingDispatcher()
+        runtime(d).changeModel("Amadeus", "Amadeus.model3.json")
+        assertEquals(1, d.posted.size)
+    }
+
+    @Test
     fun `release 之后不再投递`() {
         val d = RecordingDispatcher()
         val rt = runtime(d)
