@@ -1,5 +1,6 @@
 package com.openapi.ks.myapp.dh
 
+import com.openapi.ks.dh.AssetManifest
 import com.openapi.ks.dh.EngineAssets
 
 /** 通话页下拉里点一行后该做什么。 */
@@ -62,7 +63,13 @@ class DhEngineDownloadGate(
         val id = row.id ?: return EngineClickAction.SELECT
         val assets = id.assets()
         val available = assets == null || availability(id)
-        return decideEngineClick(available = available, switches = row.switches)
+        if (available) return EngineClickAction.SELECT
+        if (!row.switches) return EngineClickAction.UNAVAILABLE_REASON
+        // 清单为空：ensure() 必失败，直接提示 seed，不假装「正在下载」。
+        if (assets?.let { !AssetManifest.hasDownloadablePacks(it) } == true) {
+            return EngineClickAction.UNAVAILABLE_REASON
+        }
+        return EngineClickAction.NOT_READY_START_DOWNLOAD
     }
 
     fun isDownloading(id: DhEngineId): Boolean = synchronized(inFlight) { id in inFlight }

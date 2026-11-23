@@ -384,4 +384,17 @@ class ScreeningFeedTest {
         assertEquals(ScreeningPageKind.VIDEO_USERS, videoChannelPageKind(movieHub))
         assertEquals("qvod_user", videoUserListChannelKey(movieHub))
     }
+
+    @Test
+    fun `video_item_user 卡走子频道层（旧路由同一个 BodyFragment）`() {
+        // ConfigActionJump 把 video_item_user:// 也交 VideoChannleActivity →
+        // VideoChannleBodyFragment 第一层发 /video/channel.json，跟 video:// 完全同构。
+        assertTrue(isConfigAction("video_item_user://config?channel=user_1"))
+        val card = remoteEntry(4L, 0, "用户上传频道", null, null, 1f,
+            "video_item_user://config?channel=user_1", false, dataType = 5)!!
+        assertEquals(FeedRoute.CHANNEL, routeOf(card))
+        assertEquals(ScreeningPageKind.SUBCHANNELS, videoChannelPageKind(card))
+        // 不带 channel 的同样不算（和 video:// 同规则）
+        assertFalse(isConfigAction("video_item_user://play?id=1"))
+    }
 }

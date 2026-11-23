@@ -96,7 +96,9 @@ internal fun isPlayableMediaUrl(actionUrl: String?): Boolean {
  * 列子频道、下一层才 items.json 取片单。放映场以前只认 `video://`，teleplay/movie 的
  * channel 值（channelType 列）被直接发去 items.json，查不到行（errno/0 行）——就是「点进去没内容」。
  */
-private val SUBCHANNEL_SCHEMES = setOf("video", "teleplay", "movie")
+// video_item_user 旧路由也交 VideoChannleActivity（ConfigActionJump 注册表），
+// 第一层同一个 channel.json——不注册的话这种卡会被发 items.json（channelType 查空）。
+private val SUBCHANNEL_SCHEMES = setOf("video", "teleplay", "movie", "video_item_user")
 internal fun isConfigAction(actionUrl: String?): Boolean =
     schemeOf(actionUrl) in SUBCHANNEL_SCHEMES && !channelParamOf(actionUrl).isNullOrEmpty()
 
