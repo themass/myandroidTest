@@ -11,5 +11,7 @@
     <string name="drawer_group_account">账户</string>
     <string name="drawer_group_common">常用</string>
     <string name="drawer_group_test">测试</string>
+    <string name="drawer_group_lab">实验室</string>
+    <string name="drawer_entry_camera_fx">摄像头定位 Demo</string>
     <string name="home_tab_agent_chat">角色对话（新）</string>
 </resources>
