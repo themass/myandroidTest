@@ -23,3 +23,5 @@ include ':dh-engines'
 include ':retromusic'
 // 对话 UI 组件库（消息列表、消息气泡、输入栏），与业务无关，可在多个页面复用
 include ':chatkit'
+// 摄像头五官/肢体定位 spike（MediaPipe 离线；debug 入口专用，不进生产导航）
+include ':feature-camera-fx'
