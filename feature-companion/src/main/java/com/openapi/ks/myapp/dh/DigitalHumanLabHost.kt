@@ -27,6 +27,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -269,10 +270,13 @@ fun DigitalHumanLabHost(
         swapping = false
     }
 
-    // 当前引擎实例发布给调用方（换形象/换装托盘直接调 wardrobeRows/advanceWardrobe）。
-    DisposableEffect(engine) {
-        onEngineChanged?.invoke(bridge.current())
+    // 当前引擎实例发布给调用方（收纳盒换装 / advanceWardrobe）。换形象时 engine 引用
+    // 会变，但 dispose 里不能推 null——真机「换装全无」就是这一帧 stageEngine 被清空。
+    DisposableEffect(Unit) {
         onDispose { onEngineChanged?.invoke(null) }
+    }
+    SideEffect {
+        onEngineChanged?.invoke(bridge.current())
     }
     LaunchedEffect(mouthLevel, engine) {
         val flow = mouthLevel ?: return@LaunchedEffect
@@ -367,10 +371,15 @@ fun DigitalHumanLabHost(
                             .avatarStageTransform(
                                 stage,
                                 onTap = if (e.id == DhEngineId.VRM) null else { off ->
-                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    tapPressed = true
-                                    bridge.onAvatarTouch(AvatarTouch(off.x, off.y, AvatarTouchKind.TAP))
-                                    tappedNow?.invoke(stageTapRegion(off.x, off.y))
+                                    val result = bridge.onAvatarTouch(
+                                        AvatarTouch(off.x, off.y, AvatarTouchKind.TAP),
+                                    )
+                                    if (result is TouchResult.Handled) {
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        // Live2D 双击被误认成「缩放脉冲」→ 关 View 引擎点按脉冲
+                                        if (e.id != DhEngineId.LIVE2D) tapPressed = true
+                                        tappedNow?.invoke(result.region ?: stageTapRegion(off.x, off.y))
+                                    }
                                 },
                                 onLongPress = onLongPressed?.let { { it() } },
                                 onOrbit = (e as? VrmDigitalHumanEngine)?.let { vrmEngine ->
@@ -380,10 +389,15 @@ fun DigitalHumanLabHost(
                         update = { v ->
                             // 触摸脉冲乘在引擎 View 自身的 scale 上（与双指缩放同源，
                             // Compose 图层到不了这个 View，见 AvatarStageTransform 注释）。
-                            v.scaleX = stage.scale * tapScale
-                            v.scaleY = stage.scale * tapScale
+                            val pulse = if (e.id == DhEngineId.LIVE2D) 1f else tapScale
+                            v.scaleX = stage.scale * pulse
+                            v.scaleY = stage.scale * pulse
                             v.translationX = stage.offsetX
                             v.translationY = stage.offsetY
+                            theme?.let {
+                                val argb = stageClearColorArgb(it.topArgb, it.midArgb, it.bottomArgb)
+                                v.setBackgroundColor(argb)
+                            }
                         },
                         onRelease = { /* release 由 bridge.replaceWith / DisposableEffect 负责 */ },
                     )

@@ -656,16 +656,33 @@ fun CompanionRoute(
                         )
                         }
                         if (actionTrayOpen) {
+                            val wardrobe = stageEngine?.wardrobeRows().orEmpty()
+                            val model = stageEngine?.modelLabel()
+                            val present = com.openapi.ks.myapp.dh.live2dPresentModels(context)
                             AvatarActionTray(
                                 actions = avatarActions(),
                                 onActionClick = { action ->
                                     action.messageText?.let(chatViewModel::sendActionText)
-                                    // 特效并进既有 Gesture 词表（与服务端 cue 同路）；
-                                    // mapper 不认的 id（sit_close 等）回 null，不播。
                                     chatViewModel.emitStageGesture(action.id)
                                     actionTrayOpen = false
                                 },
                                 onDismiss = { actionTrayOpen = false },
+                                wardrobeRows = wardrobe,
+                                onWardrobeClick = { axis ->
+                                    stageEngine?.advanceWardrobe(axis)
+                                    wardrobeTick++
+                                },
+                                modelLabel = model,
+                                onModelSwitch = if (present.size > 1 && model != null) {
+                                    {
+                                        val next = com.openapi.ks.myapp.dh.Live2dModels.next(model, present)
+                                        live2dModel = next
+                                        dhPrefs.live2dModel = next
+                                        wardrobeTick++
+                                    }
+                                } else null,
+                                modelSwitchHint = "只推了这一个形象",
+                                refreshTick = wardrobeTick,
                             )
                         }
                         }
