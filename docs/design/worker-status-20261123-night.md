@@ -1,7 +1,11 @@
 # Worker 全线续跑 · 状态总结（2026-11-23 夜，第二版）
 
-**主线 tip：** `origin/weifu-refactor` → **`b1bf4a88`**
+**主线 tip：** `origin/weifu-refactor` → **`ece403c2`**
 （其下含 `4b1c2b37` photo-edit S3、`cbe826e1` camera-fx 手势→舞台 cue、`4b758dea` screening scheme 交回、`fddbf38a` 通话字幕修复、`a0b05092` 测试基线修复）
+
+**头像修未装机：** `ece403c2`（对话页用户头像插槽，design-3-tasks）不在手机当前包（4b1c2b37/1.1.0.71）里。等 lottie-fx 的模块图收口进 tip 后，由协调会话**单次**重装并公告（versionName+lastUpdateTime+tip sha），S2 验收等公告后跑。
+
+**架构债分诊（tip ece403c2 独立复跑确认）：** `:app` `ModuleGraphTest` 3/4 红，全部由 camera-fx 线进主线未登记模块图引起——①包名 `camerafx`≠机械推导 `camera-fx`；②`:feature-companion→:feature-camera-fx` feature 互依（`DigitalHumanLabHost` 直接 import `CameraFxStickerPip`）；③「声明未用」假阳性。归 **lottie-fx**（camera-fx 线作者）处理，已派单，要求按 `a256bc9d` 登记包名豁免 + **正解解耦**（PIP 内容提升到 :app 组合根经参数注入，删 `feature-companion/build.gradle:52`），不要登记 feature 互依豁免边。
 
 **装机纪律：** 仅现场 `assembleChatDebug`。已在 tip `fddbf38a` 现场构建成功（exit 0，`app-chat-debug.apk` 322MB）。
 V2279A（serial `10CE7P1G56004B7`）曾出现幽灵版本 1001000070（worker 从本地 worktree 装，版本号来路不明）→ 协调会话已 `adb install -r -d` 覆盖；当前装机 **tip 4b1c2b37 / 1001000071 / 1.1.0.71（22:39:02）**，含字幕修复 + photo-edit S3 + screening 收口。
