@@ -146,7 +146,16 @@ fun DigitalHumanLabHost(
     // 双指缩放/拖动：Live2D 人物太小看不到唇形，所有引擎统一支持 1..4x 捏合放大，
     // 放大后单指拖动，1x 时单指事件原样透传给引擎（点击触发形象动画、Live2D 视线）。
     val stage = rememberAvatarStageTransform()
-    LaunchedEffect(engine) { stage.reset() }
+    LaunchedEffect(engine) {
+        if (engine.id == DhEngineId.LIVE2D) {
+            // 真机「人太小看不清唇形」：Live2D 默认略放大，其它引擎仍 1x。
+            stage.scale = 1.22f
+            stage.offsetX = 0f
+            stage.offsetY = 0f
+        } else {
+            stage.reset()
+        }
+    }
 
     // 点她一下的本地脉冲：按下缩 2% 抬手弹回。减弱动态时缩放归零，只剩震动。
     val reducedMotion = remember(context) {
@@ -257,15 +266,22 @@ fun DigitalHumanLabHost(
     LaunchedEffect(live2dModel, engine) {
         val current = bridge.current()
         if (current.id != DhEngineId.LIVE2D) return@LaunchedEffect
-        val currentModel = (current as? Live2dDigitalHumanEngine)?.modelLabel() ?: return@LaunchedEffect
+        val live2d = current as? Live2dDigitalHumanEngine ?: return@LaunchedEffect
+        val currentModel = live2d.modelLabel()
         if (live2dModel == currentModel) return@LaunchedEffect
-        val candidate = Live2dDigitalHumanEngine(modelDirName = live2dModel)
+        swapping = true
+        if (live2d.switchToModel(context, live2dModel)) {
+            swapping = false
+            onEngineChanged?.invoke(bridge.current())
+            return@LaunchedEffect
+        }
+        swapping = false
+        val candidate = Live2dDigitalHumanEngine(initialModelDirName = live2dModel)
         if (!candidate.availability(context).available) {
             candidate.release()
             return@LaunchedEffect
         }
         if (bridge.current() !== current) {
-            // 探测期间引擎被切走（例如切到 Duix）：这个候选不能顶替别的引擎。
             candidate.release()
             return@LaunchedEffect
         }
@@ -490,9 +506,14 @@ fun DigitalHumanLabHost(
         }
 
         if (swapping) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            // 角标加载：全屏 spinner 会把数字人整块盖住，误认「人不见了」。
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 52.dp)
+                    .size(28.dp),
+                strokeWidth = 2.5.dp,
+            )
         }
 
         // 请求了 native 引擎却落在基础形象：说明原因，别只剩一个「形象准备中」。
@@ -521,7 +542,7 @@ fun DigitalHumanLabHost(
  */
 private fun createLabEngine(context: android.content.Context, id: DhEngineId, live2dModel: String): DigitalHumanEngine =
     if (id == DhEngineId.LIVE2D) {
-        Live2dDigitalHumanEngine(modelDirName = Live2dModels.sanitize(live2dModel))
+        Live2dDigitalHumanEngine(initialModelDirName = Live2dModels.sanitize(live2dModel))
     } else {
         DhEngineRegistry.create(context, id)
     }

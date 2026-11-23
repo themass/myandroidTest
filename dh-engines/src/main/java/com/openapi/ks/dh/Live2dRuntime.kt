@@ -178,6 +178,25 @@ class Live2dRuntime internal constructor(
         }
     }
 
+    /**
+     * 同一块 GLSurfaceView 上换模型目录（不换 View、不拆 Cubism 全流程）。
+     * 通话页切 ATRI/Amadeus/Yuuka 走这条路，避免 replaceWith 整引擎时的黑屏闪一下。
+     */
+    fun changeModel(modelDirName: String, modelJsonName: String = "$modelDirName.model3.json") {
+        if (!started || released || modelDirName.isEmpty()) return
+        val root = env.cacheRoot() ?: return
+        val modelPath = File(root, modelDirName).absolutePath + File.separator
+        val d = dispatcher ?: return
+        runCatching {
+            d.post {
+                runCatching {
+                    JniBridgeJava.nativeProjectChangeTo(modelPath, modelJsonName)
+                    JniBridgeJava.nativeAutoBlinkEyes(true)
+                }
+            }
+        }
+    }
+
     /** Applies a named expression (e.g. "Angry", "Smile") if the model defines it. */
     fun setExpression(name: String) {
         if (!started || released || name.isEmpty()) return
