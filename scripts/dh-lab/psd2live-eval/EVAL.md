@@ -60,6 +60,10 @@ Layout 摘录见 [`evidence/layout-variant-excerpt.json`](evidence/layout-varian
 - `layout.cdi3.json` Parameters 含 `{Id: ParamWear_test, GroupId: ParamGroupCustom}`
 - 无头 CLI `--input layout.json` → 「不是有效的 PSD 文件」；差分必须走 MCP/GUI
 
+## Editor 马甲冒烟（2026-11-23 续）
+
+合成样件 `make_wardrobe_fixture.py` → MCP 全链 → `layout.moc3`（1,001,984 B，`ParamWear_test`）。`view_render_poses`：**0 / 0.5 / 1** 三联图马甲关/半透/全开（[`evidence/wardrobe-poses-editor-20261123.png`](evidence/wardrobe-poses-editor-20261123.png)）。`runtime_verified` = **editor_only**（见 [`evidence/wardrobe-runtime-export-20261123.json`](evidence/wardrobe-runtime-export-20261123.json)）。索引：[`docs/design/psd2live-wardrobe-evidence-20261123.md`](../../../docs/design/psd2live-wardrobe-evidence-20261123.md)。
+
 ## 未完成 / 后续
 
 1. 头饰验证：**未跑**。MCP 产品入口只有 `project_import_cmo3`（无 `project_import_moc3`）；引擎有 `Moc3Import` 代码但产品未暴露。atri_8 手头只有 `.moc3`，无 `.cmo3` 可喂。扫 Param4–7/23–30 仍待有 cmo3 或 GUI 时再测。

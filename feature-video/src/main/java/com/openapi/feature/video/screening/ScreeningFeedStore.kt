@@ -49,6 +49,15 @@ internal class ScreeningFeedStore(context: Context) {
     suspend fun subchannels(channelParam: String, start: Int = 0): Page<RemoteEntry> =
         page(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNLE_URL, start, channelParam))
 
+    /** 用户维度片单索引（/video/user.json），对齐 VideoChannelUserListFragment。 */
+    suspend fun videoUsers(channelParam: String, start: Int = 0, keyword: String = ""): Page<RemoteEntry> =
+        page(Constants.getUrlWithParam(Constants.API_VIDEO_USER_URL, channelParam, keyword, start))
+
+    /** 某用户的视频列表（/video/user/items.json），actionUrl 即 userId。 */
+    suspend fun videoUserItems(userId: String, start: Int = 0, keyword: String = ""): Page<RemoteEntry> =
+        page(Constants.getUrlWithParam(Constants.API_VIDEO_USER_ITEM_URL, start, userId, keyword))
+
+
     /** 文字馆频道列表（text/channel.json），对齐 TextChannleBodyFragment。 */
     suspend fun textChannelHub(channelParam: String, start: Int = 0): Page<RemoteEntry> =
         page(Constants.getUrlWithParam(Constants.API_TEXT_CHANNLE_URL, start, channelParam))
