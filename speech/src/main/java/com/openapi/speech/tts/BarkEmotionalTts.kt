@@ -25,11 +25,12 @@ import org.json.JSONObject
  * 所以从 agent 输出到这里，一个字节都不能改：不转义、不去方括号、不过 Markdown
  * sanitizer。任何一步把 `[laughs]` 变成 `\[laughs]` 或被吃掉，笑声就没了。
  *
- * 时延现实：Bark 上游 README 说企业级 GPU 上接近实时，老 GPU/CPU「显著更慢」。
- * 本 PoC 的本机实测数字见 tools/bark-tts/out/latency.json（跑通后填）。在拿到
- * 实测数之前，按「生成比音频长、不能边说边合成」对待：只适合「点一条消息、听
- * 一条」的主动朗读，且 UI 要有明确的合成中状态。实时通话链路
- * （LiveKitCompanionTransport）不要接这里。
+ * 时延现实（2026-11-23 本机 M5/MPS/small 实测，见 tools/bark-tts/out/latency.json）：
+ * 一句 ~10 s 的中文音频要 **98–145 秒** 生成（RTF 10–15）。这就是「生成比音频
+ * 长一个数量级、不能边说边合成」的实测依据：只适合「点一条消息、听一条」的主动
+ * 朗读，且 UI 要有明确的合成中状态。实时通话链路
+ * （LiveKitCompanionTransport）不要接这里。GPU 机器会好一些，但 PoC 没有 GPU
+ * 数据，规划时不要外推。
  */
 object BarkEmotionalTts {
 
@@ -49,9 +50,10 @@ object BarkEmotionalTts {
 
     private val client: OkHttpClient by lazy {
         OkHttpClient.Builder()
-            // 生成比实时慢，读超时给到分钟级；连接超时照常。
+            // 实测（2026-11-23，M5/MPS/small）单条生成最长 144.8s，120s 会误杀；
+            // 给 5 分钟，UI 侧要有取消/合成中状态兜住等待。
             .connectTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(120, TimeUnit.SECONDS)
+            .readTimeout(300, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
             .build()
     }

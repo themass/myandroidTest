@@ -113,12 +113,26 @@ curl -s localhost:8088/tts -H 'content-type: application/json' \
 升到 2.6+ 必须自己加 `weights_only=False`（checkpoint 来自 HF 官方仓库，
 但这是「信任来源」的假设，升级时重新评估）。
 
-MPS 这条路 PoC 里没验证过：encodec 在 mps 上会主动退回 cpu（`generation.py:288-290`），
-`SUNO_ENABLE_MPS` 上游默认也是 False。跑不通就把 `BARK_MPS=False` 退回 CPU 出数。
+MPS 这条路**已实测跑通**（2026-11-23，见「时延实测」）：`SUNO_ENABLE_MPS=True` + torch 2.5.1 出数正常。encodec 在 mps 上仍会主动退回 cpu 解码（`generation.py:288-290`），这是 waveform 段慢的一部分原因。
 
 ## 时延实测
 
-（本机实测数据见 `out/latency.json`，下表在跑完后填写。）
+**2026-11-23，本机 MacBook Air M5 / 16 GB，MPS，small 权重，`run_samples.py` 原始输出（`out/latency.json` 同）。没有 GPU 实测数据，别外推。**
+
+冷启动加载权重：**53.6 s**（一次进程只付一次）。
+
+| 样本 | 音频时长 | semantic 段 | waveform 段 | 合计 | RTF |
+| --- | --- | --- | --- | --- | --- |
+| `01-laugh`（[laughs]） | 9.59 s | 49.6 s | 94.0 s | **143.6 s** | 15.0 |
+| `02-sigh`（[sighs]） | 9.45 s | 31.6 s | 66.7 s | **98.3 s** | 10.4 |
+| `03-gasp`（[gasps]） | 11.76 s | 32.8 s | 111.9 s | **144.8 s** | 12.3 |
+
+读数：
+
+- **比实时慢 10–15 倍**：一句 ~10 s 的中文要 1.5–2.5 分钟才出得来。这是「朗读」场景勉强能忍（点一下等一分钟）、实时通话绝对不可能的直接依据。
+- **大头是 waveform 段**（semantic→coarse→fine 三段 GPT + EnCodec 解码），占总时长 66–77%，不是文本段。
+- 三条 RTF 在 10–15 之间波动，和 semantic token 数不成比例（479/472/587 tokens）——别拿单条数字做容量规划，按最差 15 算。
+- MPS 这条路**跑通了**（上面就是 MPS 数据）：`SUNO_ENABLE_MPS=True` + torch 2.5.1 正常出数，`Killed`/OOM 没出现（16 GB 机器 RSS 峰值远低于内存线）。encodec 在 mps 上仍会退回 cpu 解码（`generation.py:288-290`），所以 waveform 段慢有一部分是这个原因。
 
 ## 为什么这个 PoC 服务不能上生产
 
@@ -147,7 +161,8 @@ PoC 有意省掉的东西，别当成可以直接部署：
 **但 EnCodec 的「权重」许可没查到，这是商用前必须解决的一条，别当成已放行。** 已核实的：
 
 - EnCodec **代码**是 MIT：`facebookresearch/encodec` 的 `LICENSE` 原文「MIT License / Copyright (c) Meta Platforms, Inc. and affiliates」。
-- Bark 用的不是 HF 上的 `facebook/encodec_24khz`，而是 `EncodecModel.encodec_model_24khz()` 从 Meta CDN 直接拉 `dl.fbaipublicfiles.com/encodec/v0/encodec_24khz-d7cc33bc.th`（88.9 MB，缓存到 `~/.cache/torch/hub/checkpoints/`）。那个下载点**旁边没有 LICENSE 文件**。
+- Bark 用的不是 HF 上的 `facebook/encodec_24khz`，而是 `EncodecModel.encodec_model_24khz()` 从 Meta CDN 直接拉 `dl.fbaipublicfiles.com/encodec/v0/encodec_24khz-d7cc33bc.th`（93.17 MB，缓存到 `~/.cache/torch/hub/checkpoints/`）。那个下载点**旁边没有 LICENSE 文件**。HF 上那个 93.19 MB 的 `pytorch_model.bin` 是**另一个封装**，字节数不同——别拿 HF 的 size/checksum 去校验 CDN 这个文件（PoC 里在这上面白追过一轮「差 20 KB 下不完」，实际 CDN 文件本来就完整，`content-length` 就是 93,171,529）。
+- CDN 文件名里嵌的 `d7cc33bc` 前缀**不是**该文件的 md5（实测 md5 是 `3632f80b…`），torch.hub 那条按文件名哈希校验的路子对它无效。部署脚本要自己钉 md5。
 - HF 上 `facebook/encodec_24khz` / `encodec_32khz` 两个 model card 的 `license` 字段和 tags **都是空的**（查过 API），所以也没在 HF 侧给出权重许可。
 
 也就是说：代码可商用有据，权重可商用**无据**。要在商用前找 Meta 书面确认，或换成许可明确的 codec。PoC/内部测试不阻塞。
