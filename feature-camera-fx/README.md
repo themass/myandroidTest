@@ -45,6 +45,8 @@ sticker 后续接法：`graphicsLayer { translationX/Y = map(headTop); rotationZ
 debug 包：抽屉「实验室」分组 → 摄像头定位 Demo。release 包没有这个入口
 （与 `DhLabGate` 同样的 debuggable 判定，入口注册在 `:app` 的 HomeDrawer，见 `CameraFxLabGate`）。
 
+**与主 app 接线表**：`docs/superpowers/specs/2026-11-23-camera-fx-app-lab-wiring.md`。
+
 ## 已知边界（spike 不做）
 
 - 前摄镜像的 x 翻转靠 `CanvasMap.mirrorX` 常量对齐，未做逐帧配准验证（真机目测对齐）。

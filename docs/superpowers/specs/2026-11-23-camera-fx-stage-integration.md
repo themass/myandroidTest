@@ -8,7 +8,7 @@
 
 | 层 | 模块 | 职责 |
 |----|------|------|
-| 感知 | `:feature-camera-fx` | CameraX + Face/Pose、纯函数锚点、**仅设备内存** |
+| 感知 | `:feature-camera-fx` | CameraX + Face/Pose/Hand、纯函数锚点、**仅设备内存**；与 app 接线见 `2026-11-23-camera-fx-app-lab-wiring.md` |
 | 呈现选项 | `CameraFxOverlayPolicy` | wireframe / stickers / assetId（纯数据） |
 | 舞台特效 | `feature-companion.fx` | `LottieFxLayer` + `StageEffectMapper` ← **gesture 链** |
 | 通话 UI | `CompanionRoute` / `CompanionCallScreen` | 何时开相机（用户意图）；**`cameraAvailable`** = LiveKit 视频轨（另线） |
@@ -18,7 +18,7 @@
 1. **触发特效**：舞台动效仍只走 `emitStageGesture` / cmp.cue → `gestureSeq`；相机侧贴纸**默认**本地 asset 跟随锚点，**不循环冒充**舞台托盘。
 2. **不开相机不跑分析**：`CameraFxGrantedContent` 仅在 composable 进入树且已授权时 bind lifecycle（无全局后台相机）。
 3. **无 pointerInput** 在相机叠层 / LottieFxLayer（捏合仲裁一处）。
-4. **手势**：v1 仅 Pose 骨架（肩肘腕）；指尖 15–22 **未画**；分类 gesture→fx **二期**。
+4. **手势**：lab 已画 Pose 腕→指尖扇区 + HandLandmarker 双手 21 点（橙）+ HUD 张/拳/捏启发式；**emitStageGesture 分类→舞台 fx 仍为二期**。
 5. **入口**：全屏 lab = 抽屉实验室；通话内 = **debug 开关** `CompanionFaceCameraPrefs.enabled`（默认 **false**），将来可与 `onToggleCamera` 对齐。
 
 ## 数据流（v2 通话内）
@@ -48,5 +48,6 @@
 - [x] 关通话页自动小窗
 - [x] `CameraFxOverlayPolicy` + lab SharedPreferences
 - [ ] 通话 debug 菜单「人脸贴纸」接 `labFaceCameraPip` + prefs
-- [ ] 画 Pose 手指数（15–22）可选开关
-- [ ] Hand landmark / GestureRecognizer → emitStageGesture
+- [x] Pose 腕连指尖（默认开）；可选开关 **二期**
+- [x] Hand landmark + lab HUD 手势启发式
+- [ ] Hand/Pose 手势 → `emitStageGesture`（舞台托盘）
