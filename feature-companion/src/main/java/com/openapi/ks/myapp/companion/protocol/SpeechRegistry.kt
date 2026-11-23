@@ -298,15 +298,16 @@ class SpeechRegistry<P>(
     fun isCancelled(speechId: String): Boolean = speechId in tombstones
 
     /**
-     * 当前还活着的那句（PENDING / PLAYING），取最新一条。
+     * 当前正在播的那句（仅 PLAYING），取最新一条。
      *
-     * §10.1 本地打断要用：端侧只有一条远端音频轨，"她正在说" 就对应这条。
-     * DONE / CANCELLED 不算——说完或作废了就没有可打断的对象。
+     * §10.1 本地打断要用：端侧只有一条远端音频轨，"她正在说" = t0 已标定。
+     * PENDING 不算——seg 到了但还没远端 PCM，打断会自掐 TTS（frames=0）。
+     * DONE / CANCELLED 也不算——说完或作废了就没有可打断的对象。
      */
     @Synchronized
     fun activeSpeechId(): String? =
         timelines.values.lastOrNull {
-            it.state == SpeechTimeline.State.PENDING || it.state == SpeechTimeline.State.PLAYING
+            it.state == SpeechTimeline.State.PLAYING
         }?.speechId
 
     /** 已播时长（单调毫秒）。还没标定 t0 时返回 0——服务端把这个字段当提示，不依赖精确值。 */

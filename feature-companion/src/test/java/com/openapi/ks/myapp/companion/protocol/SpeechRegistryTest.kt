@@ -38,12 +38,35 @@ class SpeechRegistryTest {
     // ------------------------------------------------------------ 本地打断（§10.1 / F11）
 
     @Test
-    fun `activeSpeechId 取最新一条未结束的时间线`() {
+    fun `activeSpeechId PENDING 不可打断——要等 t0 标定成 PLAYING`() {
+        // 回归：PENDING 时端侧还没远端 PCM；若此时 activeSpeechId 返回 id，
+        // BargeInGate 会发 control.barge_in → 服务端 interrupt → TTS frames=0。
+        // §10.1「她在说」= PLAYING，不是 PENDING。
+        val r = registry()
+        assertNull(r.activeSpeechId())
+
+        r.onSeg(seg("sp_1", idx = 0))
+        assertNull(r.activeSpeechId())
+
+        assertTrue(r.onAudioStarted(now = t0, nowCaptureTs = 7_000, firstCaptureTs = 7_000))
+        assertEquals(SpeechTimeline.State.PLAYING, r.timeline("sp_1")!!.state)
+        assertEquals("sp_1", r.activeSpeechId())
+
+        r.onCancel(cancel("sp_1"))
+        assertNull(r.activeSpeechId())
+    }
+
+    @Test
+    fun `activeSpeechId 取最新一条 PLAYING 的时间线`() {
         val r = registry()
         assertNull(r.activeSpeechId())
         r.onSeg(seg("sp_1", idx = 0))
+        r.timeline("sp_1")!!.startNow(t0)
         assertEquals("sp_1", r.activeSpeechId())
         r.onSeg(seg("sp_2", idx = 0))
+        // sp_2 还是 PENDING：仍只认正在播的 sp_1
+        assertEquals("sp_1", r.activeSpeechId())
+        r.timeline("sp_2")!!.startNow(t0 + 10)
         assertEquals("sp_2", r.activeSpeechId())
         r.onEnd(cancel("sp_2"))
         assertEquals("sp_1", r.activeSpeechId())

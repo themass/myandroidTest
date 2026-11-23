@@ -16,7 +16,7 @@ class BargeInGate(
     /**
      * @param selfLevel 本地采集归一化电平（与 [LiveKitCompanionTransport] 的 selfLevel 同量纲）
      * @param noiseGate 噪声门；低于此视为没开口
-     * @param activeSpeechId 当前 PENDING/PLAYING 的 speech；没有就不打断
+     * @param activeSpeechId 当前 PLAYING 的 speech（t0 已标定）；没有就不打断
      * @return 该打断的 speech_id；本帧不该打断则 null
      */
     fun onSelfLevel(
