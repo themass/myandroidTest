@@ -21,7 +21,8 @@ import java.io.File
 /** 对话页用到的平台能力：剪贴板、分享、打开文件、拍照文件、语音样式偏好。 */
 internal object ChatPlatform {
 
-    private const val FILE_PROVIDER = "com.openapi.ks.chat.fileprovider"
+    /** 收口到 :common（cleanup 项 14）：这一处 + 陪伴页 + :app 导出分享，以前是三份字面量。 */
+    private const val FILE_PROVIDER = com.openapi.common.ui.AppFileProvider.AUTHORITY
 
     fun copy(context: Context, text: String) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -51,9 +52,18 @@ internal object ChatPlatform {
         }
     }
 
-    /** 拍照用的输出地址：放在 files/camera 下（FileProvider 已授权 files 根目录）。 */
+    /**
+     * 拍照用的输出地址：放在 files/camera 下（FileProvider 已授权 files 根目录）。
+     *
+     * 这里**不做超龄清扫**（复审 minor）：这条路由「+」面板的点击 lambda 直接调
+     * （`ChatRoute` 的 `launchCamera`），跑在主线程上——`listFiles()` + 逐个删文件在慢存储上
+     * 就是点一下拍摄卡一下。清扫挂在
+     * [com.openapi.feature.chat.presentation.AttachmentStager.stagingDir]（选图/拍照结果回来时
+     * 已经在 IO 线程），`camera/` 与 `chat_attachments` 同一次扫、同一份年龄规矩；
+     * 这里只留 FileProvider 要求的 `mkdirs()`（一次系统调用，与整改前基线一致）。
+     */
     fun newCameraUri(context: Context): Uri {
-        val dir = File(context.filesDir, "camera").apply { mkdirs() }
+        val dir = com.openapi.feature.chat.presentation.AttachmentStager.cameraDir(context)
         val file = File(dir, "photo_${System.currentTimeMillis()}.jpg")
         return FileProvider.getUriForFile(context, FILE_PROVIDER, file)
     }

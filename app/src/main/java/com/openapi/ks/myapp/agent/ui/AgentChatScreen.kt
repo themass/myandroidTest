@@ -380,8 +380,7 @@ private fun shareExport(context: android.content.Context, json: String) {
     runCatching {
         val dir = java.io.File(context.cacheDir, "export").apply { mkdirs() }
         val file = java.io.File(dir, "companion-export.json").apply { writeText(json) }
-        val uri = androidx.core.content.FileProvider.getUriForFile(
-            context, "com.openapi.ks.chat.fileprovider", file)
+        val uri = com.openapi.common.ui.AppFileProvider.uriFor(context, file)
         val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
             type = "application/json"
             putExtra(android.content.Intent.EXTRA_STREAM, uri)

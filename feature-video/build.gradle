@@ -8,8 +8,8 @@ apply from: rootProject.file('gradle/android-library.gradle')
 
 android {
     namespace = 'com.openapi.feature.video'
-    // Only the debug-only Screening Activity uses these shared, offline sample assets.
-    sourceSets.debug.assets.srcDir(rootProject.file('docs/design/video-suite-prototype/media'))
+    // 随包样片 assets 挂载已撤（本地样片库下线）；docs/design/video-suite-prototype/media
+    // 仍在仓库里，只作为设计原型自带的资源，不再进任何构建。
     buildFeatures {
         compose = true
         viewBinding = true

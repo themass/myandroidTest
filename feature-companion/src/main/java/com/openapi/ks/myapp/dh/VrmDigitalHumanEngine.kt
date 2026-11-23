@@ -49,6 +49,15 @@ class VrmDigitalHumanEngine : DigitalHumanEngine {
         controller?.onCommand(command)
     }
 
+    /**
+     * 舞台轨道旋转增量（度）：手势层（avatarStageTransform 的 onOrbit 档）在
+     * 单指横拖越 slop 后逐帧喂进来，累加与排队都在 [VrmSceneController]。
+     * 只由 VRM 宿主接线——Live2D/Duix/Simple 没有这条通道。
+     */
+    fun onStageOrbit(deltaDeg: Float) {
+        controller?.onOrbitDelta(deltaDeg)
+    }
+
     override fun release() {
         if (released) return
         released = true

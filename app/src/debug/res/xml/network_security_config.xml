@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  **只在 debug 变体存在**：清单引用的是同名资源 `@xml/network_security_config`
+  （app/src/main/AndroidManifest.xml:87），debug 变体的资源合并会拿这份覆盖 main 那份。
+  release 的资源目录里没有这个文件，行为与改动前逐字节相同——review 时盯一眼别把它挪进 main。
+
+  为什么 debug 要放行明文：本地真机验收（LiveKit 设备窗口 Phase 2 D4）把陪伴 API 指到
+  Mac 上的本地栈（`http://127.0.0.1:8081`，走 `adb reverse`），LiveKit 信令是 `ws://`。
+  两个都是明文，main 那份 NSC 会在 okhttp 层直接拦掉，表现是「连不上」而不是「地址错了」。
+  LiveKit Android 2.29 的信令走 okhttp WebSocket（AAR 内已核实 `SignalClient` 用
+  `okhttp3.WebSocket`），同样受这份策略约束。
+
+  信任锚保持系统证书：这里只放开明文，不放任何自定义 CA。
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

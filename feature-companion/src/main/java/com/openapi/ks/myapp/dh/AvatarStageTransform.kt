@@ -90,11 +90,13 @@ fun stageGestureLog(
     endOffset: Float,
     tap: Boolean,
     longPress: Boolean,
+    orbitDeg: Float = 0f,
 ): String =
     "gesture fingers=$maxFingers twoFinger=$twoFingerSeen " +
         "scale ${"%.2f".format(startScale)}->${"%.2f".format(endScale)} " +
-        "moved=${startScale != endScale || startOffset != endOffset} " +
-        "tap=$tap long=$longPress"
+        "moved=${startScale != endScale || startOffset != endOffset || orbitDeg != 0f} " +
+        "tap=$tap long=$longPress" +
+        (if (orbitDeg != 0f) " rot=${"%.0f".format(orbitDeg)}" else "")
 
 class AvatarStageTransformState internal constructor() {
     var scale by mutableFloatStateOf(1f)
@@ -128,6 +130,12 @@ fun rememberAvatarStageTransform(): AvatarStageTransformState = remember { Avata
  * - 拖过 slop：tap/长按作废，放大状态下单指拖动平移；
  * - 一切在**抬手时刻**判定：按住超过 longPressTimeoutMillis 才叫长按，否则叫轻触。
  *
+ * VRM 的**轨道旋转**（用户 2026-11-23 要「支持旋转」）在同一条仲裁里加一档：
+ * [onOrbit] 非 null（只给 VRM 传）且未放大时，单指拖过 slop 后喂
+ * [VrmStageRotation.dragYawDelta] 的增量角；放大后这笔仍归平移
+ * （[VrmStageRotation.rotatesOnSingleFingerDrag]），两指缩放一点没动。
+ * 未越 slop 走原 tap 分区，点按表情不受影响。
+ *
  * [onTap] 收到**视口归一化坐标**（0..1，与旧覆盖 Box 的 offset/size 同源）。
  * 传 null = 这层不管单笔事件（原样落给引擎 View——VRM 的 WebView 要自己吃触摸
  * 做视线旋转），双指缩放仍然生效。[onTap] 非 null 时单指事件也被这层消费：
@@ -144,6 +152,7 @@ fun Modifier.avatarStageTransform(
     state: AvatarStageTransformState,
     onTap: ((Offset) -> Unit)? = null,
     onLongPress: (() -> Unit)? = null,
+    onOrbit: ((Float) -> Unit)? = null,
 ): Modifier {
     var viewport by remember { mutableStateOf(IntSize.Zero) }
     val zoomedNow = rememberUpdatedState(state.isZoomed)
@@ -151,6 +160,7 @@ fun Modifier.avatarStageTransform(
     // 身份，若把它当 key 会在手指还按在屏上时重启整个手势。
     val onTapNow = rememberUpdatedState(onTap)
     val onLongPressNow = rememberUpdatedState(onLongPress)
+    val onOrbitNow = rememberUpdatedState(onOrbit)
     return this
         .onSizeChanged { viewport = it }
         .pointerInput(state) {
@@ -167,6 +177,7 @@ fun Modifier.avatarStageTransform(
                 var maxFingers = 0
                 var twoFingerSeen = false
                 var slopBroken = false
+                var orbitDeg = 0f
                 var lastPos = down.position
                 // compose-ui 1.9：时间戳在 PointerInputChange.uptimeMillis（毫秒）上，
                 // PointerEvent 本身没有时间属性——别按 MotionEvent 的直觉写。
@@ -226,6 +237,20 @@ fun Modifier.avatarStageTransform(
                             state.offsetX = stageStep(state.scale, state.offsetX, ch.position.x, dx, 1f, vw).second
                             state.offsetY = stageStep(state.scale, state.offsetY, ch.position.y, dy, 1f, vh).second
                             event.changes.forEach { if (it.pressed) it.consume() }
+                        } else if (slopBroken &&
+                            onOrbitNow.value != null &&
+                            VrmStageRotation.rotatesOnSingleFingerDrag(zoomedNow.value)
+                        ) {
+                            // VRM 轨道旋转（1x）：横向增量喂给场景页。**故意不消费**——
+                            // WebView 要完整序列做它自己的 slop 轻点判定（分区触点：
+                            // 消费了页面只见 down+up，快甩会被误认成点）；页面的拖动
+                            // 视线跟随已退役，两边不再同吃同一个视觉行为。
+                            val dx = ch.position.x - ch.previousPosition.x
+                            val delta = VrmStageRotation.dragYawDelta(dx, vw)
+                            if (delta != 0f) {
+                                orbitDeg += delta
+                                onOrbitNow.value?.invoke(delta)
+                            }
                         } else if (onTapNow.value != null) {
                             // 舞台拥有这笔单指事件（与旧覆盖 Box 持平：GL 引擎的
                             // 视线由 setGaze 合成驱动，原始触摸不给它）。
@@ -246,7 +271,7 @@ fun Modifier.avatarStageTransform(
                 } else if (tap) {
                     onTapNow.value?.invoke(Offset(lastPos.x / vw, lastPos.y / vh))
                 }
-                if (maxFingers >= 2 || tap || longPress) {
+                if (maxFingers >= 2 || tap || longPress || orbitDeg != 0f) {
                     android.util.Log.i(
                         STAGE_LOG_TAG,
                         stageGestureLog(
@@ -254,6 +279,7 @@ fun Modifier.avatarStageTransform(
                             startScale, state.scale,
                             startOffset, state.offsetX + state.offsetY,
                             tap, longPress,
+                            orbitDeg = orbitDeg,
                         ),
                     )
                 }

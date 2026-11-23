@@ -105,6 +105,10 @@ public class MyApplication extends MultiDexApplication {
         // 对话页错误提示的文案资源实现（整改清单 P2-14b）：应用级 Context，随进程存活
         ChatDependencies.INSTANCE.installStrings(
                 new com.openapi.feature.chat.presentation.ResourceChatStrings(this));
+        // 陪伴页错误提示的文案资源实现（cleanup 项 2）：与上面同款——feature 不认识 :app，
+        // 由这里注入。CompanionViewModel 的 strings 参数默认取它，漏装就是启动后第一次报错时炸。
+        com.openapi.ks.myapp.companion.CompanionDependencies.INSTANCE.installStrings(
+                new com.openapi.ks.myapp.companion.ResourceCompanionStrings(this));
         com.openapi.app.data.home.LegacyHomeEntries home = new com.openapi.app.data.home.LegacyHomeEntries(this);
         com.openapi.app.home.HomeDependencies.INSTANCE.install(home);
         com.openapi.feature.content.home.ChannelsDependencies.INSTANCE.install(home);

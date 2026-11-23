@@ -50,9 +50,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.openapi.feature.video.screening.kernel.KernelHost
-import com.openapi.cast.DlnaDevice
-import com.openapi.cast.DlnaDiscoveryCallback
-import com.openapi.cast.JavaCaster
 import com.openapi.common.net.http.NetConfig
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.feature.video.subtitle.local.ScreeningCaption
@@ -65,7 +62,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.io.InputStreamReader
 import java.io.StringReader
 import kotlin.math.roundToInt
@@ -86,9 +82,8 @@ internal const val TAG_SCREENING_DBG = "ScreeningDbg"
 internal data class ScreeningSource(
     val title: String,
     val description: String,
-    val asset: String? = null,
     val uri: Uri? = null,
-    val key: String = asset ?: uri.toString(),
+    val key: String = uri.toString(),
 )
 
 internal fun documentName(context: Context, uri: Uri): String = runCatching {
@@ -120,10 +115,9 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     // 两套内核各占一格画面槽，换内核在播放中途完成，见 KernelHost
     val host = remember { KernelHost(context) }
     // 实时字幕：引擎在后台并行重解一路静音音频喂火山流式识别，只吃能重解的地址（见 realtimeMediaUrl）。
-    // cacheFile 是样片落盘路径——asset:// 只有播放内核认识，重解要真实文件路径。
-    var cacheFile by remember { mutableStateOf<File?>(null) }
-    val realtimeUrl = remember(source.key, cacheFile) {
-        realtimeMediaUrl(source.uri?.toString(), source.uri?.scheme, cacheFile?.absolutePath)
+    // 随包样片已下线，重解地址就是条目的 uri 本身（http/file 能重解，content:// 不能）。
+    val realtimeUrl = remember(source.key) {
+        realtimeMediaUrl(source.uri?.toString(), source.uri?.scheme, null)
     }
     var realtimeText by remember { mutableStateOf("") }
     // "" = 没有消息；否则依次为加载中/失败原因，字幕面板的实时字幕条目直接显示它
@@ -131,30 +125,15 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     val realtimeRunner = remember { RealtimeSubtitleRunner(context) }
     DisposableEffect(realtimeRunner) { onDispose { realtimeRunner.stop() } }
     LaunchedEffect(source) {
-        // IJK / 系统内核吃不了 asset://，随包的样片先落到 cache 再交给内核
-        val file = withContext(Dispatchers.IO) {
-            source.asset?.let { id ->
-                runCatching {
-                    File(context.cacheDir, "screening-$id.mp4").takeIf { it.length() > 0 } ?: run {
-                        File(context.cacheDir, "screening-$id.mp4").also { out ->
-                            context.assets.open("$id.mp4").use { input -> out.outputStream().use(input::copyTo) }
-                        }
-                    }
-                }.getOrNull()
-            }
-        }
         host.open(
-            uri = source.uri ?: Uri.parse("asset:///${source.asset}.mp4"),
-            file = file,
-            // 随包样片长度已知（SAMPLE_MS），越界的旧进度直接丢掉；
+            uri = checkNotNull(source.uri),
+            file = null,
             // 网络片总长度这时还不知道，先按存的进度起播，host 拿到 duration 自己会夹
-            startMs = if (initial <= 0L) 0L else if (source.asset != null) initial.coerceAtMost(SAMPLE_MS) else initial,
+            startMs = initial,
         )
-        // 样片落盘的缓存文件同时是实时字幕的重解地址：asset:// 只有内核认识，提取器只认路径
-        cacheFile = file
     }
     var position by remember { mutableLongStateOf(initial) }
-    var width by remember { mutableLongStateOf(if (source.asset != null) SAMPLE_MS else 0L) }
+    var width by remember { mutableLongStateOf(0L) }
     val playing = host.playing
     var dragging by remember { mutableStateOf<Float?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -164,7 +143,6 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     var interaction by remember { mutableIntStateOf(0) }
     var panel by remember { mutableStateOf<String?>(null) }
     var captions by remember { mutableStateOf<ScreeningCaption?>(null) }
-    var demo by remember { mutableStateOf<ScreeningCaption?>(null) }
     var captionName by remember { mutableStateOf("") }
     var captionSource by remember { mutableIntStateOf(0) }
     // 服务端字幕：列表（null = 还没成功取到）、已加载的那份、正在加载谁
@@ -265,10 +243,6 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     LaunchedEffect(swipeSeconds) {
         if (swipeSeconds != null) { delay(900); swipeSeconds = null }
     }
-    val discovery = remember { DlnaDiscoveryCallback() }
-    val caster = remember { JavaCaster(context) }
-    var devices by remember { mutableStateOf<List<DlnaDevice>>(emptyList()) }
-    var scanning by remember { mutableStateOf(false) }
     fun refresh() {
         host.tick()
         position = host.position
@@ -301,7 +275,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
         onDispose {
             onSave(host.position)
             activity.lifecycle.removeObserver(lifecycle)
-            host.release(); discovery.close(); caster.close()
+            host.release()
             if (full) activity.immersive(false)
         }
     }
@@ -327,17 +301,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
             }
         }
     }
-    // 演示字幕是一份真实的 WebVTT，走和导入文件完全相同的解析路径，不是写死的字符串
-    LaunchedEffect(source.asset) {
-        if (source.asset == null) return@LaunchedEffect
-        demo = withContext(Dispatchers.IO) {
-            runCatching {
-                context.assets.open("screening.vtt").use { stream ->
-                    InputStreamReader(stream, Charsets.UTF_8.newDecoder()).use(::ScreeningCaption)
-                }
-            }.getOrNull()
-        }
-    }
+    // 随包演示字幕已随本地样片库下线：字幕只有导入文件、服务端轨道、实时识别三条真路
     // 服务端字幕列表：打开「字幕」面板才取，一次会话取一遍就够；失败保持 null，面板里给重试
     LaunchedEffect(panel, serverVideoId) {
         if (panel != "字幕" || serverVideoId == null || serverList != null || serverLoading) return@LaunchedEffect
@@ -348,7 +312,6 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
     LaunchedEffect(host.failure) { host.failure?.let { error = it } }
     LaunchedEffect(fill) { host.setFill(fill) }
     val cue = when (captionSource) {
-        1 -> demo?.at(position, offset).orEmpty()
         2 -> captions?.at(position, offset).orEmpty()
         3 -> serverCaption?.at(position, offset).orEmpty()
         // 实时识别：partial 文本滚动刷新，样式走同一套 CaptionStyle；延时对它没有意义（没有轨可对）
@@ -415,12 +378,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                 Icon(if (liked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, null, Modifier.size(16.dp))
                 Text(if (liked) " 已收藏" else " 收藏")
             }
-            TextButton(onClick = {
-                panel = "电视投屏"; info = ""; devices = emptyList(); scanning = true
-                discovery.discover { devices = it; scanning = false }
-            }) {
-                Icon(Icons.Default.Cast, null, Modifier.size(17.dp)); Text(" 电视投屏")
-            }
+            // DLNA 投屏入口正式口径下线（没有可验证的真电视设备；旧 :cast 模块和旧页面原样保留）。
         }
     }
     // 画面内发送栏（互联网播放器惯例）：弹幕开着时贴在走带下方，胶囊输入框 + 发送键，回车即发。
@@ -543,7 +501,6 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                             )
                         }
                         if (captions != null) Setting("已导入的字幕", captionName, captionSource == 2) { captionSource = 2 }
-                        if (source.asset != null) Setting("使用演示字幕", "随包的 WebVTT，第 1 秒开始逐句出现", captionSource == 1) { captionSource = 1 }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("字幕延时", Modifier.weight(1f))
                             TextButton({ offset = (offset - 500).coerceAtLeast(-60_000) }) { Text("−500 ms") }
@@ -599,39 +556,6 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                         Setting("适应画面", "保留原始比例", !fill) { fill = false }
                         Setting("填满画面", "可能裁掉画面边缘", fill) { fill = true }
                         Setting("弹幕设置", if (danmaku) "弹幕来源与发送状态" else "当前已关闭", panel == "弹幕设置") { panel = "弹幕设置" }
-                    }
-                    // 内核不在这开面板：用户不选内核，失败时 KernelHost 自动换另一个顶上去（无感）。
-                    "电视投屏" -> {
-                        Text("手机和电视须连接同一局域网。字幕和弹幕仅在手机显示。", color = Muted)
-                        if (scanning) Text("正在搜索电视…", Modifier.padding(top = 12.dp))
-                        else if (devices.isEmpty()) Text("未发现可投屏的电视。", Modifier.padding(top = 12.dp))
-                        devices.forEach { device ->
-                            Setting(device.friendlyName, "DLNA") {
-                                info = "正在准备投屏…"
-                                scope.launch {
-                                    val file = withContext(Dispatchers.IO) {
-                                        runCatching {
-                                            val input = source.asset?.let { context.assets.open("$it.mp4") }
-                                                ?: source.uri?.let(context.contentResolver::openInputStream)
-                                            checkNotNull(input).use { stream ->
-                                                File.createTempFile("screening-", ".mp4", context.cacheDir).also { out ->
-                                                    try { out.outputStream().use { stream.copyTo(it) } }
-                                                    catch (failure: Exception) { out.delete(); throw failure }
-                                                }
-                                            }
-                                        }.getOrNull()
-                                    }
-                                    if (file == null) {
-                                        info = "无法读取视频文件。"
-                                    } else {
-                                        caster.castLocal(device, file.path, source.title) { failure ->
-                                            info = failure?.let { "投屏失败：$it" } ?: "已发送到 ${device.friendlyName}"
-                                            if (failure == null) host.pause()
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
         }
         if (info.isNotEmpty()) Text(info, Modifier.padding(top = 9.dp), color = Mint)
@@ -798,7 +722,7 @@ internal fun ScreeningPlayback(activity: ScreeningActivity, source: ScreeningSou
                             .padding(horizontal = 20.dp, vertical = 8.dp),
                     ) {
                         seekBlock()
-                        // 影院态底部只要走带+图标工具台（设计稿）：收藏/投屏留在信息态
+                        // 影院态底部只要走带+图标工具台（设计稿）：收藏留在信息态
                         toolsRow(true)
                         // 弹幕开着就把发送栏挂在最底下（互联网播放器惯例：进度条→工具→输入行）
                         if (danmaku) danmakuSendRow()
