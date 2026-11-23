@@ -132,6 +132,7 @@ Bark 服务端只跑 `_normalize_whitespace`（generation.py:346，折叠空白�
 
 - **实时通话链路不接**（`LiveKitCompanionTransport`）：Bark 生成比实时慢一个量级，边说边合成不可能。通话要情绪，得在服务端 LiveKit agent 内部换引擎，客户端不用动。
 - **采样率**：Bark 出 24 kHz；DH 侧全是 16 kHz（`PcmConvert.TARGET_RATE = 16000`、Duix `playAudio` 假定 16k mono s16le、`VoiceRecorder.SAMPLE_RATE = 16000`）。如果 Bark 音频要驱动嘴型/DH 渲染，必须重采样 24k→16k。播放本身（ExoPlayer）不受影响。
+  具体两处硬编码：`DUIX.playAudio(wavPath)` 直接跳过 WAV 头 44 字节并按 16000 Hz / mono / s16 解析（`dh-engines/.../duix/sdk/client/DUIX.java:165`，`AudioPlayer.java:19` `sampleRate = 16000`）——Bark 的 24 kHz WAV 喂进去会按错速率播，音调变高、时长变短，不是「音质差一点」。`A2BSService.process(index, audioData: ShortArray, sampleRate: Int)` 签名里速率是参数，但**它没有 Kotlin 调用方**（`AudioBlendShapePlayer.kt` 是显式 no-op stub）。所以「Bark 驱动数字人嘴型」这条今天根本没有可用通路，要做得连 A2BS 播放桩一起补，不只是重采样。
 - **`CallAudioPreview`** 用 `TextToSpeech.synthesizeToFile` + `MediaPlayer`，并自己读 16-bit PCM 包络（非 16-bit WAV 会报错）。Bark 的 WAV 是 16-bit，能读，但这条是「试听本机音色」的界面，不是接 Bark 的地方。
 - **时延**：见 `tools/bark-tts/README.md` 实测表。UI 上必须有「合成中」状态——现在的 `speakingMessageId` 只有一个 spinner，等待时长会明显变长。
 
