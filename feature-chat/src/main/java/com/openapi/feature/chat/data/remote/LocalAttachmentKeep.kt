@@ -21,7 +21,8 @@ import com.openapi.feature.chat.domain.model.DeliveryStatus
  * 宽出来的部分写清楚（复审 nit 3）：取行按 `chatId LIKE 'local-%'`，
  * 于是 `local-assistant-*` / `local-pending-*`（助手占位）与 `local-voice-*` 也在批里 ——
  * 这与 [LocalChatStore.localPending] 的判据**不完全相同**（那条还要 `role == USER`）。
- * 这里刻意不加 role 谓词：助手占位行没有附件、voice 行的字节在 `cache/voice` 而不是暂存目录，
+ * 这里刻意不加 role 谓词：助手占位行没有附件、voice 行的字节在
+ * `cacheDir/voice_messages`（见 `speech` 的 VoiceRecorder.kt:65）而不是暂存目录，
  * 多筛一遍不会改变结果，只会让两处判据看着一致其实各写各的。
  * 最坏的后果是**过留**（多留一轮 GC），永远不是误删。
  */

@@ -85,7 +85,8 @@ class LocalChatStore @JvmOverloads constructor(
      * 映射完再筛。**判据与 [localPending] 不完全相同**（复审 nit 3，这里写实话）：
      * 那条还要 `role == USER`，这里不筛 role —— `local-assistant-*` / `local-pending-*` /
      * `local-voice-*` 也在捞出来的批里。为什么不补谓词：助手占位行没有附件，voice 行的字节在
-     * `cache/voice` 而不是暂存目录，筛了结果不变；最坏后果是**过留**（多活一轮 GC），不会误删。
+     * `cacheDir/voice_messages`（见 `speech` 的 VoiceRecorder.kt:65）而不是暂存目录，
+     * 筛了结果不变；最坏后果是**过留**（多活一轮 GC），不会误删。
      * 逐行汇 paths 的循环与 [MessageCache] 共用 [keptAttachmentPaths]（两份会漂）。
      */
     fun localAttachmentPathsInUse(): Set<String> =

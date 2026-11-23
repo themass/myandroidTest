@@ -23,8 +23,12 @@ import org.robolectric.annotation.Config
 
 /**
  * 复审 Important 的数据侧：`localAttachmentPathsInUse` 必须**从库里**把「还不能删」的
- * 附件路径捞出来，判据与 [LocalChatStore.localPending] 一致（用户方向 + `local-` 前缀 + 非 SENT），
- * 但**不限会话**——暂存目录不按会话分。
+ * 附件路径捞出来，但**不限会话**——暂存目录不按会话分。
+ *
+ * 判据**不等于** [LocalChatStore.localPending]（与 nit 3 改真后的生产注释同一口径）：
+ * 这条钉的是「`local-` 前缀 + 非 SENT」；`localPending` 还要 `role == USER`，
+ * 这里不筛 role。下面的用例都在这个前提下读——`local-user-*` 只是最典型的样本，
+ * 助手指派与 voice 行同样进白名单（最坏是过留一轮回收，见 helper 注释）。
  *
  * 这里必须用真 Room（in-memory）而不是假仓库：投递状态存在 content 的 JSON 里，
  * 「SENT 的行不进白名单」这一条只有真正往返一次写读才钉得住；
