@@ -8,6 +8,7 @@ import com.openapi.common.net.awaitUpload
 import com.openapi.core.config.Constants
 import com.openapi.feature.chat.data.remote.Choice
 import com.openapi.feature.chat.data.remote.TtsResponseVo
+import com.openapi.speech.tts.BarkEmotionalTts
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -44,6 +45,16 @@ internal class SpeechRemote(
 ) {
 
     suspend fun synthesize(messageId: String, text: String): String? {
+        // 情绪 TTS（Bark）PoC 接线：**默认关闭**，BuildConfig.BARK_TTS_ENABLED
+        // 为假时这一句直接返回 null，下面原链路一字不变。打开方式见
+        // tools/bark-tts/docs/app-wiring.md。放在设备 TTS 之后、后端 tts.json
+        // 之前：设备朗读没有情绪，Bark 有；Bark 不可用再退回现有后端。
+        if (BarkEmotionalTts.enabled) {
+            val barkUri = withContext(Dispatchers.IO) {
+                BarkEmotionalTts.synthesizeToFile(text, BARK_SPEAKER, context.filesDir)
+            }
+            if (barkUri != null) return barkUri
+        }
         val vo = remote.postForResult(
             Constants.getUrl(Constants.CHAT_TTS_URL),
             SpeechParam(id = messageId, content = text),
@@ -57,5 +68,13 @@ internal class SpeechRemote(
                 .getOrNull()
                 ?.let { "file://" + file.absolutePath }
         }
+    }
+
+    private companion object {
+        /**
+         * 陪伴角色先用一个固定的中文女声；真正的「角色 → 音色」映射要等
+         * 角色数据里有 voice 字段再接（见 docs/app-wiring.md 第 4 节）。
+         */
+        const val BARK_SPEAKER = "v2/zh_speaker_3"
     }
 }

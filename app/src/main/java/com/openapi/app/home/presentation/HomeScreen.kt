@@ -41,6 +41,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhotoCamera
@@ -150,12 +151,14 @@ fun HomeScreen() {
     }
     BackHandler(enabled = drawerState.isOpen) { scope.launch { drawerState.close() } }
 
-    // 对话标签的顶栏是品牌色，状态栏图标用浅色；其它标签、以及侧边栏打开时（浅色面板）用深色图标
+    // 对话标签的顶栏是品牌色，状态栏图标用浅色；频道标签内嵌的放映场是深色底，图标同样要浅色；
+    // 其余标签、以及侧边栏打开时（浅色面板）用深色图标
     val hostView = LocalView.current
     SideEffect {
         val window = (hostView.context as? Activity)?.window
         if (window != null) {
-            WindowCompat.getInsetsController(window, hostView).isAppearanceLightStatusBars = current != HomeTab.Chat || drawerState.targetValue == DrawerValue.Open
+            WindowCompat.getInsetsController(window, hostView).isAppearanceLightStatusBars =
+                (current != HomeTab.Chat && current != HomeTab.Channels) || drawerState.targetValue == DrawerValue.Open
         }
     }
 
@@ -208,6 +211,20 @@ fun HomeScreen() {
                                     onClick = {
                                         selected = HomeTab.Channels.ordinal
                                         scope.launch { drawerState.close() }
+                                    },
+                                    colors = DrawerItemColors,
+                                    modifier = Modifier.padding(horizontal = 12.dp),
+                                )
+                                // 「本地视频」旧页：放映场正式口径里没有它（样片下线时把
+                                // 「打开手机里的视频」入口一并删了），用户自己的文件仍从这条旧入口进。
+                                NavigationDrawerItem(
+                                    label = { Text(stringResource(R.string.localvideo_title)) },
+                                    icon = { Icon(Icons.Filled.FolderOpen, contentDescription = null) },
+                                    selected = false,
+                                    onClick = {
+                                        scope.launch { drawerState.close() }
+                                        context.startActivity(
+                                            Intent(context, com.openapi.feature.video.local.LocalVideoActivity::class.java))
                                     },
                                     colors = DrawerItemColors,
                                     modifier = Modifier.padding(horizontal = 12.dp),

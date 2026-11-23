@@ -42,6 +42,9 @@ dependencies {
     implementation 'io.coil-kt:coil-compose:2.7.0'
     // LiveKit 语音/实时传输（LiveKitCompanionTransport）
     implementation 'io.livekit:livekit-android:2.29.0'
+    // 舞台特效层（单模块库，按仓库口径直接写模块依赖，不进 libs.versions.toml）。
+    // 只被 feature-companion 的 fx 包使用；叠在引擎视口之后的 Compose 兄弟层。
+    implementation 'com.airbnb.android:lottie-compose:6.7.1'
 
     // In-repo DH engines module (Duix / Live2D / Tao runtimes; external includes removed in Task 7).
     implementation project(':dh-engines')

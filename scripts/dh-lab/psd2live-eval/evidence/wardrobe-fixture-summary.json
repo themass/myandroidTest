@@ -1,0 +1,13 @@
+{
+  "kind": "source-fixture-only",
+  "runtime_verified": false,
+  "parameter": "ParamWear_test",
+  "layer_count": 18,
+  "changed_source_bbox": [
+    254,
+    375,
+    387,
+    546
+  ],
+  "production_spec_modified": false
+}

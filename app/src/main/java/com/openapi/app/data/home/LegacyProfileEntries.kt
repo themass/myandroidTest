@@ -1,6 +1,8 @@
 package com.openapi.app.data.home
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import com.openapi.feature.photosolve.PhotoSolveActivity
 import com.openapi.common.ads.analytics.MobAgent
 import com.openapi.common.net.http.BaseService
@@ -115,4 +117,11 @@ class LegacyProfileEntries(app: Context) : ProfileEntries {
         ProfileAction.Settings -> "设置"
         ProfileAction.Logout -> "登出"
     }
+}
+
+/** 从非 Activity 的 Context 拉起页面时补 NEW_TASK（原随 LegacyChannelEntries 定义，随其删除搬到这里）。 */
+internal fun startActivityFrom(context: Context, target: Class<out Activity>) {
+    val intent = Intent(context, target)
+    if (context !is Activity) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
 }
