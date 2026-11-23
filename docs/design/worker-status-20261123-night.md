@@ -58,7 +58,8 @@ V2279A（serial `10CE7P1G56004B7`）曾出现幽灵版本 1001000070（worker �
 | P1 | 数字人 Simple/seed、「未下载」 | **session** | 已在跑 |
 | P2 | 图片编辑 S2+ 实现 | design-3-tasks | delivered |
 | P2 | P2-13 位置/视频消息 | p2-13 | delivered |
-| P2 | P1-12 流式单槽（需 rebase 到 0464c151 之后） | p1-12-markdown | delivered |
+| ~~P2~~ | ~~P1-12 流式单槽~~ | p1-12-markdown | ✅ **PASS**（08cd430a/3a4ea771 已在主线祖先链；tip 上实现均在） |
+| P2 | SSE 集成测试挂死 `AgentSseReconnectIntegrationTest.sseFrameIdsAndEventFieldsSurviveRealParsing`（runTest 60s 超时；:feature-chat 215 例唯一失败，基线问题） | 新任务卡 | 立项待启动 |
 | P2 | TTS 25–32s 慢启动 RCA | tts-25-32s-f16 | delivered |
 | ✅ | P1-10 图片失败重试 | gallant | 已闭环（weifu `4d380f89` + 基线修 `0464c151`） |
 | ✅ | testserverV 拍题 maxTokens | testserverV | 链 `f0de0021`→`a48e2425`→`cbc260d9`，41 测 0 失败；**push 等用户本人** |
