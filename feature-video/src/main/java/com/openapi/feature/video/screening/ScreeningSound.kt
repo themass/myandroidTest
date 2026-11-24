@@ -33,6 +33,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -83,11 +84,11 @@ internal fun ScreeningSound(
 
     val context = LocalContext.current
     val hubs = remember(hubChannel) {
-        FeedPager(scope) { start -> store.soundChannelHub(hubChannel ?: "", start) }
+        FeedPager(scope) { start, _ -> store.soundChannelHub(hubChannel ?: "", start) }
     }
     val hubParam = hub
     val tracksPager = remember(hubParam) {
-        FeedPager(scope) { start -> store.soundTracks(hubParam ?: "", start) }
+        FeedPager(scope) { start, keyword -> store.soundTracks(hubParam ?: "", start, keyword) }
     }
     val hubState = rememberLazyListState()
     val tracksState = rememberLazyListState()
@@ -167,35 +168,29 @@ internal fun ScreeningSound(
                     onOpenHub = { hub = it },
                 )
             } else {
-                val connectedPlayer = player
-                if (connectedPlayer == null) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        when (soundPlayerConnectionState(hasPlayer = false, failed = playerConnectionFailed)) {
-                            SoundPlayerConnectionState.CONNECTING -> Text("正在连接播放器…", color = Muted)
-                            SoundPlayerConnectionState.FAILED -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("播放器连接失败，请检查网络后重试。", color = Muted)
-                                Button(onClick = { playerConnectionAttempt++ }) { Text("重试") }
-                            }
-                            SoundPlayerConnectionState.CONNECTED -> Unit
-                        }
-                    }
-                } else {
-                    SoundTrackHub(
-                        store = store,
-                        pager = tracksPager,
-                        state = tracksState,
-                        seen = trackSeen,
-                        tracks = tracks,
-                        player = connectedPlayer,
-                        currentIndex = currentIndex,
-                        playbackMode = playbackMode,
-                        onPlaybackModeChange = { playbackMode = it },
-                        playbackSpeed = playbackSpeed,
-                        onPlaybackSpeedChange = { playbackSpeed = clampSoundPlaybackSpeed(it) },
-                        onSelect = { currentIndex = it },
-                        onBack = { hub = null },
-                    )
-                }
+                // 曲目列表不再被播放器连接挡住（用户点名 2026-11-25：「进入具体的声音馆的音乐列表
+                // 没有加载出来」——2026-11-25 取证：items.json 请求与参数逐一对、服务端 30 行真数据，
+                // 但 player==null 时整屏被换成「正在连接播放器…」，列表请求就算成功也看不见）。
+                // 浏览与播放解耦：列表照常渲染、照常搜索；播放器状态只在顶部一条状态带里说明，
+                // 连接失败给重试钮；点行播放时还没连上就按状态带提示（不静默）。
+                SoundTrackHub(
+                    store = store,
+                    pager = tracksPager,
+                    state = tracksState,
+                    seen = trackSeen,
+                    tracks = tracks,
+                    player = player,
+                    playerConnecting = soundPlayerConnectionState(hasPlayer = player != null, failed = playerConnectionFailed) == SoundPlayerConnectionState.CONNECTING,
+                    playerFailed = playerConnectionFailed,
+                    onRetryPlayer = { playerConnectionAttempt++ },
+                    currentIndex = currentIndex,
+                    playbackMode = playbackMode,
+                    onPlaybackModeChange = { playbackMode = it },
+                    playbackSpeed = playbackSpeed,
+                    onPlaybackSpeedChange = { playbackSpeed = clampSoundPlaybackSpeed(it) },
+                    onSelect = { currentIndex = it },
+                    onBack = { hub = null },
+                )
             }
         }
     }
@@ -359,7 +354,9 @@ private fun SoundHubPicker(
         detail = feedToolbarDetail(pager.loading, rows.size, "个频道"),
     ) {
         item {
-            Text("戴上耳机，\n慢慢来。", color = White, fontSize = 32.sp, lineHeight = 38.sp, fontWeight = FontWeight.Black)
+            // 用户 20261125：首行大字不许硬折行、不许没用的文字。单句、限一行（台账 A29）。
+            Text("戴上耳机，世界慢下来。", color = White, fontSize = 24.sp, lineHeight = 32.sp,
+                fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
             FeedError(pager.error, pager::reload)
             if (seedChannel == null) {
                 Text("没有频道参数，返回换一张声音卡试试。", Modifier.padding(14.dp), color = Muted)
@@ -386,7 +383,8 @@ private fun SoundHubPicker(
                 }
             }
         }
-        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && rows.isEmpty()) }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore,
+            pager.loading && rows.isEmpty(), empty = rows.isEmpty()) }
     }
 }
 
@@ -398,7 +396,16 @@ private fun SoundTrackHub(
     state: LazyListState,
     seen: MutableSet<String>,
     tracks: List<SoundTrackRef>,
-    player: Player,
+    /**
+     * 播放器控制器；null = 还没连上（连接中或失败）。列表渲染不认它，只有播放动作认它——
+     * 所有播控走 [withPlayer]。见调用点注释（用户点名「音乐列表没有加载出来」）。
+     */
+    player: Player?,
+    /** 连接仍在路上：顶部状态带显示「正在连接播放器…」。 */
+    playerConnecting: Boolean,
+    /** 连接失败过：状态带给「重试」。 */
+    playerFailed: Boolean,
+    onRetryPlayer: () -> Unit,
     currentIndex: Int,
     playbackMode: SoundPlaybackMode,
     onPlaybackModeChange: (SoundPlaybackMode) -> Unit,
@@ -417,8 +424,13 @@ private fun SoundTrackHub(
     val context = LocalContext.current
     var isWifi by remember(context) { mutableStateOf(NetUtils.isWifi(context)) }
     val current = tracks.getOrNull(currentIndex)
+    // 播控统一闸：player 没连上时不静默吞掉点击——状态带就在顶上，点行会把它指过去。
+    fun withPlayer(action: (Player) -> Unit) {
+        val active = player ?: return
+        action(active)
+    }
     val subtitleUrl = screeningSoundRealtimeUrl(
-        player.currentMediaItem?.localConfiguration?.uri?.toString(),
+        player?.currentMediaItem?.localConfiguration?.uri?.toString(),
         current?.fileUrl,
     )
     val subtitleRunner = remember(context) { RealtimeSubtitleRunner(context) }
@@ -449,7 +461,8 @@ private fun SoundTrackHub(
     LaunchedEffect(subtitlesVisible, lyrics, player, current?.fileUrl) {
         if (!subtitlesVisible || lyrics == null) return@LaunchedEffect
         while (isActive) {
-            subtitleText = lyrics.at(player.currentPosition.coerceAtLeast(0L), 0)
+            val active = player ?: break
+            subtitleText = lyrics.at(active.currentPosition.coerceAtLeast(0L), 0)
             delay(200)
         }
     }
@@ -478,17 +491,23 @@ private fun SoundTrackHub(
         subtitleRunner.onStopped = { if (subtitlesVisible) subtitleStatus = "识别已停止，可以重试。" }
         subtitleText = ""
         subtitleStatus = "正在连接识别服务…"
-        subtitleRunner.start(url, player.currentPosition.coerceAtLeast(0L), { player.isPlaying }, { player.currentPosition.coerceAtLeast(0L) })
-        var previousPosition = player.currentPosition.coerceAtLeast(0L)
+        val active = player ?: run {
+            // 列表照常可浏览，字幕要真播放器才能取位置：状态带就在顶上，这里只说清原因。
+            if (playerConnecting) subtitleStatus = "正在连接播放器，连上后可用字幕。"
+            else if (playerFailed) subtitleStatus = "播放器没连上，先在上方重试。"
+            return@LaunchedEffect
+        }
+        subtitleRunner.start(url, active.currentPosition.coerceAtLeast(0L), { active.isPlaying }, { active.currentPosition.coerceAtLeast(0L) })
+        var previousPosition = active.currentPosition.coerceAtLeast(0L)
         var previousElapsed = SystemClock.elapsedRealtime()
         try {
             while (isActive) {
                 delay(500)
-                val position = player.currentPosition.coerceAtLeast(0L)
+                val position = active.currentPosition.coerceAtLeast(0L)
                 val elapsed = SystemClock.elapsedRealtime()
-                if (realtimeSeekJumped(previousPosition, position, previousElapsed, elapsed, playbackSpeed, player.isPlaying)) {
+                if (realtimeSeekJumped(previousPosition, position, previousElapsed, elapsed, playbackSpeed, active.isPlaying)) {
                     subtitleText = ""
-                    subtitleRunner.start(url, position, { player.isPlaying }, { player.currentPosition.coerceAtLeast(0L) })
+                    subtitleRunner.start(url, position, { active.isPlaying }, { active.currentPosition.coerceAtLeast(0L) })
                 }
                 previousPosition = position
                 previousElapsed = elapsed
@@ -500,14 +519,15 @@ private fun SoundTrackHub(
     fun interruptPlaybackForNetwork(wifi: Boolean) {
         isWifi = wifi
         if (networkDialogOpen) return
+        val active = player ?: return
         val shouldPrompt = shouldPromptForSoundNetwork(
             isWifi = wifi,
             soundSwitch = PreferenceUtils.getPrefBoolean(context, Constants.SOUND_SWITCH, SOUND_SWITCH_DEFAULT_ENABLED),
             sessionOverride = networkOverride,
-            isPlaying = player.isPlaying,
+            isPlaying = active.isPlaying,
         )
         if (shouldPrompt) {
-            player.pause()
+            active.pause()
             pendingNetworkTrack = -1
             resumeAfterNetworkConfirmation = true
             networkDialogOpen = true
@@ -537,17 +557,19 @@ private fun SoundTrackHub(
         onDispose { connectivityManager.unregisterNetworkCallback(callback) }
     }
     LaunchedEffect(player, playbackSpeed) {
-        player.setPlaybackParameters(PlaybackParameters(playbackSpeed, 1f))
+        player?.setPlaybackParameters(PlaybackParameters(playbackSpeed, 1f))
     }
     fun playAt(index: Int) {
         val track = tracks.getOrNull(index) ?: return
+        // 没连上播放器：不改选中、不静默——状态带就在列表顶上，用户点行时看得见它。
+        val active = player ?: return
         pendingNetworkTrack = -1
         playbackEnded = false
         pendingManualNextFromCount = -1
         onSelect(index)
-        player.setMediaItem(screeningAudioMediaItem(track.title, track.subtitle, track.fileUrl))
-        player.prepare()
-        player.play()
+        active.setMediaItem(screeningAudioMediaItem(track.title, track.subtitle, track.fileUrl))
+        active.prepare()
+        active.play()
     }
     fun playNextManually() {
         playbackEnded = false
@@ -562,10 +584,12 @@ private fun SoundTrackHub(
         previousSoundTrackIndex(currentIndex, tracks.size)?.let(::playAt)
     }
     fun togglePlayback() {
-        if (player.isPlaying) player.pause() else player.play()
+        val active = player ?: return
+        if (active.isPlaying) active.pause() else active.play()
     }
     val latestPlayAt by rememberUpdatedState<(Int) -> Unit>({ index -> playAt(index) })
     DisposableEffect(player) {
+        val active = player ?: return@DisposableEffect onDispose { }
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState == Player.STATE_ENDED) playbackEnded = true
@@ -575,8 +599,8 @@ private fun SoundTrackHub(
                 if (isPlaying) interruptPlaybackForNetwork(isWifi)
             }
         }
-        player.addListener(listener)
-        onDispose { player.removeListener(listener) }
+        active.addListener(listener)
+        onDispose { active.removeListener(listener) }
     }
     LaunchedEffect(playbackEnded, pendingManualNextFromCount, tracks, currentIndex, playbackMode, pager.hasMore, pager.loading) {
         if (pendingManualNextFromCount >= 0) {
@@ -607,11 +631,12 @@ private fun SoundTrackHub(
     }
     var positionMs by remember { mutableLongStateOf(0L) }
     var durationMs by remember { mutableLongStateOf(1L) }
-    val playing = player.isPlaying
+    val playing = player?.isPlaying == true
     LaunchedEffect(player) {
         while (isActive) {
-            positionMs = player.currentPosition.coerceAtLeast(0L)
-            durationMs = player.duration.coerceAtLeast(1L)
+            val active = player ?: break
+            positionMs = active.currentPosition.coerceAtLeast(0L)
+            durationMs = active.duration.coerceAtLeast(1L)
             delay(200)
         }
     }
@@ -635,10 +660,29 @@ private fun SoundTrackHub(
             title = "曲目",
             onBack = onBack,
             detail = feedToolbarDetail(pager.loading, tracks.size, "首"),
+            // 搜索（用户点名）：对齐旧 SoundItemsMusicFragment——keyword 直传 sound/items.json。
+            searchable = true,
             contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp),
             modifier = Modifier.weight(1f).fillMaxWidth(),
         ) {
             item {
+                // 播放器状态带（解耦后唯一交代播放器的地方）：列表照常浏览，
+                // 连不上时顶上一条说清「能看不能播」，失败给重试——不再整屏挡列表。
+                if (player == null) {
+                    Row(
+                        Modifier.fillMaxWidth().clip(Tile).background(Lift)
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            if (playerFailed) "播放器没连上，可以点列表浏览，播放暂不可用。"
+                            else "正在连接播放器…列表可以先看。",
+                            color = Muted, fontSize = 12.sp, modifier = Modifier.weight(1f),
+                        )
+                        if (playerFailed) TextButton(onClick = onRetryPlayer) { Text("重试") }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                }
                 FeedError(pager.error, pager::reload)
                 if (pager.loading && tracks.isEmpty()) ListSkeleton(rowHeight = 56.dp)
             }
@@ -664,7 +708,7 @@ private fun SoundTrackHub(
                     }
                 }
             }
-            item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
+            item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, empty = tracks.isEmpty()) }
         }
         if (current != null) {
             // 播放条在壳之外（壳的安全区够不到它）：自己垫导航条，同旧写法——
@@ -673,7 +717,7 @@ private fun SoundTrackHub(
                 Text(current.title, color = White, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Slider(
                     value = (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f),
-                    onValueChange = { fraction -> player.seekTo((durationMs * fraction).toLong()) },
+                    onValueChange = { fraction -> withPlayer { it.seekTo((durationMs * fraction).toLong()) } },
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = { onPlaybackModeChange(playbackMode.nextMode()) }) {
@@ -767,7 +811,7 @@ private fun SoundTrackHub(
                     networkDialogOpen = false
                     pendingNetworkTrack = -1
                     resumeAfterNetworkConfirmation = false
-                    if (shouldResume) player.play() else if (trackIndex >= 0) playAt(trackIndex)
+                    if (shouldResume) withPlayer { it.play() } else if (trackIndex >= 0) playAt(trackIndex)
                 }) { Text("继续播放") }
             },
         )

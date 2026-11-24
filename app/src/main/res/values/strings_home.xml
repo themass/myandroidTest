@@ -4,13 +4,11 @@
     <string name="home_tab_channels">Channels</string>
     <string name="home_tab_profile">Me</string>
     <string name="home_drawer_section_pages">Pages</string>
-    <string name="drawer_group_content">Content</string>
     <string name="drawer_group_tools">Tools</string>
     <string name="drawer_group_help">Help</string>
     <string name="drawer_group_more">More</string>
     <string name="drawer_group_account">Account</string>
     <string name="drawer_group_common">Common</string>
-    <string name="drawer_group_test">Test</string>
     <string name="drawer_group_lab">Lab</string>
     <string name="drawer_entry_camera_fx">Camera face/pose demo</string>
     <string name="drawer_entry_teaching_demo">Companion teaching demo (local)</string>

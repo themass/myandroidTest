@@ -36,16 +36,18 @@ internal class ComposerActions(private val state: MutableStateFlow<ChatUiState>)
      * 放进草稿托盘。
      *
      * 图片与视频在这里有第二道数量闸，闸的是**附件合计**：选择器的 `maxItems` 只是**建议**
-     * （厂商 ROM 的选择器会不认），而这条路上没有别的地方挡得住——服务端确实按 9 裁
-     * （`SendBody.attachments`），但那发生在附件**已经传完**之后，用户先把流量花完再吃一个 422。
+     * （厂商 ROM 的选择器会不认），而这条路上没有别的地方挡得住——服务端按 9 裁
+     * （`SendBody.attachments`，[com.openapi.common.media.MAX_MESSAGE_IMAGES]），但那发生在附件
+     * **已经传完**之后，用户先把流量花完再吃一个 422。
+     *
+     * **这道闸用的是产品上限 4**（[com.openapi.common.media.MAX_IMAGES_PER_MESSAGE_PICK]）：
+     * 一条消息最多 4 张图片是产品定死的体验上限，4 ≤ 9 所以永远够不到服务端那条 422；
+     * 服务端硬值保持原样，改服务端要两端同步，改产品上限只动这里。
      *
      * **为什么必须合计而不是只数图片**：wire 上图与视频是同一条 attachments
      * （[AttachmentSender] 把图片与视频的 upload_id 拼成一个 list 交给 `SendBody.attachments`），
      * 服务端的 `max_length` 也按这一条 list 裁；而视频选择器是单选、恒可用。只数图片的话
-     * 9 图 + 1 视频 = 10 个附件照样能凑出来：十份字节传完才吃 422，失败后
-     * [AttachmentSender.restoreDrafts] 又把同样的 9+1 原样放回托盘——再按一次发送还是 422，
-     * 是一个用户自己走不出来的死局。上限与服务端同源，
-     * 见 [com.openapi.common.media.MAX_MESSAGE_IMAGES]。
+     * 上限再小也能被视频凑超。
      *
      * 文件不受这条闸牵连：它走 legacy 的逐条 multipart 接口，压根不进 attachments。
      *
@@ -57,7 +59,7 @@ internal class ComposerActions(private val state: MutableStateFlow<ChatUiState>)
         if (kind == MessageKind.IMAGE || kind == MessageKind.VIDEO) {
             // 图与视频合用同一个额度：它们在 wire 上是同一条 list
             val inTray = state.value.drafts.count { it.kind == MessageKind.IMAGE || it.kind == MessageKind.VIDEO }
-            if (inTray >= com.openapi.common.media.MAX_MESSAGE_IMAGES) return false
+            if (inTray >= com.openapi.common.media.MAX_IMAGES_PER_MESSAGE_PICK) return false
         }
         val draft = DraftAttachment(id = "draft-${System.nanoTime()}", kind = kind, staged = staged)
         state.update { it.copy(drafts = it.drafts + draft) }

@@ -36,7 +36,7 @@ class FeedPagerRetryTest {
     @Test
     fun `首屏失败一次后自动重试，成功就不显示错误`() = runTest {
         val starts = mutableListOf<Int>()
-        val pager = FeedPager(this) { start ->
+        val pager = FeedPager(this) { start, _ ->
             starts += start
             if (starts.size == 1) throw IOException("连不上") else page()
         }
@@ -58,7 +58,7 @@ class FeedPagerRetryTest {
     @Test
     fun `首屏连着两次都失败才报错，不会无限重试`() = runTest {
         val starts = mutableListOf<Int>()
-        val pager = FeedPager(this) { start ->
+        val pager = FeedPager(this) { start, _ ->
             starts += start
             throw IOException("连不上")
         }
@@ -75,7 +75,7 @@ class FeedPagerRetryTest {
     @Test
     fun `翻页失败不自动重试，已加载的列表原样保留`() = runTest {
         val starts = mutableListOf<Int>()
-        val pager = FeedPager(this) { start ->
+        val pager = FeedPager(this) { start, _ ->
             starts += start
             if (start == 0) page(nextStart = 10) else throw IOException("连不上")
         }
@@ -96,7 +96,7 @@ class FeedPagerRetryTest {
     @Test
     fun `首屏失败后触底判定不得替首屏无限重拉`() = runTest {
         val starts = mutableListOf<Int>()
-        val pager = FeedPager(this) { start ->
+        val pager = FeedPager(this) { start, _ ->
             starts += start
             throw IOException("连不上")
         }
@@ -119,7 +119,7 @@ class FeedPagerRetryTest {
     fun `下拉刷新重取第一页，旧内容先留在屏上，成功后才换`() = runTest {
         val starts = mutableListOf<Int>()
         val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
-        val pager = FeedPager(this) { start ->
+        val pager = FeedPager(this) { start, _ ->
             starts += start
             if (starts.size == 1) page(listOf(entry("旧一条")), nextStart = 10)
             else {
@@ -153,7 +153,7 @@ class FeedPagerRetryTest {
     @Test
     fun `刷新失败不清已加载的列表，只报错误`() = runTest {
         val starts = mutableListOf<Int>()
-        val pager = FeedPager(this) { start ->
+        val pager = FeedPager(this) { start, _ ->
             starts += start
             if (starts.size == 1) page(listOf(entry("旧一条")), nextStart = 10)
             else throw IOException("连不上")
@@ -176,7 +176,7 @@ class FeedPagerRetryTest {
     @Test
     fun `返回列表不重新取数：load 只发一次，重复调不再打接口`() = runTest {
         val starts = mutableListOf<Int>()
-        val pager = FeedPager(this) { start ->
+        val pager = FeedPager(this) { start, _ ->
             starts += start
             page(listOf(entry("一条")), nextStart = 10)
         }

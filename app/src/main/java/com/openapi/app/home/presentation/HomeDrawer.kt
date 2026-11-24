@@ -107,10 +107,11 @@ internal fun ProfileSlidePage(onClose: () -> Unit) {
     }
 }
 
-// 拍照解题已从侧边栏移除；频道、本地音乐、收藏夹归入「测试」
+// 拍照解题已从侧边栏移除；频道、本地音乐、收藏夹归入「更多」。
+// 「测试」这个组名是开发期留下的（台账 A30：上线标准不该拿测试字样面向用户），改名走 drawer_group_more。
 internal val DrawerGroups = listOf(
     DrawerGroup(R.string.drawer_group_tools, listOf(ProfileAction.Feedback, ProfileAction.Share, ProfileAction.AppRecommend, ProfileAction.Donation)),
-    DrawerGroup(R.string.drawer_group_test, listOf(ProfileAction.Favorites, ProfileAction.LocalMusic)),
+    DrawerGroup(R.string.drawer_group_more, listOf(ProfileAction.Favorites, ProfileAction.LocalMusic)),
     DrawerGroup(R.string.drawer_group_account, listOf(ProfileAction.Settings, ProfileAction.Logout)),
 )
 
@@ -165,11 +166,34 @@ internal fun DrawerSectionTitle(@StringRes title: Int) {
 
 /**
  * 抽屉滑动开关（纯函数，HomeDrawerGestureTest 钉住）：
- * 对话标签（按住录音）与通话覆盖层（WebView 单指拖动）里禁止滑动开抽屉；
- * 抽屉已打开时任何界面都能滑动关闭。
+ * 首页所有层级（频道/放映场/图集…）都被同一个 ModalNavigationDrawer 包住，
+ * 用户要求「频道里所有页面都不需要右滑出抽屉」——抽屉关闭时任何标签都不给右滑开，
+ * 打开抽屉只用顶栏菜单按钮；抽屉已打开时仍允许右滑关闭。
  */
-internal fun drawerSwipeEnabled(
-    currentIsChat: Boolean,
+internal fun drawerSwipeEnabled(drawerOpen: Boolean): Boolean = drawerOpen
+
+/**
+ * 首页根层的返回键该做什么（纯函数，HomeBackStepTest 钉住）。
+ *
+ * 用户点名 2026-11-25：「频道首页的后退键还不对，怎么后退就退出 app 了，不是让你改了么」。
+ * A24 那次修的是放映场**内部**各层（screeningBackStep 覆盖 CHANNEL_PAGE/GALLERY/TEXT_HUB/SOUND_HUB）——
+ * 那些层现在都对。但在「频道」标签的根（放映场首页本身）screeningBackStep 返回 NONE、
+ * 处理器 disabled，根上又没有人接 → 穿透到系统默认 → HomeActivity 是 singleTask 任务根 → 退出 app。
+ * 用户在这层按返回的预期是回主标签（对话），不是杀掉 app——底栏应用通行口径：
+ * 只有停在默认标签上再按返回才退出。
+ *
+ * 优先级从外到内：抽屉开着先收抽屉（原行为不变）→「我的」覆盖页开着先关它（此前它没有
+ * 返回键出口，同样会退 app，一并补上）→ 不在对话标签回对话 → 已在对话标签交回系统（正常退出）。
+ */
+internal enum class HomeBackStep { NONE, DRAWER, PROFILE_PAGE, TAB_TO_CHAT }
+
+internal fun homeBackStep(
     drawerOpen: Boolean,
-    callVisible: Boolean,
-): Boolean = drawerOpen || (currentIsChat.not() && callVisible.not())
+    profilePageOpen: Boolean,
+    currentTab: HomeTab,
+): HomeBackStep = when {
+    drawerOpen -> HomeBackStep.DRAWER
+    profilePageOpen -> HomeBackStep.PROFILE_PAGE
+    currentTab != HomeTab.Chat -> HomeBackStep.TAB_TO_CHAT
+    else -> HomeBackStep.NONE
+}

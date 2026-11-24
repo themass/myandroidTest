@@ -17,6 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -59,6 +62,11 @@ private const val FILTER_CELL_DP = 56
  * 缩略图回答的是「这张表把色调改成什么样」，**不承诺复现当前画幅**（旋转/裁剪不反映进去）：
  * 为此单跑一条裁剪管线不值，而且用户在滤镜这一步要挑的也不是构图。
  *
+ * **取不到表必须看得见**（实机抱怨「滤镜点了没反应，全是黑框」）：原先 provider 返回 null
+ * 就直接跳过那一格，格子上只剩一层深灰 —— 六格全取不到时，六格深灰压在黑色面板上就是「一片黑框」，
+ * 而且没有任何地方说明为什么。现在：缺表的格子画成明确的占位（斜杠图标），面板顶部给一行
+ * 「滤镜资源不可用」提示，缺几张就说几张。
+ *
  * @param filter 当前滤镜；null = 无滤镜（此时滑杆置灰，因为没有作用对象）
  * @param source 生成缩略图用的底图（预览源，不是导出尺寸）
  * @param lutProvider 取表。首次进面板会在这里读 6 个 `.cube`，所以调用点必须传后台安全的 provider
@@ -79,7 +87,7 @@ internal fun FilterPanel(
     val selectedId = filter?.id
 
     // 缩略图在后台生成：每张都要「拷一份 128px 底图 + 逐像素套表」，摊到组合期就会拖住首帧。
-    val thumbs by produceState<Map<String, ImageBitmap>>(emptyMap(), source, lutProvider) {
+    val thumbs by produceState<FilterThumbs>(FilterThumbs.EMPTY, source, lutProvider) {
         value = buildFilterThumbs(source, lutProvider)
     }
 
@@ -97,13 +105,24 @@ internal fun FilterPanel(
             }
         }
 
+        // 缺表提示：只在真的有取不到的表时占一行，不静默留空。
+        if (thumbs.missing.isNotEmpty()) {
+            Text(
+                filterUnavailableNotice(thumbs.missing.size),
+                color = ACCENT,
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
+
         // 两行三格。用 chunked 而不是 LazyGrid：总共 6 格，滚动与复用在这里全是负担。
         FilterPresets.ids.chunked(3).forEach { row ->
             Row(Modifier.fillMaxWidth()) {
                 row.forEach { id ->
                     FilterCell(
                         id = id,
-                        thumb = thumbs[id],
+                        thumb = thumbs.map[id],
+                        // 取不到表 ≠ 还没生成完：只有确认取不到的格子才画「不可用」占位
+                        unavailable = id in thumbs.missing,
                         selected = id == selectedId,
                         onClick = { onPickPreset(id) },
                         // weight 只在 RowScope 里有：所以等宽由调用方传进来，不是格子自己声明
@@ -141,16 +160,31 @@ internal fun FilterPanel(
 
 private val ACCENT = Color(0xFFFFCC00)
 
+/** 缺表时在面板顶部的一行提示（res 在我负责范围外，所以文案落在这里）。 */
+internal fun filterUnavailableNotice(missingCount: Int): String =
+    "滤镜资源不可用（$missingCount/${FilterPresets.ids.size} 张表取不到），请重装应用"
+
+/** 面板缩略图的结果：成功的那些 + **确认取不到**的那些（缺表计数是可见提示的数据源）。 */
+internal class FilterThumbs(val map: Map<String, ImageBitmap>, val missing: List<String>) {
+    companion object {
+        val EMPTY = FilterThumbs(emptyMap(), emptyList())
+    }
+}
+
 /**
  * 一格预设。选中态除了描边还把名字染黄：描边给眼睛、颜色给状态，两个都留一点。
  *
  * 名字直接显示滤镜 id：它同时是 `.cube` 的文件名，也是设计换表时要对齐的键。
  * 要中文显示名就在这里加一层 id→资源映射（只有 6 个，先不造这层）。
+ *
+ * [unavailable] = provider 确认取不到这张表：格子里画一个可辨的占位（禁止图标），
+ * **不是**只留一层深灰——深灰压在黑色面板上就是用户看到的「黑框」。
  */
 @Composable
 private fun FilterCell(
     id: String,
     thumb: ImageBitmap?,
+    unavailable: Boolean,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -166,25 +200,36 @@ private fun FilterCell(
             Modifier
                 .size(FILTER_CELL_DP.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .background(Color(0xFF2A2A2A))
+                .background(if (unavailable) Color(0xFF424242) else Color(0xFF2A2A2A))
                 .border(
                     if (selected) 2.dp else 1.dp,
                     if (selected) ACCENT else Color(0xFF555555),
                     RoundedCornerShape(6.dp),
                 ),
+            contentAlignment = Alignment.Center,
         ) {
-            thumb?.let {
-                Image(
-                    bitmap = it,
+            when {
+                thumb != null -> Image(
+                    bitmap = thumb,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
+                )
+                unavailable -> Icon(
+                    Icons.Filled.Block,
+                    contentDescription = null,
+                    tint = Color(0xFFFFB0A0),
+                    modifier = Modifier.size(28.dp),
                 )
             }
         }
         Text(
             id,
-            color = if (selected) ACCENT else Color.White,
+            color = when {
+                unavailable -> Color(0xFFFFB0A0)
+                selected -> ACCENT
+                else -> Color.White
+            },
             style = MaterialTheme.typography.labelSmall,
         )
     }
@@ -226,23 +271,28 @@ private fun CompareButton(onPressed: () -> Unit, onReleased: () -> Unit) {
  * 挪到 [Dispatchers.Default]：读 `.cube`（约 1MB 文本）+ 逐像素插值，都不该占主线程。
  * 表经 [LutAssets] 记忆化，所以只有第一次进面板真的读盘，之后每次重进只是重跑插值。
  *
- * 取不到表的预设直接跳过（格子留灰底）：与其显示一格「看起来像没滤镜」的图误导用户，
- * 不如让它明显是空的。
+ * 取不到表的预设**记进 [FilterThumbs.missing]**（旧实现只是 `continue`）：面板据此画占位格 +
+ * 顶部提示行。一张坏表绝不能让整张表「静默空掉」——用户看到的就是「全是黑框、点了没反应」。
  *
  * 缩略图不 `recycle()`：API 26+ 像素在 Java 堆上，面板销毁后交给 GC 就够
  * （手动回收反而会伤到还在显示这一帧的 Image）。
  */
-private suspend fun buildFilterThumbs(source: Bitmap, provider: (String) -> Lut3D?): Map<String, ImageBitmap> =
+internal suspend fun buildFilterThumbs(source: Bitmap, provider: (String) -> Lut3D?): FilterThumbs =
     withContext(Dispatchers.Default) {
         val thumbBase = scaleToLongEdge(source, FILTER_THUMB_LONG_EDGE)
         val out = LinkedHashMap<String, ImageBitmap>()
+        val missing = mutableListOf<String>()
         for (id in FilterPresets.ids) {
             coroutineContext.ensureActive()
-            val lut = provider(id) ?: continue
+            val lut = provider(id)
+            if (lut == null) {
+                missing += id
+                continue
+            }
             // LutApply 是**就地且不可叠加**的：每格都必须从干净副本起
             val painted = thumbBase.copy(Bitmap.Config.ARGB_8888, true)
             LutApply.apply(painted, lut, FILTER_PRESET_INTENSITY)
             out[id] = painted.asImageBitmap()
         }
-        out
+        FilterThumbs(out, missing)
     }

@@ -54,6 +54,12 @@ class LayeredAvatarEngine(private val random: Random = Random.Default) {
     /** 远端音频振幅 0..1。低于 [MOUTH_THRESHOLD] 闭嘴。 */
     var mouthLevel: Float = 0f
 
+    /**
+     * 表情（教学演示用，见 [TeacherExpression]）。每帧向目标平滑收敛，切换不生硬；
+     * 保持 [TeacherExpression.IDLE] 时所有增量为零，与没有这个概念之前行为一致。
+     */
+    var expression: TeacherExpression = TeacherExpression.IDLE
+
     private var t = 0f
     private var hairX = 0f
     private var hairV = 0f
@@ -71,6 +77,12 @@ class LayeredAvatarEngine(private val random: Random = Random.Default) {
     private var tapY = 0f
     private var tapAge = TAP_FEEDBACK_SECONDS
     private var tapRegion: String? = null
+
+    /** 表情增量的当前值：向 [expression] 的目标平滑收敛（避免切换时「咔」一下跳）。 */
+    private var tilt = 0f
+    private var expressionBlush = 0f
+    private var expressionHand = 0f
+    private var expressionEyesHalf = false
 
     init {
         eyeL.reschedule(random, first = true)
@@ -106,10 +118,18 @@ class LayeredAvatarEngine(private val random: Random = Random.Default) {
         hairV += acc * d
         hairX += hairV * d
 
+        // 表情：向目标平滑收敛（时间常数 EXPR_TAU），不覆盖眨眼与触摸反应，只叠加。
+        val targets = teacherPoseTargets(expression)
+        val blend = 1f - exp(-d / EXPR_TAU)
+        tilt += (targets.tiltDeg - tilt) * blend
+        expressionBlush += (targets.blush - expressionBlush) * blend
+        expressionHand += (targets.handLiftPx - expressionHand) * blend
+        expressionEyesHalf = targets.eyesHalf
+
         eyeL.tick(d, random)
         eyeR.tick(d, random)
         squintLeft = (squintLeft - d).coerceAtLeast(0f)
-        val squint = squintLeft > 0f
+        val squint = squintLeft > 0f || expressionEyesHalf
 
         // 脸红：保持一段时间后指数淡出。
         if (blushHold > 0f) blushHold = (blushHold - d).coerceAtLeast(0f) else blush *= exp(-d / 0.9f)
@@ -124,7 +144,7 @@ class LayeredAvatarEngine(private val random: Random = Random.Default) {
         return LayeredPose(
             rootX = rootX,
             rootY = rootY,
-            rootRot = rootRot,
+            rootRot = rootRot + tilt,
             torsoY = torsoY,
             torsoSy = torsoSy,
             chestY = chestY,
@@ -134,9 +154,9 @@ class LayeredAvatarEngine(private val random: Random = Random.Default) {
             eyeL = if (squint && eyeL.shape == "open") "half" else eyeL.shape,
             eyeR = if (squint && eyeR.shape == "open") "half" else eyeR.shape,
             mouth = mouthFor(mouthLevel),
-            blush = blush.coerceIn(0f, 1f),
+            blush = (blush + expressionBlush).coerceIn(0f, 1f),
             handLY = -sin(handL * PI.toFloat()) * HAND_LIFT,
-            handRY = -sin(handR * PI.toFloat()) * HAND_LIFT,
+            handRY = -sin(handR * PI.toFloat()) * HAND_LIFT + expressionHand,
             tapX = tapX,
             tapY = tapY,
             tapProgress = tapAge / TAP_FEEDBACK_SECONDS,
@@ -256,6 +276,8 @@ class LayeredAvatarEngine(private val random: Random = Random.Default) {
         private const val MOUTH_THRESHOLD = 0.35f
         private const val HAND_SECONDS = 0.6f
         private const val HAND_LIFT = 22f
+        /** 表情收敛时间常数（秒）：够柔又不拖，切换表情约半秒到位。 */
+        private const val EXPR_TAU = 0.35f
         const val TAP_FEEDBACK_SECONDS = 0.9f
 
         /**

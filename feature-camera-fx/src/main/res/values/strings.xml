@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 相机贴纸的权限解释（PermissionGateway 的 rationale）：先把隐私口径说清楚再弹系统框。 -->
+    <string name="camerafx_camera_rationale">贴纸需要相机：画面只在本机实时处理，不上传服务器、不保存、不记录任何人脸数据。</string>
+    <string name="camerafx_camera_denied">相机不可用（无权限），贴纸已暂停</string>
+    <string name="camerafx_camera_retry">点按开启相机贴纸</string>
+</resources>

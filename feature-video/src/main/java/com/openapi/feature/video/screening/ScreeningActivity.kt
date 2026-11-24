@@ -17,6 +17,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -41,6 +42,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.semantics.selected
@@ -205,16 +208,16 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
         )
         // pager 跟着这一页在这里建（不是建在 AnimatedContent 的分支里）：
         // 之后从播放器退回内页，换的是 screen 状态，pager 不动——列表原样在，不重新取数。
-        val fetch: suspend (Int) -> ScreeningFeedStore.Page<RemoteEntry> = { start ->
+        val fetch: suspend (Int, String) -> ScreeningFeedStore.Page<RemoteEntry> = { start, keyword ->
             when {
                 // 夜色配置频道页：先列子频道（channel.json），点一行再下钻片单
                 fetchKey != null && kind == ScreeningPageKind.SUBCHANNELS ->
                     store.subchannels(fetchKey, start)
                 fetchKey != null && kind == ScreeningPageKind.VIDEO_USERS ->
-                    store.videoUsers(fetchKey, start)
+                    store.videoUsers(fetchKey, start, keyword)
                 fetchKey != null && kind == ScreeningPageKind.VIDEO_USER_ITEMS ->
-                    store.videoUserItems(fetchKey, start)
-                fetchKey != null -> store.videos(fetchKey, start)
+                    store.videoUserItems(fetchKey, start, keyword)
+                fetchKey != null -> store.videos(fetchKey, start, keyword)
                 // 没有取数键（路由判定下理论上不出现）：诚实空页，不拿随包样片填屏
                 else -> ScreeningFeedStore.Page(emptyList(), null, false)
             }
@@ -262,7 +265,31 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
             FeedRoute.WEB -> openWeb(entry)
         }
     }
-    BackHandler(channelPage != null && selection == null && !textHub && !soundHub && !gallery) { forward = false; channelPage = null }
+    // A24（根因 CONFIRMED）：这里是状态机的返回总出口。原来它只认「频道内页」一种态，
+    // 图集封面列表级、文字/声音馆选择器级这些子页自己深层的 BackHandler 此刻是 disabled 的，
+    // 返回键没人接 → 穿透到系统默认 → 结束任务回桌面。现在枚举全部非根态，
+    // 按下面 `screen` when 分支同一优先级清一个 flag 回到上一层（判定纯函数见 screeningBackStep）。
+    // 播放器态刻意排除：ScreeningPlayback 自己的无条件 BackHandler 在 AnimatedContent 内层
+    // 后组合、优先消费，这里既不抢也不与之同态竞争。同理，图集/文字/声音馆深层退层的
+    // BackHandler（ScreeningGallery/ScreeningText/ScreeningSound）都在我们之后组合，
+    // 它们 enabled 时先退一层，深层退层语义不变。
+    val backStep = screeningBackStep(
+        playing = selection != null,
+        channelPageOpen = channelPage != null,
+        galleryOpen = gallery,
+        textHubOpen = textHub,
+        soundHubOpen = soundHub,
+    )
+    BackHandler(backStep != ScreeningBackStep.NONE && backStep != ScreeningBackStep.PLAYER) {
+        forward = false
+        when (backStep) {
+            ScreeningBackStep.CHANNEL_PAGE -> channelPage = null
+            ScreeningBackStep.GALLERY -> gallery = false
+            ScreeningBackStep.TEXT_HUB -> textHub = false
+            ScreeningBackStep.SOUND_HUB -> soundHub = false
+            else -> Unit
+        }
+    }
     val motion = remember { MotionPlan(isReduceMotion(activity)) }
     val density = LocalDensity.current
     val slidePx = remember(density) { with(density) { motion.slideDistanceDp().dp.toPx() } }
@@ -400,7 +427,7 @@ private fun HomeTabs(
                     // 频道 pager 本来只在频道 tab 里建；从图集 tab 先开时补建同一份，
                     // 两个 tab 共用一次请求，不是各打各的。分类跟频道 tab 的默认值一致（电影）。
                     channelPagers.getOrPut(FeedCategory.MOVIE) {
-                        FeedPager(feedScope) { start -> store.channels(FeedCategory.MOVIE, start) }
+                        FeedPager(feedScope) { start, _ -> store.channels(FeedCategory.MOVIE, start) }
                     }, onGallery,
                 )
                 else -> ChannelsFeed(store, feedScope, channelPagers, channelFilter, onChannelFilter,
@@ -525,7 +552,7 @@ private fun ChannelsFeed(
     //（秒回、不闪、不重复打接口），没看过的从扫光占位开始。scope 也在上层：
     // 切走标签时 pager 组合离开，在途请求和失败自动重试不会被牵连取消。
     val pager = pagerCache.getOrPut(category) {
-        FeedPager(feedScope, fetch = { start -> store.channels(category, start) })
+        FeedPager(feedScope, fetch = { start, _ -> store.channels(category, start) })
     }
     val listState = remember(category) { LazyListState() }
     LaunchedEffect(pager) { pager.load() }
@@ -534,67 +561,77 @@ private fun ChannelsFeed(
             .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 4) pager.loadMore() }
     }
     val cards = pager.items.filter { routeOf(it) != FeedRoute.PLAY }
+    // 疑点（台账外备注，PLAUSIBLE 未改）：这条过滤把 routeOf==PLAY 的卡挡在网格外，
+    // 而 hero 取的是未过滤的 items——若服务端有数据但全是可播卡，就会出现
+    // 「推荐位有内容、网格 0 个」。要不要放行由取证定口径，这里只标疑点不动逻辑。
     val hero = pager.items.firstOrNull { !it.isImageCard }
     val seen = remember(category) { mutableSetOf<String>() }
     LazyColumn(Modifier.fillMaxSize(), state = listState,
         contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 12.dp, bottom = 24.dp)) {
         item {
             FeedError(pager.error, pager::reload)
-            // 推荐位高度恒定：hero 没到位时同一块高度放扫光，数据落地只换内容不挪布局。
-            // 屏小是用户点名的第三件事：推荐位再收到 16:9（216dp），首屏要能同时露出
-            // 推荐位 + 分类 + 两行三列网格；卡上的字也整档收小，标题单行截断。
-            Spacer(Modifier.height(2.dp))
-            Box(Modifier.fillMaxWidth().height(216.dp).clip(RoundedCornerShape(13.dp, 26.dp, 13.dp, 13.dp))) {
-                val entry = hero
-                if (entry == null) {
-                    // 加载中扫一层缓慢移动的光（失败停成静态底）。这里不叠转圈——
-                    // 转圈和扫光说的是同一件事，屏上留一个就够（用户点过名）。
-                    if (pager.loading) ShimmerPlaceholder(Modifier.matchParentSize())
-                    else Box(Modifier.matchParentSize().background(Lift))
-                } else {
-                    Box(Modifier.matchParentSize().pressable(RoundedCornerShape(13.dp, 30.dp, 13.dp, 13.dp)) {
-                        when (routeOf(entry)) {
-                            FeedRoute.PLAY -> onPlay(entry)
-                            FeedRoute.CHANNEL -> onChannel(entry)
-                            FeedRoute.ALBUM -> onGallery(entry)
-                            FeedRoute.TEXT -> onText(entry)
-                            FeedRoute.SOUND -> onSound(entry)
-                            FeedRoute.WEB -> onWeb(entry)
-                        }
-                    }) {
-                        EntryCover(entry, Modifier.matchParentSize())
-                        Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x45202340), Ink))))
-                        Column(Modifier.align(Alignment.BottomStart).padding(14.dp)) {
-                            Text(if (entry.isGroupEntry) "频道推荐" else "正在热映", Modifier.background(Peach, RoundedCornerShape(5.dp))
-                                .padding(horizontal = 7.dp, vertical = 3.dp), color = Ink, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(6.dp))
-                            Text(entry.title, color = White, fontSize = 22.sp, lineHeight = 26.sp, fontWeight = FontWeight.Black,
-                                maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            if (entry.description.isNotBlank()) {
-                                Spacer(Modifier.height(3.dp))
-                                Text(entry.description, color = White, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // A21（用户点名「空数据仍占块」）：这里原设计是「推荐位高度恒定：hero 没到位时
+            // 同一块高度放扫光，数据落地只换内容不挪布局」——但取到 0 条（或失败）时这块
+            // 216dp 空盒仍占着首屏。以用户为准改口径：只有加载中或有 hero 才画这一块，
+            // 空数据整块不出现。（屏小首屏要能装下推荐位 + 分类 + 网格，仍然成立。）
+            if (hero != null || pager.loading) {
+                Spacer(Modifier.height(2.dp))
+                Box(Modifier.fillMaxWidth().height(216.dp).clip(RoundedCornerShape(13.dp, 26.dp, 13.dp, 13.dp))) {
+                    val entry = hero
+                    if (entry == null) {
+                        // 加载中扫一层缓慢移动的光（失败停成静态底）。这里不叠转圈——
+                        // 转圈和扫光说的是同一件事，屏上留一个就够（用户点过名）。
+                        if (pager.loading) ShimmerPlaceholder(Modifier.matchParentSize())
+                        else Box(Modifier.matchParentSize().background(Lift))
+                    } else {
+                        Box(Modifier.matchParentSize().pressable(RoundedCornerShape(13.dp, 30.dp, 13.dp, 13.dp)) {
+                            when (routeOf(entry)) {
+                                FeedRoute.PLAY -> onPlay(entry)
+                                FeedRoute.CHANNEL -> onChannel(entry)
+                                FeedRoute.ALBUM -> onGallery(entry)
+                                FeedRoute.TEXT -> onText(entry)
+                                FeedRoute.SOUND -> onSound(entry)
+                                FeedRoute.WEB -> onWeb(entry)
                             }
-                            Spacer(Modifier.height(9.dp))
-                            Button(onClick = {
-                                when (routeOf(entry)) {
-                                    FeedRoute.PLAY -> onPlay(entry)
-                                    FeedRoute.CHANNEL -> onChannel(entry)
-                                    FeedRoute.ALBUM -> onGallery(entry)
-                                    FeedRoute.TEXT -> onText(entry)
-                            FeedRoute.SOUND -> onSound(entry)
-                                    FeedRoute.WEB -> onWeb(entry)
-                                        }
-                            }, shape = RoundedCornerShape(9.dp), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)) {
-                                Icon(Icons.Default.PlayArrow, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp))
-                                Text(if (entry.isGroupEntry) "看这个频道" else "看预告", fontSize = 14.sp)
+                        }) {
+                            EntryCover(entry, Modifier.matchParentSize())
+                            Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x45202340), Ink))))
+                            Column(Modifier.align(Alignment.BottomStart).padding(14.dp)) {
+                                Text(if (entry.isGroupEntry) "频道推荐" else "正在热映", Modifier.background(Peach, RoundedCornerShape(5.dp))
+                                    .padding(horizontal = 7.dp, vertical = 3.dp), color = Ink, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Spacer(Modifier.height(6.dp))
+                                Text(entry.title, color = White, fontSize = 22.sp, lineHeight = 26.sp, fontWeight = FontWeight.Black,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                if (entry.description.isNotBlank()) {
+                                    Spacer(Modifier.height(3.dp))
+                                    Text(entry.description, color = White, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                }
+                                Spacer(Modifier.height(9.dp))
+                                Button(onClick = {
+                                    when (routeOf(entry)) {
+                                        FeedRoute.PLAY -> onPlay(entry)
+                                        FeedRoute.CHANNEL -> onChannel(entry)
+                                        FeedRoute.ALBUM -> onGallery(entry)
+                                        FeedRoute.TEXT -> onText(entry)
+                                FeedRoute.SOUND -> onSound(entry)
+                                        FeedRoute.WEB -> onWeb(entry)
+                                            }
+                                }, shape = RoundedCornerShape(9.dp), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)) {
+                                    Icon(Icons.Default.PlayArrow, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp))
+                                    Text(if (entry.isGroupEntry) "看这个频道" else "看预告", fontSize = 14.sp)
+                                }
                             }
                         }
                     }
                 }
             }
-            Heading("逛频道", if (pager.loading && cards.isEmpty()) "正在取数据…" else "${cards.size} 个频道")
-            FilterRow(FeedCategory.entries.map { it.label }, filter, onFilter)
-            Spacer(Modifier.height(9.dp))
+            // A21：取到 0 条（且不在加载）时「逛频道」标题和过滤条也不再占块——
+            // 原来它们无条件渲染，空数据时屏上是孤零零的标题+两个过滤 chip。
+            if (pager.loading || cards.isNotEmpty()) {
+                Heading("逛频道", if (pager.loading && cards.isEmpty()) "正在取数据…" else "${cards.size} 个频道")
+                FilterRow(FeedCategory.entries.map { it.label }, filter, onFilter)
+                Spacer(Modifier.height(9.dp))
+            }
             // 网格区首屏不再放第二块转圈：等待由上面推荐位的扫光统一表达，
             // 数据一到直接填网格，没有「占位块整块消失」的第二次跳动。
         }
@@ -632,8 +669,37 @@ private fun ChannelsFeed(
             }
         }
         item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore,
-            firstPageLoading = pager.loading && cards.isEmpty()) }
+            firstPageLoading = pager.loading && cards.isEmpty(), empty = cards.isEmpty()) }
     }
+}
+
+/**
+ * 返回一键要清的层。PLAYER 由 ScreeningPlayback 自己的无条件 BackHandler 消费
+ * （AnimatedContent 内层后组合、优先于外层），外层把它从 enabled 排除、绝不抢；
+ * NONE = 已在根层（频道/图集 tab），交回系统默认——独立 Activity 退出、标签内嵌切标签。
+ */
+internal enum class ScreeningBackStep { NONE, PLAYER, CHANNEL_PAGE, GALLERY, TEXT_HUB, SOUND_HUB }
+
+/**
+ * A24 状态机返回判定（纯函数，JVM 单测见 ScreeningBackNavigationTest）：
+ * 优先级与 ScreeningHome 里 `screen` 的 when 分支完全一致
+ * （播放 > 频道内页 > 图集 > 文字馆 > 声音馆），一次只清一层。
+ * 根因正是原来只有频道内页这一层挂了出口，图集封面列表级 / 文字·声音馆选择器级
+ * 自己深层的 BackHandler 此刻 disabled，返回穿透到系统默认 → 结束任务回桌面。
+ */
+internal fun screeningBackStep(
+    playing: Boolean,
+    channelPageOpen: Boolean,
+    galleryOpen: Boolean,
+    textHubOpen: Boolean,
+    soundHubOpen: Boolean,
+): ScreeningBackStep = when {
+    playing -> ScreeningBackStep.PLAYER
+    channelPageOpen -> ScreeningBackStep.CHANNEL_PAGE
+    galleryOpen -> ScreeningBackStep.GALLERY
+    textHubOpen -> ScreeningBackStep.TEXT_HUB
+    soundHubOpen -> ScreeningBackStep.SOUND_HUB
+    else -> ScreeningBackStep.NONE
 }
 
 /**
@@ -666,12 +732,18 @@ private fun storedProgress(preferences: android.content.SharedPreferences, entry
     return if (stored >= RESUME_MIN_MS) stored else 0L
 }
 
-/** 一张卡的封面：远程地址走 Glide，没有就纯色底（随包 asset 封面随本地样片库下线）。 */
+/** 一张卡的封面：远程地址走 Glide；没有地址也不留纯色块——用设计好的占位图
+ * （用户点名：占位图被撤掉是回归，台账 A28）。 */
 @Composable
 internal fun EntryCover(entry: RemoteEntry, modifier: Modifier = Modifier) {
     when {
         !entry.imageUrl.isNullOrBlank() -> RemoteCover(entry.imageUrl, modifier)
-        else -> Box(modifier.background(Lift))
+        else -> Image(
+            painter = painterResource(ImagePlaceholderRes),
+            contentDescription = null,
+            modifier = modifier,
+            contentScale = ContentScale.Crop,
+        )
     }
 }
 
@@ -715,6 +787,9 @@ private fun Library(
         title = page.title,
         onBack = back,
         detail = feedToolbarDetail(pager.loading, pager.items.size, "条"),
+        // 搜索（用户点名 2026-11-25）：片单页就是旧 VideoChannelListFragment——工具条挂搜索框，
+        // 裸关键词直传 keyword=（服务端把 channel 置空、按频道行 channelType 跨频道检索）。
+        searchable = page.kind != ScreeningPageKind.SUBCHANNELS,
         contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 9.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -802,7 +877,8 @@ private fun Library(
             EntryCard(entry, progress[entry.key] ?: 0L, false,
                 Modifier.fillMaxWidth().enterFeedItem(seen, entry.key, pager.items.indexOf(entry)), openEntry)
         }
-        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && pager.items.isEmpty()) }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore,
+            pager.loading && pager.items.isEmpty(), empty = pager.items.isEmpty()) }
     }
 }
 

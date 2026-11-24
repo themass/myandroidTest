@@ -23,14 +23,26 @@ internal class HistoryActions(
     private val isInFlight: (String) -> Boolean,
     private val strings: ChatStrings,
     private val io: CoroutineDispatcher = Dispatchers.IO,
+    /**
+     * 乐观删除的墓碑集合（与 [MessageRemoval] 共享同一实例）：历史里「正在等服务端确认删除」
+     * 的条目不能被重新画出来（[loadOlder] 与 [mergePending] 两个入口都过一遍）。
+     */
+    private val pendingDeletions: PendingDeletions = PendingDeletions(),
 ) {
 
     private val loadHistory = LoadHistoryUseCase(repository)
 
-    /** 加载更早的一页（按最早一条的服务端 id 作为 beforeId）。 */
+    /**
+     * 加载更早的一页（按最早一条的服务端 id 作为 beforeId）。
+     *
+     * 闸只认「没有更多」和「已经在加载」：**不再看 `sending`**——读历史是只读操作，
+     * 与当前回合互不相干；旧代码在生成中静默吞掉这次请求，用户翻到顶只会看到
+     * 「没有反应」（任务 4 移除了手动按钮之后，自动加载更容易被这条误伤）。
+     * [ChatTurnGate] 的 `allowLoadOlder` 只挡 loadingOlder/hasMore 两项，与此一致。
+     */
     fun loadOlder() {
         val current = state.value
-        if (!current.hasMoreHistory || current.loadingOlder || current.sending) return
+        if (!current.hasMoreHistory || current.loadingOlder) return
         val oldestId = current.messages.mapNotNull { it.id.toLongOrNull() }.minOrNull() ?: return
         state.update { it.copy(loadingOlder = true) }
         scope.launch {
@@ -39,9 +51,10 @@ internal class HistoryActions(
                 if (page == null) {
                     cur.copy(loadingOlder = false, error = strings.historyLoadOlderFailed())
                 } else {
-                    val known = page.messages.map { it.id }.toSet()
+                    val fresh = pendingDeletions.filter(page.messages)
+                    val known = fresh.map { it.id }.toSet()
                     cur.copy(
-                        messages = page.messages + cur.messages.filterNot { it.id in known },
+                        messages = fresh + cur.messages.filterNot { it.id in known },
                         hasMoreHistory = page.hasMore,
                         loadingOlder = false,
                     )
@@ -52,9 +65,12 @@ internal class HistoryActions(
 
     /**
      * 服务端历史和本地未送达的消息合并：本地「发送中」但不在途中的，说明上次没发完，标成失败（可重试）。
+     *
+     * 乐观删除挂起的条目（[pending]）在这里被剔掉：兜底对齐不能把刚删掉的消息带回来。
      */
     suspend fun mergePending(page: List<ChatMessage>, sessionId: Long): List<ChatMessage> {
-        val serverIds = page.map { it.id }.toSet()
+        val server = pendingDeletions.filter(page)
+        val serverIds = server.map { it.id }.toSet()
         val recovered = repository.localPendingMessages(sessionId)
             .filter { it.id !in serverIds }
             .map { m ->
@@ -66,6 +82,6 @@ internal class HistoryActions(
                     m
                 }
             }
-        return (page + recovered).sortedBy { it.createdAtMillis }
+        return (server + recovered).sortedBy { it.createdAtMillis }
     }
 }

@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -100,6 +101,67 @@ internal fun dragSeekMs(totalDragPx: Float, viewportWidthPx: Float): Long {
     if (viewportWidthPx <= 0f) return 0L
     return (totalDragPx / (viewportWidthPx / 4f)).roundToInt() * 30_000L
 }
+
+/**
+ * 现在是否存在「可切换的字幕来源」：服务端有轨道、已导入过文件、或这条片源能做实时识别，任一即可。
+ * serverList 为 null 表示还没成功取到列表——这时不能断言服务端没有，只按另两条判。
+ * 纯函数抽出来是为了 JVM 单测钉住判定口径（A22）。
+ */
+internal fun hasCaptionSourceChoice(
+    serverList: List<SubtitleItem>?,
+    hasImportedCaption: Boolean,
+    realtimeAvailable: Boolean,
+): Boolean = serverList?.isNotEmpty() == true || hasImportedCaption || realtimeAvailable
+
+/**
+ * 字幕面板里「关闭字幕」这一项要不要显示成选中（勾）。
+ * A22：只在「当前确实关着」且「存在可切换来源」时才打勾——
+ * 一条可开来源都没有时，勾会让用户以为「有字幕被我关了」，而实情是这条片子本来就没字幕。
+ */
+internal fun captionOffSettingSelected(captionSource: Int, hasCaptionSourceChoice: Boolean): Boolean =
+    captionSource == 0 && hasCaptionSourceChoice
+
+/**
+ * 空态（没有任何可开来源）时并进「关闭字幕」hint 的原因说明（A22）。
+ * 「没有导入过字幕文件」在空态恒成立（有导入就不算空态）；服务端那条只在确实取到过列表时才敢写死。
+ */
+internal fun captionNoSourceHint(serverList: List<SubtitleItem>?, realtimeAvailable: Boolean): String {
+    val reasons = buildList {
+        if (serverList != null) add("服务端没有字幕轨")
+        add("没有导入过字幕文件")
+        if (!realtimeAvailable) add("这个片源不能现场识别")
+    }
+    return "现在没有可开的字幕：" + reasons.joinToString("，")
+}
+
+/**
+ * 「关闭字幕」已经是关闭态时再点一次的可见反馈（A22：写同值零变化，用户以为按钮坏了）。
+ * 有可开来源和没有来源两种措辞分开，别把「没字幕」说给有字幕轨的片子。
+ */
+internal fun captionAlreadyOffNotice(
+    serverList: List<SubtitleItem>?,
+    hasImportedCaption: Boolean,
+    realtimeAvailable: Boolean,
+): String = if (hasCaptionSourceChoice(serverList, hasImportedCaption, realtimeAvailable)) {
+    "字幕本来就是关的；要开字幕，直接选下面列出的字幕来源。"
+} else {
+    "字幕本来就是关的；这个视频没有可开的字幕轨。"
+}
+
+/**
+ * 影院态底部走带要不要在 3.5 秒后自动收起。
+ * imeVisible 是 A23 新加的闸门：edge-to-edge 下 adjustResize 失效，键盘弹着时收走带
+ * 会把正在输入的弹幕发送栏整个藏掉，所以键盘没弹出才允许自动收。
+ */
+internal fun shouldAutoHideChrome(
+    full: Boolean,
+    playing: Boolean,
+    locked: Boolean,
+    panelOpen: Boolean,
+    chromeVisible: Boolean,
+    draft: String,
+    imeVisible: Boolean,
+): Boolean = full && playing && !locked && !panelOpen && chromeVisible && draft.isEmpty() && !imeVisible
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -281,9 +343,13 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
         }
     }
     LaunchedEffect(host) { while (true) { refresh(); delay(125) } }
-    LaunchedEffect(full, playing, locked, panel, interaction, danmakuDraft) {
+    // A23：edge-to-edge（HomeActivity enableEdgeToEdge）下 adjustResize 失效，键盘弹没弹只能自己读
+    // ime insets。自动收走带要过这道闸：键盘弹着、输入框聚焦但还没打字时，收走带=输入框整体消失。
+    val density = LocalDensity.current
+    val imeVisible = WindowInsets.ime.getBottom(density) > 0
+    LaunchedEffect(full, playing, locked, panel, interaction, danmakuDraft, imeVisible) {
         // 正在打弹幕就不收走带：发送栏挂在走带上，收了等于把输入框藏起来
-        if (full && playing && !locked && panel == null && chrome && danmakuDraft.isEmpty()) { delay(3500); chrome = false }
+        if (shouldAutoHideChrome(full, playing, locked, panel != null, chrome, danmakuDraft, imeVisible)) { delay(3500); chrome = false }
     }
     val picker = rememberLauncherForActivityResult(OpenDocument()) { uri ->
         uri?.let {
@@ -343,43 +409,85 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
     // iconOnly：影院态底部只要图标走带（设计稿），文字让给画面；信息态保留图标+文字在 Lift 卡上。
     // 两处按用户点名改动：字幕开着时再点一下=直接关掉（之前必须钻进面板，看着像没反应）；
     // 内核不再上工具台——换内核只在后台按失败自动兜底，不再暴露给用户手动切。
+    // 信息态（用户点名 2026-11-25「按钮布局换行太丑」）：不再是一排竖排 tab（图标上文字下、
+    // 间距挤成换行观感），改成一排等高胶囊——字幕/倍速/弹幕/更多 四枚等宽 + 收藏心形收尾，
+    // 一行装下、永不换行；收藏不再是下面孤零零的一整行。
     val toolsRow: @Composable (Boolean) -> Unit = { iconOnly ->
-        Row(
-            Modifier.fillMaxWidth()
-                .then(if (iconOnly) Modifier else Modifier.background(Lift, Tile)),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            listOf(
-                "字幕" to Icons.Default.Subtitles,
-                (if (speed == 1f) "倍速" else "${speed}×") to Icons.Default.Speed,
-                "弹幕" to Icons.Default.ChatBubbleOutline,
-                "更多" to Icons.Default.MoreHoriz,
-            ).forEachIndexed { index, (name, picture) ->
-                Column(
-                    Modifier.weight(1f).heightIn(min = if (iconOnly) 40.dp else 51.dp).clip(Tile).clickable {
-                        when {
-                            index == 0 && captionSource != 0 -> { captionSource = 0; info = "字幕已关闭" }
-                            // 弹幕键按互联网惯例直接开/关（和字幕键同款手感）；来源与重试收进「更多 → 弹幕设置」。
-                            index == 2 -> { info = ""; danmaku = !danmaku }
-                            else -> { info = ""; panel = if (index == 1) "倍速" else name }
-                        }
-                    },
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Icon(picture, name, Modifier.size(18.dp), tint = if (index == 0 && captionSource != 0 || index == 2 && danmaku) Mint else White)
-                    if (!iconOnly) Text(name, fontSize = 11.sp, maxLines = 1)
+        if (iconOnly) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                listOf(
+                    "字幕" to Icons.Default.Subtitles,
+                    (if (speed == 1f) "倍速" else "${speed}×") to Icons.Default.Speed,
+                    "弹幕" to Icons.Default.ChatBubbleOutline,
+                    "更多" to Icons.Default.MoreHoriz,
+                ).forEachIndexed { index, (name, picture) ->
+                    Column(
+                        Modifier.weight(1f).heightIn(min = 40.dp).clip(Tile).clickable {
+                            when {
+                                index == 0 && captionSource != 0 -> { captionSource = 0; info = "字幕已关闭" }
+                                // 弹幕键按互联网惯例直接开/关（和字幕键同款手感）；来源与重试收进「更多 → 弹幕设置」。
+                                index == 2 -> { info = ""; danmaku = !danmaku }
+                                else -> { info = ""; panel = if (index == 1) "倍速" else name }
+                            }
+                        },
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Icon(picture, name, Modifier.size(18.dp), tint = if (index == 0 && captionSource != 0 || index == 2 && danmaku) Mint else White)
+                    }
                 }
             }
-        }
-    }
-    val favorRow: @Composable () -> Unit = {
-        Row(Modifier.background(Color(0xFF243A3F), Tile).padding(horizontal = 5.dp)) {
-            TextButton(onClick = { liked = !liked; store.edit().putBoolean("favorite:$id", liked).apply() }) {
-                Icon(if (liked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, null, Modifier.size(16.dp))
-                Text(if (liked) " 已收藏" else " 收藏")
+        } else {
+            Row(
+                Modifier.fillMaxWidth().padding(top = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                listOf(
+                    "字幕" to Icons.Default.Subtitles,
+                    (if (speed == 1f) "倍速" else "${speed}×") to Icons.Default.Speed,
+                    "弹幕" to Icons.Default.ChatBubbleOutline,
+                    "更多" to Icons.Default.MoreHoriz,
+                ).forEachIndexed { index, (name, picture) ->
+                    val active = index == 0 && captionSource != 0 || index == 2 && danmaku
+                    Row(
+                        Modifier.weight(1f).height(38.dp).clip(RoundedCornerShape(12.dp))
+                            .background(if (active) Mint.copy(alpha = .14f) else Lift)
+                            .clickable {
+                                when {
+                                    index == 0 && captionSource != 0 -> { captionSource = 0; info = "字幕已关闭" }
+                                    index == 2 -> { info = ""; danmaku = !danmaku }
+                                    else -> { info = ""; panel = if (index == 1) "倍速" else name }
+                                }
+                            },
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(picture, null, Modifier.size(15.dp),
+                            tint = if (active) Mint else White)
+                        Spacer(Modifier.width(5.dp))
+                        Text(name, fontSize = 12.sp, maxLines = 1,
+                            color = if (active) Mint else White)
+                    }
+                }
+                // 收藏：一枚和胶囊同高的心形钮（原「已收藏」整行下线——孤行太浪费，用户点名）。
+                Box(
+                    Modifier.width(44.dp).height(38.dp).clip(RoundedCornerShape(12.dp))
+                        .background(if (liked) Color(0xFF243A3F) else Lift)
+                        .clickable { liked = !liked; store.edit().putBoolean("favorite:$id", liked).apply() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        if (liked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        if (liked) "取消收藏" else "收藏",
+                        Modifier.size(18.dp),
+                        tint = if (liked) Peach else Muted,
+                    )
+                }
             }
-            // DLNA 投屏入口正式口径下线（没有可验证的真电视设备；旧 :cast 模块和旧页面原样保留）。
         }
     }
     // 画面内发送栏（互联网播放器惯例）：弹幕开着时贴在走带下方，胶囊输入框 + 发送键，回车即发。
@@ -419,7 +527,23 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
         Spacer(Modifier.height(6.dp))
         when (current) {
             "字幕" -> {
-                Setting("关闭字幕", "不影响播放和弹幕", captionSource == 0) { captionSource = 0 }
+                // A22：没有任何可开来源时「关闭字幕」不再显示成选中勾——勾会让用户以为
+                // 「有字幕被我关了」，实情是这条片子本来就没字幕。serverList == null 是列表还没取到，
+                // 这时不能断言服务端没有轨道，只按导入/实时两条真路判。
+                val captionChoice = hasCaptionSourceChoice(serverList, captions != null, realtimeUrl != null)
+                Setting(
+                    "关闭字幕",
+                    if (captionChoice) "不影响播放和弹幕" else captionNoSourceHint(serverList, realtimeUrl != null),
+                    captionOffSettingSelected(captionSource, captionChoice),
+                ) {
+                    if (captionSource == 0) {
+                        // A22：关闭态再点写入同值、界面上零变化（勾不动），用户以为按钮坏了——
+                        // 走现成的 info 通道给可见反馈（面板底部那行 Mint 文案）
+                        info = captionAlreadyOffNotice(serverList, captions != null, realtimeUrl != null)
+                    } else {
+                        captionSource = 0; info = "字幕已关闭"
+                    }
+                }
                         // 样式放最前：面板在弹窗里能滚的范围有限，样式是主功能不该藏在延时/导入后面
                         Text("字幕样式", Modifier.padding(top = 8.dp), fontWeight = FontWeight.Bold)
                         captionPresets.forEachIndexed { index, preset ->
@@ -562,7 +686,9 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
         if (info.isNotEmpty()) Text(info, Modifier.padding(top = 9.dp), color = Mint)
     }
     Column(Modifier.fillMaxSize().background(Ink).then(
-        if (!full) Modifier.safeDrawingPadding().verticalScroll(rememberScrollState()) else Modifier
+        // A23：信息态把键盘高度并进滚动视口（imePadding 在 verticalScroll 之外），
+        // 配合输入框聚焦自带的 bring-into-view，弹幕发送行不再被键盘压在视口外
+        if (!full) Modifier.safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()) else Modifier
     )) {
         // 竖屏（信息态，设计稿的主要改动）：返回+片名不再压在画面上，走页面自己的顶栏；
         // 画面下移成一张圆角卡，和瀑布流同一套 13dp 语言。
@@ -717,7 +843,9 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
                 }
                 if (full) {
                     Column(
-                        Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                        // A23：键盘不再靠 resize 顶起窗口，会把挂在走带底部的弹幕发送栏整个盖住——
+                        // imePadding 把底部这条（走带+工具+发送栏）抬到键盘上方（先例：ChatScreen/CompanionScreen）
+                        Modifier.align(Alignment.BottomCenter).fillMaxWidth().imePadding()
                             .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = .88f))))
                             .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
                             .padding(horizontal = 20.dp, vertical = 8.dp),
@@ -767,14 +895,25 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
             Column(Modifier.padding(horizontal = 18.dp, vertical = 9.dp)) {
                 seekBlock()
                 Text(channel.ifEmpty { "本周放映" }, color = Mint, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                Text(source.title, color = White, fontSize = 35.sp, lineHeight = 40.sp, fontWeight = FontWeight.Black)
-                Text(source.description, color = Muted, modifier = Modifier.padding(top = 5.dp, bottom = 12.dp))
+                // 片名 35→22sp（用户点名「字体太大」）：详情页不是海报，片名一行认出就够，
+                // 高度留给下面的工具区和未来的简介/分析区。
+                Text(source.title, color = White, fontSize = 22.sp, lineHeight = 27.sp,
+                    fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp))
                 // 设计稿：简介和工具台之间一条分隔线，下半页分成「讲什么」和「能干什么」两段
                 HorizontalDivider(color = Lift)
                 Spacer(Modifier.height(10.dp))
                 toolsRow(false)
                 if (danmaku) danmakuSendRow()
-                Box(Modifier.fillMaxWidth().padding(top = 10.dp), contentAlignment = Alignment.CenterEnd) { favorRow() }
+                // 下半页内容区（用户点名 2026-11-25：「未来会在底部增加电影简介和详情分析，
+                // 说不定接上 AI 问答，请你设计一下」）——三段纵向堆叠，从上到下：
+                //   1. 简介卡（本片实现：服务端已有 desc 就用它，短则不折叠）；
+                //   2. 详情分析卡（将来：服务端/本地分析产出，无数据整卡不画，不给空壳）；
+                //   3. AI 问答入口（将来：入口只在真能问答时画——本项目规矩是不拿假按钮填屏，
+                //      所以接上之前这一格诚实缺席，不留「敬请期待」）。
+                // 三段都用 [DetailSectionCard] 同一种卡形（Lift 底 + 12dp 圆角 + 同一套标题字），
+                // 间距只在这里给一次；外层已经是可滚动页，不再嵌套滚动容器。
+                BriefCard(source.description)
                 error?.let { message -> Text(message, color = Peach, modifier = Modifier.padding(top = 12.dp)) }
             }
         }
@@ -791,6 +930,60 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
         }
     }
 }
+
+/**
+ * 详情页下半页的卡形（简介/分析/问答三段共用这一种形状）。
+ *
+ * 用户点名 2026-11-25：「未来会在底部增加电影简介和详情分析，说不定接上 AI 问答，请你设计一下」。
+ * 设计：三段从上到下纵向堆叠——简介卡（本片已实装）→ 详情分析卡 → AI 问答入口，都用这个壳
+ * （Lift 底 + 12dp 圆角 + 同一个标签字），这样三块将来拼在一起是一体的，不会各长各的。
+ * 没有内容的段整段不画：本项目不拿「敬请期待」或假按钮填屏（两代教训），接不上就诚实缺席。
+ */
+@Composable
+private fun DetailSectionCard(label: String, content: @Composable () -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().padding(top = 10.dp)
+            .clip(RoundedCornerShape(12.dp)).background(Lift)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+    ) {
+        Text(label, color = Mint, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(6.dp))
+        content()
+    }
+}
+
+/**
+ * 简介卡：服务端 `desc` 就是这个片子的简介（列表页/旧详情页同源）。
+ * 短简介不折叠；被裁出省略号时才给「展开/收起」——详情页高度有限，
+ * 简介不该把工具台顶出屏（这正是用户点名「底部布局太丑」的一部分：内容没分层）。
+ * 折叠判定用 TextLayoutResult 的真实省略号，不用字数猜测：宽窄屏、长短词都判得准。
+ */
+@Composable
+private fun BriefCard(brief: String) {
+    if (brief.isBlank()) return
+    var expanded by remember { mutableStateOf(false) }
+    var clipped by remember(brief) { mutableStateOf(false) }
+    DetailSectionCard("简介") {
+        Text(
+            brief, color = Muted, fontSize = 13.sp, lineHeight = 19.sp,
+            maxLines = if (expanded) Int.MAX_VALUE else BRIEF_CLAMP_LINES,
+            overflow = TextOverflow.Ellipsis,
+            onTextLayout = { layout ->
+                if (!expanded) clipped = (0 until layout.lineCount).any { layout.isLineEllipsized(it) }
+            },
+        )
+        if (clipped || expanded) {
+            TextButton(
+                onClick = { expanded = !expanded },
+                contentPadding = PaddingValues(0.dp),
+            ) {
+                Text(if (expanded) "收起" else "展开", color = Mint, fontSize = 12.sp)
+            }
+        }
+    }
+}
+
+private const val BRIEF_CLAMP_LINES = 4
 
 /**
  * 细进度条：3dp 轨道 + 11dp 圆钮，自绘。

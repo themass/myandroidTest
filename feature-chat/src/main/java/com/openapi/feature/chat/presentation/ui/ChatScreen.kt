@@ -197,22 +197,15 @@ fun ChatScreen(
                 onMenuClick = onMenuClick,
             )
 
-            if (state.hasMoreHistory) {
-                TextButton(
-                    onClick = onLoadOlder,
-                    enabled = !state.loadingOlder,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        stringResource(if (state.loadingOlder) R.string.chat_loading_older else R.string.chat_load_older),
-                        color = AppColors.Primary,
-                    )
-                }
-            }
+            // 「加载更早」不再有常驻按钮（任务 4）：滚到顶自动加载，
+            // 加载进行中由列表顶部的细进度条报告（见 ChatMessageList 的 loadingOlder）。
 
             ChatMessageList(
                 items = items,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
+                hasMoreHistory = state.hasMoreHistory,
+                loadingOlder = state.loadingOlder,
+                onLoadOlder = onLoadOlder,
                 selection = selection,
                 attachmentActions = AttachmentActions::actionsFor,
                 attachmentInfo = { target -> AttachmentActions.infoFor(appContext, target) },
