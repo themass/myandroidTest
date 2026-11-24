@@ -181,8 +181,9 @@
 ## A21 · 影视列表「放映场」部分没有数据时也要展示（当前行为不对）
 
 - **现象**：首页/影视列表里放映场区块在没有数据时的展示行为与预期不符（用户原话「没有数据的时候不展示」——具体是「本该显示却空白」还是「不该显示却显示空壳」以取证结论为准，截图为放映场内页 28 条正常列表）。
-- **根因**：**取证中**（agent 查 `ChannelsHub.kt`/`HomeScreen.kt`/`HomeEntries.kt`/`feature-video/screening/ScreeningFeedStore.kt` 的区块渲染条件与空态分支）。
-- **状态**：**取证中**。
+- **根因（取证完成，CONFIRMED）**：结论=「不该显示却显示空壳」。`ScreeningActivity.kt` `ChannelsFeed`（:505-607）两处无守卫：①hero 空盒——hero==null 且非 loading 时仍渲染 216dp 占位 Box（:517-523）；②「逛频道」标题+FilterRow 无条件渲染（:565-566）。频道网格本身已有 `isNotEmpty` 守卫（:571）。数据侧纯网络无缓存（`ScreeningFeedStore.kt:24-38,135-162`，无样例兜底）→ 弱网/失败时整页只剩空壳。次级疑点（PLAUSIBLE，未改只加注释）：:506 `filter { routeOf(it) != FeedRoute.PLAY }` 可能把有数据的一屏全滤空。
+- **修复**：hero 外包 `if (hero != null || pager.loading)`；「逛频道」标题+过滤条外包 `if (pager.loading || cards.isNotEmpty())`。:514-515「高度恒定不挪布局」旧注释以用户要求为准改写。
+- **状态**：**根因已定位 + 派工中**（worker a83b4227）。
 
 ## A22 · 放映页字幕开关「没效果和反应，勾一直在」
 
@@ -201,8 +202,9 @@
 ## A24 · 放映场点后退直接退出 app，应该返回上一个页面
 
 - **现象**：放映场/播放页顶栏 ← 一点整个 app 退到桌面，不回上一页（首页）。**用户 20261125 追加：图集页（「图集 9 本」）后退同样直接退出 app → 这是「频道内各页共有」的问题，不是单页 bug**，按共性问题定性处理。
-- **根因**：**取证中**（agent 查 feature-video `AndroidManifest.xml` Activity 声明/launchMode/NEW_TASK、导航是 startActivity 还是 Compose Navigation、← 的 BackHandler 实现；已要求把结论升级为「①涉及页面清单 ②共同根因点还是各页各一份 ③一处能否修全部」）。
-- **状态**：**取证中（已升级为频道级共性问题）**。
+- **根因（取证完成，CONFIRMED，频道级单一根因）**：全仓库**没有 Compose Navigation**（grep NavHost 零命中），放映场全部页面是 `ScreeningActivity.kt` :237-244 的 Compose 状态机（`screen when{...}`），宿主 HomeActivity 是 singleTask（manifest :143）且 LaunchActivity `finish()` 后是任务根。子页自己的 BackHandler（`ScreeningGallery.kt:66`、`ScreeningText.kt:55`、`ScreeningSound.kt:50`）**只在更深一级 enabled**，处于 gallery 封面列表级/textHub/soundHub 选择器级时它们全关，`ScreeningActivity.kt:228` 的外层守卫 `channelPage != null && !gallery && !textHub && !soundHub` 又不覆盖这些态 → 返回穿透到系统默认 → **结束整个任务回桌面**。播放器 `ScreeningPlayback.kt:270` 无条件 BackHandler 在内层组合优先消费（不受影响）。`ScreeningActivity` 的 manifest 声明是孤儿（无 startActivity 调用者）。
+- **修复（一处修全部）**：:228 扩成状态机总出口——`BackHandler(enabled = 任一非根态)`，onClick 按 when 优先级清一个 flag 回上层；播放器态从 enabled 排除避免抢返回。不改三个子页的深层退层语义。抽象点：**状态机导航必须有一个唯一的「出口判据」，任何层级都不允许落到系统默认返回**。
+- **状态**：**根因已定位 + 派工中**（worker a83b4227，与 A21 同文件）。
 
 ## A25 · 文章详情页太卡（WebView 展示差，参考原来的设计）
 
@@ -213,22 +215,23 @@
 ## A26 · 页面「右滑」误开右侧抽屉；用户明确：整个频道所有页面都不需要这个抽屉
 
 - **现象**：文章详情页右滑弹出右侧抽屉（头条号/微头条/热点/…分类面板）。**用户 20261125 追加升级：「整个频道里所有的页面就没有"右滑"出抽屉的那个需要，你怎么都给加上了」——即抽屉在本产品里根本没有使用场景，是被错误地加到每个页面上的，要整体去掉而不是调灵敏度。**
-- **根因**：**取证中**（agent 查抽屉挂在哪个公共容器：一个 `DrawerLayout` 包住整个频道 NavHost，还是每页各包一份；以及右滑手势被谁吃掉。「全部禁用/移除右滑抽屉」的最小改动点按「公共容器 vs 单页」结构性结论给）。
-- **修复方向（已定）**：默认**关闭 DrawerLayout 的滑动手势**（`setDrawerLockMode(LOCK_MODE_LOCKED_CLOSED)`）或直接移除抽屉容器，抽屉只从顶栏按钮开；右滑语义归还给「返回上一页」。**这是频道级一次改动，不是逐页调参。**
-- **状态**：**取证中（已升级为频道级共性问题，方向=全部移除右滑抽屉）**。
+- **根因（取证完成，CONFIRMED，单一公共容器）**：不是每页各一份——整个首页（含频道/放映场/图集全部层级）被**同一个** `ModalNavigationDrawer` 包住（`app/.../HomeScreen.kt:173-182`），手势开关是纯函数 `HomeDrawer.kt:171-175` `drawerSwipeEnabled(currentIsChat, drawerOpen, callVisible)` = `drawerOpen || (currentIsChat.not() && callVisible.not())` → **除 chat 外所有页面右滑都会开抽屉**，且旧语义里还允许「已打开时右滑关」。
+- **修复（一处修全部）**：纯函数改返回 `drawerOpen`——关闭态任何页面都不给右滑开，打开态仍允许右滑关；`HomeScreen.kt:173-182` 调用点同步；`HomeDrawerGestureTest` 钉新语义。抽屉入口保留顶栏菜单按钮（HomeScreen.kt:306/316）。抽象点：**手势能力的默认值放在公共容器的单一判定函数里，新页面自动继承正确行为，而不是每页自己接**。
+- **状态**：**根因已定位 + 派工中**（worker aa83013a）。
 
 ## A27 · 图集页封面网格应每行 3 个（当前每行 2 个）
 
 - **现象**：图集列表页（「图集 9 本」）封面每行只有 2 个，用户要求「一行暂时 3 个」。
-- **根因**：**取证中**（agent 定位图集页实现与列数定义处 GridCells/span；副文案「一册一个地方，翻到最后一张为止。」是 grep 锚点）。
-- **状态**：**取证中**。
+- **根因（取证完成，CONFIRMED）**：不是 `GridCells`，是手写双列瀑布流硬编码——`feature-video/.../screening/ScreeningGallery.kt` `AlbumCovers()`：**:164 `repeat(2) { column ->`**、**:166 `index % 2 == column`**（文件注释 :50 自述「双列受控瀑布流」）。对照：同文件册内图片已是 3 列（:226 `chunked(3)`）；**旧 View 版图集 span 本来就是 3**（`feature-content/.../ImgChannleBodyFragment.java:51`、`ImgChannelImgListFragment.java:52`、`ImgItemFragment.java:183`）——又是迁移时把 3 列写成了 2。
+- **修复**：:164 `repeat(2)`→`repeat(3)`、:166 `% 2`→`% 3`。风险：列宽 1/3 后标题 19.sp（:181）与徽标（:171-179）拥挤、高封面滚动更深——修后需真机看一眼排版。
+- **状态**：**根因已定位 + 派工中**（与 A22/A23 同 worker）。
 
 ## A28 · 用户设计的图片占位图被去掉了（图集封面加载无占位）
 
-- **现象**：用户原话「我以前设计了一个占位图，你怎么都给去掉了」——截图里两枚封面是纯黑圆角块，无任何占位图形。
-- **背景线索**：历史上存在专项会话 P1-10「图片加载失败占位图 + 点击重试」（本地已有该实现）；需查图集封面是否没接那条链路、或占位资源/参数在改版中丢了。
-- **根因**：**取证中**（agent 查：占位图资源还在不在（drawable* 里 placeholder/empty/cover 命名）、被哪次改动丢的（commit）、恢复落点（Coil placeholder/error 参数 file:line））。
-- **状态**：**取证中**。
+- **现象**：截图里两枚封面是纯黑圆角块。用户：「我以前设计了一个占位图，你怎么都给去掉了？」
+- **根因（取证完成，CONFIRMED，缺失型回归）**：占位图资源**一直都在**——`core/src/main/res/drawable-xxhdpi/img_bg.png`（`feature-content` 同 MD5 副本），旧链路全程在用（`core/.../ImagePhotoLoad.java:46-48` `.placeholder(R.drawable.img_bg)`、`FullScreenImagePagerAdapter.java:44-45` placeholder+error）。**新 Compose 放映场从诞生就没接**：封面链 `ScreeningActivity.kt:633 EntryCover` → `ScreeningFeedUi.kt:210 RemoteCover`，其 **Glide 链（:222-223）没有 `.placeholder()/.error()`**；空 url 退化为纯色 Box（:213）＝截图黑块。`git log -S img_bg -- feature-video` 零命中——不是删了，是重写时没带过来（P1-10 占位专项只落了 chat 的 Coil，没覆盖影视 Glide 路径）。
+- **修复**：`ScreeningFeedUi.kt:222` Glide 链补 `.placeholder(R.drawable.img_bg).error(R.drawable.img_bg)`（feature-video 已依赖 :core，资源可直接引用）；:213/`ScreeningActivity.kt:636` 空 url 分支同样换成 img_bg。抽象点与 A5 同族：**占位/错误图是资源加载的默认配置，不该每次重写时靠人想起来**。
+- **状态**：**根因已定位 + 派工中**（与 A22/A23 同 worker）。
 
 ---
 
@@ -258,6 +261,10 @@
 | 12 | 本地行没有可对账键，历史合并必复活重复（A16 数据层；A19 tombstone 另一面） | 本地写入的每一行必须携带可与服务端对账的键（服务端 id / client_message_id） | `persistTurn` / `cacheRemote` |
 | 13 | 同毫秒时间戳做文件名，多选互相覆盖（A13；companion 已修、chat 没修） | 暂存命名统一 CAS 单调 stamp，放 `common/media` 层共用 | `AttachmentStager` |
 | 14 | 网络错误被抹平成 null，失败原因看不见（A15，A14 相邻） | 失败必须带码上抛（HTTP/errno → `ChatStrings` 文案 + 日志） | `BaseServiceAwait` / `AttachmentSender` |
+| 15 | 状态机导航无唯一出口判据，浅层返回穿透到系统默认退出 app（A24，全频道） | 状态机顶层单一 `BackHandler` 覆盖全部非根态，任何层级不落系统默认返回 | `ScreeningActivity:228` |
+| 16 | 手势能力默认值散在各页，新页面自动继承错误（A26，全频道） | 抽屉手势判定收在公共容器单一纯函数：关闭态不给开、打开态才给关 | `HomeDrawer.drawerSwipeEnabled` |
+| 17 | 占位/错误图靠每次重写人想起来（A28，与 A5 同族） | 图片加载默认配置必含 placeholder+error（Glide/Coil 两条链都是） | `ScreeningFeedUi.RemoteCover` |
+| 18 | 空数据仍渲染空壳占位（A21） | 区块渲染守卫 = `数据非空 || loading`，空态不占版面 | `ChannelsFeed` hero/逛频道 |
 
 ## 未闭环项（明确列出，不当作已解决）
 
