@@ -319,6 +319,9 @@ class LiveKitCompanionTransport(
                         // 时间线属于旧连接上的那几段音频：全部作废，墓碑保留
                         // （`speech_id` 不复用，留着无害，还能挡住迟到的 begin）。
                         speech.onReconnected()
+                        // 时间线清空了：旧连接上声明过的 speech 不再期望 cmp 数据，
+                        // 否则静默升档会拿一条已经不存在的句子当证据。
+                        degrade.onSpeechExpected(false)
                         // gaps 是 lifetime：baseline 到当前值，避免把历史缺口重放进 streak。
                         cueGaps.baseline(protocolLink.counters().gaps)
                         emotionEmitSeq = 0
@@ -711,6 +714,9 @@ class LiveKitCompanionTransport(
         _mouthLevel.value = 0f
         bargeGate.reset()
         speech.onReconnected()      // 断开了：时间线与队列都没有意义了
+        // 与 Reconnected 处对称：时间线清了就别再拿旧连接上声明过的 speech
+        // 当静默升档的证据。连接态本身已强制 L4，这行只是让 latch 不留脏状态。
+        degrade.onSpeechExpected(false)
         // 房间没了，协商结果也就没了：不收回，界面会拿着上一条连接的「能发图」
         // 继续显示「+」，下一次发送只会失败。
         _imageSupported.value = false
@@ -796,6 +802,9 @@ class LiveKitCompanionTransport(
         val nowMono = SystemClock.elapsedRealtime()
         // §12.3：PCM 存活传感器。不分配；与口型同路径。
         degrade.onPcm(nowMono)
+        // 「她正在出声」的可听帧证据：播放期 cmp 静默解释得通（cue 只在段边界发），
+        // 降级阶梯的静默升档要避开这段时间。阈值与首帧标定同源。
+        if (rms >= REMOTE_FIRST_AUDIO_RMS) degrade.onAudio(nowMono)
         if (_remotePcm.subscriptionCount.value > 0) {
             com.openapi.ks.myapp.dh.PcmConvert.toMono16k(data, bitsPerSample, sampleRate, numberOfChannels, frames)
                 ?.let { _remotePcm.tryEmit(it) }
@@ -1158,11 +1167,15 @@ class LiveKitCompanionTransport(
                 if (!accepted) {
                     logWarn("attempt=$activeAttemptId event=speech_seg_rejected id=${args.optString("speech_id")} idx=${args.optString("idx")}")
                 }
+                // 静默传感器的「期望数据」窗口开了（§12.3）：从 seg 声明起，
+                // cue 与后续 seg 是该到的，cmp 静默才开始成为降级证据。
+                degrade.onSpeechExpected(speech.expectsCueData())
                 speechWake.trySend(Unit)
             }
             "speech.end" -> {
                 speech.onEnd(args)
                 logInfo("attempt=$activeAttemptId event=speech_end id=${args.optString("speech_id")}")
+                degrade.onSpeechExpected(speech.expectsCueData())
                 speechWake.trySend(Unit)
             }
             "control.cancel" -> {
@@ -1171,6 +1184,7 @@ class LiveKitCompanionTransport(
                 logInfo(
                     "attempt=$activeAttemptId event=speech_cancel id=${args.optString("speech_id")} reason=${args.optString("reason")}",
                 )
+                degrade.onSpeechExpected(speech.expectsCueData())
                 speechWake.trySend(Unit)
             }
             // 其余事件仍然只过收侧状态机（已计数）而没有消费者。

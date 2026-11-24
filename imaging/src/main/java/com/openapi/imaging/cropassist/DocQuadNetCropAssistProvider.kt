@@ -102,18 +102,22 @@ class DocQuadNetCropAssistProvider(context: Context) : CropAssistProvider {
             longArrayOf(1, 3, INPUT_SIZE.toLong(), INPUT_SIZE.toLong()),
         )
 
-        val heatmapBuffer = inputTensor.use { tensor ->
+        val outputs = inputTensor.use { tensor ->
             session.run(mapOf(inputName to tensor)).use { result ->
-                val cornerValue = result.get(CORNER_HEATMAPS_OUTPUT).orElse(null) as? OnnxTensor
-                    ?: return null
-                cornerValue.floatBuffer?.let { FloatArray(it.remaining()).also(it::get) }
+                fun buffer(name: String): FloatArray? =
+                    (result.get(name).orElse(null) as? OnnxTensor)?.floatBuffer
+                        ?.let { FloatArray(it.remaining()).also(it::get) }
+                val corners = buffer(CORNER_HEATMAPS_OUTPUT) ?: return null
+                // mask_logits 缺失不算错——老模型没这个输出时行为完全回到旧路径。
+                corners to buffer(MASK_LOGITS_OUTPUT)
             }
-        } ?: return null
+        }
+        val (heatmapBuffer, maskBuffer) = outputs
 
         // 4 channels of 64x64 heatmaps; peaks are the 4 document corners. The decoding
         // (peak → confidence-gated corner → QuadNorm, incl. the letterbox inverse map) is
         // pure math and unit-tested in CornerHeatmapDecoderTest.
-        return CornerHeatmapDecoder.decode(
+        CornerHeatmapDecoder.decode(
             heatmaps = heatmapBuffer,
             heatmapSize = HEATMAP_SIZE,
             canvasSize = INPUT_SIZE,
@@ -122,13 +126,35 @@ class DocQuadNetCropAssistProvider(context: Context) : CropAssistProvider {
             scale = scale,
             srcW = srcW,
             srcH = srcH,
-        )
+        )?.let { return it }
+
+        // 四角路径判负时的兜底：模型的纸面轮廓掩码在真纸随手拍上比角点稳得多
+        // （离线取证：两张真纸只有 2/4、3/4 角过 0.5，其中几何还崩掉；同一批
+        // 样本的 mask 极值框全部贴合）。兜底同样保守：碎块/非凸/面积越界都返回
+        // null，照旧走默认框 + 黄说明。见 MaskQuadDecoder 与 MaskQuadDecoderTest。
+        if (maskBuffer != null) {
+            MaskQuadDecoder.decode(
+                maskLogits = maskBuffer,
+                heatmapSize = HEATMAP_SIZE,
+                canvasSize = INPUT_SIZE,
+                offsetX = offsetX,
+                offsetY = offsetY,
+                scale = scale,
+                srcW = srcW,
+                srcH = srcH,
+            )?.let {
+                Log.i(TAG, "corner path rejected; mask-fallback quad accepted")
+                return it
+            }
+        }
+        return null
     }
 
     private companion object {
         const val TAG = "DocQuadNetCropAssist"
         const val MODEL_ASSET_PATH = "docquad/docquadnet256_trained_opset17.ort"
         const val CORNER_HEATMAPS_OUTPUT = "corner_heatmaps"
+        const val MASK_LOGITS_OUTPUT = "mask_logits"
         const val INPUT_SIZE = 256
         const val HEATMAP_SIZE = 64
     }

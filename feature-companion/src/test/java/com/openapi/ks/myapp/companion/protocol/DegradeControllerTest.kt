@@ -103,11 +103,68 @@ class DegradeControllerTest {
         assertFalse(DegradeController.shouldClearEmotion(prevLevel = 1, level = 1))
     }
 
+    // ------------------------------------------------------------ 静默传感器只在「期望数据」时生效
+    //
+    // 2026-11-23 陪伴通话三通 job 全程自报 L3（104 voice.log `client health … degrade=L3`），
+    // 服务端按自报档位闸掉全部 cue。误报机理：陪伴通话里 cmp.* 只在回合边界前后有包，
+    // 静默 >6s 是**常态**（长句里 TTS 播 15 秒，cmp 一条不发明也是正常的），而远端轨
+    // 保活帧让 PCM 始终「活」——安静被读成 data 死。还有自我强化：L3 → 服务端不发
+    // cue → cmp 更静 → L3 锁死。
+    // 修复：静默类升档（L2 cue 静默 / L3 data 静默）只在「此刻确实期望 cmp 数据」时才
+    // 评估——speech.seg 已声明、还没 end/cancel（onSpeechExpected），且远端音频不在
+    // 播（可听帧刷新 onAudio；她在说话时 cmp 静默是解释得通的）。空闲静默最高 L1。
+
+    @Test
+    fun `空闲静默不升档——安静对话不是降级`() {
+        val d = controller()
+        d.onCueAccepted(now = 1_000L)
+        d.onDataAccepted(now = 1_000L)
+        d.onPcm(now = 1_000L)
+        // 之后 30 秒只有 PCM 保活帧：没有 cmp 包，也没有活动 speech。
+        d.onPcm(now = 31_000L)
+        assertEquals(0, d.level(now = 31_000L))
+    }
+
+    @Test
+    fun `她在说话时 cmp 静默不升档——长句不是降级`() {
+        val d = controller()
+        d.onSpeechExpected(true)
+        d.onDataAccepted(now = 1_000L)
+        d.onCueAccepted(now = 1_000L)
+        // TTS 播了 15 秒：可听帧一直来，cmp 一条没有。
+        repeat(15) { d.onAudio(now = 1_000L + it * 1_000L); d.onPcm(now = 1_000L + it * 1_000L) }
+        assertEquals(0, d.level(now = 15_000L))
+    }
+
+    @Test
+    fun `期望数据且音频没在播时 data 死仍升 L3`() {
+        val d = controller()
+        d.onSpeechExpected(true)
+        d.onDataAccepted(now = 1_000L)
+        d.onCueAccepted(now = 1_000L)
+        d.onPcm(now = 1_000L + 6_500L)
+        assertEquals(3, d.level(now = 1_000L + 6_500L))
+    }
+
+    @Test
+    fun `回合结束后解除期望，L3 靠 hysteresis 回落不需要 cmp 包先来`() {
+        val d = controller()
+        d.onSpeechExpected(true)
+        d.onDataAccepted(now = 1_000L)
+        d.onCueAccepted(now = 1_000L)
+        d.onPcm(now = 1_000L + 6_500L)
+        assertEquals(3, d.level(now = 1_000L + 6_500L))
+        d.onSpeechExpected(false)
+        assertEquals(3, d.level(now = 1_000L + 6_600L)) // sticky 一次
+        assertEquals(0, d.level(now = 1_000L + 6_600L + 2_500L))
+    }
+
     // ------------------------------------------------------------ L2 cue silence
 
     @Test
     fun `cue 静默超过 5s 升到 L2`() {
         val d = controller()
+        d.onSpeechExpected(true)
         d.onCueAccepted(now = 1_000L)
         assertEquals(0, d.level(now = 1_000L + 4_999L))
         assertEquals(2, d.level(now = 1_000L + 5_001L))
@@ -116,6 +173,7 @@ class DegradeControllerTest {
     @Test
     fun `cue 恢复后经 hysteresis 从 L2 回落`() {
         val d = controller()
+        d.onSpeechExpected(true)
         d.onCueAccepted(now = 1_000L)
         assertEquals(2, d.level(now = 1_000L + 5_001L))
         d.onCueAccepted(now = 1_000L + 5_100L)
@@ -129,6 +187,7 @@ class DegradeControllerTest {
     @Test
     fun `data 死 pcm 活升到 L3`() {
         val d = controller()
+        d.onSpeechExpected(true)
         d.onDataAccepted(now = 1_000L)
         d.onPcm(now = 1_000L)
         // data 静默 6s+，pcm 1s 内还活
@@ -141,6 +200,7 @@ class DegradeControllerTest {
         // 关闭 (pcmAliveMs, pcmDeadMs] 死区：以前会掉到 L2
         // data@1000，pcm@5000，now@8000 → data 死 7s，pcm 龄 3s（>2s alive，≤6s dead）
         val d = controller()
+        d.onSpeechExpected(true)
         d.onDataAccepted(now = 1_000L)
         d.onCueAccepted(now = 1_000L)
         d.onPcm(now = 5_000L)
@@ -200,6 +260,7 @@ class DegradeControllerTest {
     @Test
     fun `更高档位优先于 L1`() {
         val d = controller()
+        d.onSpeechExpected(true)
         d.onCueGap(); d.onCueGap(); d.onCueGap() // 会触发 L1
         d.onCueAccepted(now = 1_000L)
         assertEquals(2, d.level(now = 1_000L + 5_001L)) // silence → L2 盖过 L1

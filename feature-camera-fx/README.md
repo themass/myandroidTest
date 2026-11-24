@@ -1,7 +1,6 @@
 # feature-camera-fx —— 摄像头五官/肢体定位 spike
 
-数字人产品的「打开摄像头 → 识别五官和肢体 → 贴 sticker」能力的第一步：**只做定位与可视化**，
-不渲染 sticker、不进生产路径。选型背景见共享笔记
+数字人产品的摄像头定位与叠加层 spike：前摄图像只在设备内存处理，debug Lab 提供线框与头顶 Lottie 贴纸预览；不进入 release 生产路径。选型背景见共享笔记
 `sticker-motion-tech-options-20261123.md`。
 
 ## 数据去向（隐私红线，硬性）
@@ -38,15 +37,52 @@ sticker 后续接法：`graphicsLayer { translationX/Y = map(headTop); rotationZ
 贴纸本体（Lottie）挂在上面。
 
 **已落地（竖切 MVP）：** `CameraFxScreen` 在头顶锚点叠 `fx/fx_pat_head.json`（Lottie），
-位置/旋转由 [CameraStickerPlacement] + [CanvasMap] 与 HUD 一致。二期：可选进陪伴通话 PiP/小窗相机。
+位置/旋转由 [CameraStickerPlacement] + [CanvasMap] 与 HUD 一致。debug 通话页已接贴纸 PiP（`CompanionFaceCameraPrefs` 控制，默认关闭）。主 App 接线见 [camera-fx-app-lab-wiring.md](../docs/superpowers/specs/2026-11-23-camera-fx-app-lab-wiring.md)。
 
-## 运行方式
+## 快速启动
 
-debug 包：抽屉「实验室」分组 → 摄像头定位 Demo。release 包没有这个入口
-（与 `DhLabGate` 同样的 debuggable 判定，入口注册在 `:app` 的 HomeDrawer，见 `CameraFxLabGate`）。
+`:feature-camera-fx` 是 Android library demo，不单独产出 APK；由 `:app` 的 `chatDebug` 变体承载。构建命令：
+
+```bash
+./gradlew :feature-camera-fx:testDebugUnitTest :app:assembleChatDebug
+```
+
+APK 输出到 `app/build/outputs/apk/chat/debug/app-chat-debug.apk`。也可在 Android Studio 选择 `app` 模块、`chatDebug` build variant 后点击 Run。启动后从抽屉进入「实验室 → 摄像头定位 Demo」。入口只在 debuggable 包注册；`CameraFxActivity` 为 `exported=false`，请从抽屉启动，不要用外部 Activity 启动命令。
+
+首次进入且尚未授予 CAMERA 时，先显示本机处理说明，再请求 Android 相机权限；同意并授权后开始预览。若权限此前已授予，进入 Lab 会直接预览。拒绝权限时不绑定相机，可点「重试」重新请求，或返回。
+
+## 运行验收
+
+| 能力 | 操作 | 预期结果 |
+|---|---|---|
+| Face | 正对前摄、光线充足，让脸完整入镜 | HUD `脸 1`；黄脸部折线、白框、绿眼线、品红头顶锚点和倾角 |
+| Pose | 上半身进入画面 | HUD `姿态 1`；青色骨架（含腕到指尖扇区） |
+| Hand / gesture（Lab） | 单手清晰入镜，分别张开、握拳、做拇指食指捏合 | HUD 显示手部橙色骨架和启发式手势；全屏 Lab 只显示分类，不向舞台发送 cue |
+| Stage cue（通话 PiP） | 在 debug 通话页启用「人脸贴纸」PiP，再做张手/捏合/握拳 | 代码映射为张手 `wave`、捏合 `pat_head`、握拳不映射；真机端到端仍待验，见 [app/Lab 接线说明](../docs/superpowers/specs/2026-11-23-camera-fx-app-lab-wiring.md) |
+| Sticker | 保持脸入镜，确认贴纸 chip 开启 | HUD 显示 `lab-b3 · 贴纸 OK`；本地 Lottie 跟随头顶锚点和倾角；遮脸后贴纸消失 |
+| 无目标 / 失败 | 移出脸或手，或拒绝 CAMERA 权限 | 无脸/无手提示；拒绝权限时不启动相机分析。相机启动失败或连续识别错误会在 HUD 显示错误 |
+
+「全开」恢复线框与贴纸默认项；「爱心/光弧」切换本地 Lottie 资产。通话 PIP 是单独的 debug 开关，默认关闭，不是全屏 Lab 的启动前置条件。
+
+## 权限与失败边界
+
+- 只有用户主动进入 debug Lab 且 CAMERA 权限已授予后，`CameraFxGrantedContent` 才绑定前摄预览和分析；退出页面会停止分析并关闭 Face/Pose/Hand native 模型。
+- CAMERA 在 manifest 中声明为非必需硬件能力；本模块不声明麦克风、存储或网络权限。宿主 `:app` 可能因其他功能具备网络权限，但 Lab 不上传预览帧或关键点。数据留在设备内存，不落盘、不记录关键点日志。模型随 APK 提供，推理不依赖 Google Play Services。
+- 分析帧链路（含 Face/Pose 初始化或推理）连续异常 5 次后停止分析并显示错误；Hand 初始化或推理异常单独 fail-soft：禁用 Hand，Face/Pose 仍可继续，HUD 中手数为 0。
+- `fx … fps` 是成功处理帧的分析吞吐 HUD，约每秒刷新；不是相机预览刷新率，也不是某个单独 MediaPipe 模型的推理 FPS。Face 每个处理帧运行，Pose/Hand 每两帧运行，慢帧通过 `KEEP_ONLY_LATEST` 丢弃而不排队。
+
+## 实测与未测
+
+| 设备 / 状态 | 结果与边界 |
+|---|---|
+| vivo V2279A，chatDebug 1.1.0.71 | 现场记录的分析 HUD 为 9.3–16.7 fps；示例 `9.8 fps · 脸 0 · 姿态 0 · 手 0 · 630x1280`。这只证明无检测目标时管线与 HUD 可运行，不能当作 Face/Pose/Hand 有目标时的吞吐或识别质量。 |
+| Face / Pose / Hand 目标入镜、手势 cue、贴纸跟随 | 尚无本轮有效目标入镜证据；QA 清单对应项目仍为待验。 |
+| 华为 ADY-AL00 | 未测；当前没有本功能真机结果。 |
+
+设备验收明细见 [camera-lab-device-checklist-20261123.md](../docs/qa/camera-lab-device-checklist-20261123.md)；能力、性能限制与许可评估见 [camera-fx-capability-and-licensing-review.md](../docs/superpowers/specs/2026-11-24-camera-fx-capability-and-licensing-review.md)。本文不把空场景帧率外推为目标识别性能。
 
 ## 已知边界（spike 不做）
 
-- 前摄镜像的 x 翻转靠 `CanvasMap.mirrorX` 常量对齐，未做逐帧配准验证（真机目测对齐）。
-- `detectForVideo` 同步调用在单线程 executor；帧率见屏上 fps 计数（ADY-AL00 实测值在交接笔记）。
-- 无红外/暗光优化；模型 lite 档，精度换速度。
+- 前摄镜像的 x 翻转靠 `CanvasMap.mirrorX` 对齐；不同设备和姿态下的逐帧配准仍需验收。
+- 暗光、热稳态、耗电、多人脸/双手负载以及持续贴纸观感尚无本项目实测数据。
+- Pose 使用 lite 模型；帧率与识别召回受设备性能、光照和入镜姿势影响。

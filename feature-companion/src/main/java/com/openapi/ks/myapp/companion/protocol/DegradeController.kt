@@ -7,6 +7,12 @@ package com.openapi.ks.myapp.companion.protocol
  * 不发新消息、不改形象渲染——接线层用 [level] 挡 AvatarJson、写 `telemetry.health`。
  *
  * 升档立刻；降档要连续好窗口 ≥ [hysteresisMs]，避免抖动。
+ *
+ * 静默类升档（L2 cue 静默 / L3 data 静默）只在「此刻确实期望 cmp 数据」时才评估：
+ * 一条 speech 已声明未结束（[onSpeechExpected]），且远端音频不在播（[onAudio] 不新鲜）。
+ * 陪伴通话里 cmp.* 只在回合边界前后有包，长句播放 15 秒、聆听 30 秒都静默是常态，
+ * 而远端轨保活帧让 PCM 恒「活」——不加这道闸，安静对话会被误读成 L3，并自我强化
+ * （服务端按自报档位闸掉 cue → cmp 更静 → 锁死 L3；2026-11-23 三通 job 实证）。
  */
 class DegradeController(
     private val windowSize: Int = 20,
@@ -14,6 +20,7 @@ class DegradeController(
     private val dataDeadMs: Long = 6_000L,
     private val pcmAliveMs: Long = 2_000L,
     private val pcmDeadMs: Long = 6_000L,
+    private val audioAliveMs: Long = 1_500L,
     private val hysteresisMs: Long = 2_500L,
     private val lateRatioThreshold: Double = 0.3,
     private val gapStreakThreshold: Int = 3,
@@ -33,6 +40,8 @@ class DegradeController(
     private var lastCueAt: Long? = null
     private var lastDataAt: Long? = null
     private var lastPcmAt: Long? = null
+    private var lastAudioAt: Long? = null
+    private var speechExpected = false
     private var connection: Conn = Conn.CONNECTED
 
     private var stickyLevel = 0
@@ -70,6 +79,24 @@ class DegradeController(
     @Synchronized
     fun onPcm(now: Long) {
         lastPcmAt = now
+    }
+
+    /**
+     * 这条通话此刻是否期望 cmp 数据：`speech.seg` 已声明、还没 end/cancel。
+     * 静默类升档（L2/L3）只在这个窗口里评估——空闲对话的 cmp 静默是常态，不是降级。
+     */
+    @Synchronized
+    fun onSpeechExpected(expected: Boolean) {
+        speechExpected = expected
+    }
+
+    /**
+     * 一帧**可听**的远端音频到了（她正在说话）。播放期间的 cmp 静默解释得通
+     * ——cue 只在段边界发，长句中间本来就没有包——所以这段时间不做静默升档。
+     */
+    @Synchronized
+    fun onAudio(now: Long) {
+        lastAudioAt = now
     }
 
     @Synchronized
@@ -114,6 +141,16 @@ class DegradeController(
         val pcmAt = lastPcmAt
         if (pcmAt != null && now - pcmAt > pcmDeadMs) return 4
 
+        // 静默类升档（L3 data 死 / L2 cue 静默）只在「此刻确实期望 cmp 数据」时评估：
+        // 一条 speech 已声明未结束，且远端音频不在播。空闲对话 cmp 静默是常态；
+        // 播放期间 cue 只在段边界发、长句中间本来就没包。不加这道闸，安静的陪伴通话
+        // 会被读成 L3（PCM 保活帧让它恒「活」），并且自我强化：服务端按自报档位
+        // 闸掉 cue → cmp 更静 → 锁死。2026-11-23 三通 job 实证。
+        if (!silenceUpgradeArmed(now)) {
+            if (lateRatio() > lateRatioThreshold || cueGapStreak >= gapStreakThreshold) return 1
+            return 0
+        }
+
         // L3：data 死且 PCM 尚未判死。pcmAliveMs 只作「仍在出声」的宽松提示，
         // 不再在 (alive, dead] 留死区——那段以前会掉到 L2。
         val dataAt = lastDataAt
@@ -125,6 +162,13 @@ class DegradeController(
         if (lateRatio() > lateRatioThreshold || cueGapStreak >= gapStreakThreshold) return 1
 
         return 0
+    }
+
+    /** 静默类升档的闸：期望 cmp 数据（speech 已声明未结束），且没有可听帧在播。 */
+    private fun silenceUpgradeArmed(now: Long): Boolean {
+        if (!speechExpected) return false
+        val audioAt = lastAudioAt ?: return true
+        return now - audioAt > audioAliveMs
     }
 
     private fun lateRatio(): Double {

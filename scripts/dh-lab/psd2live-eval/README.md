@@ -35,7 +35,7 @@ python3 -I scripts/dh-lab/psd2live-eval/inspect_export.py /tmp/psd2live-gen/out
 
 ## 全新角色分层 demo
 
-全原创机器人角色，分层输入含 `ParamFace_smile` 表情与 `ParamWear_cape` 披风开关。生成方式、Editor MCP 导出/姿态步骤及本轮未执行原因见 [`ORIGINAL-AVATAR-DEMO.md`](ORIGINAL-AVATAR-DEMO.md)；当前入仓证据仅为源图，不含 `.moc3` 或 Editor 运行图。
+全原创机器人角色，分层输入含 `ParamFace_smile` 表情与 `ParamWear_cape` 披风开关。PSD2Live Editor 已导出模型并渲染四种状态；本体只留在 `/tmp`。生成步骤、导出 loss 和 Android runtime BLOCKED 边界见 [`ORIGINAL-AVATAR-DEMO.md`](ORIGINAL-AVATAR-DEMO.md)；姿态证据见 `evidence/original-avatar-editor-poses-20261124.png`。
 
 ## PSD header 钉桩
 
