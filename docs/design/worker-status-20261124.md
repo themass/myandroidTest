@@ -3,9 +3,9 @@
 ## 口径与基线
 
 - 本文按用户要求汇总所有能在 linked sessions、提交记录和仓库文档中识别的 worker；把开发和设计排在前面，设备/测试验证统一放到最后。
-- 本轮最初 GitHub fetch 因 HTTPS 连接超时失败；之后 worker 推送并更新本机跟踪引用 `origin/weifu-refactor` 到 `6d16f201`。该提交在装机代码 `5e17a2f5` 之后，主要补充 PhotoSolve 真机结果表与 QA 记录。远端最新仍未由本轮 fetch 独立确认；当前以本机最新跟踪引用 `6d16f201` 为同步基准。
+- 此前状态记录曾以 `6d16f201` 为基线；本轮 fetch 先确认 `a8bf409e`，随后同步期间又到达 PhotoSolve 旋转修复 `1cb41189` 与 QA 根因闭环 `816f8ab7`。当前 `origin/weifu-refactor` tip 已确认是 `816f8ab7`，其中也包含 FeedListShell `75b00100` 与初版设备 QA `b36b5a35`。
 - V2279A 最近已证实安装 `5e17a2f5` 构建的 `1.1.0.72 / 1001000072`；安装时间 `2026-11-24 10:36:54`，APK MD5 `741637d1d3f208166f4caf80c53f0ad7`。**只有协调会话装机**；worker 不执行 adb install、不 bump 版本、不复用旧 APK。
-- 当前本机原始 `refs/heads/weifu-refactor` 仍停在 `5e17a2f5`；本轮已将 15 个安全、干净且闲置的 worker worktree 更新到 `6d16f201`（其中 14 个从 `62697dab` 快进，`happy-fermi` 已在该 tip）。活跃、脏或分叉 worktree 保留原样。详见文末同步清单。
+- 本轮开始时 `origin/weifu-refactor` 为 `a8bf409e`；同步期间又出现 PhotoSolve 旋转修复及 QA 闭环提交，当前已 fetch 确认为 `816f8ab7`。集成 worktree 起始于 `a8bf409e`；本轮将 15 个安全、干净且闲置的 worker worktree 更新到 `816f8ab7`，随后把本报告更新提交到集成线。活跃、脏或分叉 worktree 保留原样。详见文末同步清单。
 
 ## 1. 数字人、舞台特效与素材调研
 
@@ -31,7 +31,7 @@
 
 | Worker / 主题 | 目标与开发计划 | 当前进展 | 遗留事项 |
 |---|---|---|---|
-| `design-3-tasks` | 收敛图片编辑、权限去重、PhotoSolve 端到端链路；先完成 S0/S1，再设备验收和后续切片。 | S0 操作模型/渲染器/编辑器、S1 选图/拍照后编辑并替换草稿、S3 草稿托盘长按“再编辑”均已完成；worker 报告 `feature-photosolve` 42/0（含 4 项 CaptureFlowTest）、`imaging` 48/0、`:app:compileChatDebugKotlin` 通过。提交 `ece403c2`、`28e9a193`、`8d38e82f`、`6d16f201` 位于 `origin/weifu-refactor` 祖先链；worktree 当前 HEAD `6d16f201`。 | PS1–PS5 与图片编辑 S2 真机验收仍未跑完，设备窗口交回给放映场 worker 后等待协调信号；已准备两张失败实拍素材，可经「对话→拍照解题→从相册选择」验证。worker 如实记录一次 force-stop 与一次误坐标 tap，现已停手排队；后续开跑前先确认前台页面归属。40002 是否退款、屏幕题识别是否补 DocQuadNet 样本/几何兜底属于待产品决策。 |
+| `design-3-tasks` | 收敛图片编辑、权限去重、PhotoSolve 端到端链路；先完成 S0/S1，再设备验收和后续切片。 | S0 操作模型/渲染器/编辑器、S1 选图/拍照后编辑并替换草稿、S3 草稿托盘长按“再编辑”均已完成；worker 曾报告 `feature-photosolve` 42/0（含 4 项 CaptureFlowTest）、`imaging` 48/0、`:app:compileChatDebugKotlin` 通过。PhotoSolve 新增四角微调页旋转入口与边框旋转，代码提交 `1cb41189`；QA 根因闭环记于 `docs/qa/photo-solve-device-result-20261124.md`（`816f8ab7`）。 | S0/S1/S3 已完成；PhotoEditor S2 仍待真机验收。PhotoSolve PS1、PS2（使用转正图）、PS3、PS5 与头像 AV 的 worker 验收均 PASS；原横倒图仍触发 `40002`，根因是 EXIF orientation=0 且图中文字横倒，不是屏幕翻拍本身。转正图成功返回解答并落历史。PS4 未跑，需相机拍摄真实纸张题目。本次真机额度净消耗 2 次（一次 `40002` 不退款、一次成功；一次 `50001` 已退款）。安装设备仍是 `1.1.0.72` 旧包，新旋转按钮尚未装机验收；`happy-fermi` session 仍运行，故其 worktree 未同步。 |
 | `p1-10` | 图片加载失败时显示占位并支持点击重试。 | 代码及测试基线修复 `0464c151`、weifu 合入记录在主线；已同步到新 tip。 | 弱网下点击重试的真机点测仍列为 deferred。 |
 | `p0-5-testserverV-maxtoken` | 修复拍题 JSON 因 maxTokens 截断后被误报非题目，并补结构 salvage。 | testserverV 三提交 `f0de0021 → a48e2425 → cbc260d9`；报告 photosolve 41 测 0 失败。 | **独立 testserverV 仓库/分支，未 push**；worker 明确等待用户决定，不能代推。真实豆包 API 联调需可用 API key。 |
 | `p0-5-p2` / PhotoSolve 额度 | 梳理 40002/50001 额度行为和真机通话/产品边界。 | 产品问题已记录：当前 50001 才退款，40002 不退。 | 是否把 40002 纳入退款规则影响计费，须用户决策；不作为已完成改动。 |
@@ -40,8 +40,8 @@
 
 | Worker / 主题 | 目标与开发计划 | 当前进展 | 遗留事项 |
 |---|---|---|---|
-| `text-sound-screening` | 将 text/sound 从旧 Activity 路由迁入 Screening Compose，并梳理 scheme 分发。 | `8f863cee`（并入 `ddf13a21`）令各 FeedPager 仅在用户下拉时刷新，覆盖文字馆、声音馆、图集和视频内页；`5e17a2f5` 为正文提供 `#FFFDF8` 浅纸面、`#1A1A1A` 字色及 viewport/图片自适应，并补取数失败分类日志。worker 回报 A/B/C 真机验收全部 PASS：正文可读；返回目录不重取（text/items.json 仍 1 次）；慢下拉后请求 +1 并重填第一页，视频内页 video/channel.json 也 +1。V2279A 安装包为 1.1.0.72 / tip `5e17a2f5`。 | 未覆盖事项：图集 Lightbox item/page.json 尾部续取、sound 与 PlayService 功能差距、首页 ChannelsScreen 旧二级页、markdown 内联图本地优先。服务端坏行 id=2352605 不在当前列表且不影响本链。worker 报告任务结束，但 session 元数据检查仍显示运行中；worktree 尚未改动，待 idle 后同步。 |
-| `optimistic-pike` / Screening 子频道 | 将 `qvod_user` 用户片单和 `video_item_user` 视频子频道接入新页面；把未知 scheme 安全回退。 | `03c542ea`、`630639e8`、`4b758dea`、`a16a6f0c` 等在本机主线历史；已完成用户片单接口族、video_item_user 白名单和 scheme fallback 的代码路径。 | 本轮无法联网刷新远端；不能据日志宣称所有历史/余 scheme 都已完成。需跑剩余 scheme 清单及真机页面验收。该分支 worktree diverged，保留原样。 |
+| `text-sound-screening` | 将 text/sound 从旧 Activity 路由迁入 Screening Compose，并梳理 scheme 分发。 | `8f863cee`（并入 `ddf13a21`）令各 FeedPager 仅在用户下拉时刷新，覆盖文字馆、声音馆、图集和视频内页；`5e17a2f5` 为正文提供 `#FFFDF8` 浅纸面、`#1A1A1A` 字色及 viewport/图片自适应，并补取数失败分类日志。worker 回报 A/B/C 真机验收全部 PASS：正文可读；返回目录不重取（text/items.json 仍 1 次）；慢下拉后请求 +1 并重填第一页，视频内页 video/channel.json 也 +1。V2279A 安装包为 1.1.0.72 / tip `5e17a2f5`。同一 worker 另交付 FeedListShell：四类 feed（电影、图集、音频、文章）共用吸顶 toolbar 和浮动回顶按钮，刷新及安全区处理集中到壳；功能提交 `75b00100`，集成 tip `a8bf409e`。 | FeedListShell worker 报告 `:feature-video:testDebugUnitTest` 全绿、`assembleChatDebug` exit 0；worker 只 build，未装机或改 versionCode，故新壳尚无真机验收。既有 A/B/C 验收不等同于 FeedListShell 验收。其他未覆盖事项：图集 Lightbox item/page.json 尾部续取、sound 与 PlayService 功能差距、首页 ChannelsScreen 旧二级页、markdown 内联图本地优先。服务端坏行 id=2352605 不在当前列表且不影响本链；session 已 idle，worktree 当前在 `816f8ab7`。 |
+| `optimistic-pike` / Screening 子频道 | 将 `qvod_user` 用户片单和 `video_item_user` 视频子频道接入新页面；把未知 scheme 安全回退。 | `03c542ea`、`630639e8`、`4b758dea`、`a16a6f0c` 等已在本机历史；已完成用户片单接口族、video_item_user 白名单和 scheme fallback 的代码路径。worktree 当前已同步到 `816f8ab7`。 | 仍需跑剩余 scheme 清单及真机页面验收；本轮未复核这些交互。 |
 | 放映场 UI（协调合入） | 新频道 Hub、feed 列表/详情与内容可读性。 | 放映场正文浅色底、深色字和下拉刷新已在安装包代码 tip。 | 只装机并不代表人工验收已完成；A/B/C 项需单独记录。 |
 
 ## 5. Chat 页面、图片消息与语音输入
@@ -71,7 +71,7 @@
 | Worker / 主题 | 目标与计划 | 当前进展 | 遗留事项 |
 |---|---|---|---|
 | `roleplay-design` / `her-research` | 调研 Her 类陪伴产品、叙事架构与可借鉴 UX。 | 研究笔记和架构设计已交付；不阻塞 F16。 | 属产品研究，未自动成为开发需求；需产品选择后再排期。 |
-| PhotoSolve API / 额度 | 对齐客户端题目/额度 API 与错误路径。 | API 与流程设计、PS1–PS5 真机清单已在仓库。 | PS1–PS5 的逐项实际结果尚未填；40002 退款与 DocQuadNet 屏幕题策略仍是决策。 |
+| PhotoSolve API / 额度 | 对齐客户端题目/额度 API 与错误路径。 | API 与流程设计、PS1–PS5 真机清单与逐项结果已记录于 QA 文档。复验确认转正后端到端成功；横倒照片会触发 `40002 NOT_A_QUESTION`。 | PS4 真实纸张题目尚待相机拍摄；服务端仍可考虑统一归一方向或提示旋转；`40002` 是否退款仍待产品决策。 |
 | SSE 集成测试 | 新增测试挂死排查。 | 专项 worker 已完成 harness 修复，基线文档已更新。 | 如果后来出现新的挂死，应区分测试 harness 与生产流式路径；不能把已解决的单个用例扩大成全局保证。 |
 
 ## 8. 验证与真机验收（按要求置于最后）
@@ -83,13 +83,15 @@
 - **camera-fx 模块图**：lottie-fx 报告 ModuleGraphTest 4/4、companion 编译通过；camera-sticker-follow 报告 7 个状态机测试与 compile/test 通过。
 - **SSE harness**：worker 报告 feature-chat 222/222，指定重连测试连跑三次通过。
 - **Screening**：worker 报告 feature-video 139 tests / 0 failures，`assembleChatDebug` exit 0；V2279A A/B/C 真机验收全部 PASS。取数证据来自现有 myTag HTTP 日志；10:49:55 应用被 vivo 应用商店 force-stop（`am_kill`，非崩溃），worker 已停止商店进程。该时点后 PID 变化不是回归；uiautomator dump 偶发抢占 UiAutomation 失败并留下旧 XML，不能用 stale dump 作证。
+- **PhotoSolve 真机**（worker 报告，QA 记录更新至 `816f8ab7`）：V2279A 原装 `1.1.0.72` 包上 PS1、PS3、PS5 与头像 AV PASS；横倒原图因 EXIF orientation=0 且像素内容横倒而回 `40002`。worker 用转正探针复测，PS2 成功返回解答并落历史；中间一次 `50001` 超时已退款。PS4 未跑，缺真实纸张照片。真机额度净消耗 2 次。新旋转入口代码在 `1cb41189`，但该新包尚未安装，按钮本身未真机验收。以上为 worker 记录，本轮未独立重跑真机测试。
 - **PhotoEditor 逻辑**：设计文档记录模型/坐标/编辑逻辑 JVM 单测通过；这不覆盖真实 Canvas、导出像素与手势体验。
+- **FeedListShell**：worker 报告 `:feature-video:testDebugUnitTest` 全绿、`assembleChatDebug` exit 0；提交 `75b00100` 已在 `a8bf409e`。这项新壳尚未真机安装验收。
 - **F16**：报告有两次设备首能量帧延迟数据及一次长故事完整播放；另有空回复与慢首帧失败样本，故整体链路仍开放。
 
 ### 尚待完成的人工设备检查
 
 1. PhotoEditor S2：涂鸦、文字、马赛克、调整面板开关、标注选择删除、导出回草稿和存储行为。现有结果表仍为空。
-2. PhotoSolve PS1–PS5，尤其屏幕里的题目是否进入四角微调并显示预期提示。
+2. PhotoSolve PS4：用设备相机拍真实纸张题目后验收；新旋转入口尚未随新包装机验收，服务端仍可考虑统一方向归一化。
 3. Camera Lab：正脸线框、手/姿态 HUD、头顶 Lottie 随动三项。
 4. Camera sticker-follow：实际跟脸观感、漏检不闪与重新锚定。
 5. Chat：选图/拍照编辑回草稿、MediaStack 展示、图片打开/长按操作、弱网重试和用户头像完整交互。
@@ -99,23 +101,23 @@
 
 ## 9. Worktree 同步与分支归属
 
-`origin/weifu-refactor` 当前本机跟踪 tip 为 `6d16f201`。共 15 个干净、可快进且闲置的 worker worktree 已位于该 tip：14 个从 `62697dab` 快进，`happy-fermi` 已经在 tip。这里只更新 worktree 分支指针，不代表重新构建或安装了 APK。
+`origin/weifu-refactor` 当前本机跟踪 tip 为 `816f8ab7`。本轮将 14 个干净、闲置且可快进的 worker worktree 从 `ee3dfae7` 更新到该 tip；`optimistic-pike` 从 `a8bf409e` 快进到 `816f8ab7`，合计 15 个干净闲置 worker worktree 位于集成 tip。这里只更新 worktree 分支指针，不代表重新构建或安装了 APK。
 
-### 已同步到 `6d16f201`
+### 已同步到 `816f8ab7`
 
-`charming-shaw`（p1-12-markdown）、`determined-leavitt`（avatar-2d-design）、`distracted-wright`（lottie-device-accept）、`elastic-lovelace`（tts-25-32s-f16）、`elastic-mendeleev`（p0-5-p2）、`exciting-tereshkova`（camera-sticker-follow）、`f16-3d859c44`、`gallant-brahmagupta`（p1-10）、`gifted-shtern`（roleplay-design）、`happy-fermi`（design-3-tasks）、`mystifying-vaughan`（cam-lab）、`recursing-hugle`（f16）、`recursing-lederberg`（tos）、`vibrant-hugle`（p2-13）、`zealous-franklin`（SSE）。
+`charming-shaw`（p1-12-markdown）、`determined-leavitt`（avatar-2d-design）、`distracted-wright`（lottie-device-accept）、`elastic-lovelace`（tts-25-32s-f16）、`elastic-mendeleev`（p0-5-p2）、`exciting-tereshkova`（camera-sticker-follow）、`f16-3d859c44`、`gallant-brahmagupta`（p1-10）、`gifted-shtern`（roleplay-design）、`mystifying-vaughan`（cam-lab）、`optimistic-pike`（text-sound-screening）、`recursing-hugle`（f16）、`recursing-lederberg`（tos）、`vibrant-hugle`（p2-13）、`zealous-franklin`（SSE）。
 
 ### 按纪律保留、未擅自改动
 
-- 活跃会话 worktree 不改：`focused-mclean`（数字人，HEAD `62697dab`）与 `optimistic-pike`（text-sound-screening，HEAD `5e17a2f5`）。前者分支名仍显示 `screening-auto-retry`，以当前 session 的 cwd 和运行状态为准；待会话结束后再核实并同步。
+- 活跃会话 worktree 不改：`focused-mclean`（数字人，HEAD `62697dab`）与 `happy-fermi`（design-3-tasks；session 仍运行，当前 HEAD `040f580`）。前者分支名仍显示 `screening-auto-retry`，以当前 session 的 cwd 和运行状态为准；均待会话结束后再核实并同步。
 - `distracted-mirzakhani`（lottie-fx-mvp）和 `gifted-jepsen`（psd2live-eval）有未提交改动；保留现场，禁止 reset 覆盖。
 - `upbeat-poitras`（camera-demo）与本 fork `vigorous-goldwasser` 相对 `weifu-refactor` 分叉；不得强制重置。camera-demo 的文档提交尚未确认合入主线。
-- `weifu-refactor` 主 checkout 在 `5e17a2f5` 且有未提交修改；未动。
-- `/private/tmp/weifu-push` 仍位于 `62697dab`，工作区干净；它不在 worker worktrees 目录中，本轮未改动。GitHub fetch 连接失败，因此 `6d16f201` 是本机跟踪引用当前值，未声称本轮独立确认了远端实时 tip。
+- `weifu-refactor` 集成 worktree 起始于 `a8bf409e`，存在未跟踪 `.local-shots/` 与一份 ZIP 文件；快进及文档合入时保留了这些文件。
+- `/private/tmp/weifu-push` 位于 `ee3dfae7`，不在 worker worktrees 目录中，本轮未改动。
 
 ## 10. 下一步执行顺序
 
-1. 等 text-sound-screening session 元数据转为 idle；worker 已报告任务完成且 worktree 干净（HEAD `5e17a2f5`），届时再将其快进到集成 tip。
+1. 等 `happy-fermi` 与 `focused-mclean` 会话结束后，复核 worktree 再同步；当前不触碰活跃目录。新旋转入口待协调会话按装机纪律现场构建并单写装机后验收。
 2. 对齐相机与 PSD2Live 两个独立/脏 worktree 的差异，先保存未提交工作，再决定是否合入；camera-demo 文档需要单独集成。
-3. 逐项完成上面的真机验收表并回填 P/F/阻塞，不以“已装机”代替验收。
+3. 逐项完成上面的真机验收表并回填 P/F/阻塞，不以“已装机”代替验收；其中 PhotoSolve PS4 需真实纸张照片。
 4. 对独立 testserverV 分支保留“未 push，等待用户决定”的状态；不代替用户推送。
