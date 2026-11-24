@@ -21,8 +21,12 @@
    `turn:104.160.191.87:3478?transport=udp` + 每参与者派生凭证（`turn.go:292/319`，
    sha256(secret|pid|exp)）；17:58 重启日志 `Starting TURN server {portUDP:3478,
    relay_range 30000-40000, quota 12}`。STUN Binding 探针得到应答（40B）——服务器活着。
-   但真实 Allocate 探针超时（脚本口径未定案），**relay 端到端未证**；
-   最终判据 = 端上真实通话里 journal 出现 `selected new pair` 含 relay 候选（监视器在盯）。
+   **18:32 真实通话端到端实证**（room `companion-yDceZIBoIZvjC83U5OI34w`，
+   HUAWEI ADY-AL00 Wi-Fi）：SUBSCRIBER `selected udp relay 104.160.191...:31158`、
+   `connectionType=turn`，PUBLISHER 走直连 srflx；inbound audio 持续
+   （frames=1000 peak_max=0.99）、v2 协商 `caps=7`、会话 1m07s 后
+   **干净 `job ended`**（故障期是 `JS_FAILED "agent worker left the room"`）。
+   Allocate→relay 选中→媒体过 relay 全链成立。
 5. **内核层干净**：conntrack 208/65536、UdpInErrors=0、UdpRcvbufErrors=0、ufw 未启用
    → 排除服务器内核丢包。
 
@@ -42,10 +46,26 @@
 - `livekit.service.d/perf.conf`: **CPUWeight=1000**（systemd 默认 100 上限；1vCPU 上
   SFU 必须压过邻居）。已验证 `systemctl show livekit -p CPUWeight` = 1000。
 - 已知邻居（未动，需要时再议）：testserverV java(333MB, prod)、new-api、next-server、
-  job-come uvicorn、v2ray。**voice worker + companion api 目前裸跑在 ssh session scope
-  里（非 systemd unit）**——这是结构性问题：重启机器它们不会自起。
+  job-come uvicorn、v2ray。**voice worker + companion api 此前裸跑在 ssh session scope
+  里（非 systemd unit）**——结构性问题，已在 c) 收口。
 
-### c) livekit 配置（备份 `config.yaml.orig` + `config.yaml.bak-20261125`）
+### c) companion api/voice 落到 systemd（agent-docs main `86fbef1a`，104 已部署）
+- 背景：api/voice 此前裸跑在 ssh session scope（session-1019/691，已 abandoned）——
+  机器重启不自起；进程族在 user.slice，CPUWeight/cgroup 策略对它们无效。
+- 新增 `myproject/companion-agent/deploy/systemd/companion-{api,voice}.service` +
+  `scripts/run-as-service.sh`（unit 前台执行器，.env 导出口径与 process.sh 一致）+
+  `deploy/systemd/README.md`（装/切换/回滚）。日志改走 journal（`.data/logs/*.log` 停更）。
+- `process.sh` 检测 unit 已装且 web 可免密 systemctl（sudoers 白名单，只放行这两个
+  unit 的 start/stop/restart/status/is-active）时整体委托 systemctl；
+  切换窗口（旧 setsid 进程未停干净）仍走 PID 文件模式。publish.sh --restart 不变。
+- 切换实录（18:47–18:49 UTC 静默窗口）：process.sh stop 旧进程 → cp unit +
+  daemon-reload + `enable --now` → api `/health` ok、8081/8082 重新监听、
+  livekit `worker registered`（18:49:10）、`process.sh status/restart` 委托生效、
+  `systemctl is-enabled`=enabled×2、CGroup 归 /system.slice/companion-*.service。
+- journald 上限 `SystemMaxUse=500M`（voice 日志曾单文件 98MB/日级增长）。
+- 回滚：README「回滚」节——disable --now + 删 unit/sudoers 行，process.sh 自动回落 setsid 模式。
+
+### d) livekit 配置（备份 `config.yaml.orig` + `config.yaml.bak-20261125`）
 - `prometheus: port 9090 (basic auth metrics/<rand32hex>，只绑 127.0.0.1)` ——
   SLO 指标数据面落地（C8 ICE 分布、CPU/内存 capacity 数据从这里开始攒），
   已验证 /metrics 返回 67 条 livekit_* 指标。
@@ -58,8 +78,12 @@
 
 ## 3. 未验证 / 待收尾（诚实清单）
 
-1. **relay 是否端到端可用**：Python 探针 Allocate 超时（探针口径可疑，未修完）；
-   决定性判据是真实通话 journal 的 relay pair 被选中——监视器 `bd0s0gll5` 在盯 30 分钟。
+1. **relay 端到端：已证**（见 §1.4，18:32 真实通话 SUBSCRIBER `selected udp relay`、
+   `connectionType=turn`、媒体过 relay、1m07s 干净 `job ended`）。
+   遗留：**蜂窝网络下 relay 是否被选中仍未观察到**（该通是 Wi-Fi；蜂窝 prflx 回程丢的
+   那批通话发生在调优前）——下一通蜂窝通话看 `connectionType` 即可收口。
+   旁证：18:33:50 房间 agent 进房后用户未进，20s `empty timeout` 即关闭——
+   新 `room.empty_timeout=20` 生效，空房不再占坑 5 分钟。
 2. **设备不在手**：adb 掉线（V2279A 2MH0224B20002068 一度连上后消失），端侧
    MouthLevel logcat 取证待设备接回。
 3. **Mac 端到端呼叫验证**：livekit python 客户端 SDK（livekit-rtc pip 包名不存在，
