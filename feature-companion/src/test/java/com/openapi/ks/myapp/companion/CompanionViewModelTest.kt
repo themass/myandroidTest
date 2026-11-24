@@ -1461,6 +1461,11 @@ class FakeCompanionApi(
     private val inboxBatches: MutableList<List<InboxMessage>> = mutableListOf(),
     private val pending: MutableList<PendingAction> = mutableListOf(),
     private val confirmFailure: Exception? = null,
+    /**
+     * 建会话失败的脚本：`createSession` 抛它。用来钉「未登录点通话」这条路
+     * （401 → `callLoginRequired`），真机要 logout 才能造，单测必须能造。
+     */
+    var sessionFailure: Exception? = null,
     /** 可以带 provider：验证「服务端在 grant 里指定线路 → ViewModel 按它取实现」。 */
     var session: SessionResponse = SessionResponse("s1", "room", "token", "wss://example.test", ""),
     /** 历史脚本：`restoreHistory` 按这个顺序回放（服务端已按新→旧翻转正序）。 */
@@ -1479,9 +1484,15 @@ class FakeCompanionApi(
         private set
     private var inFlight = 0
 
-    override suspend fun createSession(characterId: String) = session
+    override suspend fun createSession(characterId: String): SessionResponse {
+        sessionFailure?.let { throw it }
+        return session
+    }
 
-    override suspend fun createScriptSession(characterId: String, caseId: String) = session
+    override suspend fun createScriptSession(characterId: String, caseId: String): SessionResponse {
+        sessionFailure?.let { throw it }
+        return session
+    }
 
     override suspend fun history(sessionId: Long, limit: Int): List<CompanionHistoryItem> = historyItems
 

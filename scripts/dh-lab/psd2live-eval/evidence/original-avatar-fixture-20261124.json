@@ -1,0 +1,10 @@
+{
+  "kind": "original-layered-editor-demo",
+  "runtime_verified": false,
+  "layer_count": 13,
+  "parameters": [
+    "ParamFace_smile",
+    "ParamWear_cape"
+  ],
+  "production_assets_used": false
+}

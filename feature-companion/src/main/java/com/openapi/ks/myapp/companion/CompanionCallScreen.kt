@@ -259,6 +259,9 @@ private object CallColors {
 /** 波形跟随电平的平滑时长。短，因为波形要"跟手"。 */
 private const val LEVEL_FOLLOW_MS = 45
 
+/** 底部波形只保留温和的线性起伏，避免 RMS 再做平方根增益后显得过强。 */
+private const val WAVE_LEVEL_GAIN = 0.62f
+
 /** 呼吸环跟随电平的平滑时长。长，因为环要"绵"，不能跟着音节的起伏抽搐。 */
 private const val RING_FOLLOW_MS = 280
 
@@ -1297,7 +1300,6 @@ private fun VoiceStage(
             WaveformBars(
                 level = waveLevel,
                 bands = selfBands,
-                phase = phase,
                 isMuted = state.isMuted,
                 isSpeaking = false,
                 reducedMotion = reducedMotion,
@@ -1305,9 +1307,9 @@ private fun VoiceStage(
                 particles = waveOptions.particles,
                 modifier = mod
                     .fillMaxWidth()
-                    .height(150.dp)
-                    .graphicsLayer { alpha = 0.90f }
-                    .blur(1.2.dp),
+                    .height(130.dp)
+                    .graphicsLayer { alpha = 0.78f }
+                    .blur(2.dp),
             )
         }
 
@@ -1375,6 +1377,35 @@ private fun VoiceStage(
                         .heightIn(max = 150.dp),
                 )
             }
+        } else if (mode == VoiceStageMode.Classic) {
+            Box(Modifier.fillMaxSize()) {
+                waveform(Modifier.align(Alignment.BottomCenter))
+                Box(
+                    modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().height(stageHeight),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    soundField()
+                    AvatarCircle(
+                        name = state.agentName,
+                        emoji = state.avatarEmoji,
+                        level = ringLevel,
+                        isMuted = state.isMuted,
+                        slot = avatarContent,
+                    )
+                }
+                // 字幕保持无底板，浮在柔化后的底部波形上；圆形头像与中央声场仍占原位置。
+                if (captionsVisible) CaptionStack(
+                    captions = state.captions,
+                    speakerCaptions = state.speakerCaptions,
+                    streaming = state.isAgentSpeaking,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .heightIn(max = 112.dp)
+                        .padding(horizontal = 8.dp)
+                        .padding(bottom = 12.dp),
+                )
+            }
         } else {
             waveform(Modifier.align(Alignment.BottomCenter))
             Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1383,19 +1414,9 @@ private fun VoiceStage(
                     contentAlignment = Alignment.Center,
                 ) {
                     soundField()
-                    if (avatarStage != null) {
-                        // 形象舞台（原来的形象分层立绘）：不裁圆、不缩放，原有布局不变。
-                        Box(Modifier.fillMaxSize().padding(top = 4.dp), contentAlignment = Alignment.Center) {
-                            avatarStage()
-                        }
-                    } else {
-                        AvatarCircle(
-                            name = state.agentName,
-                            emoji = state.avatarEmoji,
-                            level = ringLevel,
-                            isMuted = state.isMuted,
-                            slot = avatarContent,
-                        )
+                    // 形象舞台（原来的形象分层立绘）：不裁圆、不缩放，原有布局不变。
+                    Box(Modifier.fillMaxSize().padding(top = 4.dp), contentAlignment = Alignment.Center) {
+                        checkNotNull(avatarStage).invoke()
                     }
                 }
                 CaptionStack(
@@ -1788,7 +1809,6 @@ data class WaveOptions(
 private fun WaveformBars(
     level: State<Float>,
     bands: State<FloatArray>,
-    phase: State<Float>,
     isMuted: Boolean,
     isSpeaking: Boolean,
     reducedMotion: Boolean,
@@ -1990,7 +2010,7 @@ private class SoftVoiceField(count: Int) {
         val dt = if (last == 0L) 0f else (now - last).coerceIn(0L, 64L).toFloat()
         last = now
         val input = level.toLevelOrZero()
-        val target = if (input <= 0.02f) 0f else kotlin.math.sqrt(input)
+        val target = if (input <= 0.02f) 0f else input * WAVE_LEVEL_GAIN
         amplitude += (target - amplitude) * voiceFollow(dt, rising = target > amplitude, reducedMotion)
         val peak = bandPeak(bands)
         for (i in values.indices) {
@@ -2009,7 +2029,7 @@ private class SoftVoiceField(count: Int) {
                 it.radius = 1f + input * 1.4f
                 it.lifetimeMs = 1400f + random.nextFloat() * 1200f
             }
-            nextMoteMs = now + (620f - 480f * input).toLong()
+            nextMoteMs = now + (1_100f - 600f * input).toLong()
         }
     }
 }
@@ -2288,8 +2308,8 @@ private class WaveInAppSim {
 
         val target = when {
             muted || level <= 0.02f -> 0f
-            // 视觉响度压缩：轻声也能看见，大声不会一下顶死。
-            else -> kotlin.math.sqrt(level.coerceIn(0f, 1f))
+            // 输入本身已归一化；线性缩放避免再次开平方后波形过高。
+            else -> level.coerceIn(0f, 1f) * WAVE_LEVEL_GAIN
         }
         amplitude += (target - amplitude) * voiceFollow(dt, rising = target > amplitude, reducedMotion)
 
@@ -2312,7 +2332,7 @@ private class WaveInAppSim {
         // 粒子出生频率随音量：越响越密，安静时不出。
         if (!muted && target > 0.2f && nowMs >= nextBubbleMs) {
             produceBubbles(bandPeakPosition(bands))
-            nextBubbleMs = nowMs + (560f - 420f * target).toLong()
+            nextBubbleMs = nowMs + (1_000f - 600f * target).toLong()
         }
 
         val bubbleDAngle = (2.0 * PI / WIA_BUBBLE_PERIOD_MS).toFloat() * dt

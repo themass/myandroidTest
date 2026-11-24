@@ -120,6 +120,73 @@ class CompanionCallStateTest {
         assertEquals(CompanionConnection.ERROR, vm.state.value.connection)
         vm.stopListening()
     }
+
+    /**
+     * 401（未登录点通话）必须和普通的断线分开：界面横幅是「请先登录」+「去登录」，
+     * 这时候「重新连接」是误导——再点一百次也一样 401。真机验这条要 logout，
+     * 凭证不在验收会话手里（可能不可恢复），所以这条由单测钉死、真机列 BLOCKED。
+     */
+    @Test
+    fun `a 401 at session creation marks loginRequired instead of a plain disconnect`() = runTest(dispatcher) {
+        val api = FakeCompanionApi(
+            sessionFailure = CompanionApiException("登录后才能使用通话", statusCode = 401),
+        )
+        val transport = RecordingTransport()
+        val vm = CompanionViewModel(api = api, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+
+        assertEquals(CompanionConnection.ERROR, vm.state.value.connection)
+        assertTrue("401 必须置 loginRequired（横幅走「去登录」分支）", vm.state.value.callLoginRequired)
+        vm.stopListening()
+    }
+
+    /** 非 401 的建连失败不走登录分支：横幅该给「重新连接」。 */
+    @Test
+    fun `a non-401 start failure keeps loginRequired false so the retry button applies`() = runTest(dispatcher) {
+        val api = FakeCompanionApi(
+            sessionFailure = CompanionApiException("服务 unavailable", statusCode = 503),
+        )
+        val transport = RecordingTransport()
+        val vm = CompanionViewModel(api = api, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+
+        assertEquals(CompanionConnection.ERROR, vm.state.value.connection)
+        assertFalse("503 不该出现「去登录」", vm.state.value.callLoginRequired)
+        vm.stopListening()
+    }
+
+    /**
+     * 「重新连接」按钮按下 = retryConnection：先断开旧房间，再按同一角色重建。
+     * 断线横幅的整条点击链路（disconnect → start → 重新连上 → 横幅消失）到传输层
+     * 边界为止都在 ViewModel 里，这一段必须不依赖真机与额度。
+     */
+    @Test
+    fun `retry after disconnect rebuilds the same room and the error state clears`() = runTest(dispatcher) {
+        val transport = RecordingTransport()
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+        transport.connectionState.value = TransportConnection.DISCONNECTED
+        runCurrent()
+        assertEquals(CompanionConnection.ERROR, vm.state.value.connection)
+
+        vm.retryConnection("linche")
+        runCurrent()
+        assertEquals("重试必须先干净断开旧房间", 1, transport.disconnectCalls.size)
+
+        // 替身不会自己把连接状态推回来（真机是 LiveKit 事件驱动）：手动推它连上，
+        // 断言的是「重建后的房间连上 → ERROR 解除 → 横幅的前提消失」。
+        transport.connectionState.value = TransportConnection.CONNECTED
+        runCurrent()
+        assertEquals("重建成会话并连上后，横幅前提（ERROR 态）解除", CompanionConnection.CONNECTED, vm.state.value.connection)
+        assertFalse(vm.state.value.callLoginRequired)
+        vm.stopListening()
+    }
 }
 
 /**
@@ -127,6 +194,7 @@ class CompanionCallStateTest {
  */
 class RecordingTransport : CompanionTransport {
     val micCalls = mutableListOf<Boolean>()
+    val disconnectCalls = mutableListOf<Unit>()
     val connectionState = MutableStateFlow(TransportConnection.CONNECTED)
 
     private val bus = MutableSharedFlow<CompanionEvent>(extraBufferCapacity = 8)
@@ -143,5 +211,7 @@ class RecordingTransport : CompanionTransport {
 
     override val events: Flow<CompanionEvent> = bus
 
-    override suspend fun disconnect() = Unit
+    override suspend fun disconnect() {
+        disconnectCalls += Unit
+    }
 }
