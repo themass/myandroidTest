@@ -21,8 +21,12 @@
    `turn:104.160.191.87:3478?transport=udp` + 每参与者派生凭证（`turn.go:292/319`，
    sha256(secret|pid|exp)）；17:58 重启日志 `Starting TURN server {portUDP:3478,
    relay_range 30000-40000, quota 12}`。STUN Binding 探针得到应答（40B）——服务器活着。
-   但真实 Allocate 探针超时（脚本口径未定案），**relay 端到端未证**；
-   最终判据 = 端上真实通话里 journal 出现 `selected new pair` 含 relay 候选（监视器在盯）。
+   **18:32 真实通话端到端实证**（room `companion-yDceZIBoIZvjC83U5OI34w`，
+   HUAWEI ADY-AL00 Wi-Fi）：SUBSCRIBER `selected udp relay 104.160.191...:31158`、
+   `connectionType=turn`，PUBLISHER 走直连 srflx；inbound audio 持续
+   （frames=1000 peak_max=0.99）、v2 协商 `caps=7`、会话 1m07s 后
+   **干净 `job ended`**（故障期是 `JS_FAILED "agent worker left the room"`）。
+   Allocate→relay 选中→媒体过 relay 全链成立。
 5. **内核层干净**：conntrack 208/65536、UdpInErrors=0、UdpRcvbufErrors=0、ufw 未启用
    → 排除服务器内核丢包。
 
@@ -58,8 +62,12 @@
 
 ## 3. 未验证 / 待收尾（诚实清单）
 
-1. **relay 是否端到端可用**：Python 探针 Allocate 超时（探针口径可疑，未修完）；
-   决定性判据是真实通话 journal 的 relay pair 被选中——监视器 `bd0s0gll5` 在盯 30 分钟。
+1. **relay 端到端：已证**（见 §1.4，18:32 真实通话 SUBSCRIBER `selected udp relay`、
+   `connectionType=turn`、媒体过 relay、1m07s 干净 `job ended`）。
+   遗留：**蜂窝网络下 relay 是否被选中仍未观察到**（该通是 Wi-Fi；蜂窝 prflx 回程丢的
+   那批通话发生在调优前）——下一通蜂窝通话看 `connectionType` 即可收口。
+   旁证：18:33:50 房间 agent 进房后用户未进，20s `empty timeout` 即关闭——
+   新 `room.empty_timeout=20` 生效，空房不再占坑 5 分钟。
 2. **设备不在手**：adb 掉线（V2279A 2MH0224B20002068 一度连上后消失），端侧
    MouthLevel logcat 取证待设备接回。
 3. **Mac 端到端呼叫验证**：livekit python 客户端 SDK（livekit-rtc pip 包名不存在，
