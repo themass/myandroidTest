@@ -278,7 +278,7 @@ fun HomeScreen() {
                                 scope.launch { drawerState.close() }
                                 context.startActivity(Intent().setClassName(
                                     context,
-                                    "com.openapi.ks.myapp.companion.teaching.TeachingDemoActivity",
+                                    "com.openapi.app.teaching.TeachingDemoActivity",
                                 ))
                             },
                             colors = DrawerItemColors,

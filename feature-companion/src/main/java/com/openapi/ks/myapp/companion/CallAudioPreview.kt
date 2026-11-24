@@ -14,10 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.util.Locale
-import kotlin.math.sqrt
 
 data class CallAudioPreviewState(
     val speaker: String? = null,
@@ -112,7 +109,7 @@ class CallAudioPreview(context: Context) {
 
     private suspend fun play(file: File, generation: Long) {
         val envelope = kotlinx.coroutines.withContext(Dispatchers.IO) {
-            runCatching { readEnvelope(file) }.getOrNull()
+            runCatching { VoiceEnvelope.read(file) }.getOrNull()
         }
         if (closed || mutable.value.speaker == null || request != generation) return
         if (envelope == null) {
@@ -137,7 +134,7 @@ class CallAudioPreview(context: Context) {
             audio.start()
             ticker = scope.launch {
                 while (audio.isPlaying) {
-                    val index = audio.currentPosition / 20
+                    val index = audio.currentPosition / VoiceEnvelope.WINDOW_MS
                     mutable.value = mutable.value.copy(
                         level = envelope.levels.getOrElse(index) { 0f },
                         bands = envelope.bands.getOrElse(index) { FloatArray(0) },
@@ -151,52 +148,7 @@ class CallAudioPreview(context: Context) {
         }
     }
 
-    /** 每 20ms 一个窗口：音量（已做视觉压缩）与频段能量，按播放位置取用。 */
-    private class Envelope(val levels: FloatArray, val bands: Array<FloatArray>)
-
-    private fun readEnvelope(file: File): Envelope? {
-        val bytes = file.readBytes()
-        if (bytes.size < 44 || String(bytes, 0, 4) != "RIFF" || String(bytes, 8, 4) != "WAVE") return null
-        val b = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
-        var channels = 0; var rate = 0; var bits = 0; var format = 0
-        var offset = 12
-        while (offset + 8 <= bytes.size) {
-            val id = String(bytes, offset, 4)
-            val count = b.getInt(offset + 4)
-            if (count < 0) return null
-            val start = offset + 8
-            if (id == "fmt " && count >= 16 && start + 16 <= bytes.size) {
-                format = b.getShort(start).toInt(); channels = b.getShort(start + 2).toInt()
-                rate = b.getInt(start + 4); bits = b.getShort(start + 14).toInt()
-            }
-            if (id == "data") {
-                if (format != 1 || channels <= 0 || rate <= 0 || bits != 16) return null
-                val end = minOf(bytes.size.toLong(), start.toLong() + count).toInt()
-                val samplesPerWindow = (rate / 50 * channels).coerceAtLeast(1)
-                val framesPerWindow = samplesPerWindow / channels
-                val windows = (end - start) / 2 / samplesPerWindow
-                val spectrum = VoiceSpectrum()
-                val mono = FloatArray(framesPerWindow)
-                val bands = arrayOfNulls<FloatArray>(windows)
-                val levels = FloatArray(windows) { window ->
-                    var sum = 0.0
-                    repeat(samplesPerWindow) { i ->
-                        val sample = b.getShort(start + (window * samplesPerWindow + i) * 2) / 32768.0
-                        sum += sample * sample
-                        if (i % channels == 0) mono[i / channels] = sample.toFloat()
-                    }
-                    val rms = sqrt(sum / samplesPerWindow)
-                    bands[window] = if (rms < 0.003) FloatArray(VoiceSpectrum.BANDS) else spectrum.analyze(mono, 0, framesPerWindow, rate)
-                    sqrt(rms / 0.25).coerceIn(0.0, 1.0).toFloat()
-                }
-                return Envelope(levels, Array(windows) { bands[it] ?: FloatArray(VoiceSpectrum.BANDS) })
-            }
-            val next = start.toLong() + count + count % 2
-            if (next > bytes.size) break
-            offset = next.toInt()
-        }
-        return null
-    }
+    /** 每 20ms 一个窗口：音量与频段能量，解析在共用的 [VoiceEnvelope]。 */
 
     fun stop() {
         request++
