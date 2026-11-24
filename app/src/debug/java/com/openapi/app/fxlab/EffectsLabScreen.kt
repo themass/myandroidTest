@@ -49,7 +49,7 @@ fun EffectsLabScreen(
     val cueTick = remember { CueTick() }
 
     val assetReady = when (engine) {
-        FxEngineId.RIVE -> false // Task 6 supplies the debug-only sample fixtures.
+        FxEngineId.RIVE -> riveRawResFor("fxlab_loopy") != 0 && riveRawResFor("fxlab_circle_move") != 0
         else -> true
     }
     val gate = FxEngineGate.decide(
