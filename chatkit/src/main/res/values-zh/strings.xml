@@ -41,6 +41,7 @@
     <string name="chatkit_cancel_short">取消</string>
     <string name="chatkit_to_text">转文字</string>
     <string name="chatkit_editing_banner">编辑消息</string>
+    <string name="chatkit_queued_count">%d 条排队中</string>
     <string name="chatkit_cancel_edit">取消编辑</string>
     <string name="chatkit_sent">已发送</string>
     <string name="chatkit_answer_again">重新回答</string>

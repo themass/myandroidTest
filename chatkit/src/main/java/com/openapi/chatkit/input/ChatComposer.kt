@@ -126,6 +126,10 @@ fun ChatComposer(
             if (state.transcribing) {
                 Hint(text = stringResource(R.string.chatkit_transcribing), emphasized = true)
             }
+            // followup 队列的可见反馈：生成中按发送的纯文字在排队，回合结束自动续发
+            if (state.queuedCount > 0) {
+                Hint(text = stringResource(R.string.chatkit_queued_count, state.queuedCount), emphasized = false)
+            }
             // 转文字编辑态：识别文字 + 发送原语音 / 发送 / 取消
             state.voiceDraftText?.let { draftText ->
                 VoiceDraftEditor(
@@ -218,13 +222,35 @@ fun ChatComposer(
 
                         // 右：+ / 发送 / 停止
                         when {
-                            state.generating && !voiceMode -> IconSlot(onClick = onStop) {
-                                // 生成中：蓝色圆形「停止」，点一下中断，已生成的内容保留
-                                Box(
-                                    Modifier.size(28.dp).background(SendBlue, CircleShape),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Box(Modifier.size(10.dp).background(Color.White, RoundedCornerShape(2.dp)))
+                            state.generating && !voiceMode -> {
+                                // 生成中且有文字：发送（走 followup 队列，回合结束自动续发）
+                                // 与停止同时可见——不再生成中就整个替换掉发送键。
+                                if (state.text.isNotBlank()) {
+                                    IconSlot(
+                                        onClick = {
+                                            focusManager.clearFocus()
+                                            keyboard?.hide()
+                                            showActions = false
+                                            if (state.canSend) onSend()
+                                        },
+                                    ) {
+                                        // 蓝色实心圆 + 白色向上箭头（与静态发送键同款）
+                                        Box(
+                                            Modifier.size(28.dp).background(if (state.canSend) SendBlue else SendBlueDisabled, CircleShape),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Icon(Icons.Filled.ArrowUpward, contentDescription = stringResource(R.string.chatkit_send), tint = Color.White, modifier = Modifier.size(18.dp))
+                                        }
+                                    }
+                                }
+                                IconSlot(onClick = onStop) {
+                                    // 生成中：蓝色圆形「停止」，点一下中断，已生成的内容保留
+                                    Box(
+                                        Modifier.size(28.dp).background(SendBlue, CircleShape),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Box(Modifier.size(10.dp).background(Color.White, RoundedCornerShape(2.dp)))
+                                    }
                                 }
                             }
                             showSend -> IconSlot(

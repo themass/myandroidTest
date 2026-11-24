@@ -50,6 +50,7 @@ class ReplyStreamerStreamTest {
         val streamer = ReplyStreamer(
             repo, state, scope, SendMessageUseCase(repo),
             attachmentActive = { false }, reconcile = {}, syncSessions = {},
+            strings = FakeChatStrings(),
         )
     }
 
@@ -84,7 +85,9 @@ class ReplyStreamerStreamTest {
         h.streamer.cancel()
         h.scope.advanceUntilIdle()
         assertEquals(DeliveryStatus.FAILED, h.state.value.messages.first().delivery)
-        assertTrue(h.state.value.error?.contains("未发出") == true)
+        // FakeChatStrings 注入标记串（Harness 补上 strings 后这条才走到断言）；
+        // 真实措辞「未发出」由 :app 的 ResourceChatStringsTest（Robolectric）钉住
+        assertEquals("S:stoppedNoReply", h.state.value.error)
     }
 
     @Test
@@ -127,6 +130,51 @@ class ReplyStreamerStreamTest {
         }
         h.streamer.cancel()
         h.scope.advanceUntilIdle()
+    }
+
+    // ---------------------------------------------------------------- followup 队列排空
+
+    /**
+     * 回合**自然结束**后排空队列：取队首续发，保持 Enter 顺序（FIFO），
+     * 排空后 queued 清空。每轮都用注入的假流，第二轮、第三轮同样正常收尾。
+     */
+    @Test
+    fun naturalEndDrainsQueueHeadFirstInOrder() {
+        val flow = flow {
+            emit(ChatStreamEvent.Delta("mid", "答"))
+            emit(ChatStreamEvent.Done("asst-1", "user-1", "答"))
+        }
+        val h = Harness(listOf(user()), flow)
+        // 生成中用户按了两次 Enter（SendActions.sendText 的落点就是这里）
+        h.state.value = h.state.value.copy(queued = listOf("第二条", "第三条"))
+        h.streamer.stream("问", userMessageId = "user-1", persistUser = true)
+        h.scope.advanceUntilIdle()
+
+        // 首条 + 队首 + 第二条队首：三轮都发给了仓库，顺序与 Enter 顺序一致
+        assertEquals(listOf("问", "第二条", "第三条"), h.repo.sentTexts)
+        assertTrue("排空后队列必须清空", h.state.value.queued.isEmpty())
+        val userTexts = h.state.value.messages.filter { it.role == ChatRole.USER }.map { it.text }
+        assertEquals(listOf("问", "第二条", "第三条"), userTexts)
+        assertFalse("最后一轮也已正常收尾", h.state.value.streaming)
+    }
+
+    /**
+     * 用户点停止 = 中断意图明确：排队中的文字必须清空，不能接着起新回合
+     * （排空只挂在自然结束的收尾；停止的 catch 分支 rethrow，走不到那里）。
+     */
+    @Test
+    fun stopClearsQueueAndDoesNotStartNextTurn() {
+        val flow = flow<ChatStreamEvent> { kotlinx.coroutines.awaitCancellation() }
+        val h = Harness(listOf(user()), flow)
+        h.streamer.stream("问", userMessageId = "user-1", persistUser = true)
+        h.scope.runCurrent()
+        h.state.value = h.state.value.copy(queued = listOf("没发出去的"))
+        h.streamer.cancel()
+        h.scope.advanceUntilIdle()
+
+        assertTrue("停止必须清空排队", h.state.value.queued.isEmpty())
+        assertEquals("停止后不得再起新回合", listOf("问"), h.repo.sentTexts)
+        assertEquals("队列文字不能变成用户气泡", listOf("问"), h.state.value.messages.map { it.text })
     }
 }
 

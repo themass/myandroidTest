@@ -56,6 +56,15 @@ data class ComposerState(
     val liveTranscript: String = "",
     /** 当前录音音量 0..1，供声波动画使用。 */
     val voiceLevel: Float = 0f,
+    /**
+     * 生成中排队的纯文字条数（followup 队列）。>0 时输入栏上方显示「N 条排队中」；
+     * 队列本身由调用方持有（feature-chat 的 ChatUiState.queued），chatkit 只管显示。
+     */
+    val queuedCount: Int = 0,
 ) {
-    val canSend: Boolean get() = (text.isNotBlank() || drafts.isNotEmpty()) && !sending
+    /**
+     * 有内容就能按：生成中不再禁发送键（纯文字走排队续发，
+     * 与 feature-chat 的 ChatUiState.canSend 同一语义）。
+     */
+    val canSend: Boolean get() = text.isNotBlank() || drafts.isNotEmpty()
 }
