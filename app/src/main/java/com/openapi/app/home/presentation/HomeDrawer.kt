@@ -165,11 +165,8 @@ internal fun DrawerSectionTitle(@StringRes title: Int) {
 
 /**
  * 抽屉滑动开关（纯函数，HomeDrawerGestureTest 钉住）：
- * 对话标签（按住录音）与通话覆盖层（WebView 单指拖动）里禁止滑动开抽屉；
- * 抽屉已打开时任何界面都能滑动关闭。
+ * 首页所有层级（频道/放映场/图集…）都被同一个 ModalNavigationDrawer 包住，
+ * 用户要求「频道里所有页面都不需要右滑出抽屉」——抽屉关闭时任何标签都不给右滑开，
+ * 打开抽屉只用顶栏菜单按钮；抽屉已打开时仍允许右滑关闭。
  */
-internal fun drawerSwipeEnabled(
-    currentIsChat: Boolean,
-    drawerOpen: Boolean,
-    callVisible: Boolean,
-): Boolean = drawerOpen || (currentIsChat.not() && callVisible.not())
+internal fun drawerSwipeEnabled(drawerOpen: Boolean): Boolean = drawerOpen

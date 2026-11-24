@@ -5,32 +5,23 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * 抽屉滑动开关的纯函数钉桩。真机踩坑：VRM WebView 的单指拖动在「陪伴」标签上
- * 被父级 ModalNavigationDrawer 在 touch slop 处抢走（页面只收到 down + 1 个 move
- * 就被 ACTION_CANCEL）。对话标签早已为此关掉滑动（按住录音），通话同理：
- * 通话界面里任何横向手势都不该去开抽屉。
+ * 抽屉滑动开关的纯函数钉桩。真机取证：整个首页（含频道/放映场/图集全部层级）被同一个
+ * ModalNavigationDrawer 包住，旧语义下除「对话」外所有页面右滑都会开出抽屉，和用户在各
+ * 页面自己的横向手势（WebView 单指拖动、图集/放映场的横滑翻页）抢手势。用户明确：
+ * 「整个频道里所有的页面就没有'右滑'出抽屉的那个需要」。
+ *
+ * 新语义钉死两点：抽屉关闭时任何界面都不给右滑开（打开只用顶栏菜单按钮）；
+ * 抽屉已打开时仍允许右滑关闭。
  */
 class HomeDrawerGestureTest {
 
     @Test
-    fun swipe_allowed_on_non_chat_tab_while_idle() {
-        assertTrue(drawerSwipeEnabled(currentIsChat = false, drawerOpen = false, callVisible = false))
+    fun swipe_never_opens_the_drawer_while_closed() {
+        assertFalse(drawerSwipeEnabled(drawerOpen = false))
     }
 
     @Test
-    fun swipe_blocked_on_chat_tab() {
-        assertFalse(drawerSwipeEnabled(currentIsChat = true, drawerOpen = false, callVisible = false))
-    }
-
-    @Test
-    fun swipe_blocked_while_call_visible() {
-        // 通话覆盖层挂起时，陪伴标签上也不能抢走 WebView/舞台的横向手势。
-        assertFalse(drawerSwipeEnabled(currentIsChat = false, drawerOpen = false, callVisible = true))
-    }
-
-    @Test
-    fun swipe_to_close_always_works_when_open() {
-        assertTrue(drawerSwipeEnabled(currentIsChat = true, drawerOpen = true, callVisible = true))
-        assertTrue(drawerSwipeEnabled(currentIsChat = false, drawerOpen = true, callVisible = false))
+    fun swipe_to_close_works_when_open() {
+        assertTrue(drawerSwipeEnabled(drawerOpen = true))
     }
 }
