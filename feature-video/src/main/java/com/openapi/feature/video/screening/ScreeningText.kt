@@ -8,18 +8,15 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -142,7 +139,6 @@ internal data class TextArticleRef(
     val fileUrl: String,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TextHubPicker(
     pager: FeedPager,
@@ -158,59 +154,45 @@ private fun TextHubPicker(
             .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
     }
     val rows = pager.items
-    PullToRefreshBox(
-        isRefreshing = pager.refreshing,
-        onRefresh = pager::refresh,
-        modifier = Modifier.fillMaxSize(),
+    FeedListShell(
+        pager = pager,
+        state = state,
+        title = "文字馆",
+        onBack = onExit,
+        detail = feedToolbarDetail(pager.loading, rows.size, "个频道"),
     ) {
-        LazyColumn(
-            Modifier.fillMaxSize().safeDrawingPadding(),
-            state = state,
-            contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 26.dp),
-        ) {
-            item {
-                Row(Modifier.fillMaxWidth().height(64.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onExit) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") }
-                    Text("文字馆", fontSize = 22.sp, fontWeight = FontWeight.Black)
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        if (pager.loading) "正在取数据…" else "${rows.size} 个频道",
-                        color = Muted, fontSize = 12.sp,
-                    )
-                }
-                Text("一个故事换一屏。", color = White, fontSize = 32.sp, lineHeight = 38.sp, fontWeight = FontWeight.Black)
-                FeedError(pager.error, pager::reload)
-                if (seedChannel == null) {
-                    Text("没有频道参数，返回换一张文字卡试试。", Modifier.padding(14.dp), color = Muted)
-                } else if (pager.loading && rows.isEmpty()) {
-                    ListSkeleton(Modifier.padding(top = 2.dp), rows = 3, rowHeight = 72.dp)
-                }
+        item {
+            Text("一个故事换一屏。", color = White, fontSize = 32.sp, lineHeight = 38.sp, fontWeight = FontWeight.Black)
+            FeedError(pager.error, pager::reload)
+            if (seedChannel == null) {
+                Text("没有频道参数，返回换一张文字卡试试。", Modifier.padding(14.dp), color = Muted)
+            } else if (pager.loading && rows.isEmpty()) {
+                ListSkeleton(Modifier.padding(top = 2.dp), rows = 3, rowHeight = 72.dp)
             }
-            items(rows.size) { index ->
-                val entry = rows[index]
-                val key = entry.textListKey()
-                Row(
-                    Modifier.fillMaxWidth()
-                        .enterFeedItem(seen, entry.key, index)
-                        .pressable(Tile) { if (key != null) onOpenHub(key) },
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Default.MenuBook, null, tint = Mint, modifier = Modifier.padding(horizontal = 12.dp))
-                    Column(Modifier.weight(1f).padding(vertical = 14.dp)) {
-                        Text(entry.title, color = White, fontSize = 17.sp, fontWeight = FontWeight.Bold,
-                            maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        if (entry.description.isNotBlank()) {
-                            Text(entry.description, color = Muted, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        }
+        }
+        items(rows.size) { index ->
+            val entry = rows[index]
+            val key = entry.textListKey()
+            Row(
+                Modifier.fillMaxWidth()
+                    .enterFeedItem(seen, entry.key, index)
+                    .pressable(Tile) { if (key != null) onOpenHub(key) },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Default.MenuBook, null, tint = Mint, modifier = Modifier.padding(horizontal = 12.dp))
+                Column(Modifier.weight(1f).padding(vertical = 14.dp)) {
+                    Text(entry.title, color = White, fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                        maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    if (entry.description.isNotBlank()) {
+                        Text(entry.description, color = Muted, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }
-            item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && rows.isEmpty()) }
         }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && rows.isEmpty()) }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TextArticleList(
     pager: FeedPager,
@@ -225,39 +207,37 @@ private fun TextArticleList(
             .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
     }
     val rows = pager.items
-    PullToRefreshBox(
-        isRefreshing = pager.refreshing,
-        onRefresh = pager::refresh,
-        modifier = Modifier.fillMaxSize(),
+    FeedListShell(
+        pager = pager,
+        state = state,
+        title = "目录",
+        onBack = onBack,
+        detail = feedToolbarDetail(pager.loading, rows.size, "篇"),
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp),
     ) {
-        LazyColumn(Modifier.fillMaxSize().safeDrawingPadding(), state = state,
-            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp)) {
-            item {
-                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回频道") }
-                Heading("目录", if (pager.loading) "正在取数据…" else "${rows.size} 篇")
-                FeedError(pager.error, pager::reload)
-                if (pager.loading && rows.isEmpty()) ListSkeleton(rowHeight = 56.dp)
-            }
-            if (!pager.loading && rows.isEmpty()) {
-                item { Text("这个频道还没有文章。", Modifier.padding(14.dp), color = Muted) }
-            }
-            items(rows.size) { index ->
-                val entry = rows[index]
-                Row(
-                    Modifier.fillMaxWidth()
-                        .enterFeedItem(seen, entry.key, index)
-                        .pressable(Tile) { onOpenBody(entry) },
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(Modifier.weight(1f).padding(14.dp)) {
-                        Text(entry.title, color = White, fontSize = 16.sp, fontWeight = FontWeight.Bold,
-                            maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        Text(entry.actionUrl, color = Muted, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
+        item {
+            FeedError(pager.error, pager::reload)
+            if (pager.loading && rows.isEmpty()) ListSkeleton(rowHeight = 56.dp)
+        }
+        if (!pager.loading && rows.isEmpty()) {
+            item { Text("这个频道还没有文章。", Modifier.padding(14.dp), color = Muted) }
+        }
+        items(rows.size) { index ->
+            val entry = rows[index]
+            Row(
+                Modifier.fillMaxWidth()
+                    .enterFeedItem(seen, entry.key, index)
+                    .pressable(Tile) { onOpenBody(entry) },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f).padding(14.dp)) {
+                    Text(entry.title, color = White, fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                        maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(entry.actionUrl, color = Muted, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
-            item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
         }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
     }
 }
 

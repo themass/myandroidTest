@@ -5,22 +5,18 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -132,7 +128,6 @@ internal fun RemoteEntry.soundTrackRef(listIndex: Int): SoundTrackRef? {
     return SoundTrackRef(listIndex, title, actionUrl, description)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SoundHubPicker(
     pager: FeedPager,
@@ -148,60 +143,46 @@ private fun SoundHubPicker(
             .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
     }
     val rows = pager.items
-    PullToRefreshBox(
-        isRefreshing = pager.refreshing,
-        onRefresh = pager::refresh,
-        modifier = Modifier.fillMaxSize(),
+    FeedListShell(
+        pager = pager,
+        state = state,
+        title = "声音馆",
+        onBack = onExit,
+        detail = feedToolbarDetail(pager.loading, rows.size, "个频道"),
     ) {
-        LazyColumn(
-            Modifier.fillMaxSize().safeDrawingPadding(),
-            state = state,
-            contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 26.dp),
-        ) {
-            item {
-                Row(Modifier.fillMaxWidth().height(64.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onExit) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") }
-                    Text("声音馆", fontSize = 22.sp, fontWeight = FontWeight.Black)
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        if (pager.loading) "正在取数据…" else "${rows.size} 个频道",
-                        color = Muted, fontSize = 12.sp,
-                    )
-                }
-                Text("戴上耳机，\n慢慢来。", color = White, fontSize = 32.sp, lineHeight = 38.sp, fontWeight = FontWeight.Black)
-                FeedError(pager.error, pager::reload)
-                if (seedChannel == null) {
-                    Text("没有频道参数，返回换一张声音卡试试。", Modifier.padding(14.dp), color = Muted)
-                } else if (pager.loading && rows.isEmpty()) {
-                    ListSkeleton(Modifier.padding(top = 2.dp), rows = 3, rowHeight = 72.dp)
-                }
+        item {
+            Text("戴上耳机，\n慢慢来。", color = White, fontSize = 32.sp, lineHeight = 38.sp, fontWeight = FontWeight.Black)
+            FeedError(pager.error, pager::reload)
+            if (seedChannel == null) {
+                Text("没有频道参数，返回换一张声音卡试试。", Modifier.padding(14.dp), color = Muted)
+            } else if (pager.loading && rows.isEmpty()) {
+                ListSkeleton(Modifier.padding(top = 2.dp), rows = 3, rowHeight = 72.dp)
             }
-            items(rows.size) { index ->
-                val entry = rows[index]
-                val key = entry.soundListKey()
-                Row(
-                    Modifier.fillMaxWidth()
-                        .enterFeedItem(seen, entry.key, index)
-                        .pressable(Tile) { if (key != null) onOpenHub(key) },
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Default.GraphicEq, null, tint = Peach, modifier = Modifier.padding(horizontal = 12.dp))
-                    Column(Modifier.weight(1f).padding(vertical = 14.dp)) {
-                        Text(entry.title, color = White, fontSize = 17.sp, fontWeight = FontWeight.Bold,
-                            maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        if (entry.description.isNotBlank()) {
-                            Text(entry.description, color = Muted, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        }
+        }
+        items(rows.size) { index ->
+            val entry = rows[index]
+            val key = entry.soundListKey()
+            Row(
+                Modifier.fillMaxWidth()
+                    .enterFeedItem(seen, entry.key, index)
+                    .pressable(Tile) { if (key != null) onOpenHub(key) },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Default.GraphicEq, null, tint = Peach, modifier = Modifier.padding(horizontal = 12.dp))
+                Column(Modifier.weight(1f).padding(vertical = 14.dp)) {
+                    Text(entry.title, color = White, fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                        maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    if (entry.description.isNotBlank()) {
+                        Text(entry.description, color = Muted, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }
-            item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && rows.isEmpty()) }
         }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && rows.isEmpty()) }
     }
 }
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SoundTrackHub(
     pager: FeedPager,
@@ -236,47 +217,44 @@ private fun SoundTrackHub(
         }
     }
     val current = tracks.getOrNull(currentIndex)
-    Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-        PullToRefreshBox(
-            isRefreshing = pager.refreshing,
-            onRefresh = pager::refresh,
-            modifier = Modifier.weight(1f),
+    // 列表外壳自带安全区；外层 Column 不再垫 insets（会双重），播放条自己贴底。
+    Column(Modifier.fillMaxSize()) {
+        FeedListShell(
+            pager = pager,
+            state = state,
+            title = "曲目",
+            onBack = onBack,
+            detail = feedToolbarDetail(pager.loading, tracks.size, "首"),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp),
+            modifier = Modifier.weight(1f).fillMaxWidth(),
         ) {
-            LazyColumn(
-                Modifier.fillMaxSize(),
-                state = state,
-                contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp),
-            ) {
-                item {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回频道") }
-                    Heading("曲目", if (pager.loading) "正在取数据…" else "${tracks.size} 首")
-                    FeedError(pager.error, pager::reload)
-                    if (pager.loading && tracks.isEmpty()) ListSkeleton(rowHeight = 56.dp)
-                }
-                if (!pager.loading && tracks.isEmpty()) {
-                    item { Text("这个频道还没有音频。", Modifier.padding(14.dp), color = Muted) }
-                }
-                items(tracks.size) { index ->
-                    val track = tracks[index]
-                    val selected = index == currentIndex
-                    Row(
-                        Modifier.fillMaxWidth()
-                            .background(if (selected) Lift else Ink)
-                            .enterFeedItem(seen, "sound:$index", index)
-                            .pressable(Tile) { playAt(index) },
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(Modifier.weight(1f).padding(14.dp)) {
-                            Text(track.title, color = if (selected) Mint else White, fontSize = 16.sp, fontWeight = FontWeight.Bold,
-                                maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            if (track.subtitle.isNotBlank()) {
-                                Text(track.subtitle, color = Muted, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            }
+            item {
+                FeedError(pager.error, pager::reload)
+                if (pager.loading && tracks.isEmpty()) ListSkeleton(rowHeight = 56.dp)
+            }
+            if (!pager.loading && tracks.isEmpty()) {
+                item { Text("这个频道还没有音频。", Modifier.padding(14.dp), color = Muted) }
+            }
+            items(tracks.size) { index ->
+                val track = tracks[index]
+                val selected = index == currentIndex
+                Row(
+                    Modifier.fillMaxWidth()
+                        .background(if (selected) Lift else Ink)
+                        .enterFeedItem(seen, "sound:$index", index)
+                        .pressable(Tile) { playAt(index) },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f).padding(14.dp)) {
+                        Text(track.title, color = if (selected) Mint else White, fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                            maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        if (track.subtitle.isNotBlank()) {
+                            Text(track.subtitle, color = Muted, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 }
-                item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
             }
+            item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
         }
         if (current != null) {
             Column(Modifier.fillMaxWidth().background(Lift).padding(14.dp)) {

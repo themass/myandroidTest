@@ -23,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -128,7 +127,6 @@ internal fun RemoteEntry.galleryChannelParam(): String? = channelParam
  */
 internal fun RemoteEntry.imageListKey(): String? = param ?: channelParam
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteEntry) -> Unit, onExit: () -> Unit) {
     val listState = state
@@ -138,55 +136,45 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
             .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
     }
     val shown = pager.items
-    PullToRefreshBox(
-        isRefreshing = pager.refreshing,
-        onRefresh = pager::refresh,
-        modifier = Modifier.fillMaxSize(),
+    FeedListShell(
+        pager = pager,
+        state = listState,
+        title = "图集",
+        onBack = onExit,
+        detail = feedToolbarDetail(pager.loading, shown.size, "本"),
     ) {
-        LazyColumn(
-            Modifier.fillMaxSize().safeDrawingPadding(), state = listState,
-            contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 26.dp),
-        ) {
-            item {
-                Row(Modifier.fillMaxWidth().height(64.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onExit) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回频道") }
-                    Text("图集", fontSize = 22.sp, fontWeight = FontWeight.Black)
-                    Spacer(Modifier.weight(1f))
-                    Text(if (pager.loading) "正在取数据…" else "${shown.size} 本",
-                        color = Muted, fontSize = 12.sp)
-                }
-                Text("一册一个地方，\n翻到最后一张为止。", color = White, fontSize = 37.sp, lineHeight = 42.sp, fontWeight = FontWeight.Black)
-                FeedError(pager.error, pager::reload)
-                Spacer(Modifier.height(12.dp))
-                // 首屏加载只留扫光骨架一种信号，不再叠转圈（用户点过名）
-                if (pager.loading && shown.isEmpty()) {
-                    ListSkeleton(Modifier.padding(top = 2.dp), rows = 2, rowHeight = 170.dp)
-                }
+        item {
+            Text("一册一个地方，\n翻到最后一张为止。", color = White, fontSize = 37.sp, lineHeight = 42.sp, fontWeight = FontWeight.Black)
+            FeedError(pager.error, pager::reload)
+            Spacer(Modifier.height(12.dp))
+            // 首屏加载只留扫光骨架一种信号，不再叠转圈（用户点过名）
+            if (pager.loading && shown.isEmpty()) {
+                ListSkeleton(Modifier.padding(top = 2.dp), rows = 2, rowHeight = 170.dp)
             }
-            if (!pager.loading && shown.isEmpty()) {
-                item { Text("这里还没有图集，返回换个频道试试。", Modifier.padding(14.dp), color = Muted) }
-            }
-            if (shown.isNotEmpty()) item {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    repeat(2) { column ->
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            shown.filterIndexed { index, _ -> index % 2 == column }.forEachIndexed { index, book ->
-                                Column(Modifier.enterFeedItem(seen, book.key, index).pressable(Tile) { onOpen(book) }) {
-                                    Box(Modifier.fillMaxWidth().aspectRatio(book.ratio.coerceIn(0.6f, 1.7f))) {
-                                        EntryCover(book, Modifier.matchParentSize())
-                                        Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x33141729), Ink))))
-                                        if (book.description.isNotBlank()) {
-                                            Text(
-                                                book.description,
-                                                Modifier.align(Alignment.TopEnd).padding(8.dp)
-                                                    .background(Ink.copy(alpha = .72f), RoundedCornerShape(6.dp))
-                                                    .padding(horizontal = 7.dp, vertical = 3.dp),
-                                                fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                            )
-                                        }
-                                        Column(Modifier.align(Alignment.BottomStart).padding(11.dp)) {
-                                            Text(book.title, color = White, fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                        }
+        }
+        if (!pager.loading && shown.isEmpty()) {
+            item { Text("这里还没有图集，返回换个频道试试。", Modifier.padding(14.dp), color = Muted) }
+        }
+        if (shown.isNotEmpty()) item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                repeat(2) { column ->
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        shown.filterIndexed { index, _ -> index % 2 == column }.forEachIndexed { index, book ->
+                            Column(Modifier.enterFeedItem(seen, book.key, index).pressable(Tile) { onOpen(book) }) {
+                                Box(Modifier.fillMaxWidth().aspectRatio(book.ratio.coerceIn(0.6f, 1.7f))) {
+                                    EntryCover(book, Modifier.matchParentSize())
+                                    Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x33141729), Ink))))
+                                    if (book.description.isNotBlank()) {
+                                        Text(
+                                            book.description,
+                                            Modifier.align(Alignment.TopEnd).padding(8.dp)
+                                                .background(Ink.copy(alpha = .72f), RoundedCornerShape(6.dp))
+                                                .padding(horizontal = 7.dp, vertical = 3.dp),
+                                            fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                        )
+                                    }
+                                    Column(Modifier.align(Alignment.BottomStart).padding(11.dp)) {
+                                        Text(book.title, color = White, fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     }
                                 }
                             }
@@ -194,12 +182,11 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
                     }
                 }
             }
-            item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && shown.isEmpty()) }
         }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && shown.isEmpty()) }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Unit, onOpen: (Int) -> Unit) {
     val state = rememberLazyListState()
@@ -209,61 +196,57 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
             .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 9) pager.loadMore() }
     }
     val shots = pager.items
-    PullToRefreshBox(
-        isRefreshing = pager.refreshing,
-        onRefresh = pager::refresh,
-        modifier = Modifier.fillMaxSize(),
+    FeedListShell(
+        pager = pager,
+        state = state,
+        title = book.title,
+        onBack = onBack,
+        detail = feedToolbarDetail(pager.loading, shots.size, "张"),
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp),
     ) {
-        LazyColumn(
-            Modifier.fillMaxSize().safeDrawingPadding(), state = state,
-            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp),
-        ) {
-            item {
-                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回图集") }
-                Box(Modifier.fillMaxWidth().aspectRatio(16f / 11f).clip(RoundedCornerShape(12.dp, 32.dp, 12.dp, 12.dp))) {
-                    EntryCover(book, Modifier.matchParentSize())
-                    Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink))))
-                    Column(Modifier.align(Alignment.BottomStart).padding(19.dp)) {
-                        Text(book.title, color = White, fontSize = 34.sp, lineHeight = 40.sp, fontWeight = FontWeight.Black,
-                            maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        if (book.description.isNotBlank()) Text(book.description, color = Muted, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    }
-                }
-                FeedError(pager.error, pager::reload)
-                Heading("全部照片", if (pager.loading) "正在取数据…" else "${shots.size} 张")
-                // 同列表页：首屏等待只留扫光骨架，不叠第二个转圈
-                if (pager.loading && shots.isEmpty()) {
-                    ListSkeleton(rows = 2, rowHeight = 120.dp)
+        item {
+            Box(Modifier.fillMaxWidth().aspectRatio(16f / 11f).clip(RoundedCornerShape(12.dp, 32.dp, 12.dp, 12.dp))) {
+                EntryCover(book, Modifier.matchParentSize())
+                Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink))))
+                Column(Modifier.align(Alignment.BottomStart).padding(19.dp)) {
+                    Text(book.title, color = White, fontSize = 34.sp, lineHeight = 40.sp, fontWeight = FontWeight.Black,
+                        maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    if (book.description.isNotBlank()) Text(book.description, color = Muted, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
             }
-            if (!pager.loading && shots.isEmpty()) item { Text("这一册还没有图片，返回换一册。", Modifier.padding(14.dp), color = Muted) }
-            items(shots.chunked(3)) { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    row.forEachIndexed { column, shot ->
-                        val index = shots.indexOf(shot)
-                        Box(
-                            Modifier.weight(1f).aspectRatio(1f)
-                                .enterFeedItem(seen, shot.key, column)
-                                .pressable(RoundedCornerShape(7.dp)) { onOpen(index) },
-                        ) {
-                            EntryCover(shot, Modifier.matchParentSize())
-                            if (shot.title.isNotBlank()) {
-                                Text(
-                                    shot.title,
-                                    Modifier.align(Alignment.BottomStart).fillMaxWidth()
-                                        .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xB3141729))))
-                                        .padding(horizontal = 6.dp, vertical = 5.dp),
-                                    color = White, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                )
-                            }
+            FeedError(pager.error, pager::reload)
+            // 同列表页：首屏等待只留扫光骨架，不叠第二个转圈
+            if (pager.loading && shots.isEmpty()) {
+                ListSkeleton(rows = 2, rowHeight = 120.dp)
+            }
+        }
+        if (!pager.loading && shots.isEmpty()) item { Text("这一册还没有图片，返回换一册。", Modifier.padding(14.dp), color = Muted) }
+        items(shots.chunked(3)) { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                row.forEachIndexed { column, shot ->
+                    val index = shots.indexOf(shot)
+                    Box(
+                        Modifier.weight(1f).aspectRatio(1f)
+                            .enterFeedItem(seen, shot.key, column)
+                            .pressable(RoundedCornerShape(7.dp)) { onOpen(index) },
+                    ) {
+                        EntryCover(shot, Modifier.matchParentSize())
+                        if (shot.title.isNotBlank()) {
+                            Text(
+                                shot.title,
+                                Modifier.align(Alignment.BottomStart).fillMaxWidth()
+                                    .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xB3141729))))
+                                    .padding(horizontal = 6.dp, vertical = 5.dp),
+                                color = White, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            )
                         }
                     }
-                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                 }
-                Spacer(Modifier.height(5.dp))
+                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
             }
-            item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
+            Spacer(Modifier.height(5.dp))
         }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
     }
 }
 
