@@ -17,7 +17,8 @@ dependencies {
     // 拍照解题：图像处理与模型在 :imaging
     implementation project(':common')
     implementation project(':imaging')
-    implementation project(':core')
+    // :core 是拆分时的残留声明（模块内没有任何 com.openapi.core 引用，
+    // ModuleGraphTest.declaredProjectDependenciesAreUsed 钉着）；真要用再加回。
     // 图像处理（压缩、质量分析、自动裁剪、超分）在 :media
     implementation libs.okhttp
     implementation libs.gson
