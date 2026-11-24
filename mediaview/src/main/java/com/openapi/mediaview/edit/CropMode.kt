@@ -76,6 +76,24 @@ object CropGeometry {
     }
 
     /**
+     * 进裁剪模式（或换比例/视口）时铺的初始选框，**预览区绝对坐标**。
+     *
+     * [fitAspectRect] 按自己的约定以帧原点 (0,0) 居中（[CropModeTest] 钉死了那条约定），
+     * 但选框和把手活在预览区的绝对坐标里：图片 Fit 居中时视口带 left/top 内缩
+     * （横图上下有黑边、竖图左右有黑边），不平移回来选框就会贴在**画布**左上角、
+     * 压住黑边、偏离照片——而后续拖拽用的是带偏移的 `frame = viewport`，前后不一致。
+     * 所以这里把帧局部结果平移进视口：Free = 视口本身，其它比例 = 视口内的居中奖。
+     */
+    fun initialSelection(aspect: CropAspect, viewport: Rect): Rect {
+        val r = fitAspectRect(aspect, viewport.width, viewport.height)
+        if (r == Rect.Zero) return Rect.Zero
+        return Rect(
+            r.left + viewport.left, r.top + viewport.top,
+            r.right + viewport.left, r.bottom + viewport.top,
+        )
+    }
+
+    /**
      * 拖某个角之后的新选框。
      *
      * 三条不变量（都有测试）：**对角钉住**、**始终落在 [frame] 内**、**短边 ≥ [minSide]**；
@@ -272,7 +290,7 @@ fun CropMode(
     // 而「点了比例、框变成该比例的最大居中奖」是用户一看就懂的行为。
     LaunchedEffect(viewport, aspect) {
         if (viewport.width > 0f && viewport.height > 0f) {
-            onSelectionChange(CropGeometry.fitAspectRect(aspect, viewport.width, viewport.height))
+            onSelectionChange(CropGeometry.initialSelection(aspect, viewport))
         }
     }
 

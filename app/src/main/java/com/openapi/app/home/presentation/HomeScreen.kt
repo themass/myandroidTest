@@ -150,9 +150,6 @@ fun HomeScreen() {
     }
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-    // 陪伴页的全屏通话覆盖层挂起时也要关抽屉滑动：通话里 VRM WebView 的单指拖动
-    // 会被父级抽屉在 touch slop 处抢走（实测页面只收到 down + 1 个 move 就 CANCEL）。
-    var companionCallActive by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val openDrawer: () -> Unit = {
         profile = entries.profile(context)
@@ -173,15 +170,9 @@ fun HomeScreen() {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        // 对话页的按住录音、上滑取消是手势操作，边缘滑动会和它抢手势：对话标签里只用菜单按钮打开。
-        // 频道标签（放映场）整模块禁滑：用户 2026-11-25 明确「频道页所有的页面不应该支持右滑，
-        // 没有抽屉，抽屉不是这个模块的功能」；已经打开时任何标签都可以滑动关闭
-        gesturesEnabled = drawerSwipeEnabled(
-            currentIsChat = current == HomeTab.Chat,
-            currentIsChannels = current == HomeTab.Channels,
-            drawerOpen = drawerState.isOpen,
-            callVisible = companionCallActive,
-        ),
+        // 首页所有层级（频道/放映场/图集…）都被这个抽屉包住，用户明确不需要「右滑出抽屉」：
+        // 抽屉关闭时任何标签都不开手势，打开只用顶栏菜单按钮；已打开时仍可右滑关闭。
+        gesturesEnabled = drawerSwipeEnabled(drawerOpen = drawerState.isOpen),
         drawerContent = {
             ModalDrawerSheet(
                 modifier = Modifier
@@ -224,7 +215,7 @@ fun HomeScreen() {
                     // 工具 / 测试 / 账户：真实入口（同「我的」页的入口）；未登录时没有「登出」
                     DrawerGroups.forEach { group ->
                         val items = group.actions.mapNotNull { action -> profile.entries.find { it.action == action } }
-                        val showChannels = group.titleRes == R.string.drawer_group_content
+                        val showChannels = group.titleRes == R.string.drawer_group_more
                         if (items.isNotEmpty() || showChannels) {
                             DrawerSectionTitle(group.titleRes)
                             if (showChannels) {
@@ -287,7 +278,7 @@ fun HomeScreen() {
                                 scope.launch { drawerState.close() }
                                 context.startActivity(Intent().setClassName(
                                     context,
-                                    "com.openapi.ks.myapp.companion.teaching.TeachingDemoActivity",
+                                    "com.openapi.app.teaching.TeachingDemoActivity",
                                 ))
                             },
                             colors = DrawerItemColors,
@@ -356,7 +347,6 @@ fun HomeScreen() {
                             scriptCaseId = scriptCaseId,
                             launchCallOnOpen = callLaunchPending,
                             onLaunchCallHandled = { callLaunchPending = false },
-                            onCallActiveChanged = { companionCallActive = it },
                             onLoginRequired = {
                                 context.startActivity(
                                     Intent(context, com.openapi.feature.user.login.LoginActivity::class.java)

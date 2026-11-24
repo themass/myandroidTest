@@ -24,6 +24,9 @@ dependencies {
     // 设置页使用播放器引擎开关（PlaybackEngineHelper，在 :feature-video）
     implementation libs.google.material
 
+    // 「我的」页头像：本地生成结果用 Coil 读文件（与 chatkit/feature-companion 同版本，升级一起改）
+    implementation 'io.coil-kt:coil-compose:2.7.0'
+
     implementation platform(libs.androidx.compose.bom)
     implementation libs.androidx.compose.ui
     implementation libs.androidx.compose.ui.graphics
@@ -33,4 +36,10 @@ dependencies {
     implementation libs.androidx.lifecycle.viewmodel.compose
     implementation libs.androidx.lifecycle.runtime.compose
     implementation libs.kotlinx.coroutines.android
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation libs.kotlinx.coroutines.test
+    // AvatarGenRemote 的用例要真起本地 HTTP（MockWebServer 必须跟 libs.okhttp=5.0.0 同族，
+    // 4.x 编译自 okhttp4 internal，与 5.x 同 classpath 会 NoClassDefFoundError——与 :common 同款注释）。
+    testImplementation 'com.squareup.okhttp3:mockwebserver:5.0.0'
 }

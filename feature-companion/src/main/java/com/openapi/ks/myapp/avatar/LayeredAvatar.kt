@@ -50,6 +50,8 @@ import kotlin.math.roundToInt
  * 姿态只在绘制阶段读取：每帧只重画这一块，不重组页面。
  *
  * @param mouthLevel 她此刻的说话振幅 0..1（每帧读取）。返回 0 时闭嘴。
+ * @param expression 表情目标（默认 [TeacherExpression.IDLE] = 不加任何附加姿态，行为与之前一致）。
+ *   只映射到已有姿态字段，见 [TeacherExpression]。
  */
 @Composable
 fun LayeredAvatar(
@@ -57,12 +59,14 @@ fun LayeredAvatar(
     modifier: Modifier = Modifier,
     mouthLevel: () -> Float = { 0f },
     onTapped: ((String) -> Unit)? = null,
+    expression: TeacherExpression = TeacherExpression.IDLE,
 ) {
     val engine = remember(pack) { LayeredAvatarEngine() }
     var pose by remember(pack) { mutableStateOf(engine.update(0f)) }
     var touched by remember(pack) { mutableStateOf(false) }
     val currentMouth by rememberUpdatedState(mouthLevel)
     val currentOnTapped by rememberUpdatedState(onTapped)
+    val currentExpression by rememberUpdatedState(expression)
 
     // 任意图层解不出来就整幅不画：缺图层的她（少只手、少张脸）比不画更糟。
     // 正常情况下加载侧已经拦掉了这种包，这里只是最后一道；中央声场仍在，页面不至于空。
@@ -82,6 +86,7 @@ fun LayeredAvatar(
                 val dt = if (last < 0L) 0f else (now - last) / 1_000_000_000f
                 last = now
                 engine.mouthLevel = currentMouth()
+                engine.expression = currentExpression
                 pose = engine.update(dt)
             }
         }

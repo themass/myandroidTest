@@ -134,6 +134,64 @@ class CropModeTest {
         assertRect(Rect(0f, 0f, 400f, 200f), CropGeometry.fitAspectRect(CropAspect.Free, 400f, 200f), 1e-3f)
     }
 
+    // ---- 初始选框（进裁剪模式/换比例时铺的框，预览区绝对坐标）----
+
+    /**
+     * 真机抱怨「裁剪框跟图片不搭噶」的根因钉子：[CropGeometry.fitAspectRect] 以帧原点
+     * (0,0) 居中（上面那组测试钉死了这条约定），但选框和把手活在预览区**绝对坐标**里。
+     * viewport 带内缩（Fit 摆放的横图上下有黑边）时，直接把帧局部结果当绝对坐标用，
+     * 选框就会贴在**画布**左上角、压住黑边、偏离照片。[CropGeometry.initialSelection]
+     * 必须把它平移进视口：Square 框落在 viewport 内部、相对 viewport 居中。
+     */
+    @Test
+    fun initialSelectionOfInsetViewportSitsInsideTheViewportCentered() {
+        val viewport = Rect(0f, 100f, 400f, 300f) // 预览区 400×400，横图 Fit 后上下各 100 黑边
+        val sel = CropGeometry.initialSelection(CropAspect.Square, viewport)
+
+        // 落在视口内部（旧实现会贴画布左上角：top=0 < viewport.top）
+        assertTrue("选框不能越出视口：$sel", sel.left >= viewport.left - 1e-3f && sel.top >= viewport.top - 1e-3f)
+        assertTrue("选框不能越出视口：$sel", sel.right <= viewport.right + 1e-3f && sel.bottom <= viewport.bottom + 1e-3f)
+        // 相对视口居中（左右留白相等、上下留白相等）
+        assertEquals("横向居中", sel.left - viewport.left, viewport.right - sel.right, 1e-3f)
+        assertEquals("纵向居中", sel.top - viewport.top, viewport.bottom - sel.bottom, 1e-3f)
+        // 比例正确：视口 400×200 里最大的方形 = 200×200，绝对坐标 (100,100)-(300,300)
+        assertEquals(200f, sel.width, 1e-3f)
+        assertEquals(200f, sel.height, 1e-3f)
+        assertRect(Rect(100f, 100f, 300f, 300f), sel, 1e-3f)
+
+        // 和确认路径闭环：这个初始框归一化后正好是「视口的水平中段」——
+        // 也就是说默认确认裁的是照片里的方形区域，而不是画布角落。
+        val norm = CropGeometry.normalizeSelection(sel, viewport)
+        assertEquals(0.25f, norm.left, 1e-4f)
+        assertEquals(0f, norm.top, 1e-4f)
+        assertEquals(0.75f, norm.right, 1e-4f)
+        assertEquals(1f, norm.bottom, 1e-4f)
+    }
+
+    /** Free 的初始框 = 视口本身（不是画布）：竖图有左右黑边时也一样。 */
+    @Test
+    fun freeInitialSelectionIsTheViewportItself() {
+        val viewport = Rect(60f, 0f, 340f, 200f) // 竖图：预览区里左右各留黑边
+        assertRect(viewport, CropGeometry.initialSelection(CropAspect.Free, viewport), 1e-3f)
+        val all = CropGeometry.normalizeSelection(CropGeometry.initialSelection(CropAspect.Free, viewport), viewport)
+        assertEquals(0f, all.left, 1e-5f)
+        assertEquals(1f, all.right, 1e-5f)
+        assertEquals(0f, all.top, 1e-5f)
+        assertEquals(1f, all.bottom, 1e-5f)
+    }
+
+    /** 视口在原点时 initialSelection 退化为 fitAspectRect（旧调用点行为不变）。 */
+    @Test
+    fun initialSelectionOfOriginViewportMatchesFitAspectRect() {
+        for (a in CropAspect.values()) {
+            assertRect(
+                CropGeometry.fitAspectRect(a, 400f, 200f),
+                CropGeometry.initialSelection(a, Rect(0f, 0f, 400f, 200f)),
+                1e-3f,
+            )
+        }
+    }
+
     @Test
     fun everyAspectStaysInsideTheFrame() {
         val frames = listOf(400f to 200f, 200f to 400f, 300f to 300f, 1080f to 720f)

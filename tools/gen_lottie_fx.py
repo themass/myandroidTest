@@ -209,10 +209,52 @@ def fx_connected():
     return comp(1080, 1920, 0, 134, layers, "fx_connected")
 
 
+# ---- fx_swipe：流光横扫（全屏锚点，事件响应类） -----------------------------
+# 对应用户「手指滑动」cue（CameraSwipeCue）。中性流光（两端对称淡出、中间亮起）：
+# gesture 词表载荷没有方向字段（协议不碰），素材不指方向——见 CameraSwipeCue 注释。
+
+def streak_path(x0, x1):
+    """水平线段，居中于原点（图层 p 再放到画布位置，与 fx_wave 同口径）。
+    i/o 切线组必须与 v 顶点数一致（Lottie 要求），直线全零切线。"""
+    return path_shape([(x0, 0), (x1, 0)], [(0.0, 0.0), (0.0, 0.0)],
+                      [(0.0, 0.0), (0.0, 0.0)], closed=False)
+
+
+def fx_swipe():
+    dur = 30
+    layers = []
+    # 三条圆头条带：主条最长、最快；上下两条短、延迟——制造速度感。
+    for ind, (y, width, delay, x0, x1) in enumerate(
+        [(256, 30, 0, -172, 172), (214, 16, 3, -126, 124), (292, 16, 5, -106, 94)],
+        start=1,
+    ):
+        ip = delay
+        op = dur + 4
+        trim = {"ty": "tm",
+                "s": anim([ip, ip + 12, op], [0, 0, 100]),
+                "e": anim([ip, ip + 12, ip + 20, op], [2, 100, 100, 0]),
+                "o": static(0), "m": 1}
+        band = group([
+            streak_path(x0, x1),
+            stroke((0.55, 0.82, 1.0), width),
+            trim,
+        ])
+        layers.append(shape_layer(
+            "streak-%d" % ind, [band],
+            transform(
+                p=static([256, y], 2),
+                o=anim([ip, ip + 4, op - 6, op], [0, 95, 95, 0]),
+                s=static([100, 100], 2),
+            ),
+            ip=ip, op=op, ind=ind))
+    return comp(512, 512, 0, dur + 4, layers, "fx_swipe")
+
+
 ASSETS = {
     "fx_pat_head": fx_pat_head,
     "fx_wave": fx_wave,
     "fx_connected": fx_connected,
+    "fx_swipe": fx_swipe,
 }
 
 

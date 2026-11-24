@@ -47,7 +47,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
  * 没通就报错误 + 重试，通了没数据就是空——这里没有任何随包样例数据。
  *
  * 与设计稿一致的点：
- * - 封面用双列受控瀑布流（按各自的宽高比），不是等高卡片；
+ * - 封面用三列受控瀑布流（按各自的宽高比），不是等高卡片；
  * - 图集内是规则缩略图网格，点第 N 张就从第 N 张全屏，返回还在原来的滚动位置（列表状态由
  *   `rememberLazyListState` 持有，没有被重建）；
  * - 全屏支持左右滑动、双指缩放、位置计数；缩放后拖动查看细节。
@@ -149,6 +149,19 @@ internal fun lightboxImageUrl(shot: RemoteEntry): String? =
 /** item/page.json 的 key 是尾部图片行自己的 actionUrl。 */
 internal fun galleryTailItemUrl(shot: RemoteEntry?): String? =
     shot?.actionUrl?.takeIf { it.isNotBlank() }
+/**
+ * 封面瀑布流的列数。旧 View 版图集（`ImgChannleBodyFragment` 那条链）网格 span 本来就是 3，
+ * Compose 迁移时手写瀑布流写成 2 列，和旧版、和同 App 其它图集页都对不上（台账 A27）。
+ * 抽成常量 + [albumCoverColumn] 纯函数：列分配是纯索引算术，能被 JVM 单测钉住。
+ */
+internal const val ALBUM_COVER_COLUMNS = 3
+
+/** 第 [index] 个封面落在哪一列：按列轮转，列内保持服务端返回顺序。 */
+internal fun albumCoverColumn(index: Int): Int = index % ALBUM_COVER_COLUMNS
+
+/** 第 [column] 列的封面（保持原顺序）。[items] 为服务端返回的完整列表。 */
+internal fun <T> albumCoverColumnItems(items: List<T>, column: Int): List<T> =
+    items.filterIndexed { index, _ -> albumCoverColumn(index) == column }
 
 @Composable
 private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteEntry) -> Unit, onExit: () -> Unit) {
@@ -167,6 +180,9 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
         detail = feedToolbarDetail(pager.loading, shown.size, "本"),
     ) {
         item {
+            // 同声音馆：单句限一行，不硬折行（台账 A29）。
+            Text("一册一地方，翻到末页。", color = White, fontSize = 24.sp, lineHeight = 32.sp,
+                fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
             FeedError(pager.error, pager::reload)
             Spacer(Modifier.height(12.dp))
             // 首屏加载只留扫光骨架一种信号，不再叠转圈（用户点过名）
@@ -178,25 +194,27 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
             item { Text("这里还没有图集，返回换个频道试试。", Modifier.padding(14.dp), color = Muted) }
         }
         if (shown.isNotEmpty()) item {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                repeat(2) { column ->
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        shown.filterIndexed { index, _ -> index % 2 == column }.forEachIndexed { index, book ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                repeat(ALBUM_COVER_COLUMNS) { column ->
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        albumCoverColumnItems(shown, column).forEachIndexed { index, book ->
                             Column(Modifier.enterFeedItem(seen, book.key, index).pressable(Tile) { onOpen(book) }) {
                                 Box(Modifier.fillMaxWidth().aspectRatio(book.ratio.coerceIn(0.6f, 1.7f))) {
                                     EntryCover(book, Modifier.matchParentSize())
                                     Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x33141729), Ink))))
+                                    // 三列后列宽只有原来的 2/3：徽标和标题都要收一档，
+                                    // 否则 11.sp 徽标加 19.sp 标题会挤在 1/3 屏宽里互相顶掉。
                                     if (book.description.isNotBlank()) {
                                         Text(
                                             book.description,
-                                            Modifier.align(Alignment.TopEnd).padding(8.dp)
-                                                .background(Ink.copy(alpha = .72f), RoundedCornerShape(6.dp))
-                                                .padding(horizontal = 7.dp, vertical = 3.dp),
-                                            fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                            Modifier.align(Alignment.TopEnd).padding(6.dp)
+                                                .background(Ink.copy(alpha = .72f), RoundedCornerShape(5.dp))
+                                                .padding(horizontal = 5.dp, vertical = 2.dp),
+                                            fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                                         )
                                     }
-                                    Column(Modifier.align(Alignment.BottomStart).padding(11.dp)) {
-                                        Text(book.title, color = White, fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Column(Modifier.align(Alignment.BottomStart).padding(9.dp)) {
+                                        Text(book.title, color = White, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                     }
                                 }
                             }
@@ -205,7 +223,8 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
                 }
             }
         }
-        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && shown.isEmpty()) }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore,
+            pager.loading && shown.isEmpty(), empty = shown.isEmpty()) }
     }
 }
 
@@ -268,7 +287,7 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
             }
             Spacer(Modifier.height(5.dp))
         }
-        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, empty = shots.isEmpty()) }
     }
 }
 

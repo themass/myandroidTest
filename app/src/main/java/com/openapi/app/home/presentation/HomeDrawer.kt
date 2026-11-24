@@ -107,11 +107,11 @@ internal fun ProfileSlidePage(onClose: () -> Unit) {
     }
 }
 
-// 拍照解题已从侧边栏移除；频道（放映场）、本地音乐、收藏夹是正式功能，分组名不再叫「测试」
-// （用户 2026-11-25 点名「按照上线的标准」）——它们是内容入口，归「内容」。
+// 拍照解题已从侧边栏移除；频道、本地音乐、收藏夹归入「更多」。
+// 「测试」这个组名是开发期留下的（台账 A30：上线标准不该拿测试字样面向用户），改名走 drawer_group_more。
 internal val DrawerGroups = listOf(
     DrawerGroup(R.string.drawer_group_tools, listOf(ProfileAction.Feedback, ProfileAction.Share, ProfileAction.AppRecommend, ProfileAction.Donation)),
-    DrawerGroup(R.string.drawer_group_content, listOf(ProfileAction.Favorites, ProfileAction.LocalMusic)),
+    DrawerGroup(R.string.drawer_group_more, listOf(ProfileAction.Favorites, ProfileAction.LocalMusic)),
     DrawerGroup(R.string.drawer_group_account, listOf(ProfileAction.Settings, ProfileAction.Logout)),
 )
 
@@ -166,13 +166,8 @@ internal fun DrawerSectionTitle(@StringRes title: Int) {
 
 /**
  * 抽屉滑动开关（纯函数，HomeDrawerGestureTest 钉住）：
- * 对话标签（按住录音）、频道标签（放映场整模块没有抽屉——用户 2026-11-25 点名）
- * 与通话覆盖层（WebView 单指拖动）里禁止滑动开抽屉；
- * 抽屉已打开时任何界面都能滑动关闭。
+ * 首页所有层级（频道/放映场/图集…）都被同一个 ModalNavigationDrawer 包住，
+ * 用户要求「频道里所有页面都不需要右滑出抽屉」——抽屉关闭时任何标签都不给右滑开，
+ * 打开抽屉只用顶栏菜单按钮；抽屉已打开时仍允许右滑关闭。
  */
-internal fun drawerSwipeEnabled(
-    currentIsChat: Boolean,
-    currentIsChannels: Boolean,
-    drawerOpen: Boolean,
-    callVisible: Boolean,
-): Boolean = drawerOpen || (currentIsChat.not() && currentIsChannels.not() && callVisible.not())
+internal fun drawerSwipeEnabled(drawerOpen: Boolean): Boolean = drawerOpen

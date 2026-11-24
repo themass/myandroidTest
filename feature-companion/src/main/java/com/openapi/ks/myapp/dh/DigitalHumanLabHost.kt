@@ -109,6 +109,12 @@ fun DigitalHumanLabHost(
      */
     simpleFallback: com.openapi.ks.myapp.avatar.LayeredAvatarPack? = null,
     /**
+     * Simple 舞台分层立绘的表情目标（教学演示「老师做表情」用，见 [com.openapi.ks.myapp.avatar.TeacherExpression]）。
+     * 默认 [com.openapi.ks.myapp.avatar.TeacherExpression.IDLE] = 零增量，通话页与之前完全一致。
+     */
+    teacherExpression: com.openapi.ks.myapp.avatar.TeacherExpression =
+        com.openapi.ks.myapp.avatar.TeacherExpression.IDLE,
+    /**
      * 舞台特效：订阅既有 [CompanionUiState.gesture]/[CompanionUiState.gestureSeq]
      * （cmp.cue → AvatarEventMapper → Gesture 的 UI 镜像），**不另起事件总线**。
      * null / 0 = 不播（聊天页/调试舞台）。
@@ -352,6 +358,7 @@ fun DigitalHumanLabHost(
                             .avatarStageLayer(stage),
                         mouthLevel = { mouthNow },
                         onTapped = { region -> tappedNow?.invoke(region) },
+                        expression = teacherExpression,
                     )
                 } else {
                     SimpleAvatar(

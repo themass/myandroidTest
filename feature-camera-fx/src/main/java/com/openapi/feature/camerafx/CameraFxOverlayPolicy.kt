@@ -26,6 +26,7 @@ data class CameraFxOverlayPolicy(
 object StickerAssetIds {
     const val PAT_HEAD = "fx_pat_head"
     const val WAVE = "fx_wave"
+    const val SWIPE = "fx_swipe"
 
-    val ALLOWED: Set<String> = setOf(PAT_HEAD, WAVE)
+    val ALLOWED: Set<String> = setOf(PAT_HEAD, WAVE, SWIPE)
 }

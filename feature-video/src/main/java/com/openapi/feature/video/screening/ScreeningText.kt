@@ -167,6 +167,9 @@ private fun TextHubPicker(
         detail = feedToolbarDetail(pager.loading, rows.size, "个频道"),
     ) {
         item {
+            // 同声音馆：单句限一行，不硬折行（台账 A29）。
+            Text("一屏一故事，换一盏灯。", color = White, fontSize = 24.sp, lineHeight = 32.sp,
+                fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
             FeedError(pager.error, pager::reload)
             if (seedChannel == null) {
                 Text("没有频道参数，返回换一张文字卡试试。", Modifier.padding(14.dp), color = Muted)
@@ -193,7 +196,8 @@ private fun TextHubPicker(
                 }
             }
         }
-        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && rows.isEmpty()) }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore,
+            pager.loading && rows.isEmpty(), empty = rows.isEmpty()) }
     }
 }
 
@@ -244,7 +248,7 @@ private fun TextArticleList(
                 }
             }
         }
-        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, empty = rows.isEmpty()) }
     }
 }
 

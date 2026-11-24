@@ -34,6 +34,14 @@ data class PoseFx(val segments: List<Segment2d>)
 data class HandFx(
     val segments: List<Segment2d>,
     val gesture: HandGestureKind,
+    /**
+     * 21 点原始归一化坐标（含指尖），供滑动跟踪用。
+     *
+     * 为什么不复用 [segments]：连线是有向端点对，指尖要按索引语义取（8=食指尖），
+     * 从连线里反解既绕又要重排；而且 `segments` 会因索引越界少线。点数不足 21 时为空
+     * （滑动跟踪据此判定「这只手不可用」，不猜）。
+     */
+    val points: List<Point2d> = emptyList(),
 )
 
 data class FrameFx(
@@ -248,7 +256,7 @@ class FxAnalyzer(
                 if (i !in lm.indices || j !in lm.indices) return@mapNotNull null
                 Segment2d(lm[i].toPoint(), lm[j].toPoint())
             }
-            HandFx(segments = segments, gesture = classifyHandGesture(pts))
+            HandFx(segments = segments, gesture = classifyHandGesture(pts), points = pts)
         }
         seq += 1
         return FrameFx(faces = faces, poses = poses, hands = hands, imgW = w, imgH = h, seq = seq, fps = fps)

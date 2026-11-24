@@ -36,6 +36,10 @@ object StageEffectMapper {
                     play(FxAssets.WAVE, StageEffect.Anchor.HAND)
                 GESTURE_CONNECTED, "connect", "call_connected" ->
                     play(FxAssets.CONNECTED, StageEffect.Anchor.FULL)
+                // 用户手指滑动（本地上报，见 camera-fx CameraSwipeCue）→ 中性流光横扫。
+                // 词表载荷无方向字段（协议不扩），素材左右对称、不指方向。
+                "swipe" ->
+                    play(FxAssets.SWIPE, StageEffect.Anchor.FULL)
                 else -> null
             }
         }

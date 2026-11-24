@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application>
-        <activity
-            android:name="com.openapi.ks.myapp.companion.teaching.TeachingDemoActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
-    </application>
+    <!-- 教学 Demo 的 Activity 壳已移到 :app 的 debug 源集（摄像头要从组合根注入，
+         见 docs/design/companion-teaching-demo/redesign-v2-stage-camera.md §6）；
+         本模块的 debug 源集只保留 TeachingDemoRoute / TeachingScript / TeachingSpeech。 -->
+    <application />
 </manifest>
