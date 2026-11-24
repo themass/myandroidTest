@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -81,8 +82,14 @@ internal fun ScreeningSound(
     var playbackMode by rememberSaveable {
         mutableStateOf(soundPlaybackMode(soundPreferences.getString("playback_mode", null)))
     }
+    var playbackSpeed by rememberSaveable {
+        mutableFloatStateOf(clampSoundPlaybackSpeed(soundPreferences.getFloat("playback_speed", 1f)))
+    }
     LaunchedEffect(playbackMode) {
         soundPreferences.edit().putString("playback_mode", playbackMode.name).apply()
+    }
+    LaunchedEffect(playbackSpeed) {
+        soundPreferences.edit().putFloat("playback_speed", playbackSpeed).apply()
     }
     val player = remember { ExoPlayer.Builder(context).build() }
     DisposableEffect(player) {
@@ -118,6 +125,8 @@ internal fun ScreeningSound(
                     currentIndex = currentIndex,
                     playbackMode = playbackMode,
                     onPlaybackModeChange = { playbackMode = it },
+                    playbackSpeed = playbackSpeed,
+                    onPlaybackSpeedChange = { playbackSpeed = clampSoundPlaybackSpeed(it) },
                     onSelect = { currentIndex = it },
                     onBack = { hub = null },
                 )
@@ -147,6 +156,8 @@ internal enum class SoundPlaybackMode(val label: String) {
 
 internal fun soundPlaybackMode(savedName: String?): SoundPlaybackMode =
     SoundPlaybackMode.entries.firstOrNull { it.name == savedName } ?: SoundPlaybackMode.LIST
+
+internal fun clampSoundPlaybackSpeed(speed: Float): Float = speed.coerceIn(0.25f, 3f)
 
 internal fun manualNextSoundTrackIndex(
     mode: SoundPlaybackMode,
@@ -265,11 +276,15 @@ private fun SoundTrackHub(
     currentIndex: Int,
     playbackMode: SoundPlaybackMode,
     onPlaybackModeChange: (SoundPlaybackMode) -> Unit,
+    playbackSpeed: Float,
+    onPlaybackSpeedChange: (Float) -> Unit,
     onSelect: (Int) -> Unit,
     onBack: () -> Unit,
 ) {
     var playbackEnded by remember(player) { mutableStateOf(false) }
     var pendingManualNextFromCount by remember(player) { mutableIntStateOf(-1) }
+    var speedDialogOpen by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(player, playbackSpeed) { player.setPlaybackSpeed(playbackSpeed) }
     fun playAt(index: Int) {
         val track = tracks.getOrNull(index) ?: return
         playbackEnded = false
@@ -391,6 +406,9 @@ private fun SoundTrackHub(
                     TextButton(onClick = { onPlaybackModeChange(playbackMode.nextMode()) }) {
                         Text(playbackMode.label, color = Mint, fontSize = 12.sp)
                     }
+                    TextButton(onClick = { speedDialogOpen = true }) {
+                        Text("${playbackSpeed}×", color = Mint, fontSize = 12.sp)
+                    }
                     IconButton(onClick = { playPreviousManually() }) {
                         Icon(Icons.Default.SkipPrevious, "上一首", tint = White)
                     }
@@ -403,5 +421,25 @@ private fun SoundTrackHub(
                 }
             }
         }
+    }
+    if (speedDialogOpen) {
+        AlertDialog(
+            onDismissRequest = { speedDialogOpen = false },
+            title = { Text("播放倍速") },
+            text = {
+                Column {
+                    Text("${playbackSpeed}×", color = White)
+                    Slider(
+                        value = playbackSpeed,
+                        onValueChange = onPlaybackSpeedChange,
+                        valueRange = 0.25f..3f,
+                        steps = 54,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { speedDialogOpen = false }) { Text("完成") }
+            },
+        )
     }
 }

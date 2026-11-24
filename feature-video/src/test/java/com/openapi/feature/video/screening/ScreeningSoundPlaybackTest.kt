@@ -74,4 +74,11 @@ class ScreeningSoundPlaybackTest {
         assertEquals(1, previousSoundTrackIndex(currentIndex = 2, trackCount = 4))
         assertNull(previousSoundTrackIndex(currentIndex = 0, trackCount = 4))
     }
+
+    @Test
+    fun `播放倍速限制为旧服务支持的零点二五到三倍`() {
+        assertEquals(0.25f, clampSoundPlaybackSpeed(0.1f), 0.001f)
+        assertEquals(1.75f, clampSoundPlaybackSpeed(1.75f), 0.001f)
+        assertEquals(3f, clampSoundPlaybackSpeed(3.5f), 0.001f)
+    }
 }
