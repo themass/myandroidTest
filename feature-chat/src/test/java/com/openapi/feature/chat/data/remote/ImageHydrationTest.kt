@@ -96,6 +96,24 @@ class ImageHydrationTest {
     }
 
     @Test
+    fun weakNetworkThrowDegradesToEmptyPathLikeNull() = runTest(StandardTestDispatcher()) {
+        // 断网/弱网进页时 fetch 抛的是异常（超时、连接重置），不是 null。
+        // P1-10 的失败占位依赖这条：抛异常的那格退化成空 path 进气泡画占位，
+        // 同一页其它图照常签名成功——整页不能被一张图的失败拖垮。
+        val probe = Probe()
+        val messages = listOf(remoteMsg("m1", listOf("u1", "u2")), remoteMsg("m2", listOf("u3")))
+        val out = hydrateRemoteImages(messages) { id ->
+            if (id == "u2") throw java.io.IOException("offline")
+            probe.fetch(id)
+        }
+        advanceUntilIdle()
+
+        assertEquals("https://signed/u1", out[0].images[0].path)
+        assertEquals("抛异常的那格退化为空 path（组件据此画失败占位）", "", out[0].images[1].path)
+        assertEquals("同页另一条不受影响", "https://signed/u3", out[1].images[0].path)
+    }
+
+    @Test
     fun messagesWithoutRemoteImagesAreUntouched() = runTest(StandardTestDispatcher()) {
         val probe = Probe()
         val local = ChatMessage(id = "m1", role = ChatRole.USER, text = "", createdAtMillis = 1L,

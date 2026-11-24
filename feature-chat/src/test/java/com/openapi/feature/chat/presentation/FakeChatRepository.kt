@@ -130,9 +130,12 @@ internal class FakeChatRepository : ChatRepository {
     }
     /** 重签通道（整改清单 P1-10）：非 null 时 refreshImageUrl 返回它；记录每个 id 的调用次数。 */
     var refreshImageUrlResult: String? = null
+    /** 非 null 时 refreshImageUrl 抛它：弱网/超时是异常而不是 null，这条形状必须单独钉。 */
+    var refreshImageUrlThrows: Throwable? = null
     val refreshImageUrlCalls = mutableListOf<String>()
     override suspend fun refreshImageUrl(uploadId: String): String? {
         refreshImageUrlCalls += uploadId
+        refreshImageUrlThrows?.let { throw it }
         return refreshImageUrlResult
     }
     override suspend fun sendAttachment(
