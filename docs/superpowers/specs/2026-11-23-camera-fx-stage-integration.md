@@ -18,8 +18,8 @@
 1. **触发特效**：舞台动效仍只走 `emitStageGesture` / cmp.cue → `gestureSeq`；相机侧贴纸**默认**本地 asset 跟随锚点，**不循环冒充**舞台托盘。
 2. **不开相机不跑分析**：`CameraFxGrantedContent` 仅在 composable 进入树且已授权时 bind lifecycle（无全局后台相机）。
 3. **无 pointerInput** 在相机叠层 / LottieFxLayer（捏合仲裁一处）。
-4. **手势**：lab 已画 Pose 腕→指尖扇区 + HandLandmarker 双手 21 点（橙）+ HUD 张/拳/捏启发式；**emitStageGesture 分类→舞台 fx 仍为二期**。
-5. **入口**：全屏 lab = 抽屉实验室；通话内 = **debug 开关** `CompanionFaceCameraPrefs.enabled`（默认 **false**），将来可与 `onToggleCamera` 对齐。
+4. **手势**：lab 已画 Pose 腕→指尖扇区 + HandLandmarker 双手 21 点（橙）+ HUD 张/拳/捏启发式；`StageGestureEdge` 稳定 2 帧、冷却 24 帧后由 `CompanionRoute` 调用 `emitStageGesture`：张手→`wave`、捏合→`pat_head`、握拳不触发。代码已接通（主线 `cbe826e1`）；手/脸入镜后的真机视觉与舞台端到端验收仍待设备窗口。
+5. **入口**：全屏 lab = 抽屉实验室；通话内通过 `CompanionFaceCameraPrefs.enabled` 开关小窗，默认 **false**，且只在 debuggable lab 启用；CameraFx 内容由 `:app` 注入，保持 `:feature-companion` 不反向依赖 `:feature-camera-fx`。
 
 ## 数据流（v2 通话内）
 
@@ -47,7 +47,7 @@
 
 - [x] 关通话页自动小窗
 - [x] `CameraFxOverlayPolicy` + lab SharedPreferences
-- [ ] 通话 debug 菜单「人脸贴纸」接 `labFaceCameraPip` + prefs
+- [x] 通话 debug 菜单「人脸贴纸」接 `labFaceCameraPip` + prefs（主线 `cbe826e1`；真机体验另验）
 - [x] Pose 腕连指尖（默认开）；可选开关 **二期**
 - [x] Hand landmark + lab HUD 手势启发式
-- [ ] Hand/Pose 手势 → `emitStageGesture`（舞台托盘）
+- [x] Hand 手势 → `emitStageGesture`（张→wave、捏→pat_head；主线 `cbe826e1`；真机链路验收待补）
