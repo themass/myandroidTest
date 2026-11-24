@@ -209,8 +209,23 @@
 ## A25 · 文章详情页太卡（WebView 展示差，参考原来的设计）
 
 - **现象**：文章详情页（截图「今日美洲号」）滚动/打开明显卡顿；用户判断是 WebView 优化差或展示方式不对，要求参考旧设计。
-- **根因**：**取证中**（agent 定位文章详情页实现是 WebView 还是原生、配置项、git 历史里的旧实现对比）。
-- **状态**：**取证中**。
+- **根因（取证完成，CONFIRMED×2 + PLAUSIBLE×2）**：分流在 `feature-content/.../TextChannelListFragment.java:82`——条目 `fileUrl` 以 `.html` 结尾就走 `TextItemsWebViewFragment` 直接 `loadUrl(vo.fileUrl)`（:113-121），加载的是**整站文章页**（含站点自有页头、点赞/转发/收藏、自带滑出菜单——截图里的站点 chrome 都是远端页面画的）；「原来的设计」= `TextItemsFragment` 走 `/text/item.json` 取正文再 `MyWebView.loadHtmlBody`（`common/.../MyWebView.java:96-114`，纯净 body、无站点 chrome）。①CONFIRMED 渲染对象是整站页面非正文；②CONFIRMED 每次进页新建 WebView + 离页 destroy（无池化/复用，首帧白屏成本源）；③PLAUSIBLE 透明 WebView(`setBackgroundColor(0)`) + Compose 背景拉伸图合成开销；④PLAUSIBLE 无缓存策略/图片不降采样。Compose 化本身不是主因（`05d38cc0` 前后 WebView 设置逐项一致）。放映场同分流在 `ScreeningText.kt:90-94`。
+- **修复方向**：首选对齐旧设计——有 id 的文章条目改走 item.json 正文渲染；次选 WebView 池化 + 实色背景。顺带发现：`settings.setAllowFileAccess(false)`(:157) 与收藏夹 `file://` 离线页(`FavoriteFragment.java:96`)疑似互斥，修复时一并验证。
+- **B6 关联（重要反转）**：用户截图里「右滑弹出的分类抽屉」（头条号/微头条/热点…）**不是本 app 控件**——全仓源码+全部 git 历史搜不到这些字符串；它是 WebView 里远端文章页自带的 JS 菜单，与 A25 根因①同源。A26（首页原生抽屉手势）修复不受影响；文章页右滑=返回的载体 `SlidingLayout`（左缘 250px）本来就有，页面中部右滑被远端页面吃掉——A25 改走正文后该抽屉自然消失；另 `SlidingLayout.java:86` 拦截只比单增量 |dx|>|dy| 无 touch slop，上下滑抖动可误触，修复时补阈值。
+- **状态**：**根因已定位 + 待派工**（改动面在 feature-content/common 旧代码区，与在场 worker 无文件冲突，可即派）。
+
+## A29 · 三馆页首行大字丑/硬折行/无用文字（用户 20261125）
+
+- **现象**：声音馆「戴上耳机，\n慢慢来。」32sp 硬换行、图集「一册一个地方，\n翻到最后一张为止。」37sp 顶到边、文字馆 32sp；且声音馆 0 个频道时空页还挂「继续下滑加载更多」。用户：去掉或换诗意短句，不许折行。
+- **根因**：文案硬编码在 `ScreeningSound/Text/Gallery.kt` 各一处，`\n` 写死折行、字号 32-37sp 无 maxLines；`FeedEndRow`（`ScreeningFeedUi.kt`）列表为空也画「继续下滑加载更多」。
+- **修复**：三处改单行短文案（声音馆「戴上耳机，世界慢下来。」/文字馆「一屏一故事，换一盏灯。」/图集「一册一地方，翻到末页。」），24sp + `maxLines=1`；空列表不画页脚行。
+- **状态**：**已定位 + 修改中**（文案已改，随放映场并线；观感需真机确认，不满意可直接指定换哪句）。
+
+## A30 · 上线标准核查：测试残留 + 字幕 mock 数据下落（用户 20261125）
+
+- **问题①：频道测试功能去掉了么？** 核查结论：随包样例兜底已删（`ScreeningFeedStore.kt` 注释两处自述「不再拿随包样例填空」）、debug 启动图标已删（`ScreeningActivity.kt:76` 注释自述）；**残留两处**：侧边栏分组标题仍叫「测试」（`values-zh/strings_home.xml:13`，里面装的是收藏/本地音乐/频道等真实入口——纯命名问题）；origin 线新增「实验室」分组（`drawer_group_lab` + 摄像头 Demo 入口）需确认是否 debug-only（fxlab 主体在 `app/src/debug`，release 不含；入口行要钉 gate）。
+- **问题②：服务端字幕 mock 数据怎么没发现？** 核查结论（证据链）：①testserverV 仓库 `origin/testjava_springboot` 全分支 **零条 INSERT**——字幕只有建表 DDL（`sql/2026112400_sound_subtitle.sql` 0 条 INSERT），**没有任何 mock 数据提交过**；②接口代码已部署：104 上运行中的 jar（2026-11-24 14:22 构建）内含 `SoundSubtitleController.class`，`/api/sound/subtitle/items.json` 在线可用；③生产库在内容底座 47.82.163.162:6666（104 本机无 MySQL），按已知「基线新表不自动建」问题，`sound_subtitle` 表**大概率还没建**；④声音馆服务端线自述纪律=「不写生产库」。**所以放映场每片都报「这个视频服务端没有字幕」是符合现状的——mock 数据从未存在过，不是丢了。** 待声音馆会话回证后补一行确认；要真机看到字幕，需要（用户授权后）在生产库建表 + 插一条真数据（备份+回滚口径）。
+- **状态**：①「测试」分组改名（→「更多」）已定位、随并线执行；实验室 gate 待钉；②待用户决定是否授权建表+插样数据。
 
 ## A26 · 页面「右滑」误开右侧抽屉；用户明确：整个频道所有页面都不需要这个抽屉
 

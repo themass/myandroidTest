@@ -10,6 +10,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,9 +50,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -322,17 +325,39 @@ internal fun ShimmerPlaceholder(modifier: Modifier = Modifier, shape: androidx.c
 }
 
 /**
- * 服务端封面：Glide 加载远程图，没有地址时退回纯色底，不留空洞。
+ * 全 App 统一的图片占位/失败默认图，资源在 `:core`（`core/src/main/res/drawable-xxhdpi/img_bg.png`）。
+ * 引用方式跟模块内既有写法一致（`feature-content` 里跨模块取 core 资源也是 `com.openapi.core.R.…`）。
+ */
+internal val ImagePlaceholderRes = com.openapi.core.R.drawable.img_bg
+
+/**
+ * 服务端封面：Glide 加载远程图，加载中/失败/没有地址都落到 `img_bg`，不留空洞。
  *
  * 用 [AndroidView] 包 Glide，而不是另找一个 Compose 图片库：项目里远程图一律走
  * `Glide.with(view).load(url)`（见 `ChannelCardLoaders`），这样共用同一份磁盘缓存和
  * 已配好代理/超时的 OkHttp loader，不用再配一套。
+ *
+ * 【规矩·A28】`img_bg`（`:core` 的 `drawable-xxhdpi/img_bg.png`）是全 App 统一的
+ * 图片占位图兼加载失败默认图——旧代码每条 Glide 链都挂它
+ * （`core` 的 `ImagePhotoLoad.options/optionsHigh`、`feature-content` 的
+ * `FullScreenImagePagerAdapter`）。新代码接远程图必须同时挂
+ * `.placeholder(img_bg)` 和 `.error(img_bg)`：少了 placeholder，图落地前是一块纯色底，
+ * 用户读成「这块位置本来就没图」；少了 error，图挂了就一直留着那块纯色底，
+ * 和「服务端就是没图」再也分不出来。这条以前在 Compose 迁移时漏掉了（台账 A28），
+ * 现在由 [ImagePlaceholderRes] 一处收口。
  */
 @Composable
 internal fun RemoteCover(url: String?, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     if (url.isNullOrBlank()) {
-        Box(modifier.background(Lift))
+        // 没有地址：同样画 img_bg，和「有地址但还没加载出来」保持同一种底。
+        // 注意别退回纯色 Box——那正是 A28 的现场：占位图整个不见了。
+        Image(
+            painter = painterResource(ImagePlaceholderRes),
+            contentDescription = null,
+            modifier = modifier,
+            contentScale = ContentScale.Crop,
+        )
         return
     }
     AndroidView(
@@ -342,6 +367,7 @@ internal fun RemoteCover(url: String?, modifier: Modifier = Modifier) {
                 scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
                 // 短交叉淡入而不是硬切：远程图落地时不闪白块
                 Glide.with(this).load(url).centerCrop()
+                    .placeholder(ImagePlaceholderRes).error(ImagePlaceholderRes)
                     .transition(DrawableTransitionOptions.withCrossFade(180)).into(this)
             }
         },
