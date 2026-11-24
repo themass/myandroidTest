@@ -107,10 +107,11 @@ internal fun ProfileSlidePage(onClose: () -> Unit) {
     }
 }
 
-// 拍照解题已从侧边栏移除；频道、本地音乐、收藏夹归入「测试」
+// 拍照解题已从侧边栏移除；频道、本地音乐、收藏夹归入「更多」。
+// 「测试」这个组名是开发期留下的（台账 A30：上线标准不该拿测试字样面向用户），改名走 drawer_group_more。
 internal val DrawerGroups = listOf(
     DrawerGroup(R.string.drawer_group_tools, listOf(ProfileAction.Feedback, ProfileAction.Share, ProfileAction.AppRecommend, ProfileAction.Donation)),
-    DrawerGroup(R.string.drawer_group_test, listOf(ProfileAction.Favorites, ProfileAction.LocalMusic)),
+    DrawerGroup(R.string.drawer_group_more, listOf(ProfileAction.Favorites, ProfileAction.LocalMusic)),
     DrawerGroup(R.string.drawer_group_account, listOf(ProfileAction.Settings, ProfileAction.Logout)),
 )
 

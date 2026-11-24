@@ -17,6 +17,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -41,6 +42,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.semantics.selected
@@ -666,7 +669,7 @@ private fun ChannelsFeed(
             }
         }
         item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore,
-            firstPageLoading = pager.loading && cards.isEmpty()) }
+            firstPageLoading = pager.loading && cards.isEmpty(), empty = cards.isEmpty()) }
     }
 }
 
@@ -729,12 +732,18 @@ private fun storedProgress(preferences: android.content.SharedPreferences, entry
     return if (stored >= RESUME_MIN_MS) stored else 0L
 }
 
-/** 一张卡的封面：远程地址走 Glide，没有就纯色底（随包 asset 封面随本地样片库下线）。 */
+/** 一张卡的封面：远程地址走 Glide；没有地址也不留纯色块——用设计好的占位图
+ * （用户点名：占位图被撤掉是回归，台账 A28）。 */
 @Composable
 internal fun EntryCover(entry: RemoteEntry, modifier: Modifier = Modifier) {
     when {
         !entry.imageUrl.isNullOrBlank() -> RemoteCover(entry.imageUrl, modifier)
-        else -> Box(modifier.background(Lift))
+        else -> Image(
+            painter = painterResource(ImagePlaceholderRes),
+            contentDescription = null,
+            modifier = modifier,
+            contentScale = ContentScale.Crop,
+        )
     }
 }
 
@@ -865,7 +874,8 @@ private fun Library(
             EntryCard(entry, progress[entry.key] ?: 0L, false,
                 Modifier.fillMaxWidth().enterFeedItem(seen, entry.key, pager.items.indexOf(entry)), openEntry)
         }
-        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && pager.items.isEmpty()) }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore,
+            pager.loading && pager.items.isEmpty(), empty = pager.items.isEmpty()) }
     }
 }
 

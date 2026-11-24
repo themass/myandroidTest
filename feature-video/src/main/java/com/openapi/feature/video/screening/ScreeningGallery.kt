@@ -180,7 +180,9 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
         detail = feedToolbarDetail(pager.loading, shown.size, "本"),
     ) {
         item {
-            Text("一册一个地方，\n翻到最后一张为止。", color = White, fontSize = 37.sp, lineHeight = 42.sp, fontWeight = FontWeight.Black)
+            // 同声音馆：单句限一行，不硬折行（台账 A29）。
+            Text("一册一地方，翻到末页。", color = White, fontSize = 24.sp, lineHeight = 32.sp,
+                fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
             FeedError(pager.error, pager::reload)
             Spacer(Modifier.height(12.dp))
             // 首屏加载只留扫光骨架一种信号，不再叠转圈（用户点过名）
@@ -221,7 +223,8 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
                 }
             }
         }
-        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && shown.isEmpty()) }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore,
+            pager.loading && shown.isEmpty(), empty = shown.isEmpty()) }
     }
 }
 
@@ -284,7 +287,7 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
             }
             Spacer(Modifier.height(5.dp))
         }
-        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, empty = shots.isEmpty()) }
     }
 }
 

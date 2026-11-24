@@ -404,14 +404,31 @@ internal fun FeedError(error: String?, onRetry: () -> Unit, modifier: Modifier =
 }
 
 /** 列表底部：到底提示；翻页中的转圈只在屏上已有内容时出现。 */
+/**
+ * 页脚该不该画（纯函数，台账 A29/抽象点 18）：
+ * ① 首屏还在取数且列表空着——等待由扫光骨架统一表达，页脚不转圈；
+ * ② 取完了但列表是空的——没有下一页可翻，「继续下滑加载更多」「到底了」都是没用的文字。
+ */
+internal fun feedFooterShown(loading: Boolean, firstPageLoading: Boolean, empty: Boolean): Boolean {
+    if (loading && firstPageLoading) return false
+    if (empty && !loading) return false
+    return true
+}
+
 @Composable
 internal fun FeedEndRow(
     loading: Boolean, hasMore: Boolean, onLoadMore: () -> Unit,
     /** 首屏加载中（列表还空着）：底部不再转圈，等待信号由列表位的扫光骨架统一表达。 */
     firstPageLoading: Boolean = false,
+    /**
+     * 列表当前是空的。空列表没有「下一页」可翻，页脚一行（「继续下滑加载更多」
+     * 「到底了」）就成了没用的文字——空态文案由列表层自己给，页脚整个不画
+     * （台账 A29，抽象点 18：空数据守卫统一收在这一层，不在八个调用点各写各的）。
+     */
+    empty: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    if (loading && firstPageLoading) return
+    if (!feedFooterShown(loading, firstPageLoading, empty)) return
     Box(modifier.fillMaxWidth().padding(vertical = 14.dp), contentAlignment = Alignment.Center) {
         when {
             loading -> CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)

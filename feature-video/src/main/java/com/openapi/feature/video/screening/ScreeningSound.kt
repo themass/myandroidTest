@@ -359,7 +359,9 @@ private fun SoundHubPicker(
         detail = feedToolbarDetail(pager.loading, rows.size, "个频道"),
     ) {
         item {
-            Text("戴上耳机，\n慢慢来。", color = White, fontSize = 32.sp, lineHeight = 38.sp, fontWeight = FontWeight.Black)
+            // 用户 20261125：首行大字不许硬折行、不许没用的文字。单句、限一行（台账 A29）。
+            Text("戴上耳机，世界慢下来。", color = White, fontSize = 24.sp, lineHeight = 32.sp,
+                fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
             FeedError(pager.error, pager::reload)
             if (seedChannel == null) {
                 Text("没有频道参数，返回换一张声音卡试试。", Modifier.padding(14.dp), color = Muted)
@@ -386,7 +388,8 @@ private fun SoundHubPicker(
                 }
             }
         }
-        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && rows.isEmpty()) }
+        item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore,
+            pager.loading && rows.isEmpty(), empty = rows.isEmpty()) }
     }
 }
 
@@ -664,7 +667,7 @@ private fun SoundTrackHub(
                     }
                 }
             }
-            item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
+            item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, empty = tracks.isEmpty()) }
         }
         if (current != null) {
             // 播放条在壳之外（壳的安全区够不到它）：自己垫导航条，同旧写法——

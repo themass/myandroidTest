@@ -215,7 +215,7 @@ fun HomeScreen() {
                     // 工具 / 测试 / 账户：真实入口（同「我的」页的入口）；未登录时没有「登出」
                     DrawerGroups.forEach { group ->
                         val items = group.actions.mapNotNull { action -> profile.entries.find { it.action == action } }
-                        val showChannels = group.titleRes == R.string.drawer_group_test
+                        val showChannels = group.titleRes == R.string.drawer_group_more
                         if (items.isNotEmpty() || showChannels) {
                             DrawerSectionTitle(group.titleRes)
                             if (showChannels) {
