@@ -65,6 +65,39 @@
 - journald 上限 `SystemMaxUse=500M`（voice 日志曾单文件 98MB/日级增长）。
 - 回滚：README「回滚」节——disable --now + 删 unit/sudoers 行，process.sh 自动回落 setsid 模式。
 
+### e) 热池：消除通话中 ~10s prewarm 冷 spawn（agent-docs main `1595d513`，104 19:44 部署）
+- 根因精化（journal 实证，纠正「每通 job 付 10s」的假设）：18:52 通的
+  cost_ms=9971 **不是 job 付的**——job 的 RoomIO 落在早已 init 完的热进程上；
+  9971ms 那行是 **补池进程**：proc_pool `_main_task` 每 100ms 补池，热进程被
+  job 吃掉后立刻冷 spawn，**import 风暴砸在通话进行中的单核上**。两个放大器：
+  `preload_modules` 未设（每个进程重烧 27 项 import）；cgroup v1 假
+  cpu_count=2（SDK `CGroupV1CPUMonitor` 在 Ubuntu 20.04 回退 2.0）→ 空闲池
+  默认 2，峰值 1 活跃 + 2 空闲 = 3 个 ~540MB 进程并存。
+- 改动（capacity.py 一个提交）：`preload_modules = list(PREWARM_IMPORTS)`——
+  27 项重 import 交给 forkserver，全生命周期只付一次，job 进程 COW 继承；
+  `WARM_IDLE_PROCESSES = 1` 显式压掉假默认值 2。TDD：
+  tests/test_voice_warm_pool.py（HEAD 基线 22 failed/1402 passed/90 skipped，
+  新增 6 条全绿、零新增失败）。
+- 部署实录（19:44 静默窗口）：LiveKit API 轮询确认无真实房间 →
+  `publish.sh` → `systemctl restart companion-voice`。
+- 验证（104 journal + ps，19:44–19:51）：
+  - 开机：**单个** "process initialized"（pid 1415371）**elapsed 0.9s**
+    （改前是两个、elapsed 13.6–15.6s 成对）；"preloading plugins" 列表 =
+    27 项 + SDK 两件套；无 error initializing。
+  - 探针呼叫（合成房 `perf-probe-hotpool`，19:47:53）：job 由**开机热进程
+    1415371 承接**——进程族谱证明：补池进程 1416366（19:47:53 spawn）在房间
+    关闭后仍存活待命，而 1415371 随房间退出；job 进程必随房间退，故 job
+    = 热 pid。（journal INFO 级无 `launched_warm`/RoomIO linked 字段，以
+    pid 族谱替代该判据。）补池 **prewarm cost_ms=839、init elapsed 1.06s**
+    （改前 9323–9971ms）——通话中冷 spawn 风暴消除，本改动直接验收指标达成。
+  - 房间回收：participant closing → `closing room reason: IDLE`
+    （empty_timeout=20），job 进程干净退出，无残留。
+  - 内存：`free -m` available **309MB**（改前 217–241）；空闲 job 进程
+    2→1；swap 用量 ~874MB（改前 ~1000+）。
+- 回滚：revert `1595d513` + restart companion-voice 即回现状态
+  （prewarm_fnc 本体未动）。遗留：**开机仍付一次 forkserver preload**
+  （boot 一次性 ~15s，预算内），真实 Wi-Fi 通话的第三方案例待下一通。
+
 ### d) livekit 配置（备份 `config.yaml.orig` + `config.yaml.bak-20261125`）
 - `prometheus: port 9090 (basic auth metrics/<rand32hex>，只绑 127.0.0.1)` ——
   SLO 指标数据面落地（C8 ICE 分布、CPU/内存 capacity 数据从这里开始攒），
@@ -88,8 +121,9 @@
    MouthLevel logcat 取证待设备接回。
 3. **Mac 端到端呼叫验证**：livekit python 客户端 SDK（livekit-rtc pip 包名不存在，
    应为 `livekit`/dev 版）未装成；下一通真实通话代替。
-4. **hot pool**：prewarm 27 模块 9.5s 冷 spawn 仍在（每通都付）；调 idle 池属代码改动，
-   归服务端线，未动。
+4. **hot pool：已落地并验证**（见 §2 e）——补池 prewarm 9323–9971ms → **839ms**，
+   通话中冷 spawn 风暴消除；真实 Wi-Fi 通话的复验案例待下一通（验收判据已换为
+   pid 族谱，journal INFO 级无 launched_warm 字段）。
 5. 机器仍是 1vCPU/2GB——C9 容量红线（升配/拆机）仍需用户拍板，本次只做到了「榨干现有配额」。
 
 ## 4. 复核命令（104）
