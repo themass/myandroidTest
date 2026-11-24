@@ -1,12 +1,14 @@
 package com.openapi.feature.video.screening
 
-import android.annotation.SuppressLint
 import android.util.Log
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -28,6 +30,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerInputScope
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.viewinterop.AndroidView
 import com.openapi.common.net.http.HttpUtils
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -162,7 +167,6 @@ private fun TextHubPicker(
         detail = feedToolbarDetail(pager.loading, rows.size, "个频道"),
     ) {
         item {
-            Text("一个故事换一屏。", color = White, fontSize = 32.sp, lineHeight = 38.sp, fontWeight = FontWeight.Black)
             FeedError(pager.error, pager::reload)
             if (seedChannel == null) {
                 Text("没有频道参数，返回换一张文字卡试试。", Modifier.padding(14.dp), color = Muted)
@@ -233,7 +237,10 @@ private fun TextArticleList(
                 Column(Modifier.weight(1f).padding(14.dp)) {
                     Text(entry.title, color = White, fontSize = 16.sp, fontWeight = FontWeight.Bold,
                         maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    Text(entry.actionUrl, color = Muted, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    // 上线口径不展示裸 fileUrl（旧开发期留下的调试行）：有日期就标日期。
+                    if (entry.description.isNotBlank()) {
+                        Text(entry.description, color = Muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                 }
             }
         }
@@ -286,7 +293,7 @@ private fun TextArticleReader(
         when {
             loading -> ListSkeleton(rows = 4, rowHeight = 120.dp)
             err != null -> FeedError(err, { retryScope.launch { fetch() } })
-            html != null -> TextHtmlBody(html!!)
+            html != null -> TextHtmlBody(html!!, onSwipeBack = onBack)
         }
     }
 }
@@ -319,29 +326,129 @@ internal fun articleBodyHtml(body: String): String =
         "html,body{margin:0;padding:0;background:#FFFDF8;color:#1A1A1A;}" +
         "body{padding:16px 14px;word-wrap:break-word;word-break:break-word;" +
         "font-size:17px;line-height:1.7;}" +
-        "img,video,iframe{max-width:100%;height:auto;}" +
+        "video,iframe{max-width:100%;height:auto;}" +
+        // 长截图/连图不设上限会把整页撑成巨幅滚动面（大图卡顿、解码内存峰值的根源之一），
+        // 70vh 封顶后 Chromium 按 CSS 替换元素规则等比缩，不变形。
+        "img{max-width:100%;max-height:70vh;height:auto;}" +
         "a{color:#0B5CAB;}" +
         "table{max-width:100%;}" +
         "</style>" +
-        "</head><body>" + body + "</body></html>"
+        "</head><body>" + lazyLoadImages(body) + "</body></html>"
 
-@SuppressLint("SetJavaScriptEnabled")
+/**
+ * 连图懒加载：帖子正文里的 `<img>` 一律补 `loading="lazy"`（WebView 即 Chromium，
+ * 认这个属性），已有 `loading=` 的标签原样——「大量图片」的页面里，屏外图不再
+ * 一次性下载解码，首屏和滚动都只处理视口附近的图。
+ */
+internal fun lazyLoadImages(body: String): String =
+    IMG_TAG.replace(body) { match ->
+        val tag = match.value
+        if (LOADING_ATTR.containsMatchIn(tag)) tag
+        else IMG_OPEN.find(tag)?.let { m ->
+            // 在 `<img` 之后立刻插入属性，其余原样
+            tag.substring(0, m.range.last + 1) + " loading=\"lazy\"" + tag.substring(m.range.last + 1)
+        } ?: tag
+    }
+
+private val IMG_TAG = Regex("(?i)<img\\b[^>]*>")
+private val IMG_OPEN = Regex("(?i)<img\\b")
+private val LOADING_ATTR = Regex("(?i)\\bloading\\s*=")
+
 @Composable
-private fun TextHtmlBody(html: String) {
+private fun TextHtmlBody(html: String, onSwipeBack: () -> Unit) {
     val context = LocalContext.current
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    // 右滑关闭的阈值从 dp 换算成 px，判定本身是纯函数（articleSwipeCloses）。
+    val minDistancePx = with(density) { ARTICLE_SWIPE_MIN_DP.dp.toPx() }
     AndroidView(
-        modifier = Modifier.fillMaxSize().background(Color(PAPER_RGB)),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(PAPER_RGB))
+            .pointerInput(html) {
+                detectSwipeBack(minDistancePx, minVelocityPx = MIN_FLING_PX_PER_S, onSwipe = onSwipeBack)
+            },
         factory = {
             WebView(context).apply {
                 // 纸面白而不是透明：深色屏幕上透明=黑底，而帖子正文没声明颜色（天生黑字）。
                 setBackgroundColor(PAPER_RGB.toInt())
-                settings.javaScriptEnabled = true
+                // JS 关掉（用户 2026-11-25：「去除错误的 js 之类的噪音」）：
+                // 正文 item.json 回的是论坛帖子 HTML 片段，旧文章页（MyWebView.loadHtmlBody）
+                // 从来不开 JS；开 JS 只会让帖子里残留的论坛脚本（统计/表情/点赞）报错刷屏、
+                // 还吃 CPU/内存。关掉后连 console 回调都不存在，错误自然不进 logcat。
+                settings.javaScriptEnabled = false
                 settings.allowFileAccess = false
-                settings.domStorageEnabled = true
+                // DOM storage 同 JS 一起关掉：JS 关了它就没有使用方，少一个可读写的域。
+                settings.domStorageEnabled = false
+                // 大量图片的正文页：保留 Chromium 默认磁盘缓存（不设 LOAD_NO_CACHE），
+                // 重复进同一篇不再重新下载图片。
                 settings.userAgentString = settings.userAgentString + " " + HttpUtils.getUserAgentSuffix(context)
-                webViewClient = WebViewClient()
+                // 正文里的链接点击一律吞掉：帖子链接指向论坛/外链，喂给外部浏览器既跳走
+                // 又可能带上本机标识；锚点跳转同样不影响（页面内容是自包含的）。
+                webViewClient = object : WebViewClient() {
+                    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = true
+                }
             }
         },
-        update = { it.loadDataWithBaseURL(null, articleBodyHtml(html), "text/html", "utf-8", null) },
+        update = { view ->
+            view.loadDataWithBaseURL(null, articleBodyHtml(html), "text/html", "utf-8", null)
+        },
+        // 离页时把 WebView 从窗口解绑再销毁：只靠 GC 收 WebView 会在「大量文字+图片」
+        // 的页面上留驻渲染内存（反复进出文章页后崩溃的正路之一）。
+        onRelease = { view ->
+            view.stopLoading()
+            (view.parent as? android.view.ViewGroup)?.removeView(view)
+            view.destroy()
+        },
     )
+}
+
+/** 右滑关闭文章页的滑动阈值：横向位移至少这么多 dp。 */
+internal const val ARTICLE_SWIPE_MIN_DP = 60f
+
+/** 最低横向速度（px/s）：慢蹭的横移多半是误触，不给关页。 */
+private const val MIN_FLING_PX_PER_S = 600f
+
+/**
+ * 右滑是否应关闭文章页（纯函数，ScreeningTextBodyTest 钉桩）：
+ * 终点相对起点横移超过 [minDistancePx] 且平均速度超过 [minVelocityPx] 才算。
+ * 用户口径：「只有文章页右滑是关闭文章页」——整页右滑都算，不限左缘起手。
+ */
+internal fun articleSwipeCloses(
+    dx: Float,
+    velocityPxPerS: Float,
+    minDistancePx: Float,
+    minVelocityPx: Float,
+): Boolean = dx >= minDistancePx && velocityPxPerS >= minVelocityPx
+
+/**
+ * 手势侦测（挂在 pointerInput 的 PointerInputScope 上）：把 pointer 事件里的
+ * 横移/速度喂给 [articleSwipeCloses]。WebView 自己的纵向滚动不受影响——
+ * 只在「明显横向」时判定关闭一次。用 Initial pass 观察即可：
+ * 不与 WebView 子 view 争消费权，判定只看不吃事件。
+ */
+private suspend fun PointerInputScope.detectSwipeBack(
+    minDistancePx: Float,
+    minVelocityPx: Float,
+    onSwipe: () -> Unit,
+) {
+    awaitEachGesture {
+        val down = awaitFirstDown(pass = PointerEventPass.Initial, requireUnconsumed = false)
+        var downX = down.position.x
+        var downTime = System.nanoTime()
+        var fired = false
+        while (true) {
+            val event = awaitPointerEvent(PointerEventPass.Initial)
+            if (event.changes.none { it.pressed }) break
+            if (fired) continue
+            val change = event.changes.firstOrNull() ?: break
+            val dx = change.position.x - downX
+            val dtSeconds = (System.nanoTime() - downTime) / 1_000_000_000f
+            val velocity = if (dtSeconds > 0f) dx / dtSeconds else 0f
+            // 只有明显横向（位移+速度都达标）才判关闭；纯竖滑 dx 不够，永远不会触发。
+            if (articleSwipeCloses(dx, velocity, minDistancePx, minVelocityPx)) {
+                fired = true
+                onSwipe()
+            }
+        }
+    }
 }

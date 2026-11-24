@@ -173,10 +173,12 @@ fun HomeScreen() {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        // 对话页的按住录音、上滑取消是手势操作，边缘滑动会和它抢手势：对话标签里只用菜单按钮打开，
-        // 其余标签可以从左边缘滑出来；已经打开时任何标签都可以滑动关闭
+        // 对话页的按住录音、上滑取消是手势操作，边缘滑动会和它抢手势：对话标签里只用菜单按钮打开。
+        // 频道标签（放映场）整模块禁滑：用户 2026-11-25 明确「频道页所有的页面不应该支持右滑，
+        // 没有抽屉，抽屉不是这个模块的功能」；已经打开时任何标签都可以滑动关闭
         gesturesEnabled = drawerSwipeEnabled(
             currentIsChat = current == HomeTab.Chat,
+            currentIsChannels = current == HomeTab.Channels,
             drawerOpen = drawerState.isOpen,
             callVisible = companionCallActive,
         ),
@@ -222,7 +224,7 @@ fun HomeScreen() {
                     // 工具 / 测试 / 账户：真实入口（同「我的」页的入口）；未登录时没有「登出」
                     DrawerGroups.forEach { group ->
                         val items = group.actions.mapNotNull { action -> profile.entries.find { it.action == action } }
-                        val showChannels = group.titleRes == R.string.drawer_group_test
+                        val showChannels = group.titleRes == R.string.drawer_group_content
                         if (items.isNotEmpty() || showChannels) {
                             DrawerSectionTitle(group.titleRes)
                             if (showChannels) {

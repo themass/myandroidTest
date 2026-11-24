@@ -167,7 +167,6 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
         detail = feedToolbarDetail(pager.loading, shown.size, "本"),
     ) {
         item {
-            Text("一册一个地方，\n翻到最后一张为止。", color = White, fontSize = 37.sp, lineHeight = 42.sp, fontWeight = FontWeight.Black)
             FeedError(pager.error, pager::reload)
             Spacer(Modifier.height(12.dp))
             // 首屏加载只留扫光骨架一种信号，不再叠转圈（用户点过名）

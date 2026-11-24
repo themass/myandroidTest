@@ -107,10 +107,11 @@ internal fun ProfileSlidePage(onClose: () -> Unit) {
     }
 }
 
-// 拍照解题已从侧边栏移除；频道、本地音乐、收藏夹归入「测试」
+// 拍照解题已从侧边栏移除；频道（放映场）、本地音乐、收藏夹是正式功能，分组名不再叫「测试」
+// （用户 2026-11-25 点名「按照上线的标准」）——它们是内容入口，归「内容」。
 internal val DrawerGroups = listOf(
     DrawerGroup(R.string.drawer_group_tools, listOf(ProfileAction.Feedback, ProfileAction.Share, ProfileAction.AppRecommend, ProfileAction.Donation)),
-    DrawerGroup(R.string.drawer_group_test, listOf(ProfileAction.Favorites, ProfileAction.LocalMusic)),
+    DrawerGroup(R.string.drawer_group_content, listOf(ProfileAction.Favorites, ProfileAction.LocalMusic)),
     DrawerGroup(R.string.drawer_group_account, listOf(ProfileAction.Settings, ProfileAction.Logout)),
 )
 
@@ -165,11 +166,13 @@ internal fun DrawerSectionTitle(@StringRes title: Int) {
 
 /**
  * 抽屉滑动开关（纯函数，HomeDrawerGestureTest 钉住）：
- * 对话标签（按住录音）与通话覆盖层（WebView 单指拖动）里禁止滑动开抽屉；
+ * 对话标签（按住录音）、频道标签（放映场整模块没有抽屉——用户 2026-11-25 点名）
+ * 与通话覆盖层（WebView 单指拖动）里禁止滑动开抽屉；
  * 抽屉已打开时任何界面都能滑动关闭。
  */
 internal fun drawerSwipeEnabled(
     currentIsChat: Boolean,
+    currentIsChannels: Boolean,
     drawerOpen: Boolean,
     callVisible: Boolean,
-): Boolean = drawerOpen || (currentIsChat.not() && callVisible.not())
+): Boolean = drawerOpen || (currentIsChat.not() && currentIsChannels.not() && callVisible.not())

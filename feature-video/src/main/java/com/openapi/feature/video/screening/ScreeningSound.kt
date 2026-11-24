@@ -359,7 +359,6 @@ private fun SoundHubPicker(
         detail = feedToolbarDetail(pager.loading, rows.size, "个频道"),
     ) {
         item {
-            Text("戴上耳机，\n慢慢来。", color = White, fontSize = 32.sp, lineHeight = 38.sp, fontWeight = FontWeight.Black)
             FeedError(pager.error, pager::reload)
             if (seedChannel == null) {
                 Text("没有频道参数，返回换一张声音卡试试。", Modifier.padding(14.dp), color = Muted)
