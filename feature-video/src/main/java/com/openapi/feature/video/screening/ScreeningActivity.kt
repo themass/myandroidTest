@@ -208,16 +208,16 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
         )
         // pager 跟着这一页在这里建（不是建在 AnimatedContent 的分支里）：
         // 之后从播放器退回内页，换的是 screen 状态，pager 不动——列表原样在，不重新取数。
-        val fetch: suspend (Int) -> ScreeningFeedStore.Page<RemoteEntry> = { start ->
+        val fetch: suspend (Int, String) -> ScreeningFeedStore.Page<RemoteEntry> = { start, keyword ->
             when {
                 // 夜色配置频道页：先列子频道（channel.json），点一行再下钻片单
                 fetchKey != null && kind == ScreeningPageKind.SUBCHANNELS ->
                     store.subchannels(fetchKey, start)
                 fetchKey != null && kind == ScreeningPageKind.VIDEO_USERS ->
-                    store.videoUsers(fetchKey, start)
+                    store.videoUsers(fetchKey, start, keyword)
                 fetchKey != null && kind == ScreeningPageKind.VIDEO_USER_ITEMS ->
-                    store.videoUserItems(fetchKey, start)
-                fetchKey != null -> store.videos(fetchKey, start)
+                    store.videoUserItems(fetchKey, start, keyword)
+                fetchKey != null -> store.videos(fetchKey, start, keyword)
                 // 没有取数键（路由判定下理论上不出现）：诚实空页，不拿随包样片填屏
                 else -> ScreeningFeedStore.Page(emptyList(), null, false)
             }
@@ -427,7 +427,7 @@ private fun HomeTabs(
                     // 频道 pager 本来只在频道 tab 里建；从图集 tab 先开时补建同一份，
                     // 两个 tab 共用一次请求，不是各打各的。分类跟频道 tab 的默认值一致（电影）。
                     channelPagers.getOrPut(FeedCategory.MOVIE) {
-                        FeedPager(feedScope) { start -> store.channels(FeedCategory.MOVIE, start) }
+                        FeedPager(feedScope) { start, _ -> store.channels(FeedCategory.MOVIE, start) }
                     }, onGallery,
                 )
                 else -> ChannelsFeed(store, feedScope, channelPagers, channelFilter, onChannelFilter,
@@ -552,7 +552,7 @@ private fun ChannelsFeed(
     //（秒回、不闪、不重复打接口），没看过的从扫光占位开始。scope 也在上层：
     // 切走标签时 pager 组合离开，在途请求和失败自动重试不会被牵连取消。
     val pager = pagerCache.getOrPut(category) {
-        FeedPager(feedScope, fetch = { start -> store.channels(category, start) })
+        FeedPager(feedScope, fetch = { start, _ -> store.channels(category, start) })
     }
     val listState = remember(category) { LazyListState() }
     LaunchedEffect(pager) { pager.load() }
@@ -787,6 +787,9 @@ private fun Library(
         title = page.title,
         onBack = back,
         detail = feedToolbarDetail(pager.loading, pager.items.size, "条"),
+        // 搜索（用户点名 2026-11-25）：片单页就是旧 VideoChannelListFragment——工具条挂搜索框，
+        // 裸关键词直传 keyword=（服务端把 channel 置空、按频道行 channelType 跨频道检索）。
+        searchable = page.kind != ScreeningPageKind.SUBCHANNELS,
         contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 9.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {

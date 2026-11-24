@@ -409,43 +409,85 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
     // iconOnly：影院态底部只要图标走带（设计稿），文字让给画面；信息态保留图标+文字在 Lift 卡上。
     // 两处按用户点名改动：字幕开着时再点一下=直接关掉（之前必须钻进面板，看着像没反应）；
     // 内核不再上工具台——换内核只在后台按失败自动兜底，不再暴露给用户手动切。
+    // 信息态（用户点名 2026-11-25「按钮布局换行太丑」）：不再是一排竖排 tab（图标上文字下、
+    // 间距挤成换行观感），改成一排等高胶囊——字幕/倍速/弹幕/更多 四枚等宽 + 收藏心形收尾，
+    // 一行装下、永不换行；收藏不再是下面孤零零的一整行。
     val toolsRow: @Composable (Boolean) -> Unit = { iconOnly ->
-        Row(
-            Modifier.fillMaxWidth()
-                .then(if (iconOnly) Modifier else Modifier.background(Lift, Tile)),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            listOf(
-                "字幕" to Icons.Default.Subtitles,
-                (if (speed == 1f) "倍速" else "${speed}×") to Icons.Default.Speed,
-                "弹幕" to Icons.Default.ChatBubbleOutline,
-                "更多" to Icons.Default.MoreHoriz,
-            ).forEachIndexed { index, (name, picture) ->
-                Column(
-                    Modifier.weight(1f).heightIn(min = if (iconOnly) 40.dp else 51.dp).clip(Tile).clickable {
-                        when {
-                            index == 0 && captionSource != 0 -> { captionSource = 0; info = "字幕已关闭" }
-                            // 弹幕键按互联网惯例直接开/关（和字幕键同款手感）；来源与重试收进「更多 → 弹幕设置」。
-                            index == 2 -> { info = ""; danmaku = !danmaku }
-                            else -> { info = ""; panel = if (index == 1) "倍速" else name }
-                        }
-                    },
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Icon(picture, name, Modifier.size(18.dp), tint = if (index == 0 && captionSource != 0 || index == 2 && danmaku) Mint else White)
-                    if (!iconOnly) Text(name, fontSize = 11.sp, maxLines = 1)
+        if (iconOnly) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                listOf(
+                    "字幕" to Icons.Default.Subtitles,
+                    (if (speed == 1f) "倍速" else "${speed}×") to Icons.Default.Speed,
+                    "弹幕" to Icons.Default.ChatBubbleOutline,
+                    "更多" to Icons.Default.MoreHoriz,
+                ).forEachIndexed { index, (name, picture) ->
+                    Column(
+                        Modifier.weight(1f).heightIn(min = 40.dp).clip(Tile).clickable {
+                            when {
+                                index == 0 && captionSource != 0 -> { captionSource = 0; info = "字幕已关闭" }
+                                // 弹幕键按互联网惯例直接开/关（和字幕键同款手感）；来源与重试收进「更多 → 弹幕设置」。
+                                index == 2 -> { info = ""; danmaku = !danmaku }
+                                else -> { info = ""; panel = if (index == 1) "倍速" else name }
+                            }
+                        },
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Icon(picture, name, Modifier.size(18.dp), tint = if (index == 0 && captionSource != 0 || index == 2 && danmaku) Mint else White)
+                    }
                 }
             }
-        }
-    }
-    val favorRow: @Composable () -> Unit = {
-        Row(Modifier.background(Color(0xFF243A3F), Tile).padding(horizontal = 5.dp)) {
-            TextButton(onClick = { liked = !liked; store.edit().putBoolean("favorite:$id", liked).apply() }) {
-                Icon(if (liked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, null, Modifier.size(16.dp))
-                Text(if (liked) " 已收藏" else " 收藏")
+        } else {
+            Row(
+                Modifier.fillMaxWidth().padding(top = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                listOf(
+                    "字幕" to Icons.Default.Subtitles,
+                    (if (speed == 1f) "倍速" else "${speed}×") to Icons.Default.Speed,
+                    "弹幕" to Icons.Default.ChatBubbleOutline,
+                    "更多" to Icons.Default.MoreHoriz,
+                ).forEachIndexed { index, (name, picture) ->
+                    val active = index == 0 && captionSource != 0 || index == 2 && danmaku
+                    Row(
+                        Modifier.weight(1f).height(38.dp).clip(RoundedCornerShape(12.dp))
+                            .background(if (active) Mint.copy(alpha = .14f) else Lift)
+                            .clickable {
+                                when {
+                                    index == 0 && captionSource != 0 -> { captionSource = 0; info = "字幕已关闭" }
+                                    index == 2 -> { info = ""; danmaku = !danmaku }
+                                    else -> { info = ""; panel = if (index == 1) "倍速" else name }
+                                }
+                            },
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(picture, null, Modifier.size(15.dp),
+                            tint = if (active) Mint else White)
+                        Spacer(Modifier.width(5.dp))
+                        Text(name, fontSize = 12.sp, maxLines = 1,
+                            color = if (active) Mint else White)
+                    }
+                }
+                // 收藏：一枚和胶囊同高的心形钮（原「已收藏」整行下线——孤行太浪费，用户点名）。
+                Box(
+                    Modifier.width(44.dp).height(38.dp).clip(RoundedCornerShape(12.dp))
+                        .background(if (liked) Color(0xFF243A3F) else Lift)
+                        .clickable { liked = !liked; store.edit().putBoolean("favorite:$id", liked).apply() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        if (liked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        if (liked) "取消收藏" else "收藏",
+                        Modifier.size(18.dp),
+                        tint = if (liked) Peach else Muted,
+                    )
+                }
             }
-            // DLNA 投屏入口正式口径下线（没有可验证的真电视设备；旧 :cast 模块和旧页面原样保留）。
         }
     }
     // 画面内发送栏（互联网播放器惯例）：弹幕开着时贴在走带下方，胶囊输入框 + 发送键，回车即发。
@@ -853,14 +895,23 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
             Column(Modifier.padding(horizontal = 18.dp, vertical = 9.dp)) {
                 seekBlock()
                 Text(channel.ifEmpty { "本周放映" }, color = Mint, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                Text(source.title, color = White, fontSize = 35.sp, lineHeight = 40.sp, fontWeight = FontWeight.Black)
-                Text(source.description, color = Muted, modifier = Modifier.padding(top = 5.dp, bottom = 12.dp))
+                // 片名 35→22sp（用户点名「字体太大」）：详情页不是海报，片名一行认出就够，
+                // 高度留给下面的工具区和未来的简介/分析区。
+                Text(source.title, color = White, fontSize = 22.sp, lineHeight = 27.sp,
+                    fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp))
+                if (source.description.isNotBlank()) {
+                    Text(source.description, color = Muted, modifier = Modifier.padding(top = 5.dp, bottom = 12.dp))
+                }
                 // 设计稿：简介和工具台之间一条分隔线，下半页分成「讲什么」和「能干什么」两段
                 HorizontalDivider(color = Lift)
                 Spacer(Modifier.height(10.dp))
                 toolsRow(false)
                 if (danmaku) danmakuSendRow()
-                Box(Modifier.fillMaxWidth().padding(top = 10.dp), contentAlignment = Alignment.CenterEnd) { favorRow() }
+                // 预留区（用户点名 2026-11-25：「未来会在底部增加电影简介和详情分析，说不定接上AI问答」）：
+                // 工具行以下就是这块的位置——现在诚实留空（不放假内容），将来按
+                // 「简介卡 → 分析卡 → AI 问答入口」三段纵向堆叠，全部走 Lift 卡 + 本 Column 的 18dp 边距，
+                // 滚动容器已经是外层 AnimatedContent 的页，不再加一层嵌套滚动。
                 error?.let { message -> Text(message, color = Peach, modifier = Modifier.padding(top = 12.dp)) }
             }
         }

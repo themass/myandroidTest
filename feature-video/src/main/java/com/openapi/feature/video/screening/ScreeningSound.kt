@@ -83,11 +83,11 @@ internal fun ScreeningSound(
 
     val context = LocalContext.current
     val hubs = remember(hubChannel) {
-        FeedPager(scope) { start -> store.soundChannelHub(hubChannel ?: "", start) }
+        FeedPager(scope) { start, _ -> store.soundChannelHub(hubChannel ?: "", start) }
     }
     val hubParam = hub
     val tracksPager = remember(hubParam) {
-        FeedPager(scope) { start -> store.soundTracks(hubParam ?: "", start) }
+        FeedPager(scope) { start, keyword -> store.soundTracks(hubParam ?: "", start, keyword) }
     }
     val hubState = rememberLazyListState()
     val tracksState = rememberLazyListState()
@@ -638,6 +638,8 @@ private fun SoundTrackHub(
             title = "曲目",
             onBack = onBack,
             detail = feedToolbarDetail(pager.loading, tracks.size, "首"),
+            // 搜索（用户点名）：对齐旧 SoundItemsMusicFragment——keyword 直传 sound/items.json。
+            searchable = true,
             contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp),
             modifier = Modifier.weight(1f).fillMaxWidth(),
         ) {
