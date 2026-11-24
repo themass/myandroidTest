@@ -33,6 +33,10 @@ mkdir -p /tmp/psd2live-gen/out
 python3 -I scripts/dh-lab/psd2live-eval/inspect_export.py /tmp/psd2live-gen/out
 ```
 
+## 全新角色分层 demo
+
+全原创机器人角色，分层输入含 `ParamFace_smile` 表情与 `ParamWear_cape` 披风开关。生成方式、Editor MCP 导出/姿态步骤及本轮未执行原因见 [`ORIGINAL-AVATAR-DEMO.md`](ORIGINAL-AVATAR-DEMO.md)；当前入仓证据仅为源图，不含 `.moc3` 或 Editor 运行图。
+
 ## PSD header 钉桩
 
 Adobe `FileHeader`：`struct.pack(">4sH6xHIIHH", b"8BPS", 1, 3, rows, cols, 8, 3)`
