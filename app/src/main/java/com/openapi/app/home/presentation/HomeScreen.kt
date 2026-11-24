@@ -43,6 +43,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubble
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Forum
@@ -272,6 +273,26 @@ fun HomeScreen() {
                             onClick = {
                                 scope.launch { drawerState.close() }
                                 com.openapi.feature.camerafx.CameraFxActivity.start(context)
+                            },
+                            colors = DrawerItemColors,
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                        )
+                        // 特效引擎对比（多后端 demo）：只引用 main-source 的两个 const
+                        // （EffectsLabLaunch），Activity/依赖/资产全在 debug source set 里。
+                        NavigationDrawerItem(
+                            label = { Text("特效引擎对比") },
+                            icon = { Icon(Icons.Filled.AutoAwesome, contentDescription = null) },
+                            selected = false,
+                            onClick = {
+                                scope.launch { drawerState.close() }
+                                context.startActivity(
+                                    Intent()
+                                        .setClassName(
+                                            context.packageName,
+                                            com.openapi.app.fxlab.EffectsLabLaunch.CLASS,
+                                        )
+                                        .setAction(com.openapi.app.fxlab.EffectsLabLaunch.ACTION),
+                                )
                             },
                             colors = DrawerItemColors,
                             modifier = Modifier.padding(horizontal = 12.dp),
