@@ -44,6 +44,12 @@ class ChatViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ChatUiState(selectedRole = roles.selected(), loading = true))
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
+    /**
+     * 乐观删除的墓碑：所有「用服务端历史重建列表」的路径（refresh 合并、兜底对齐、
+     * 加载更早的一页）共享这一份，正在等确认的条目不能被历史带回来。见 [PendingDeletions]。
+     */
+    private val pendingDeletions = PendingDeletions()
+
     private val characterActions = CharacterActions(repository, roles, _uiState, viewModelScope, strings, onSessionChanged = ::refresh)
     private val composer = ComposerActions(_uiState)
     private val streamer = ReplyStreamer(
@@ -63,17 +69,27 @@ class ChatViewModel : ViewModel() {
     )
     private val resend = ResendActions(
         repository, _uiState, viewModelScope, streamer,
-        startAttachments = { m -> attachmentJob = viewModelScope.launch { deliverAttachments(m) } },
+        // 赋值前先取消旧句柄：不取消的话，上一条附件任务变成孤儿——停止按钮只 cancel
+        // 最后一条，之前那条（还在上传）既没人等它也没人能停它，`attachmentActive` 也随之失真。
+        startAttachments = { m -> attachmentJob?.cancel(); attachmentJob = viewModelScope.launch { deliverAttachments(m) } },
     )
     private val send = SendActions(
         repository, _uiState, viewModelScope, composer, streamer,
         submitEdit = { id, text -> submitEdit(id, text) },
-        startAttachmentSend = { m -> attachmentJob = viewModelScope.launch { repository.saveMessage(repository.currentSessionId(), m); deliverAttachments(m, restoreDraftsOnFailure = true) } },
+        // 同 resend：先取消旧任务再起新的，attachmentJob 始终指向唯一在跑的那条。
+        startAttachmentSend = { m -> attachmentJob?.cancel(); attachmentJob = viewModelScope.launch { repository.saveMessage(repository.currentSessionId(), m); deliverAttachments(m, restoreDraftsOnFailure = true) } },
         strings = strings,
     )
-    private val history = HistoryActions(repository, _uiState, viewModelScope, isInFlight = { attachments.isInFlight(it) }, strings = strings)
+    private val history = HistoryActions(
+        repository, _uiState, viewModelScope,
+        isInFlight = { attachments.isInFlight(it) }, strings = strings,
+        pendingDeletions = pendingDeletions,
+    )
     private val feedback = FeedbackActions(_uiState)
-    private val removal = MessageRemoval(repository, _uiState, viewModelScope, reconcile = { fallbackReloadMessages() }, strings = strings)
+    private val removal = MessageRemoval(
+        repository, _uiState, viewModelScope, strings = strings,
+        pending = pendingDeletions,
+    )
     private val imageRetry = ImageRetryActions(repository, _uiState, viewModelScope)
 
     init {
@@ -282,8 +298,10 @@ class ChatViewModel : ViewModel() {
             } else {
                 // 服务端历史里没有「失败」这个状态：所有本地标成失败的用户消息，重新加载后都要保留失败标记（可重试），
                 // 不能只保留最后一条。匹配规则：文字相同，且创建时间相差不超过 2 分钟（服务端分配的 id 与本地不同）。
+                // 先剔掉乐观删除挂起中的条目：兜底对齐正是「删了又回来」最容易发生的地方
+                // （删除请求还挂在后台，这一页历史已经到了）。
                 cur.copy(
-                    messages = HistoryMerge.merge(cur.messages, page.messages),
+                    messages = HistoryMerge.merge(cur.messages, pendingDeletions.filter(page.messages)),
                     hasMoreHistory = page.hasMore,
                     sessionId = sessionId,
                 )

@@ -158,6 +158,23 @@ class ReplyStreamerStreamTest {
         assertFalse("最后一轮也已正常收尾", h.state.value.streaming)
     }
 
+    // ---------------------------------------------------------------- 停止必须停两端（任务 2）
+
+    /**
+     * 点停止除了杀本地 Job，还必须请服务端取消这一轮——
+     * 否则服务端回合继续跑，下一条吃 409「上一轮回复还没结束」。
+     */
+    @Test
+    fun stopAlsoCancelsTheTurnOnTheServer() {
+        val flow = flow<ChatStreamEvent> { kotlinx.coroutines.awaitCancellation() }
+        val h = Harness(listOf(user()), flow)
+        h.streamer.stream("问", userMessageId = "user-1", persistUser = true)
+        h.scope.runCurrent()
+        h.streamer.cancel()
+        h.scope.advanceUntilIdle()
+        assertEquals("停止要带上当前会话请服务端取消", listOf(1L), h.repo.cancelledTurns)
+    }
+
     /**
      * 用户点停止 = 中断意图明确：排队中的文字必须清空，不能接着起新回合
      * （排空只挂在自然结束的收尾；停止的 catch 分支 rethrow，走不到那里）。

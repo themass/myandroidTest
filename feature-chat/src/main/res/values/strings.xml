@@ -15,7 +15,7 @@
     <string name="chat_call_desc">Voice call</string>
     <string name="chat_camera_rationale">Camera permission is needed to take photos to send to the AI</string>
     <string name="chat_camera_denied">Camera permission not granted, can\'t take a photo</string>
-    <string name="chat_delete_message_body">This only removes it from the local chat history on this device. The copy on the server is unaffected.</string>
+    <string name="chat_delete_message_body">This deletes the message from this conversation, on the server as well. It cannot be recovered.</string>
     <string name="chat_delete_message_title">Delete this message?</string>
     <string name="chat_empty_hint">Just say what\'s on your mind</string>
     <string name="chat_feedback_hint">Enter your feedback</string>
@@ -94,6 +94,10 @@
     <string name="chat_attachment_read_failed">Couldn\'t read the attachment, please try again</string>
     <string name="chat_image_read_failed">Couldn\'t read the image, please try again</string>
     <string name="chat_image_edit_fallback">Editing failed, the original image was used</string>
+    <!-- 编辑产物另存到本地相册（Android 10+ MediaStore，零权限）：成功与失败都要说清楚，低版本单独说明 -->
+    <string name="chat_image_saved">Saved to your gallery</string>
+    <string name="chat_image_save_failed">Couldn\'t save to the gallery</string>
+    <string name="chat_image_save_needs_android10">Saving to the gallery needs Android 10 or newer</string>
     <string name="chat_speak_failed">Couldn\'t play the voice, please try again later</string>
     <string name="chat_role_switch_failed">Couldn\'t switch roles, please try again later</string>
     <string name="chat_role_create_failed">Couldn\'t create the role, please try again later</string>
@@ -103,4 +107,8 @@
     <!-- 闸的是「附件」而不是「图片」：图与视频在 wire 上同一条 attachments，共用同一个额度 -->
     <string name="chat_attachment_limit_reached">A message can carry at most %1$d attachments</string>
     <string name="chat_error_separator">", "</string>
+    <!-- 帧间看门狗：连接活着但服务端不再出字（TurnEventCollector.frameTimeoutMs 判定） -->
+    <string name="chat_turn_timeout">The reply stopped producing text, please try again</string>
+    <!-- 点停止后服务端上一轮仍占着会话，取消并重试一次仍然 409 -->
+    <string name="chat_previous_turn_running">The previous reply is still running, please try again in a moment</string>
 </resources>

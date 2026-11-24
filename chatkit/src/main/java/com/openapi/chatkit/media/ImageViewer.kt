@@ -6,10 +6,13 @@ import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -46,6 +49,9 @@ internal fun imageModel(source: String): Any =
  *
  * 某一张加载失败时（整改清单 P1-10）显示失败占位而不是黑屏；失败时单击 = 重试而不是关闭，
  * [onRetry] 交回调用方去重新换取远程地址，组件自己会带新的缓存 key 强制重新加载。
+ *
+ * [onEdit] 非空时在底部居中浮一个「编辑」按钮（对**当前页**那一张生效）；为 null 时查看器
+ * 与从前完全一致——陪伴页这类没有编辑管线的宿主不该看到一个点了没反应的按钮。
  */
 @Composable
 fun ImageViewer(
@@ -56,6 +62,8 @@ fun ImageViewer(
     onLongPress: (String) -> Unit = {},
     /** 点了失败的那张图（下标）：交调用方换源；组件同步做本地强制重载。 */
     onRetry: (Int) -> Unit = {},
+    /** 点「编辑」（传当前页的来源）。宿主若会打开编辑器，记得先关闭查看器再进编辑。 */
+    onEdit: ((String) -> Unit)? = null,
 ) {
     if (sources.isEmpty()) return
     // 与气泡同一套语义：来源一换整组回到 Loading，旧回调落在被换掉的状态上不会污染新图
@@ -90,6 +98,20 @@ fun ImageViewer(
                     color = Color.White,
                     modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(top = 16.dp),
                 )
+            }
+            if (onEdit != null) {
+                // 底部居中的「编辑」：半透明底压在小图上，图片主体（Fit 居中）不被遮挡。
+                // 动作对当前页生效；宿主打开编辑器前应自己关掉查看器（它盖在最上层）。
+                Button(
+                    onClick = { onEdit(sources[pager.currentPage]) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Black.copy(alpha = 0.55f),
+                        contentColor = Color.White,
+                    ),
+                    modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 24.dp),
+                ) {
+                    Text(stringResource(R.string.chatkit_edit))
+                }
             }
         }
     }

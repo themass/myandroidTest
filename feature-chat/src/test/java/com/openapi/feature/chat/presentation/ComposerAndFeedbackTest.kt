@@ -72,33 +72,36 @@ class ComposerAndFeedbackTest {
      * 终评 I-1：图片草稿的数量闸。
      *
      * 钉三件事：
-     * 1. 到第 9 张为止都能进（上限本身没被抄成一个别的数字）；
-     * 2. 第 10 张**进不去**，而且 `addDraft` 把「因为到顶所以没进」这个事实**回出来**——
+     * 1. 到产品上限（[com.openapi.common.media.MAX_IMAGES_PER_MESSAGE_PICK]，4）为止都能进
+     *    （上限本身没被抄成一个别的数字；它是产品上限，不是服务端那条 9——4 ≤ 9，
+     *    客户端永远够不到服务端的 422）；
+     * 2. 超限的那一张**进不去**，而且 `addDraft` 把「因为到顶所以没进」这个事实**回出来**——
      *    回不出来的话调用方就没法报错，用户只会看到图被吞了；
      * 3. 闸只管 **attachments**（图片+视频，wire 上同一条 list）：文件与位置不受牵连——
-     *    文件走 legacy 逐条接口，位置是独立字段（把 9 个的额度算在文件上是另一种错）。
+     *    文件走 legacy 逐条接口，位置是独立字段（把额度算在文件上是另一种错）。
      *
      * 为什么必须在**这里**拦而不是只靠选择器的 `maxItems`：那是建议值，厂商 ROM 的
      * 选择器会不认；只靠它的话，超出的图要先把上传流量花完，再被服务端的 422 打回来。
      */
     @Test
     fun imageDraftsStopAtTheCapAndSaySo() {
+        val cap = com.openapi.common.media.MAX_IMAGES_PER_MESSAGE_PICK
         val state = MutableStateFlow(ChatUiState())
         val composer = ComposerActions(state)
         fun add(i: Int, kind: MessageKind = MessageKind.IMAGE) =
             composer.addDraft(kind, StagedAttachment(file = java.io.File("/tmp/$i"), displayName = "$i", sizeBytes = 1L))
 
-        for (i in 1..com.openapi.common.media.MAX_MESSAGE_IMAGES) {
+        for (i in 1..cap) {
             assertTrue("第 $i 张应该能进", add(i))
         }
-        assertEquals(com.openapi.common.media.MAX_MESSAGE_IMAGES, state.value.drafts.size)
+        assertEquals(cap, state.value.drafts.size)
 
-        assertFalse("第 10 张必须被拦下", add(10))
-        assertEquals("拦下就是没进", com.openapi.common.media.MAX_MESSAGE_IMAGES, state.value.drafts.size)
+        assertFalse("超限的第 ${cap + 1} 张必须被拦下", add(cap + 1))
+        assertEquals("拦下就是没进", cap, state.value.drafts.size)
 
         // 删掉一张之后又能进：闸数的是**当前**张数，不是一次会话的累计
         composer.removeDraft(state.value.drafts.first().id)
-        assertTrue("腾出位置后要能再进", add(11))
+        assertTrue("腾出位置后要能再进", add(cap + 2))
     }
 
     /**
@@ -106,19 +109,17 @@ class ComposerAndFeedbackTest {
      *
      * 原来这条钉的是「图片满格时视频照样能进」——那是钉住了 bug 的语义：wire 上图与视频
      * 是**同一条** `SendBody.attachments`（`AttachmentSender` 把 prepared + preparedVideos
-     * 拼成一个 list 交出去），服务端 `max_length` 按这条 list 裁。视频选择器又是单选恒可用，
-     * 于是 9 图 + 1 视频 = 10 个附件：用户先把十份字节传完，再吃一个 422；失败后
-     * `restoreDrafts` 把同样的 9+1 原样放回托盘，再按一次发送还是 422 —— 可重复的死局。
-     *
-     * 真语义是：图片+视频共用同一个额度（与服务端 `MAX_MESSAGE_ATTACHMENTS` 同源，
-     * 见 [com.openapi.common.media.MAX_MESSAGE_IMAGES]）。**文件**仍然不受这条闸牵连：
+     * 拼成一个 list 交出去）。真语义是：图片+视频共用同一个额度——**产品上限 4**
+     * （[com.openapi.common.media.MAX_IMAGES_PER_MESSAGE_PICK]，不是服务端那条 9：4 ≤ 9
+     * 客户端永远够不到 422）。**文件**仍然不受这条闸牵连：
      * 它走的是 legacy 的逐条 multipart 接口，压根不进 attachments。
      */
     @Test
     fun theAttachmentCapCountsImagesAndVideosTogether() {
+        val cap = com.openapi.common.media.MAX_IMAGES_PER_MESSAGE_PICK
         val state = MutableStateFlow(
             ChatUiState(
-                drafts = (1..com.openapi.common.media.MAX_MESSAGE_IMAGES).map {
+                drafts = (1..cap).map {
                     DraftAttachment(
                         id = "d$it",
                         kind = MessageKind.IMAGE,
@@ -130,32 +131,33 @@ class ComposerAndFeedbackTest {
         val composer = ComposerActions(state)
         assertTrue("图片满格时文件照样能进（文件走 legacy 逐条接口，不占 attachments 额度）", composer.addDraft(MessageKind.FILE, StagedAttachment(file = java.io.File("/tmp/a.txt"), displayName = "a.txt", sizeBytes = 1L)))
         assertFalse(
-            "九张图已经把 attachments 额度用满，第 10 个附件（视频）必须当场拦下",
+            "满额的图片已把 attachments 额度用满，下一个附件（视频）必须当场拦下",
             composer.addDraft(MessageKind.VIDEO, StagedAttachment(file = java.io.File("/tmp/a.mp4"), displayName = "a.mp4", sizeBytes = 1L)),
         )
-        assertEquals("拦下就是没进： tray 里只有那 9 图 + 1 文件", com.openapi.common.media.MAX_MESSAGE_IMAGES + 1, state.value.drafts.size)
+        assertEquals("拦下就是没进： tray 里只有那 $cap 图 + 1 文件", cap + 1, state.value.drafts.size)
         assertFalse(
-            "视频进不去，也就不会被拼进 SendBody.attachments（wire 上永远凑不出第 10 个）",
+            "视频进不去，也就不会被拼进 SendBody.attachments（wire 上永远凑不出超限的那一个）",
             state.value.drafts.any { it.kind == MessageKind.VIDEO },
         )
     }
 
-    /** 额度是合计的，与**谁先来**无关：视频先占一格，第九张图就是最后能进的那一张。 */
+    /** 额度是合计的，与**谁先来**无关：视频先占一格，限额里最后一张图就是产品上限减一。 */
     @Test
     fun theSharedCapDoesNotCareWhichKindCameFirst() {
+        val cap = com.openapi.common.media.MAX_IMAGES_PER_MESSAGE_PICK
         val state = MutableStateFlow(ChatUiState())
         val composer = ComposerActions(state)
         fun add(i: Int, kind: MessageKind) =
             composer.addDraft(kind, StagedAttachment(file = java.io.File("/tmp/$i"), displayName = "$i", sizeBytes = 1L))
 
         assertTrue("视频先占一格", add(1, MessageKind.VIDEO))
-        for (i in 2..com.openapi.common.media.MAX_MESSAGE_IMAGES) {
+        for (i in 2..cap) {
             assertTrue("合计第 $i 个附件应该能进", add(i, MessageKind.IMAGE))
         }
-        assertEquals(com.openapi.common.media.MAX_MESSAGE_IMAGES, state.value.drafts.size)
-        assertFalse("合计到顶后，图和视频一样进不去", add(10, MessageKind.IMAGE))
-        assertFalse("合计到顶后，图和视频一样进不去", add(11, MessageKind.VIDEO))
-        assertEquals(com.openapi.common.media.MAX_MESSAGE_IMAGES, state.value.drafts.size)
+        assertEquals(cap, state.value.drafts.size)
+        assertFalse("合计到顶后，图和视频一样进不去", add(cap + 1, MessageKind.IMAGE))
+        assertFalse("合计到顶后，图和视频一样进不去", add(cap + 2, MessageKind.VIDEO))
+        assertEquals(cap, state.value.drafts.size)
     }
 
     @Test

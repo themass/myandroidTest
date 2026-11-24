@@ -42,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -102,12 +103,38 @@ internal fun imageArrangement(count: Int, layout: ImageLayout): ImageArrangement
     }
 }
 
+/**
+ * 一条消息里**附件块与文字块**的排布决策（纯 Kotlin，可测；[MessageContent] 与测试都以此为准）。
+ *
+ * 之前只有文字进气泡、附件是裸卡片，中间还隔着消息级的间距——用户看「图片+文字」就是两条消息
+ * （202611 用户反馈）。现在：
+ * - [Merged]：同一消息既有附件（图片/文件/视频）又有文字 → **共用一个气泡**（同底色同圆角），
+ *   中间用一条分隔线而不是空气；
+ * - [Separate]：任一者缺席 → 各自保持原样（纯附件裸排布、纯文字单气泡），不为了合并而合并。
+ *
+ * 位置与语音不并入：它们本身自带完整气泡（坐标卡片 / 转写内嵌），拆开再拼只会重复信息。
+ */
+internal enum class AttachmentTextLayout { Separate, Merged }
+
+internal fun attachmentTextLayout(hasAttachments: Boolean, hasText: Boolean): AttachmentTextLayout =
+    if (hasAttachments && hasText) AttachmentTextLayout.Merged else AttachmentTextLayout.Separate
+
 /** 气泡形状：四角同一圆角（豆包式，不做「尾巴」）。 */
 @Composable
 fun bubbleShape(sender: Sender): Shape {
     val r = if (sender == Sender.User) ChatKit.dimens.userBubbleRadius else ChatKit.dimens.assistantBubbleRadius
     return RoundedCornerShape(r)
 }
+
+/**
+ * 消息大图上的「编辑」能力，由宿主（对话页 ChatRoute）提供；null = 查看器里没有编辑按钮，
+ * 行为与此前完全一致（陪伴页这类没有编辑管线的宿主就不该看到按钮）。
+ *
+ * 为什么走 CompositionLocal 而不是加参数：唯一的调用链 ChatMessageList → ChatMessageItem →
+ * ImageGrid 中段在 `ChatMessageList.kt`，那个文件本轮不归改，参数穿不过去；CompositionLocal
+ * 沿组合树穿透，宿主不提供就没有变化。
+ */
+val LocalMessageImageEditHandler = staticCompositionLocalOf<((String) -> Unit)?> { null }
 
 /** 文字气泡：用户蓝底白字，助手浅灰底深灰字。具体文字由 [content] 渲染（助手可用 Markdown）。 */
 @Composable
@@ -224,6 +251,11 @@ fun ImageGrid(
     modifier: Modifier = Modifier,
     /** 点击了加载失败的那张图（下标）。组件已做本地重载；调用方若能重新换源就换源。 */
     onRetryImage: (Int) -> Unit = {},
+    /**
+     * 大图上的「编辑」（传这张图的来源）。null（默认）= 查看器里没有编辑按钮，行为与此前完全一致；
+     * 非空时 [ImageGrid] 会**先关掉查看器**再把来源交回（查看器是独立窗口，会盖住编辑页）。
+     */
+    onEdit: ((String) -> Unit)? = null,
 ) {
     if (sources.isEmpty()) return
     var viewerStart by remember { mutableStateOf<Int?>(null) }
@@ -356,6 +388,13 @@ fun ImageGrid(
                 // 先关掉查看器（它是独立窗口，会挡住菜单），再弹出同一张图的菜单
                 viewerStart = null
                 onLongPress(source)
+            },
+            onEdit = onEdit?.let { handler ->
+                { source ->
+                    // 同上：编辑页必须在查看器关掉之后打开，否则被独立窗口盖住
+                    viewerStart = null
+                    handler(source)
+                }
             },
         )
     }

@@ -42,12 +42,18 @@ internal class SendActions(
         // 生成中：只有纯文字走排队（ChatUiState.queued，FIFO，回合自然结束后由
         // ReplyStreamer 取队首续发）。编辑/附件/位置维持旧的「生成中不能发」闸：
         // 编辑的目标消息可能已被这一轮改变，附件要等上传窗口，都不适合插进队列。
-        if (snapshot.sending) {
-            if (editingId == null && drafts.isEmpty() && snapshot.locationDraft == null && text.isNotEmpty()) {
-                state.update { it.copy(input = "") }
-                sendText(text)
+        // 判据来自 [ChatTurnGate]（读侧唯一入口）；text.isEmpty() 的特例留在这里：
+        // 空输入能走到这里只可能是草稿撑起了 canSend。
+        when (ChatTurnGate.of(snapshot).sendPath()) {
+            ChatTurnGate.SendPath.BlockedTurnRunning -> return
+            ChatTurnGate.SendPath.Queue -> {
+                if (editingId == null && drafts.isEmpty() && snapshot.locationDraft == null && text.isNotEmpty()) {
+                    state.update { it.copy(input = "") }
+                    sendText(text)
+                }
+                return
             }
-            return
+            ChatTurnGate.SendPath.Direct -> Unit
         }
         if (editingId != null && drafts.isEmpty()) {
             submitEdit(editingId, text)
@@ -100,7 +106,7 @@ internal class SendActions(
 
     fun sendText(text: String) {
         if (text.isBlank()) return
-        if (state.value.sending) {
+        if (ChatTurnGate.of(state.value).textSendPath() == ChatTurnGate.SendPath.Queue) {
             // 生成中不直发：按 Enter 顺序入队（FIFO），回合**自然结束**后由
             // ReplyStreamer 取队首续发；用户点停止会清空队列（见 ReplyStreamer.cancel）。
             state.update { it.copy(queued = it.queued + text) }
@@ -129,7 +135,8 @@ internal class SendActions(
          */
         ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
     ) {
-        if (state.value.sending) return
+        // 生成中不接新附件（上传窗口属于下一个回合）——判据见 ChatTurnGate.allowAttachmentPick
+        if (!ChatTurnGate.of(state.value).allowAttachmentPick) return
         scope.launch {
             val keep = stagedBytesStillInUse()
             val outcome = withContext(ioDispatcher) { AttachmentStager.stage(context, kind, uri, keep) }
@@ -177,7 +184,7 @@ internal class SendActions(
     private fun rejectIfOverLimit(kind: MessageKind, staged: StagedAttachment) {
         if (!composer.addDraft(kind, staged)) {
             state.update {
-                it.copy(error = strings.attachmentLimitReached(com.openapi.common.media.MAX_MESSAGE_IMAGES))
+                it.copy(error = strings.attachmentLimitReached(com.openapi.common.media.MAX_IMAGES_PER_MESSAGE_PICK))
             }
         }
     }
@@ -189,7 +196,7 @@ internal class SendActions(
         /** 测试接缝，同 [attachmentPicked]；界面调用方一律用默认值。 */
         ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
     ) {
-        if (uris.isEmpty() || state.value.sending) return
+        if (uris.isEmpty() || !ChatTurnGate.of(state.value).allowAttachmentPick) return
         scope.launch {
             val keep = stagedBytesStillInUse()
             for (uri in uris) {
@@ -201,7 +208,7 @@ internal class SendActions(
                         // 剩下几张也解码压缩一遍，白费等用户看着进度条跑完。
                         if (!composer.addDraft(MessageKind.IMAGE, staged)) {
                             state.update {
-                                it.copy(error = strings.attachmentLimitReached(com.openapi.common.media.MAX_MESSAGE_IMAGES))
+                                it.copy(error = strings.attachmentLimitReached(com.openapi.common.media.MAX_IMAGES_PER_MESSAGE_PICK))
                             }
                             return@launch
                         }

@@ -4,6 +4,7 @@ import com.openapi.feature.chat.domain.model.ChatRole
 import com.openapi.feature.chat.domain.model.ImageSource
 import com.openapi.feature.chat.domain.model.MessageKind
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,10 +22,11 @@ class AgentVoMappersTest {
         content: String = "你好",
         createdAt: String = "2026-11-20T08:30:00Z",
         clientMessageId: String? = null,
+        interrupted: Boolean = false,
         attachments: List<AgentAttachmentVo> = emptyList(),
     ) = AgentMessageVo(
         id = id, role = role, content = content, kind = "text",
-        createdAt = createdAt, interrupted = false,
+        createdAt = createdAt, interrupted = interrupted,
         clientMessageId = clientMessageId, attachments = attachments,
     )
 
@@ -61,6 +63,13 @@ class AgentVoMappersTest {
     fun clientMessageIdPassesThrough() {
         assertEquals("local-user-1", message(clientMessageId = "local-user-1").toChatMessage().clientMessageId)
         assertNull(message().toChatMessage().clientMessageId)
+    }
+
+    /** 任务 2：服务端标记的「这一轮被中断过」以前解析了但映射时丢掉，半截回复与完整回复无法区分。 */
+    @Test
+    fun interruptedFlagSurvivesTheMapping() {
+        assertTrue(message(interrupted = true).toChatMessage().interrupted)
+        assertFalse(message().toChatMessage().interrupted)
     }
 
     @Test

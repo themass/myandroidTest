@@ -31,6 +31,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.openapi.chatkit.R
+import com.openapi.chatkit.media.ImageViewer
 import com.openapi.chatkit.media.imageModel
 import com.openapi.chatkit.message.parts.FileBadge
 import com.openapi.chatkit.message.parts.formatDuration
@@ -51,10 +56,21 @@ import com.openapi.chatkit.model.DraftType
 import com.openapi.chatkit.theme.ChatKit
 import java.util.Locale
 
-/** 附件草稿托盘：图片缩略图、文件名片，右上角 × 移除。 */
+/**
+ * 附件草稿托盘：图片缩略图、文件名片，右上角 × 移除。
+ *
+ * 点图片缩略图打开全屏查看器（202611 用户反馈：选完图在输入框里点不开大图）。查看器开关状态
+ * 收在组件内部——它不属于任何业务状态，`ChatScreen` 也不该为它加参数。
+ * sources 用**当前**全部图片草稿、startIndex 用被点那张在其中的下标：草稿增删后索引随
+ * `remember(drafts)` 一起作废，不会留一个越界的旧下标。
+ * 视频草稿不接：查看器只画图片（[com.openapi.chatkit.media.ImageViewer]），硬塞只会画一张首帧
+ * 假图；文件/位置草稿的点开语义（打开文件、看地图）在业务侧，这里留 no-op。
+ */
 @Composable
 fun DraftTray(drafts: List<DraftItem>, onRemove: (String) -> Unit, modifier: Modifier = Modifier) {
     val colors = ChatKit.colors
+    var viewerStart by remember(drafts) { mutableStateOf<Int?>(null) }
+    val imageDrafts = drafts.filter { it.type == DraftType.Image }
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 4.dp),
@@ -70,7 +86,11 @@ fun DraftTray(drafts: List<DraftItem>, onRemove: (String) -> Unit, modifier: Mod
                         modifier = Modifier
                             .size(64.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(colors.surfaceVariant),
+                            .background(colors.surfaceVariant)
+                            .clickable {
+                                viewerStart = imageDrafts.indexOfFirst { it.id == draft.id }
+                                    .takeIf { it >= 0 }
+                            },
                     )
                     DraftType.File -> Row(
                         modifier = Modifier
@@ -171,6 +191,15 @@ fun DraftTray(drafts: List<DraftItem>, onRemove: (String) -> Unit, modifier: Mod
                 }
             }
         }
+    }
+    // 全屏查看器：草稿是还没发送的图，没有任何业务动作要挂——只给翻页/缩放/关闭。
+    // onDismiss 只清开关；草稿本身不受影响（× 才是移除）。
+    viewerStart?.let { start ->
+        ImageViewer(
+            sources = imageDrafts.map { it.source },
+            startIndex = start,
+            onDismiss = { viewerStart = null },
+        )
     }
 }
 
