@@ -900,18 +900,20 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
                 Text(source.title, color = White, fontSize = 22.sp, lineHeight = 27.sp,
                     fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 2.dp))
-                if (source.description.isNotBlank()) {
-                    Text(source.description, color = Muted, modifier = Modifier.padding(top = 5.dp, bottom = 12.dp))
-                }
                 // 设计稿：简介和工具台之间一条分隔线，下半页分成「讲什么」和「能干什么」两段
                 HorizontalDivider(color = Lift)
                 Spacer(Modifier.height(10.dp))
                 toolsRow(false)
                 if (danmaku) danmakuSendRow()
-                // 预留区（用户点名 2026-11-25：「未来会在底部增加电影简介和详情分析，说不定接上AI问答」）：
-                // 工具行以下就是这块的位置——现在诚实留空（不放假内容），将来按
-                // 「简介卡 → 分析卡 → AI 问答入口」三段纵向堆叠，全部走 Lift 卡 + 本 Column 的 18dp 边距，
-                // 滚动容器已经是外层 AnimatedContent 的页，不再加一层嵌套滚动。
+                // 下半页内容区（用户点名 2026-11-25：「未来会在底部增加电影简介和详情分析，
+                // 说不定接上 AI 问答，请你设计一下」）——三段纵向堆叠，从上到下：
+                //   1. 简介卡（本片实现：服务端已有 desc 就用它，短则不折叠）；
+                //   2. 详情分析卡（将来：服务端/本地分析产出，无数据整卡不画，不给空壳）；
+                //   3. AI 问答入口（将来：入口只在真能问答时画——本项目规矩是不拿假按钮填屏，
+                //      所以接上之前这一格诚实缺席，不留「敬请期待」）。
+                // 三段都用 [DetailSectionCard] 同一种卡形（Lift 底 + 12dp 圆角 + 同一套标题字），
+                // 间距只在这里给一次；外层已经是可滚动页，不再嵌套滚动容器。
+                BriefCard(source.description)
                 error?.let { message -> Text(message, color = Peach, modifier = Modifier.padding(top = 12.dp)) }
             }
         }
@@ -928,6 +930,60 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
         }
     }
 }
+
+/**
+ * 详情页下半页的卡形（简介/分析/问答三段共用这一种形状）。
+ *
+ * 用户点名 2026-11-25：「未来会在底部增加电影简介和详情分析，说不定接上 AI 问答，请你设计一下」。
+ * 设计：三段从上到下纵向堆叠——简介卡（本片已实装）→ 详情分析卡 → AI 问答入口，都用这个壳
+ * （Lift 底 + 12dp 圆角 + 同一个标签字），这样三块将来拼在一起是一体的，不会各长各的。
+ * 没有内容的段整段不画：本项目不拿「敬请期待」或假按钮填屏（两代教训），接不上就诚实缺席。
+ */
+@Composable
+private fun DetailSectionCard(label: String, content: @Composable () -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().padding(top = 10.dp)
+            .clip(RoundedCornerShape(12.dp)).background(Lift)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+    ) {
+        Text(label, color = Mint, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(6.dp))
+        content()
+    }
+}
+
+/**
+ * 简介卡：服务端 `desc` 就是这个片子的简介（列表页/旧详情页同源）。
+ * 短简介不折叠；被裁出省略号时才给「展开/收起」——详情页高度有限，
+ * 简介不该把工具台顶出屏（这正是用户点名「底部布局太丑」的一部分：内容没分层）。
+ * 折叠判定用 TextLayoutResult 的真实省略号，不用字数猜测：宽窄屏、长短词都判得准。
+ */
+@Composable
+private fun BriefCard(brief: String) {
+    if (brief.isBlank()) return
+    var expanded by remember { mutableStateOf(false) }
+    var clipped by remember(brief) { mutableStateOf(false) }
+    DetailSectionCard("简介") {
+        Text(
+            brief, color = Muted, fontSize = 13.sp, lineHeight = 19.sp,
+            maxLines = if (expanded) Int.MAX_VALUE else BRIEF_CLAMP_LINES,
+            overflow = TextOverflow.Ellipsis,
+            onTextLayout = { layout ->
+                if (!expanded) clipped = (0 until layout.lineCount).any { layout.isLineEllipsized(it) }
+            },
+        )
+        if (clipped || expanded) {
+            TextButton(
+                onClick = { expanded = !expanded },
+                contentPadding = PaddingValues(0.dp),
+            ) {
+                Text(if (expanded) "收起" else "展开", color = Mint, fontSize = 12.sp)
+            }
+        }
+    }
+}
+
+private const val BRIEF_CLAMP_LINES = 4
 
 /**
  * 细进度条：3dp 轨道 + 11dp 圆钮，自绘。
