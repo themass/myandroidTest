@@ -133,6 +133,38 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update { it.copy(quad = quad) }
     }
 
+    /**
+     * 四角微调页点「旋转」：把整张照片顺时针转 90°，边框跟着转。
+     *
+     * 存在的理由（真机取证 2026-11-24）：用户那张「题都是对的」却 40002 的照片是**横倒**的
+     * （EXIF orientation=0，横着拿手机拍的）。横图对 DocQuadNet 和豆包视觉都是分布外输入：
+     * 端上判负、服务端直接「没有识别到题目」还烧一次额度。同一张照片转正后重提交：
+     * 完整出结果、历史落盘。旧版里转正这个动作**没有任何入口**（旋转按钮只在旧 Crop 页有，
+     * 主流程 QuadAdjust 没有），用户只能退出重拍——大概率还是横的。
+     */
+    fun onRotateCw() {
+        val state = _uiState.value
+        val source = state.capturedBitmap ?: return
+        if (state.detecting) return
+        val quad = state.quad ?: quadDetector.defaultQuad()
+        _uiState.update { it.copy(detecting = true) }
+        viewModelScope.launch {
+            val rotated = withContext(Dispatchers.Default) {
+                android.graphics.Matrix().apply { postRotate(90f) }
+                    .let { m -> Bitmap.createBitmap(source, 0, 0, source.width, source.height, m, true) }
+            }
+            _uiState.update {
+                it.copy(
+                    detecting = false,
+                    capturedBitmap = rotated,
+                    quad = RotationFlow.rotateQuad(quad),
+                    // 模型是在旧方向上跑的；转正之后没有检测结果，黄说明继续挂着（见 RotationFlow）。
+                    frameCheck = RotationFlow.checkAfterRotate(),
+                )
+            }
+        }
+    }
+
     /** 四角微调页点「重新检测」。 */
     fun onRedetect() {
         val source = _uiState.value.capturedBitmap ?: return

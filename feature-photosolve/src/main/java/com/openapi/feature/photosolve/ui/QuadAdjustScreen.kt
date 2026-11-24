@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.RotateRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -72,6 +73,12 @@ fun QuadAdjustScreen(
     detecting: Boolean,
     onQuadChange: (QuadNorm) -> Unit,
     onRedetect: () -> Unit,
+    /**
+     * 顺时针转 90°。必须有：翻拍照片经常是横的（EXIF 没有方向标记时端上不会自动转正），
+     * 横图会让端上检测和服务端解题一起失败（40002）；旧版旋转按钮只在旧 Crop 页有，
+     * 主流程没有入口，用户只能退出重拍。见 [PhotoSolveViewModel.onRotateCw] 的真机取证。
+     */
+    onRotate: () -> Unit,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
     /**
@@ -126,6 +133,10 @@ fun QuadAdjustScreen(
             TextButton(onClick = onRedetect, enabled = !detecting) {
                 Icon(Icons.Filled.Refresh, contentDescription = null, tint = Color.White)
                 Text(stringResource(R.string.photosolve_auto_detect), color = Color.White)
+            }
+            TextButton(onClick = onRotate, enabled = !detecting) {
+                Icon(Icons.AutoMirrored.Filled.RotateRight, contentDescription = null, tint = Color.White)
+                Text(stringResource(R.string.photosolve_rotate), color = Color.White)
             }
             Button(
                 onClick = onConfirm,

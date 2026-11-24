@@ -51,6 +51,33 @@ object CaptureFlow {
     fun autoDetected(check: QuestionFrameCheck): Boolean = check is QuestionFrameCheck.Found
 }
 
+/**
+ * 「把照片转 90°」时边框该怎么跟着动（纯函数，可单测；位图本身在 ViewModel 里转）。
+ *
+ * 真机取证（2026-11-24）：用户那张「题都是对的」的照片是**横倒**的——EXIF orientation=0
+ * （没有方向标记），拍摄时手机是横着拿的。横倒的图对 DocQuadNet 和豆包视觉都是分布外输入：
+ * 端上四角检测判负（已修：进手动微调），服务端更狠——直接 40002「没有识别到题目」，
+ * 一次额度还不退。把同一张照片**转正**后原样重提交：第一次撞 60s 超时（50001，退额度），
+ * 第二次完整出结果、`photosolve_history/img/1.jpg` 落盘。所以四角微调页必须能转方向，
+ * 否则用户唯一的出路是退出重拍——而且重拍出来大概率还是横的。
+ */
+object RotationFlow {
+
+    /** 图像顺时针转 90° 后，归一化坐标 (x, y) → (1 - y, x)。 */
+    fun rotatedPoint(p: QuadNorm.Point): QuadNorm.Point =
+        QuadNorm.Point(1f - p.y, p.x)
+
+    fun rotateQuad(quad: QuadNorm): QuadNorm =
+        QuadNorm(quad.corners.map(::rotatedPoint))
+
+    /**
+     * 旋转之后这张图**不算**「自动检测到」：模型是在旧方向上跑的，新方向没有检测结果，
+     * 界面继续显示黄说明、让用户对着转正的图自己拖。
+     */
+    fun checkAfterRotate(): QuestionFrameCheck.NotFound =
+        QuestionFrameCheck.NotFound("已旋转 90°，未重新检测")
+}
+
 /** 拍照页的状态：取景 → 检测 → （找到就）进入角点微调。 */
 data class CaptureState(
     val detecting: Boolean = false,

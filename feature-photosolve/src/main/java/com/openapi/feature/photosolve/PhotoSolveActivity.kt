@@ -272,6 +272,7 @@ private fun PhotoSolveApp(
                         ?.let { context.getString(R.string.photosolve_quad_no_auto) },
                     onQuadChange = viewModel::onQuadChanged,
                     onRedetect = viewModel::onRedetect,
+                    onRotate = viewModel::onRotateCw,
                     onConfirm = viewModel::onQuadConfirmed,
                     onCancel = viewModel::onCaptureCancelled,
                 )
