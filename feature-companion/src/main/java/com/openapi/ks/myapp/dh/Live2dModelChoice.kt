@@ -27,8 +27,9 @@ object Live2dModels {
  * Live2dRuntime.AndroidEnv.modelsReady 同一判据，**再过 [com.openapi.ks.dh.Live2dModelGate]
  * 版本闸**）。托盘「换形象」用它决定能不能切、切到谁；只有一个可用时置灰而不是假装能点。
  *
- * 版本闸不能省：目录存在但 moc3 比端侧 Core 新（OriginalDemo r5 × Core r4，真机
- * 2026-11-24）时，切过去就是下一帧 SIGSEGV。json 名沿用切模型的同一约定
+ * 版本闸不能省：目录存在但 moc3 比端侧 Core 新时，切过去就是下一帧 SIGSEGV
+ * （真机 2026-11-24 就是 Core r4 × OriginalDemo r5；Core 升 5-r.5 后上限 r6，
+ * 闸本身保留，见 Live2dModelGate）。json 名沿用切模型的同一约定
  * （<目录名>.model3.json，见 Live2dDigitalHumanEngine.modelJsonName / 设备缓存实测）。
  */
 fun live2dPresentModels(context: android.content.Context): List<String> {
