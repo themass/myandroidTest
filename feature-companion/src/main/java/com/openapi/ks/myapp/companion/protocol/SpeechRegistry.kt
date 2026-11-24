@@ -319,6 +319,20 @@ class SpeechRegistry<P>(
             it.state == SpeechTimeline.State.PLAYING
         }?.speechId
 
+    /**
+     * 此刻是否有句 speech 已声明、还没 end/cancel（PENDING ∪ PLAYING）。
+     *
+     * 降级阶梯的静默传感器要用（§12.3）：cmp.* 只在回合边界前后有包是协议形状本身，
+     * 「有没有活动 speech」决定了 cmp 静默是「数据该来没来」（真降级）还是
+     * 「她没说、也没人该发」（安静对话）。与 activeSpeechId 不同，PENDING 要算——
+     * seg 已声明但 PCM 还没起时，cue 与后续 seg 正是该到的时候。
+     */
+    @Synchronized
+    fun expectsCueData(): Boolean =
+        timelines.values.any {
+            it.state == SpeechTimeline.State.PENDING || it.state == SpeechTimeline.State.PLAYING
+        }
+
     /** 已播时长（单调毫秒）。还没标定 t0 时返回 0——服务端把这个字段当提示，不依赖精确值。 */
     @Synchronized
     fun playedMs(speechId: String, now: Long): Long {

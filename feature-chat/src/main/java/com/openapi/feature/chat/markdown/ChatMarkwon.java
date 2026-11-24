@@ -19,8 +19,12 @@ import io.noties.markwon.ext.latex.JLatexMathTheme;
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin;
 import io.noties.markwon.ext.tables.TablePlugin;
 import io.noties.markwon.html.HtmlPlugin;
+import io.noties.markwon.image.AsyncDrawable;
 import io.noties.markwon.image.ImagesPlugin;
 import io.noties.markwon.image.glide.GlideImagesPlugin;
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.RequestManager;
+import com.bumptech.glide.request.target.Target;
 import io.noties.markwon.inlineparser.MarkwonInlineParserPlugin;
 
 /**
@@ -75,10 +79,25 @@ public final class ChatMarkwon {
                         }
                     });
                 }))
-                .usePlugin(GlideImagesPlugin.create(ctx))
+                .usePlugin(ImagesPlugin.create())
+                .usePlugin(GlideImagesPlugin.create(new GlideImagesPlugin.GlideStore() {
+                    private final RequestManager requestManager = com.bumptech.glide.Glide.with(ctx);
+
+                    @NonNull
+                    @Override
+                    public RequestBuilder<Drawable> load(@NonNull AsyncDrawable drawable) {
+                        Object model = MarkdownImageModel.INSTANCE.resolve(
+                                ctx.getCacheDir(), drawable.getDestination());
+                        return requestManager.load(model);
+                    }
+
+                    @Override
+                    public void cancel(@NonNull Target<?> target) {
+                        requestManager.clear(target);
+                    }
+                }))
                 .usePlugin(MarkwonInlineParserPlugin.create())
                 .usePlugin(CorePlugin.create())
-                .usePlugin(ImagesPlugin.create())
                 .usePlugin(HtmlPlugin.create())
                 .usePlugin(StrikethroughPlugin.create())
                 .usePlugin(TablePlugin.create(ctx))

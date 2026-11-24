@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>课程场景选型对照 · 数字人对比实验室</title>
+<style>
+  :root{
+    --bg:#f4f2ed; --card:#fff; --ink:#23272b; --muted:#68727c; --line:#dfe3e6;
+    --accent:#1f6f5e; --accent-soft:#e5f0ec; --warn:#9a5c13; --warn-soft:#f6ecd7;
+    --gray-soft:#eef0f2; --good:#b7d7c9; --mid:#e9d9a8; --poor:#e5b9b0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 72px}
+  header h1{font-size:26px;line-height:1.3;margin:0 0 8px}
+  header .sub{color:var(--muted);font-size:15px;margin-bottom:24px}
+  section{margin:0 0 28px}
+  h2{font-size:19px;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:14px}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:22px}
+  li{margin:0 0 4px}
+  table{width:100%;border-collapse:collapse;background:var(--card);font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--gray-soft);font-weight:600;white-space:nowrap}
+  td.dim{color:var(--muted)}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:1px}
+  .g{background:var(--good)} .m{background:var(--mid)} .p{background:var(--poor)}
+  .tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:20px;margin-right:6px;white-space:nowrap}
+  .tag.main{background:var(--accent-soft);color:var(--accent)}
+  .tag.test{background:var(--warn-soft);color:var(--warn)}
+  .tag.ref{background:var(--gray-soft);color:var(--muted)}
+  footer{color:var(--muted);font-size:12.5px;margin-top:8px;line-height:1.7}
+  .verdict{background:var(--accent-soft);border-left:4px solid var(--accent)}
+  .note{font-size:13px;color:var(--muted)}
+  @media (max-width:640px){ .hide-m{display:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>数字人形象 · 多场景选型对照</h1>
+  <p class="sub">互动陪伴 + 讲课双需求下,各引擎能做什么、卡在哪、该谁上主位 —— 一页说清(2026-11-24 更新)</p>
+</header>
+
+<section>
+  <h2>需求先拆成三个场景</h2>
+  <div class="card">
+    <p><b>场景 A · 陪伴对话(互动核心)</b>要求表情反应、口型随说话、眨眼待机、点头摇头 —— 目前在通话页,已上线的是 Live2D。</p>
+    <p><b>场景 B · 讲课半身(要讲课)</b>要求站姿或半身构图、手势比划、视线引导、课本/白板缩放,角色要"会讲",不只是站着。</p>
+    <p><b>场景 C · 全身/空间</b>转身、走位、多角度展示 —— 目前哪个引擎都没上,是一个空档。</p>
+    <p class="note">结论先行:<b>不必选一个引擎打全场</b>。三个场景分别有不同的最佳引擎,搭配缺的那块才是关键。下表按场景打分。</p>
+  </div>
+</section>
+
+<section>
+  <h2>引擎 × 场景能力矩阵</h2>
+  <div style="overflow-x:auto">
+  <table>
+    <tr>
+      <th>引擎</th><th>A 陪伴互动</th><th>B 讲课/半身</th><th>C 全身/空间</th><th>换装</th><th>许可</th><th class="hide-m">现状</th>
+    </tr>
+    <tr>
+      <td><b>Live2D</b></td>
+      <td><span class="dot g"></span><b>强</b><br>表情/口型参数级,已在线上</td>
+      <td><span class="dot m"></span>中等<br>可做讲课动作，依赖专门绑定与素材</td>
+      <td><span class="dot p"></span>弱<br>可做全身平面动画；自由 3D 视角受限</td>
+      <td>强(4 轴已上线)</td>
+      <td>Cubism 专有<br>模板/模型条款待书面确认</td>
+      <td class="hide-m"><span class="tag main">主线已上线</span></td>
+    </tr>
+    <tr>
+      <td><b>Spine</b></td>
+      <td><span class="dot g"></span><b>强</b><br>骨骼动画,表情拼接</td>
+      <td><span class="dot g"></span><b>强</b><br>站姿/手势绑骨骼,天然合适</td>
+      <td><span class="dot p"></span>弱<br>2D,无纵深转身</td>
+      <td>强(skin 合成 spike 已证)</td>
+      <td>Spine Runtime 专有许可<br>须按官方运行库与编辑器条款确认</td>
+      <td class="hide-m"><span class="tag test">测试线</span></td>
+    </tr>
+    <tr>
+      <td><b>VRM + three.js</b></td>
+      <td><span class="dot g"></span>强<br>blendshape 表情+眨眼+口型</td>
+      <td><span class="dot g"></span><b>强</b><br>视线、站姿、手势、转镜全有</td>
+      <td><span class="dot g"></span><b>真 3D</b><br>全身/转身/空间/多机位</td>
+      <td>中(节点显隐/材质)</td>
+      <td>three.js / three-vrm MIT<br>模型许可单独计</td>
+      <td class="hide-m"><span class="tag test">试验田·独立 demo</span></td>
+    </tr>
+    <tr>
+      <td>TalkingHead</td>
+      <td><span class="dot m"></span>真 3D<br>支持全身角色与口型</td>
+      <td><span class="dot m"></span>中</td>
+      <td><span class="dot g"></span>支持 3D 全身角色</td>
+      <td>依素材与实现</td>
+      <td>MIT；模型条款另计</td>
+      <td class="hide-m"><span class="tag ref">在线评估</span></td>
+    </tr>
+    <tr>
+      <td>DUIX / TaoAvatar</td>
+      <td><span class="dot m"></span>中<br>口型/视频</td>
+      <td><span class="dot m"></span>中</td>
+      <td><span class="dot g"></span>Tao 有真 3D</td>
+      <td>弱/未知</td>
+      <td>商用 SDK / Apache-2.0</td>
+      <td class="hide-m"><span class="tag ref">资料,未链接原生栈</span></td>
+    </tr>
+    <tr>
+      <td>Rive / Inochi2D</td>
+      <td><span class="dot g"></span>Rive 状态机好</td>
+      <td><span class="dot m"></span>中</td>
+      <td><span class="dot p"></span>弱</td>
+      <td>中(Inochi)</td>
+      <td>MIT / BSD-2</td>
+      <td class="hide-m"><span class="tag ref">Rive P1 计划中</span></td>
+    </tr>
+  </table>
+  </div>
+  <p class="note" style="margin-top:10px">打分范围:<span class="dot g"></span>强 / <span class="dot m"></span>中等 / <span class="dot p"></span>弱。均按"有没有现成素材与已验证的接入"综合评估,不是引擎理论上限。</p>
+</section>
+
+<section>
+  <h2>逐场景推荐</h2>
+  <div class="card verdict">
+    <p><b>场景 A 陪伴 —— Live2D 留主位。</b>现网效果最好的原因不只是引擎,更是"素材打磨 + 长时间调参",这正是它已经具备的。没有理由替掉。</p>
+  </div>
+  <div class="card verdict">
+    <p><b>场景 B 讲课 —— Spine 补测试位,VRM 留作对照。</b>讲课要的是站姿/手势/视线:Spine 骨骼天生适合,换装 skin 合成已 spike 验证;VRM 半身课式(视线+手势+站姿)已在独立 demo 里跑通。两个都值得真机一比。</p>
+  </div>
+  <div class="card verdict">
+    <p><b>场景 C 全身 —— 优先评估 VRM/three.js。</b>如果"转身、走位、多角度"是产品目标,VRM/three.js 是当前 demo 已跑通的路线，TalkingHead 等也可支持 3D;代价是要投入建模与美术。</p>
+  </div>
+</section>
+
+<section>
+  <h2>为什么现在看 Live2D 最好,而 VRM「看一眼就没了」?</h2>
+  <div class="card">
+    <ul>
+      <li><b>素材不对等:</b>Live2D 用的是精修的产品形象;之前那个 VRM 是 three-vrm 官方的"约束测试模型",不是角色,效果自然差——这是演示配置问题,不是引擎问题。</li>
+      <li><b>灯光/构图没做:</b>旧 VRM 演示是平光 + 默认镜头;独立 demo 里补了三点布光、ACES 色调、机位与构图、常驻呼吸/眨眼动画后,同一模型观感完全不同。</li>
+      <li><b>"看一眼就没了"更像链路问题:</b>引擎是实验室门控选择 + 隔离/回退路径,原因尚未确认；不能凭此排除渲染或生命周期故障，需另行取证。</li>
+      <li><b>three.js 能力是真的强:</b>可扩展灯光、阴影、多机位和着色器；完整全局光照并非默认内置效果;上限远高于当前演示,缺的是"把这个模型美术做好"。</li>
+    </ul>
+    <p class="note">公平比较的做法:同一台真机、同一背景,分"形象表现"与"场景适配"两行分别观察,再叠加生命周期埋点——独立 demo 库的本地场景即为此搭。</p>
+  </div>
+</section>
+
+<section>
+  <h2>落地路径</h2>
+  <div class="card">
+    <ul>
+      <li>已交付:独立 demo 库 <b>avatar-lab</b>(目录覆盖全部调研引擎 + 本地 3 模式场景);一页对比在此。</li>
+      <li>已装独立 demo 并核对三种构图，替换为 CC0 HairSample_Female（证据见 docs/evidence/avatar-lab-20261124）;再就课程页(白板/PPT/讲义)出一个最小可讲原型。</li>
+      <li>约束:不成立即换主引擎;换装走 wardrobe-spec 抽象;Live2D 生产化需条款书面确认;模型素材涉及许可时先取证。</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  依据:scripts/dh-lab/avatar-comparison(本地场景与打包脚本)、docs/design/2026-11-22 数字人渲染选型、2026-11-23 换装抽象与特效层设计、avatar-quality-audit 取证。<br>
+  本文是产品侧对照,不是被评测引擎的官方声称;能力为上表时点的真实验证结果。
+</footer>
+
+</div>
+</body>
+</html>

@@ -76,8 +76,13 @@ internal fun ScreeningGallery(
         FeedPager(pagerScope, fetch = { start -> store.albums(channelParam ?: "", start) })
     }
     val selected = album
+    var tailItemUrl by remember(selected) { mutableStateOf<String?>(null) }
     val shots = remember(selected) {
-        FeedPager(pagerScope, fetch = { start -> store.albumImages(selected?.imageListKey() ?: "", start) })
+        FeedPager(pagerScope, fetch = { start ->
+            val itemUrl = tailItemUrl
+            if (itemUrl == null) store.albumImages(selected?.imageListKey() ?: "", start)
+            else store.imageItemPage(itemUrl, start)
+        })
     }
     // 没有频道参数或没有册子参数就没有可请求的 key：不发无意义的请求，直接给空态
     LaunchedEffect(covers, channelParam) { if (channelParam != null) covers.load() }
@@ -109,7 +114,17 @@ internal fun ScreeningGallery(
             exit = fadeOut(tween(motion.exitDurationMs(), easing = EaseExit)),
             label = "lightbox",
         ) {
-            if (viewing in images.indices) Lightbox(images, viewing) { viewing = it }
+            if (viewing in images.indices) Lightbox(
+                images,
+                viewing,
+                onMove = { viewing = it },
+                onTail = { current ->
+                    galleryTailItemUrl(current)?.let { itemUrl ->
+                        tailItemUrl = itemUrl
+                        shots.loadMore()
+                    }
+                },
+            )
         }
     }
 }
@@ -126,6 +141,14 @@ internal fun RemoteEntry.galleryChannelParam(): String? = channelParam
  * 所以优先 [RemoteEntry.param]，没有才退回 actionUrl 的参数。
  */
 internal fun RemoteEntry.imageListKey(): String? = param ?: channelParam
+
+/** 全屏原图优先沿用旧页语义；imageUrl 只是网格缩略图。 */
+internal fun lightboxImageUrl(shot: RemoteEntry): String? =
+    shot.actionUrl.takeIf { it.isNotBlank() } ?: shot.imageUrl?.takeIf { it.isNotBlank() }
+
+/** item/page.json 的 key 是尾部图片行自己的 actionUrl。 */
+internal fun galleryTailItemUrl(shot: RemoteEntry?): String? =
+    shot?.actionUrl?.takeIf { it.isNotBlank() }
 
 @Composable
 private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteEntry) -> Unit, onExit: () -> Unit) {
@@ -252,12 +275,21 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
 
 /** 全屏阅览：滑动换张、双指缩放、单击开关信息、返回收起。 */
 @Composable
-private fun Lightbox(shots: List<RemoteEntry>, start: Int, onMove: (Int) -> Unit) {
+private fun Lightbox(
+    shots: List<RemoteEntry>,
+    start: Int,
+    onMove: (Int) -> Unit,
+    onTail: (RemoteEntry) -> Unit,
+) {
     val pager = rememberPagerState(initialPage = start.coerceIn(shots.indices)) { shots.size }
     var chrome by remember { mutableStateOf(true) }
     var zoom by remember { mutableFloatStateOf(1f) }
     var pan by remember { mutableStateOf(Offset.Zero) }
-    LaunchedEffect(pager.currentPage) { zoom = 1f; pan = Offset.Zero }
+    LaunchedEffect(pager.currentPage) {
+        zoom = 1f
+        pan = Offset.Zero
+        if (pager.currentPage == shots.lastIndex) shots.lastOrNull()?.let(onTail)
+    }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         HorizontalPager(
@@ -272,8 +304,8 @@ private fun Lightbox(shots: List<RemoteEntry>, start: Int, onMove: (Int) -> Unit
                     pan = if (zoom > 1f) pan + drag else Offset.Zero
                 }
             }) {
-                EntryCover(
-                    shot,
+                RemoteCover(
+                    lightboxImageUrl(shot),
                     Modifier.fillMaxSize()
                         .graphicsLayer {
                             scaleX = zoom; scaleY = zoom
