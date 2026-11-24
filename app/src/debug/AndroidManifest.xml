@@ -16,5 +16,13 @@
             android:authorities="${applicationId}.dev-companion-server"
             android:exported="false"
             android:initOrder="100" />
+        <!-- 陪伴教学 Demo v2：Activity 壳住在 :app 的 debug 源集（学生摄像头要从组合根注入，
+             ModuleGraphTest 禁止 feature 互依赖，见 docs/design/companion-teaching-demo/redesign-v2-stage-camera.md §6）。
+             UI 根 TeachingDemoRoute 仍在 :feature-companion 的 debug 源集。release 清单合并不到这一条。 -->
+        <activity
+            android:name="com.openapi.app.teaching.TeachingDemoActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
     </application>
 </manifest>
