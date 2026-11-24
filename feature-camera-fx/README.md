@@ -1,7 +1,6 @@
 # feature-camera-fx —— 摄像头五官/肢体定位 spike
 
-数字人产品的「打开摄像头 → 识别五官和肢体 → 贴 sticker」能力的第一步：**只做定位与可视化**，
-不渲染 sticker、不进生产路径。选型背景见共享笔记
+数字人产品的摄像头定位与叠加层 spike：前摄图像只在设备内存处理，debug Lab 提供线框与头顶 Lottie 贴纸预览；不进入 release 生产路径。选型背景见共享笔记
 `sticker-motion-tech-options-20261123.md`。
 
 ## 数据去向（隐私红线，硬性）
@@ -38,7 +37,7 @@ sticker 后续接法：`graphicsLayer { translationX/Y = map(headTop); rotationZ
 贴纸本体（Lottie）挂在上面。
 
 **已落地（竖切 MVP）：** `CameraFxScreen` 在头顶锚点叠 `fx/fx_pat_head.json`（Lottie），
-位置/旋转由 [CameraStickerPlacement] + [CanvasMap] 与 HUD 一致。二期：可选进陪伴通话 PiP/小窗相机。
+位置/旋转由 [CameraStickerPlacement] + [CanvasMap] 与 HUD 一致。debug 通话页已接贴纸 PiP（`CompanionFaceCameraPrefs` 控制，默认关闭）。主 App 接线见 [camera-fx-app-lab-wiring.md](../docs/superpowers/specs/2026-11-23-camera-fx-app-lab-wiring.md)。
 
 ## 运行方式
 
