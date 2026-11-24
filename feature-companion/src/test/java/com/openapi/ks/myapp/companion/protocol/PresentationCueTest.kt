@@ -70,6 +70,17 @@ class PresentationCueTest {
     }
 
     @Test
+    fun `状态词汇是白名单，interrupted 在契约内`() {
+        // P1 契约（docs/design/2026-11-24-state-cancel-contract-v2.md §1）：
+        // 五个规范值以外的一律丢弃，不再透传——透传一个渲染器不认识的状态词,
+        // 用户看到的是「她卡在某个表情」，而两端日志都是干净的。
+        for (state in listOf("idle", "listening", "thinking", "speaking", "interrupted")) {
+            assertEquals(state, PresentationCue.parseState(JSONObject().put("state", state.uppercase())))
+        }
+        assertNull(PresentationCue.parseState(JSONObject().put("state", "microphoning")))
+    }
+
+    @Test
     fun `翻译出来的串是 v1 的 key 且能被 AvatarEventMapper 认出来`() {
         val emotionEvent = PresentationCue.emotionEventJson("joy")
         assertTrue(emotionEvent.contains("\"type\":\"emotion\""))

@@ -1,0 +1,34 @@
+Internal avatar evaluation build. Every engine below runs fully offline from APK assets;
+none of these licenses grant commercial use of the bundled sample MODELS — several are
+learning/evaluation-only. Third-party runtime licenses are summarized here; full texts are
+in the source tree under scripts/dh-lab/avatar-comparison/node_modules/* (MIT) and noted below.
+
+scene/  (local VRM 3-mode scene)
+- three 0.187.0 — MIT (three.js authors)
+- @pixiv/three-vrm 3.5.5 — MIT (pixiv Inc.)
+- model sample.vrm = VRoid HairSample_Female — CC0, commercial use & redistribution allowed
+  (embedded in VRM metadata; provenance & SHA-256 in models/SOURCES.md)
+
+live2d/  (official Hiyori sample)
+- live2dcubismcore.min.js — Live2D Cubism Core, proprietary "Redistributable Code"
+  (https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html)
+- pixi-live2d-display 0.4.0 — MIT (guansss)
+- pixi.js 6.5.10 — MIT (PixiJS contributors)
+- model Hiyori (Live2D/CubismWebSamples) — Live2D Free Collection: free for learning,
+  commercial use requires a paid Content License. Evaluation only in this build.
+
+spine/  (official spineboy sample)
+- @esotericsoftware/spine-webgl / spine-core 4.3.13 — Spine Runtimes License (proprietary;
+  product users must each hold a Spine Editor license). Internal evaluation only.
+- spineboy-pro assets — Esoteric Software official sample, same evaluation scope.
+
+vrma/  (official VRMA animation on the CC0 character)
+- @pixiv/three-vrm-animation 3.6.0 — MIT (pixiv Inc.)
+- test.vrma — pixiv official sample animation; drives the same CC0 HairSample_Female.
+
+talkinghead/  (vendored TalkingHead + CC0 avatar)
+- TalkingHead modules (met4citizen/TalkingHead) — MIT, vendored under
+  samples/talkinghead/ (see TALKINGHEAD-LICENSE next to the modules).
+- mpfb.glb — created with Blender + MPFB; licensed CC0
+  (https://github.com/met4citizen/TalkingHead — "Example avatar mpfb.glb ... CC0").
+- three (same as above).

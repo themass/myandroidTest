@@ -14,6 +14,7 @@ object AvatarEventMapper {
         "listening" to AvatarState.LISTENING,
         "thinking" to AvatarState.THINKING,
         "speaking" to AvatarState.SPEAKING,
+        "interrupted" to AvatarState.INTERRUPTED,
     )
 
     /**

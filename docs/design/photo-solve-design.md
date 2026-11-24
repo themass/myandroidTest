@@ -1,5 +1,7 @@
 # 拍照解题端到端设计：检测 / 对齐 / 裁剪 + 服务端解题
 
+> 2026-11-24 迁移：当前识别调用层改为 agent 独立视觉接口 `/v1/photosolve/solve`，见 [迁移契约](photo-solve-agent-migration-20261124.md)。本文 testserverV 调用与部署描述保留作历史，不能当成当前端上链路。
+
 日期：2026-11-11
 分支：`claude/happy-fermi-300550` → 已合并进 `claude/vigorous-goldwasser-584d3f`（基线 `weifu-refactor`）
 服务端：`/Users/gqli/work/testserverV`（分支 `testjava_springboot`）

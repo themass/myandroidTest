@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>本地 VRM 场景对比</title>
+<style>
+:root{color-scheme:light;--gap:.5rem;--surface:Canvas;--text:CanvasText;--line:GrayText;font:90% system-ui}
+*{box-sizing:border-box}body{margin:0;color:var(--text);background:var(--surface);height:100dvh;display:flex;flex-direction:column}
+header,footer{padding:var(--gap);flex:none}header{border-bottom:thin solid var(--line)}h1{font-size:1rem;margin:0 0 var(--gap)}p{margin:.25rem 0;font-size:.8rem}nav{display:flex;flex-wrap:wrap;gap:var(--gap)}button,label{font:inherit;padding:.4rem .65rem;border:thin solid var(--line);border-radius:.35rem;background:var(--surface);color:var(--text)}button[aria-pressed=true]{background:Highlight;color:HighlightText}button:disabled{opacity:.4}main{position:relative;flex:1;min-height:10rem;overflow:hidden}canvas{width:100%;height:100%;display:block;touch-action:none}aside{position:absolute;bottom:1rem;left:1rem;right:1rem;background:var(--surface);padding:.75rem;border-radius:.5rem;pointer-events:none}aside h2{margin:0;font-size:1rem}footer{max-height:40dvh;overflow:auto;border-top:thin solid var(--line)}input{max-width:100%;margin-top:var(--gap)}output{font-variant-numeric:tabular-nums}small{display:block;margin-top:var(--gap)}
+</style>
+<header><h1>同一 VRM，比较镜头和场景</h1><nav aria-label="场景"><button data-mode="companion" aria-pressed="true">陪伴近景</button><button data-mode="lecture" aria-pressed="false">讲课半身</button><button data-mode="body" aria-pressed="false">全身互动</button></nav></header>
+<main><canvas aria-label="可拖动旋转和双指缩放的 3D 角色"></canvas><aside id="lesson" hidden><h2>课程示例：为什么会有昼夜？</h2><p>地球自转，使同一地点交替朝向和背向太阳。</p><p>当前为姿态＋课件排版演示；没有语音、板书同步或真实教学 agent。</p></aside></main>
+<footer><p id="status" role="status">初始化图形引擎…</p><output id="fps" aria-label="估算渲染帧率"></output><nav aria-label="表现控制"><button data-expression="neutral">自然</button><button data-expression="happy">微笑</button><button data-expression="sad">难过</button><button data-expression="surprised">惊讶</button><button id="speak">口型演示（无语音）</button><button id="turn">旋转开关</button><button id="reset">恢复镜头</button><button id="retry">重载示例</button></nav><label for="model">导入自己的 VRM</label><input id="model" type="file" accept=".vrm,model/gltf-binary,application/octet-stream"><small>内置角色：VRoid HairSample_Female（CC0，可商用与再分发），用于观察完整角色与发型表现，仍不代表定制角色的美术上限。导入模型仅在本机读取。three.js / three-vrm：MIT；来源与校验记录见随包 models/SOURCES.md。</small></footer>
+<script src="./scene.bundle.js"></script></html>

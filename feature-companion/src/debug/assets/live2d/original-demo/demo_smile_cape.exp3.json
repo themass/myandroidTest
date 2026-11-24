@@ -1,0 +1,9 @@
+{
+  "Type": "Live2D Expression",
+  "FadeInTime": 0.25,
+  "FadeOutTime": 0.25,
+  "Parameters": [
+    {"Id": "ParamFace_smile", "Value": 1.0, "Blend": "Overwrite"},
+    {"Id": "ParamWear_cape", "Value": 1.0, "Blend": "Overwrite"}
+  ]
+}

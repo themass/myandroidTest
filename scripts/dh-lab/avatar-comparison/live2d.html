@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Live2D 官方样例 · Hiyori(离线)</title>
+<style>
+:root{color-scheme:light;--gap:.5rem;--surface:Canvas;--text:CanvasText;--line:GrayText;font:90% system-ui}
+*{box-sizing:border-box}body{margin:0;color:var(--text);background:#22262b;height:100dvh;display:flex;flex-direction:column}
+header,footer{padding:var(--gap);flex:none}header{border-bottom:thin solid var(--line)}h1{font-size:1rem;margin:0 0 var(--gap)}p{margin:.25rem 0;font-size:.8rem}nav{display:flex;flex-wrap:wrap;gap:var(--gap)}button{font:inherit;padding:.4rem .65rem;border:thin solid var(--line);border-radius:.35rem;background:var(--surface);color:var(--text)}main{position:relative;flex:1;min-height:10rem;overflow:hidden}canvas{width:100%;height:100%;display:block;touch-action:none}footer{max-height:40dvh;overflow:auto;border-top:thin solid var(--line)}small{display:block;margin-top:var(--gap)}
+</style>
+<header><h1>Live2D Cubism 4 官方样例模型 Hiyori · 离线渲染</h1></header>
+<main><canvas id="stage" aria-label="Hiyori 角色,触摸移动视线"></canvas></main>
+<footer><p id="status" role="status">初始化渲染引擎…</p><nav aria-label="表现控制"><button id="talk">口型演示(无语音)</button><button id="motion">播放动作组 TapBody</button></nav><small>模型:Live2D 官方 CubismWebSamples Hiyori(Free Collection,学习/评估可用,不得商用)。运行时:live2dcubismcore.min.js(Live2D 专有 Redistributable)+ pixi-live2d-display / pixi.js v6(MIT)。口型直写 Cubism 参数 ParamMouthOpenY,与通话页原生链路同一参数面。</small></footer>
+<script src="./live2dcubismcore.min.js"></script>
+<script src="./live2d.bundle.js"></script></html>

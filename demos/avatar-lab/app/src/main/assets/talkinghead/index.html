@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TalkingHead 离线示例 · mpfb</title>
+<style>
+:root{color-scheme:light;--gap:.5rem;--surface:Canvas;--text:CanvasText;--line:GrayText;font:90% system-ui}
+*{box-sizing:border-box}body{margin:0;color:var(--text);background:var(--surface);height:100dvh;display:flex;flex-direction:column}
+header,footer{padding:var(--gap);flex:none}header{border-bottom:thin solid var(--line)}h1{font-size:1rem;margin:0 0 var(--gap)}p{margin:.25rem 0;font-size:.8rem}nav{display:flex;flex-wrap:wrap;gap:var(--gap)}button{font:inherit;padding:.4rem .65rem;border:thin solid var(--line);border-radius:.35rem;background:var(--surface);color:var(--text)}main{position:relative;flex:1;min-height:10rem;overflow:hidden}#stage{position:absolute;inset:0}footer{max-height:40dvh;overflow:auto;border-top:thin solid var(--line)}output{font-variant-numeric:tabular-nums}small{display:block;margin-top:var(--gap)}
+</style>
+<header><h1>TalkingHead:vendored 源码 + CC0 头像,口型不联网</h1></header>
+<main><div id="stage" aria-label="TalkingHead 3D 头像,可拖动旋转"></div></main>
+<footer><p id="status" role="status">初始化 TalkingHead…</p><output id="fps" aria-label="估算渲染帧率"></output><nav aria-label="表现控制"><button id="speak">口型演示(无语音)</button><button id="stop">停止</button><button id="mood">表情:neutral</button><button id="view">镜头:full</button></nav><small>源码:samples/talkinghead/modules(met4citizen/TalkingHead,MIT,vendored)。模型:mpfb.glb(36.8MB,ARKit/Oculus blendshape,CC0)。「口型演示」走词→Oculus viseme 队列(lipsync-en,随包静态注册),不调用任何在线 TTS。真语音需要接 TTS 接口,属于服务端工作。</small></footer>
+<script type="module" src="./talkinghead.bundle.js"></script></html>

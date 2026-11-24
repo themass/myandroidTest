@@ -1,0 +1,17 @@
+uniform float t;
+uniform float intensity;
+uniform float centerX;
+uniform float centerY;
+
+half4 main(float2 coord) {
+    float2 center = float2(centerX, centerY);
+    float radius = 0.42 + 0.03 * sin(t * 2.5);
+    float distance = length(coord - center);
+    // Ring profile: alpha is 0 outside the halo band, so this never sheets the scene.
+    float ring = 1.0 - smoothstep(0.0, radius, abs(distance - radius * 0.75));
+    float edge = 1.0 - smoothstep(radius * 0.55, radius, distance);
+    float pulse = 0.75 + 0.25 * sin(t * 3.0);
+    float alpha = clamp(intensity, 0.0, 1.0) * ring * edge * pulse;
+    half3 tint = half3(0.30, 0.85, 1.00);
+    return half4(tint * alpha, alpha);
+}

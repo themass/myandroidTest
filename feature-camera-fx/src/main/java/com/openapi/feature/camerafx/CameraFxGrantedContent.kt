@@ -70,6 +70,7 @@ fun CameraFxGrantedContent(
     modifier: Modifier = Modifier,
     overlayPolicy: CameraFxOverlayPolicy = CameraFxOverlayPolicy(),
     onStageGesture: ((String) -> Unit)? = null,
+    stickerRenderer: CameraFxStickerRenderer? = null,
 ) {
     val showDebugHud = overlayPolicy.showDebugHud
     val drawWireframe = overlayPolicy.drawWireframe
@@ -245,8 +246,6 @@ fun CameraFxGrantedContent(
                     // 从 Held/Off 恢复到 Anchored：头可能已在漏检期间移动，直接 snap 回跟随。
                     val placeFinal: StickerPlacementPx = when (track) {
                         is StickerTrack.Anchored -> {
-                            val wasHeld = slot.lastPlacement != null && !slot.lastWasAnchored
-                            if (wasHeld) slot.smoother.reset()
                             val place = stickerAtHeadTop(
                                 map,
                                 head!!,
@@ -254,16 +253,14 @@ fun CameraFxGrantedContent(
                                 face.tiltDeg,
                                 widthFractionOfFace = 1.05f,
                             )
-                            // 尺寸也要跟着平滑值走，否则 offset 平滑、size 逐帧跳，等于没平滑
-                            slot.smoother.smooth(place).also {
-                                slot.lastPlacement = it
-                                slot.lastWasAnchored = true
-                            }
+                            // 尺寸也要跟着平滑值走，否则 offset 平滑、size 逐帧跳，等于没平滑。
+                            // StickerSlotState 在 Held 后重获锚点时会先 reset EMA 并直接 snap。
+                            slot.anchor(place)
                         }
                         is StickerTrack.Held ->
                             // 漏检宽限内：钉在最后一次成功位置，不喂 smoother（否则把
                             // 「没有观测」当「目标不动」，EMA 会被拉死在旧值附近）。
-                            slot.lastPlacement ?: continue
+                            slot.hold() ?: continue
                         StickerTrack.Off -> {
                             slot.reset()
                             continue
@@ -271,33 +268,31 @@ fun CameraFxGrantedContent(
                     }
                     val half = placeFinal.sizePx / 2f
                     val stickerSize = with(density) { placeFinal.sizePx.toDp() }
-                    if (comp != null) {
+                    val stickerModifier = Modifier
+                        .zIndex(2f)
+                        .offset {
+                            IntOffset(
+                                (placeFinal.centerX - half).roundToInt(),
+                                (placeFinal.centerY - half).roundToInt(),
+                            )
+                        }
+                        .size(stickerSize)
+                        .rotate(placeFinal.rotationDeg)
+                    if (stickerRendererTakesOverWhenSet(
+                            rendererSet = stickerRenderer != null,
+                            compLoaded = comp != null,
+                        )
+                    ) {
+                        // 注入的后端拿到的是**同一个**已平滑位置/尺寸/倾角；几何仍归相机侧。
+                        stickerRenderer!!.invoke(placeFinal, stickerModifier)
+                    } else if (comp != null) {
                         LottieAnimation(
                             composition = comp,
                             progress = { progress },
-                            modifier = Modifier
-                                .zIndex(2f)
-                                .offset {
-                                    IntOffset(
-                                        (placeFinal.centerX - half).roundToInt(),
-                                        (placeFinal.centerY - half).roundToInt(),
-                                    )
-                                }
-                                .size(stickerSize)
-                                .rotate(placeFinal.rotationDeg),
+                            modifier = stickerModifier,
                         )
                     } else {
-                        Canvas(
-                            Modifier
-                                .zIndex(2f)
-                                .offset {
-                                    IntOffset(
-                                        (placeFinal.centerX - half).roundToInt(),
-                                        (placeFinal.centerY - half).roundToInt(),
-                                    )
-                                }
-                                .size(stickerSize),
-                        ) {
+                        Canvas(stickerModifier) {
                             drawCircle(
                                 color = Color(0xCCFF4081),
                                 radius = size.minDimension / 2f,
@@ -371,6 +366,7 @@ fun CameraFxGrantedContent(
 fun CameraFxStickerPip(
     modifier: Modifier = Modifier,
     onStageGesture: ((String) -> Unit)? = null,
+    stickerRenderer: CameraFxStickerRenderer? = null,
 ) {
     CameraFxGrantedContent(
         modifier = modifier,
@@ -380,6 +376,7 @@ fun CameraFxStickerPip(
             showDebugHud = false,
         ),
         onStageGesture = onStageGesture,
+        stickerRenderer = stickerRenderer,
     )
 }
 

@@ -30,6 +30,14 @@
             android:screenOrientation="portrait"
             android:theme="@style/NewPlayerTheme"
             android:configChanges="orientation|screenSize|smallestScreenSize|keyboardHidden|screenLayout" />
+        <service
+            android:name="com.openapi.feature.video.screening.ScreeningAudioService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
         <activity
             android:name="com.openapi.feature.video.local.LocalVideoActivity"
             android:exported="false"

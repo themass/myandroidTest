@@ -6,10 +6,10 @@ package com.openapi.ks.myapp.dh
  * 上游 ChatWaifu_Mobile 带 ATRI / Amadeus / Yuuka 三个模型（8.6M / 6.6M / 7.1M，
  * 推设备毫无压力）。白名单钉死目录名——偏好里出现别的字符串一律回落 ATRI，
  * 防止把 cacheRoot 下的杂目录当模型加载。可用 = 白名单 ∩ cacheRoot 里真实存在
- * 的模型目录；切换在可用列表里循环，只有一个可用时原地不动（不换 = 不闪屏）。
+ * 的模型目录，另含 debug-only OriginalDemo；切换在可用列表里循环，只有一个可用时原地不动（不换 = 不闪屏）。
  */
 object Live2dModels {
-    val ALLOWED = listOf("ATRI", "Amadeus", "Yuuka")
+    val ALLOWED = listOf("ATRI", "Amadeus", "Yuuka", OriginalAvatarDemo.MODEL_DIR)
 
     fun sanitize(raw: String?): String = raw?.takeIf { it in ALLOWED } ?: "ATRI"
 

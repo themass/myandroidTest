@@ -45,6 +45,7 @@ import com.openapi.core.config.CommonConstants
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.feature.companion.R
 import com.openapi.core.config.Constants
+import com.openapi.ks.myapp.avatar.AvatarCommand
 import com.openapi.ks.myapp.avatar.AvatarPackStore
 import com.openapi.ks.myapp.avatar.BundledAvatars
 import com.openapi.ks.myapp.avatar.LayeredAvatar
@@ -56,6 +57,8 @@ import com.openapi.ks.myapp.avatar.SimpleAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
 import com.openapi.ks.myapp.dh.AvatarActionTray
 import com.openapi.ks.myapp.dh.DhEngineDownloadGate
+import com.openapi.ks.myapp.dh.DhEngineId
+import com.openapi.ks.myapp.dh.DhEngineMenuRow
 import com.openapi.ks.myapp.dh.DhEngineRegistry
 import com.openapi.ks.myapp.dh.DhEngineWatchdog
 import com.openapi.ks.myapp.dh.EngineClickAction
@@ -65,6 +68,8 @@ import com.openapi.ks.myapp.dh.DhLabBootstrap
 import com.openapi.ks.myapp.dh.DhLabGate
 import com.openapi.ks.myapp.dh.DhLabPreferences
 import com.openapi.ks.myapp.dh.DigitalHumanLabHost
+import com.openapi.ks.myapp.dh.OriginalAvatarDemo
+import com.openapi.ks.myapp.dh.OriginalAvatarDemoControls
 import com.openapi.ks.myapp.dh.dhEngineMenuRows
 import com.openapi.ks.myapp.dh.dhEngineSeedHint
 import com.openapi.ks.myapp.dh.mapEnsureFailureMessage
@@ -371,6 +376,8 @@ fun CompanionRoute(
         // Live2D 多形象（用户 2026-11-23「demo里有好几个形象，是否可以都集成建立可切换」）：
         // 偏好持久化，托盘「换形象」行在设备上真实存在的模型里循环。
         var live2dModel by remember { mutableStateOf(dhPrefs.live2dModel) }
+        var demoSmileEnabled by rememberSaveable { mutableStateOf(false) }
+        var demoCapeEnabled by rememberSaveable { mutableStateOf(false) }
         // 当前在岗的引擎实例快照（LabHost 在切引擎/切形象时更新，销毁时回 null）。
         // 换装行与换形象行直接调它——引擎内部状态不可观察，靠这个引用把托盘和引擎接上。
         var stageEngine by remember { mutableStateOf<com.openapi.ks.myapp.dh.DigitalHumanEngine?>(null) }
@@ -391,7 +398,24 @@ fun CompanionRoute(
         // 下载/失败后 +1：菜单行（未下载 / native 库缺失 / 机型不足）跟着引擎状态刷新。
         var engineMenuTick by remember { mutableIntStateOf(0) }
         val engineMenu = remember(context, labEnabled, engineMenuTick) {
-            if (labEnabled) dhEngineMenuRows(DhEngineRegistry.available(context)) else null
+            if (!labEnabled) {
+                null
+            } else {
+                val rows = dhEngineMenuRows(DhEngineRegistry.available(context))
+                val debuggable = context.applicationInfo.flags and
+                    android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
+                if (debuggable) {
+                    rows + DhEngineMenuRow(
+                        id = DhEngineId.LIVE2D,
+                        label = "原创 Live2D Demo",
+                        switches = true,
+                        detail = "debug",
+                        demoModel = OriginalAvatarDemo.MODEL_DIR,
+                    )
+                } else {
+                    rows
+                }
+            }
         }
 
         // 通话页用**会动的**形象，而不是单张立绘：这里是她被盯着看最久的地方，
@@ -484,6 +508,28 @@ fun CompanionRoute(
         val aiMouthLevel: () -> Float = {
             val pv = currentPreview
             if (pv.speaker != null) { if (pv.speaker == "ai") pv.level else 0f } else mouthFlow.value
+        }
+
+        fun openOriginalAvatarDemo() {
+            uiScope.launch {
+                val result = withContext(Dispatchers.IO) { OriginalAvatarDemo.install(context) }
+                result.fold(
+                    onSuccess = {
+                        engineMenuTick++
+                        demoSmileEnabled = false
+                        demoCapeEnabled = false
+                        live2dModel = OriginalAvatarDemo.MODEL_DIR
+                        callStage = DhEngineId.LIVE2D
+                        dhPrefs.callStage = DhEngineId.LIVE2D
+                        DhEngineWatchdog(context).clear(DhEngineId.LIVE2D)
+                        engineRetry++
+                        toast(context, "原创 Live2D Demo 已就绪")
+                    },
+                    onFailure = { error ->
+                        toast(context, "原创 Live2D Demo 加载失败：${error.localizedMessage ?: "资源不可用"}")
+                    },
+                )
+            }
         }
 
         CompanionCallScreen(
@@ -592,7 +638,9 @@ fun CompanionRoute(
             } else null,
             live2dModelSwitchHint = "只推了这一个形象",
             onEngineMenuClick = { row ->
-                when (engineGate.actionFor(row)) {
+                if (row.demoModel != null) {
+                    openOriginalAvatarDemo()
+                } else when (engineGate.actionFor(row)) {
                     EngineClickAction.UNAVAILABLE_REASON -> {
                         val id = row.id
                         val msg = when {
@@ -606,6 +654,9 @@ fun CompanionRoute(
                         // 用户主动再选 = 解除上次崩溃留下的熔断（再崩会重新熔断）。
                         row.id?.let { DhEngineWatchdog(context).clear(it) }
                         engineRetry++
+                        if (live2dModel == OriginalAvatarDemo.MODEL_DIR) {
+                            live2dModel = dhPrefs.live2dModel
+                        }
                         callStage = row.id
                         dhPrefs.callStage = row.id
                     }
@@ -703,6 +754,32 @@ fun CompanionRoute(
                             },
                             faceCameraPipContent = faceCameraPipContent,
                         )
+                        }
+                        if (labEnabled && !actionTrayOpen && chosen == DhEngineId.LIVE2D &&
+                            stageEngine?.id == DhEngineId.LIVE2D &&
+                            stageEngine?.modelLabel() == OriginalAvatarDemo.MODEL_DIR
+                        ) {
+                            OriginalAvatarDemoControls(
+                                smileEnabled = demoSmileEnabled,
+                                capeEnabled = demoCapeEnabled,
+                                onSmileChange = { enabled ->
+                                    demoSmileEnabled = enabled
+                                    stageEngine?.dispatch(
+                                        AvatarCommand.Emotion(
+                                            OriginalAvatarDemo.expressionName(enabled, demoCapeEnabled),
+                                        ),
+                                    )
+                                },
+                                onCapeChange = { enabled ->
+                                    demoCapeEnabled = enabled
+                                    stageEngine?.dispatch(
+                                        AvatarCommand.Emotion(
+                                            OriginalAvatarDemo.expressionName(demoSmileEnabled, enabled),
+                                        ),
+                                    )
+                                },
+                                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp),
+                            )
                         }
                         if (actionTrayOpen) {
                             val wardrobe = stageEngine?.wardrobeRows().orEmpty()

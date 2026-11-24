@@ -126,6 +126,34 @@ class SpeechTimeline(val speechId: String) {
         return startOf(idx)?.plus(segmentList[idx].effectiveMs)
     }
 
+    /**
+     * 打断瞬间「实际说出口了多少个字」（P2 契约
+     * docs/design/2026-11-24-state-cancel-contract-v2.md §2.1-2）。
+     *
+     * 字幕截断吃这个数（服务端历史入库用同一口径按 `est_ms` 算）。完整段照收
+     * `chars`，正在播的段按 `est_ms` 线性比例取字符，播过头封顶。`est_ms` 是估计值——
+     * 这里要的不是精确，而是**不把没说的话留在气泡里**，宁可少留一个字。
+     *
+     * [playMs] 是相对 `t0` 的已播毫秒（端侧经 `SpeechRegistry.playedMs` 取，`t0`
+     * 未定时它给 0）。纯算术，不查 `t0`：还没出声就被打断时传 0，前缀自然是空。
+     */
+    fun spokenChars(playMs: Long): Int {
+        if (playMs <= 0) return 0
+        var chars = 0
+        for (i in segmentList.indices) {
+            val seg = segmentList[i]
+            val start = rel[i]
+            val dur = seg.effectiveMs
+            when {
+                playMs >= start + dur -> chars += seg.chars          // 这一段说完了
+                playMs <= start -> return chars                       // 还没轮到这一段
+                dur == 0L -> return chars + seg.chars                 // 0 时长段瞬间说完
+                else -> return chars + (seg.chars * (playMs - start) / dur).toInt()
+            }
+        }
+        return chars
+    }
+
     // -------------------------------------------------------------- 状态迁移
 
     /**

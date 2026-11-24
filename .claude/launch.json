@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "photo-editor-design",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "design/photo-editor", "run", "dev", "--", "--port", "5178"],
+      "port": 5178
+    },
+    {
+      "name": "avatar-comparison-local",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8791", "--bind", "127.0.0.1", "--directory", "demos/avatar-lab/app/src/main/assets"],
+      "port": 8791
+    }
+  ]
+}

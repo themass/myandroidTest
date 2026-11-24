@@ -48,6 +48,7 @@ dependencies {
     // Media3（PCM 音频源、ExoPlayer 数据源）
     implementation libs.androidx.media3.exoplayer
     implementation libs.androidx.media3.datasource
+    implementation libs.androidx.media3.session
     implementation libs.androidx.media3.ui
     // HLS（m3u8）播放：原来声明在 :app，实际是视频播放用
     implementation libs.androidx.media3.exoplayer.hls

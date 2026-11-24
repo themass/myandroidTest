@@ -1,7 +1,7 @@
 package com.openapi.feature.photosolve.data
 
 /**
- * 服务端拍照解题接口的数据结构（对应 testserverV 的 `/api/photosolve/v1/solve.json`）。
+ * agent 独立视觉解题接口 `/v1/photosolve/solve` 的普通 JSON 数据结构。
  *
  * 字段命名和 docs/design/photo-solve-design.md 第 3 节一致；Gson 按字段名映射，
  * 新增字段不需要改这里（未知字段被忽略）。

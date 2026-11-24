@@ -4,6 +4,7 @@ import android.content.Context
 import com.openapi.common.net.http.BaseService
 import com.openapi.common.net.awaitGet
 import com.openapi.common.net.awaitInfoList
+import com.openapi.common.net.awaitPostOk
 import com.openapi.common.net.request.InfoListVo
 import com.openapi.core.config.Constants
 import com.openapi.core.model.RecommendUrl
@@ -121,6 +122,10 @@ internal class ScreeningFeedStore(context: Context) {
     suspend fun albumImages(channelParam: String, start: Int = 0): Page<RemoteEntry> =
         page(Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, channelParam, ""))
 
+    /** Lightbox 翻到尾部续取：旧 ImgItemFragment 以当前图片行的 actionUrl 作为 itemUrl。 */
+    suspend fun imageItemPage(itemUrl: String, start: Int = 0): Page<RemoteEntry> =
+        page(Constants.getUrlWithParam(Constants.API_IMG_ITEM_PAGE_URL, start, itemUrl))
+
     /**
      * 懒播放地址：`needLazyUrl` 的条目要再问一次才拿到真正可播的地址。
      * 与 `VideoShowActivityLazyUrl` 用同一份接口、同一条兜底（问不到就用原 actionUrl）。
@@ -178,16 +183,47 @@ internal class ScreeningFeedStore(context: Context) {
         val raw: InfoListVo<SubtitleVo> = service.awaitInfoList(
             Constants.getUrlWithParam(Constants.API_SUBTITLE_LIST_URL, 0, videoId), SubtitleVo::class.java, NET_TAG,
         )
-        return raw.voList.orEmpty().filter { it.id > 0L }.map { vo ->
-            SubtitleItem(
-                id = vo.id,
-                title = vo.title?.takeIf { it.isNotBlank() } ?: "字幕 ${vo.id}",
-                langLabel = subtitleLangLabel(vo.lang),
-                formatLabel = subtitleFormat(vo.format, vo.title),
-                sizeLabel = subtitleSizeLabel(vo.size),
-            )
-        }
+        return raw.voList.orEmpty().filter { it.id > 0L }.map { it.toSubtitleItem() }
     }
+
+    /**
+     * 某个声音条目的服务端歌词列表（契约 sound-lyrics-contract §2 Phase 1）。
+     * 无轨=空列表（服务端不报错），调用方据此走实时 ASR 兜底并可触发按需生成。
+     */
+    suspend fun soundSubtitles(soundItemId: Long): List<SubtitleItem> {
+        val raw: InfoListVo<SubtitleVo> = service.awaitInfoList(
+            Constants.getUrlWithParam(Constants.API_SOUND_SUBTITLE_LIST_URL, soundItemId.toString()),
+            SubtitleVo::class.java, NET_TAG,
+        )
+        return raw.voList.orEmpty().filter { it.id > 0L }.map { it.toSubtitleItem() }
+    }
+
+    /** 声音馆歌词正文（SRT）。信封/解密与视频字幕同一条链路。 */
+    suspend fun soundSubtitleContent(subtitleId: Long): String? {
+        val fetched = service.awaitGet(
+            Constants.getUrlWithParam(Constants.API_SOUND_SUBTITLE_CONTENT_URL, subtitleId),
+            SubtitleContentVo::class.java, NET_TAG,
+        )
+        return fetched.content
+    }
+
+    /**
+     * 无轨条目的按需生成请求（契约 §2 Phase 2）：服务端按条目去重，
+     * 端上 fire-and-forget——本次播放照常走实时 ASR，下次再进就有歌词。失败静默。
+     */
+    suspend fun requestSoundSubtitleGeneration(soundItemId: Long): Boolean =
+        service.awaitPostOk(
+            Constants.getUrlWithParam(Constants.API_SOUND_SUBTITLE_GENERATE_URL, soundItemId.toString()),
+            null, NET_TAG,
+        )
+
+    private fun SubtitleVo.toSubtitleItem(): SubtitleItem = SubtitleItem(
+        id = id,
+        title = title?.takeIf { it.isNotBlank() } ?: "字幕 $id",
+        langLabel = subtitleLangLabel(lang),
+        formatLabel = subtitleFormat(format, title),
+        sizeLabel = subtitleSizeLabel(size),
+    )
 
     /** 整份字幕文本（SRT / VTT）。内容字段在 JSON 信封里，过现有解密链路。 */
     suspend fun subtitleContent(subtitleId: Long): String? {
@@ -266,6 +302,8 @@ internal fun RemoteEntry.textArticleRef(): TextArticleRef? {
 
 /** Gson：sound/items.json 行（字段对齐 [com.openapi.core.model.SoundItemsVo]）。 */
 internal class SoundItemsVo {
+    /** 服务端 2026-11-24 起透出；老服务端没有这个字段，缺省 null=该条目无法挂歌词轨。 */
+    @JvmField var id: Int? = null
     @JvmField var name: String? = null
     @JvmField var file: String? = null
     @JvmField var fileDate: String? = null
@@ -284,5 +322,6 @@ internal fun SoundItemsVo.toSoundListEntry(index: Int): RemoteEntry {
         channelParam = null,
         param = null,
         isImageCard = false,
+        serverId = id?.takeIf { it > 0 }?.toLong(),
     )
 }
