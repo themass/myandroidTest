@@ -3,7 +3,7 @@
 **主线 tip：** `origin/weifu-refactor` → **`31f1c745`**（1.1.0.72 装机 bump）
 （其下含 `8d38e82f` 拍照解题判负退四角微调、`2f16c4eb` PIP 提升组合根+camera-fx 包名登记（lottie-fx 已闭环，ModuleGraphTest 4/4 绿，tip 上复跑 exit 0）、`ece403c2` 对话页用户头像、`4b1c2b37` photo-edit S3、`cbe826e1` camera-fx 手势 cue、`fddbf38a` 通话字幕修复）
 
-**装机 #3（协调会话，进行中）：** tip 31f1c745 现场 `assembleChatDebug` → **1.1.0.72 / 1001000072** 装 V2279A，一次性覆盖三块新验收面：S2 头像（ece403c2）、拍照解题 PS1–PS5（docs/qa/photo-solve-capture-flow-20261123.md）、引擎舞台（字幕修复已在）。公告后 design-3-tasks / sse 各自跑行。
+**装机 #3 完成（2026-11-24 10:36:54）：** V2279A = **1.1.0.72 / 1001000072**，包=tip **5e17a2f5** 现场 `assembleChatDebug`（md5 `741637d1…`，adb Success，vivo 确认由用户点）。中途插曲：用户 10:34 点的是更早推的旧 72 产物（tip 31f1c745，不含 screening 修）→ 删旧 apk 重新现场构建再装，最终包已核对。一次性覆盖验收面：放映场列表回刷 + 正文黑底黑字（5e17a2f5）、拍照 PS1–PS5（8d38e82f）、对话页头像（ece403c2）、通话字幕（fddbf38a）。协调侧 logcat tee：`/tmp/v2279a-tip-screening-tee.log`（-s ScreeningTextBody FeedPager MouthLevel）。已公告 screening / design-3-tasks 开跑各自验收行。
 
 **待用户拍板（design-3-tasks 留给产品的两条）：** ① DocQuadNet 认「屏幕里的题」要补训练样本或加几何兜底（算法切片，工作量大）；② 服务端 40002 不退额度（只有 50001 退），手动四角放行后更容易撞 40002——改不退规则影响计费，归用户定。
 
