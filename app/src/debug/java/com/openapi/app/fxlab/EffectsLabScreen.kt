@@ -117,11 +117,12 @@ fun EffectsLabScreen(
                                 state = state,
                                 modifier = Modifier.fillMaxSize(),
                             )
-                        FxScene.CAMERA_PIP -> {
-                            Text("摄像头小窗场景将在后续任务接入")
-                            cameraPipContent?.invoke(Modifier)
-                        }
-                        FxScene.CAMERA_FULL -> Text("摄像头全屏场景将在后续任务接入")
+                        FxScene.CAMERA_PIP, FxScene.CAMERA_FULL ->
+                            CameraScene(
+                                state = state,
+                                renderer = null,
+                                modifier = Modifier.fillMaxSize(),
+                            )
                     }
                 }
             }
