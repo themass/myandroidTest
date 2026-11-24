@@ -1,12 +1,12 @@
-# 问题台账 20261124 · chat / 附件 / 图片编辑（19 条，一条不丢）
+# 问题台账 20261124 · chat / 附件 / 图片编辑 / 首屏性能（20 条，一条不丢）
 
 用户原话：「每个问题都要有一个标志，不能遗失」「如果是个架构设计或者共性问题要从架构层面彻底解决，要学会抽象架构设计，封装」。
-本台账就是那个标志表：`A1…A19` 对应原始抱怨的 10 大项 19 个可执行点。每条含 **现象 → 根因（file:line 证据）→ 修复方案 → 是否共性问题/抽象点 → 状态**。
+本台账就是那个标志表：`A1…A19` 对应原始抱怨的 10 大项 19 个可执行点；`A20` 是用户 20261125 追问的「chat 首屏消息显示慢」。每条含 **现象 → 根因（file:line 证据）→ 修复方案 → 是否共性问题/抽象点 → 状态**。
 
-状态标记：`已修合线` / `派工中` / `待取证` / `需服务端`。
+状态标记：`已修合线` / `派工中` / `待派工` / `待取证` / `需服务端`。
 
 对应原始编号：
-`1→A1`，`2→A2`，`3-1)→A3,A4`，`3-2)→A5,A6`，`3-3)→A7`，`3-4)→A8`，`3-5)→A9`，`3-6)→A10`，`3-7)→A11`，`3-8)→A12`，`4→A13`，`5→A14`，`6→A15`，`7→A16`，`8→A17`，`9→A18`，`10→A19`。
+`1→A1`，`2→A2`，`3-1)→A3,A4`，`3-2)→A5,A6`，`3-3)→A7`，`3-4)→A8`，`3-5)→A9`，`3-6)→A10`，`3-7)→A11`，`3-8)→A12`，`4→A13`，`5→A14`，`6→A15`，`7→A16`，`8→A17`，`9→A18`，`10→A19`；`A20` 来自独立追问「首屏消息显示特别慢，不是本地分页展示么？」。
 
 ---
 
@@ -96,9 +96,11 @@
 
 ## A13 · 图片消息里多张图片，服务端只看了一张就乱回
 
-- **根因**：**未定位**。客户端侧图片+视频共用一个 attachments list 上 wire（`ComposerActions.kt:36-44` 注释），发送侧代码看起来是带全部附件的；到底是客户端只送了一张、还是服务端只分析了一张，需要端到端取证（附件管道取证 agent 仍在跑）。
-- **修复路径**：先在客户端补一条可观测证据（发送 payload 里附件数量与顺序落日志/测试），再对照服务端 `chat.py` 的多图分析逻辑。**服务端改动属另一条集成线（agent-docs/服务端仓库是 main）**，不在客户端台账内闭环。
-- **状态**：**待取证 + 需服务端**。
+- **根因（取证完成，推翻「发送路径裁图」假设）**：发送链**不裁图**——一次带图发送是「一条 `ChatMessage` + N 元素 `attachments` 数组」全程到 wire：`SendActions.kt:62-98`（全部 drafts→同一消息）→ `AttachmentSender.kt:76-90`（N 个 upload_id）→ `AgentChatRemote.kt:442-449`（`put("attachments", JSONArray)` 整数组，无 `first()`）；服务端也是逐个读图（`docs/design/shared-media-upload-and-storage.md:213-222`：`_load_inputs → TurnRunner._load_images` 逐个取，读失败只跳过该张）。能把「N 张」塌成「1 张」的是端上两处：
+  1. **暂存文件名同毫秒互相覆盖（最可能真凶）**：`AttachmentStager.kt:97` 每次 `stage()` 取一个 `System.currentTimeMillis()` 做 `img_$stamp.jpg`（:110），多选循环（`SendActions.kt:185-222`）里两次 stage 落在同一毫秒 → 后一张**静默覆盖**前一张文件，N 个草稿的 `staged.file` 指向同一路径 → 上传 N 次同一份字节。陪伴页已点名并修掉同一坑（`CompanionViewModel.kt:243-262` 注释原文「选了九张只剩一张」，CAS 单调时间戳 `nextStagingStamp()`），**feature-chat 侧没有这套修法**（全仓 `nextStagingStamp` 只在 feature-companion 命中）。
+  2. **显示端收成「一沓」**：`ChatItemMapper.kt:48` 把全部图合成一个 `MessagePart.Images`，`MessageParts.kt:96-103,212-227` 默认 `ImageLayout.Stack` 一律收纳盒、不看张数 → 9 张只露顶卡，用户读作「只有一张」（不影响服务端，但影响观感）。
+- **修复**：①暂存命名单写者化——把单调 stamp（CAS）提到 `common/media` 层与 `StagingGc` 同层共用，feature-chat 与 companion 两处调用；②发送 payload 表征测试（N 个 upload_id、顺序、文件名互不相同）钉死不再复发；③显示侧收纳盒按张数显示「N 张」或按张数选布局。**服务端不需要改**（取证表明逐个读图）。
+- **状态**：**根因已定位（端侧两处）+ 待派工**——`AttachmentStager.kt` 在状态机 worker 的文件区内，待其收口后紧接派工，避免同文件冲突。
 
 ## A14 · 「（回复被中断）」太容易出现
 
@@ -116,16 +118,22 @@
 
 ## A15 · 文件消息必失败 + 输入框里的文件不能点击查看
 
-- **根因**：**未完全定位**（附件管道取证 agent 仍在跑）。已确认的相邻事实：`DraftTray` 全文件只有删除 × 可点（`ComposerPanels.kt:162`），所以「输入框里文件点不开」= A9 的同一根因在文件草稿分支上；`ImageViewer` 只处理图片，文件没有查看器。「必失败」需要抓发送侧证据（上传接口、文件 MIME/大小闸、服务端返回）。
-- **修复**：第一步先加可观测性（发送文件时的 payload 与失败原因落到 `ChatStrings` 错误文案 + 日志），再按证据修；文件预览能力缺失是独立的下一个问题（先让它「点了有反应/有明确不支持提示」，不要静默）。
-- **状态**：**待取证**（点击查看部分已随 A9 派工）。
+- **根因（取证完成）**：文件消息走的是 **legacy Java 逐条 multipart 接口** `/chat/ai/local/file.json`（`Constants.java:196`；`AttachmentSender.kt:129-142` 类注释自认「`/v1/uploads` 没有文件类型，那是能力缺口」；`AgentBackedChatRepository.kt:393-395` 把非图片一律委托 legacy），失败是**四个叠加事实**：
+  1. **`sessionId` 跨 id 空间**：喂给 legacy 的是 `/v1` 的整数 id（`AttachmentSender.kt:69` → `AgentBackedChatRepository` 的 `agent_chat_current_session`），legacy 会话 id 存在另一个键（`SessionStore.kt:23`）——`AgentBackedChatRepository.kt:50-54` 的注释正是这条禁令的反向违反 → 服务端会话校验拒（历史同类返回 `errno 11003 会话不存在或无权访问`，`docs/design/chat-bugs-and-gallery-plan.md:9`）。
+  2. **错误全被抹平成 null**：`BaseServiceAwait.kt:74-103` 的 `awaitUpload` 把任何 onError 变 `resume(null)`，无 HTTP 码无 errno；端上只剩 `AttachmentSender.kt:154` 固定文案「发送失败，请稍后重试」——**失败原因根本看不见**。
+  3. **鉴权与实例分裂**：legacy 上传走 UA 签名（`ChatRepositoryImpl.kt:48-51`），`/v1` 走 Bearer；文件端点还落在另一个服务实例（`docs/design/chat-companion-status-and-plan.md:43`）。
+  4. **即使服务端回话也被丢**：`AttachmentSender.kt:131-137` 拿到 `ChatReply` 只判 null，`reply.text` 从不进列表；且文件不进 `/v1` 历史 → 换设备/刷新后文件行只活在本地缓存（`ResendActions.kt:49-55`）。
+- **修复**：真修需要 `/v1` 侧补文件 upload scene（**需服务端**，另一条集成线，`AttachmentApi.kt` 现在只有 `chat-image`/`chat-video`）。端上先做两步止血：①可观测性——`awaitUpload` 失败不再抹平，HTTP 码/errno 透到 `AttachmentSender.fail` 与日志；②文件草稿点击查看（随 A9 派工）至少给「预览暂不支持」明确反馈，不静默。
+- **状态**：**根因已定位（端侧可观测性部分待派工）+ 需服务端**（`/v1` 文件 scene）。点击查看部分已随 A9 派工。
 
 ## A16 · 图片+文字 / 附件+文字 看起来像两条消息
 
-- **根因**：`chatkit/.../message/parts/MessageParts.kt` 里附件块与文字块的间距/分隔让视觉上是两个独立气泡（消息数据本身是一条，`ChatItem` 未拆分）。
-- **修复**：同一消息的附件块与文字块**共用一个气泡容器**（同底色同圆角，内部用分隔线而不是两个气泡）；有附件时收紧块间距、附件与气泡边缘留白一致；用户侧与助手侧都要成立。不改消息模型。若实际已是单气泡，则只调间距并把结论写清楚。
-- **共性/抽象点**：**「一条消息 = 一个视觉容器」**是渲染不变量；任何新增 part（图片/文件/位置/引用）都往同一个气泡里加，而不是并排第二个气泡。抽象点：`MessageBubble` 作为容器，parts 只声明内部顺序与分隔。
-- **状态**：**派工中**。
+- **根因（取证完成，两层）**：
+  1. **布局层**：`chatkit/.../message/parts/MessageParts.kt` 里附件块与文字块的间距/分隔让视觉上是两个独立气泡（消息数据本身是一条，`ChatItem` 未拆分）。
+  2. **数据层重复（取证新增，是真「两条」的来源）**：用户侧「图片+文字 = 1 记录 1 气泡」已逐环节证实（`SendActions.kt:62-98` 一个 `ChatMessage`；`ChatItemMapper.kt:25-78` 一个 `ChatItem`；`ChatMessageItem.kt:246-335` 同一行堆叠 parts）。但**助手侧会真的出现两条**：每轮 `persistTurn` 写一行 `local-assistant-<millis>`（`AgentBackedChatRepository.kt:242-249`，id 每次现取时间戳），服务端历史里同一条回复带**自己的** assistant id，而 `client_message_id` 只在用户行上（`AgentVoMappers.kt:45`）；`LocalChatStore.cacheRemote` 对齐只认 `chatId == 服务端 id 或 client_message_id`（`LocalChatStore.kt:138-144`），本地助手行两个都不匹配 → 服务端行另存一行；且 `deleteSessionTextOnly` 的 SQL 排除 `local-%`（`ChatLogDao.java:44-48`），整页刷新清不掉 → 切会话/离线回退缓存时本地+服务端助手行并存，chatkit 给每条已完成助手消息挂一排 footer 芯片（`ChatMessageItem.kt:182-188`）→「两条 AI 气泡各有一排 action」。刷新后消失、切会话又出现，与用户观察吻合。
+- **修复**：布局层——同一消息的附件块与文字块**共用一个气泡容器**（同底色同圆角，内部用分隔线而不是两个气泡）；有附件时收紧块间距；用户侧与助手侧都要成立。数据层——`persistTurn` 的助手行改用可与服务端对齐的键（done 帧返回的 assistant id 落 `ChatLog.chatId`，或 `cacheRemote` 对 `local-assistant-*` 按 turn 匹配消除）；这是数据层改动，与 A19 tombstone 同区。
+- **共性/抽象点**：**「一条消息 = 一个视觉容器」**是渲染不变量；任何新增 part 都往同一个气泡里加。**以及：本地写入的每一行都必须有可与服务端对账的键**——时间戳 id 的行在历史合并时必然复活成重复（与 A19 tombstone 是同一「本地/服务端对账层」缺失的两面）。
+- **状态**：布局层 **派工中**（附件 UX worker）；数据层重复 **待派工**（feature-chat data/**，与状态机 worker 同区，待其收口后合并处理）。
 
 ## A17 · 很容易「死机」：那边失败这边发不出新消息，点停止也不好使
 
@@ -151,6 +159,19 @@
 - **共性/抽象点**：**乐观更新（local-first + 失败回滚 + 防复活）是本项目缺的一层**。「先等服务端再改 UI」的模式在删除、重命名、收藏等处会反复出现同样的「点了没反应」。抽象点：一个小的 optimistic mutation helper（快照 → 应用 → 失败回滚 → 错误上报），配合 reconcile 侧的 tombstone 集合。本次只在删除上落这个模式，其他调用点列为后续。
 - **状态**：**派工中**。
 
+## A20 · chat 页首屏消息显示特别慢（用户追问：不是本地分页展示么？）
+
+- **直接回答**：**首屏不是本地分页**——本地 Room 缓存只在两处提前上屏：切会话（`SessionActions.kt:33` 先 `cachedMessages` 顶上，注释自述「服务端一页要 0.4~2 秒」）和网络失败兜底（`AgentBackedChatRepository.kt:259-262`）。**冷启动首屏两者都不走**：`ChatViewModel.kt:44` 初始 `loading=true`，init（:79-86）里 `syncSessionsFromServer()` 与 `refresh()` **串行**写在同一个 launch，`refresh()` → `loadHistoryPage`（:258）**无条件先打网络**，期间只有骨架（`EmptyChatView.kt:119-139`）。本地分页能力（`cachedMessages` + 防盖写守卫 :440-448）已存在，只是冷启动路径没接。
+- **根因（取证完成，按可能排序）**：
+  1. **network-first 串行三跳才第一次上屏**（CONFIRMED）：`GET /v1/sessions`（:83）→ `GET /v1/sessions/{id}/messages?limit=30`（:258）→ **每张远程图一次签名 URL**（:271 `hydrateImages` 在上屏之前；`ImageHydration.kt:12` 自述单次 0.4–2s，已并发但要等最慢一张）。`loading` 才翻 false（:111）。
+  2. **首屏图片必然远端重下，本机字节被绕过**（CONFIRMED）：`AgentVoMappers.kt:20-24` 一律映射 `ImageSource.REMOTE`；`cacheRemote` 合并过本机文件的行只落库不上屏（`LocalChatStore.kt:145-152`）→ 本机有的图也用签名 URL 让 Coil 重下。
+  3. **每条助手消息首帧 markdown 全量解析 + 分块缓存未接线**（CONFIRMED）：`MarkdownText.kt:88,96` 首帧两次 `markwon.toMarkdown`；带块级缓存的 `MarkdownRenderCache.kt`/`MarkdownSegmenter` **生产路径零调用**（只有测试），`MarkdownText.kt:69-72` 的私有同名 cache 只缓存 stable 段，对首帧零收益；首条消息还在**主线程**懒建 Markwon 9 插件单件（`ChatMarkwon.java:31-45`），`JLatexMathPlugin`+单 `$` 内联处理器对每条文本都跑。
+  4. **本地表规模放大 IO**（存在 CONFIRMED，量级 PLAUSIBLE）：一次刷新 3 次 `bySession` 无 LIMIT 全读（`ChatLogDao.java:28-29`）；`/v1` 链路从不裁剪（`trimToLatest` 只在旧链路）；无 (sessionId,id) 复合索引。
+  5. **网络一跳量级**（PLAUSIBLE，需真机取数）：restClient 15s/30s 无重试（`AgentChatRemote.kt:44-49`）；nginx→104:8081 无实测记录。**全链路现在没有任何计时**（grep `measureTime|elapsedRealtime` 零命中）——取数要先加 instrumentation。
+- **修复**：①`refresh()` 先 `cachedMessages(sid)` 顶一次再接服务端（能力现成：`SessionActions.kt:33-45` 同款路径+防盖写守卫）；`syncSessionsFromServer` 与 `refresh` 解耦并行（`ChatViewModel.kt:79-86`）；②`loadHistoryPage` 返回合并了本机文件的行（`cacheRemote` 已算出），`hydrateImages` 挪到上屏后异步补；③`MarkdownText` 接上 `MarkdownRenderCache`（API 就绪、测试已钉），`ChatMarkwon.get()` 预热挪 IO；④`bySession` 加 `ORDER BY id DESC LIMIT :n` + 会话级裁剪；⑤`AgentChatRemote.kt:316-325` 一处 `call` 加耗时日志（首屏取数前置，可与任一改动同做）。
+- **共性/抽象点**：**「本地先行、远端对账」缺层**——读路径与写路径（A19）同一个缺失的两面：UI 永远等远端，本地缓存只当灾难备份。抽象点：所有列表读统一「cache render → remote reconcile」两段式；渲染重（markdown）的部分必须有跨消息复用的解析缓存，且初始化不在主线程。
+- **状态**：**根因已定位（取证完成）+ 待派工**——①②落点在 `ChatViewModel`/`AgentBackedChatRepository`（状态机 worker 文件区），③在 `ui/MarkdownText.kt`（同一区），待其收口后合并为一条 A20+A16数据层+A13+A15可观测性 的派工；④在 core/ 可与任何线并行但为省测试轮次一并做。
+
 ---
 
 ## 架构抽象点汇总（共性问题一次解决）
@@ -167,10 +188,16 @@
 | 8 | 查看器/编辑机器各路径各造一套（A9/A10/A15） | 单一 `ImageViewer` + `pendingEdit` 复用，动作通过参数注入 | chatkit 内共享 |
 | 9 | 一条消息渲染成多个气泡（A16） | 「一条消息 = 一个气泡容器」不变量 | `MessageParts` |
 | 10 | 编辑器布局每工具各排（A7/A6） | 三段骨架：顶栏 / 画布 / 面板槽（在工具条上方）/ 工具条 | `PhotoEditor` panelSlot |
+| 11 | 读写都「先等远端」，本地只当灾难备份（A20，与 A19 同层两面） | 列表读统一「cache render → remote reconcile」两段式；重解析（markdown）跨消息缓存、初始化离开主线程 | `ChatViewModel.refresh` / `MarkdownText` |
+| 12 | 本地行没有可对账键，历史合并必复活重复（A16 数据层；A19 tombstone 另一面） | 本地写入的每一行必须携带可与服务端对账的键（服务端 id / client_message_id） | `persistTurn` / `cacheRemote` |
+| 13 | 同毫秒时间戳做文件名，多选互相覆盖（A13；companion 已修、chat 没修） | 暂存命名统一 CAS 单调 stamp，放 `common/media` 层共用 | `AttachmentStager` |
+| 14 | 网络错误被抹平成 null，失败原因看不见（A15，A14 相邻） | 失败必须带码上抛（HTTP/errno → `ChatStrings` 文案 + 日志） | `BaseServiceAwait` / `AttachmentSender` |
 
 ## 未闭环项（明确列出，不当作已解决）
 
-- **A13** 多图只分析一张：端侧证据未取完 + 服务端需改（另一条集成线）。
-- **A15** 文件消息必失败：根因待取证，先加可观测性。
+- **A13** 多图只分析一张：根因已定位（端侧两处：暂存同毫秒覆盖 + 收纳盒观感），**待派工**；服务端无需改。
+- **A15** 文件消息必失败：根因已定位（legacy 链路四叠加），端侧可观测性+反馈 **待派工**；真修需服务端补 `/v1` 文件 upload scene（另一条集成线）。
+- **A16 数据层**：`local-assistant-*` 行与历史无对账键导致助手气泡重复，**待派工**（与 A19 tombstone 同区）。
+- **A20** 首屏慢：根因已定位（network-first 三跳串行 + 图片远端重下 + markdown 缓存未接线），修复**待派工**；网络一跳量级需真机取数（先加计时 instrumentation）。
 - **A5 设备侧**：需确认装机包含 `.cube` 资产（logcat `LutAssets`）。
 - 陪伴页图片上限（`CompanionViewModel`）与本次产品上限需同步，未在同一 worker 改动范围内。
