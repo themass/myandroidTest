@@ -8,5 +8,7 @@ const output = path.join(root, 'demos/avatar-lab/app/src/main/assets/scene');
 await mkdir(output, { recursive: true });
 await build({entryPoints:[path.join(here,'scene.js')], bundle:true, format:'iife', platform:'browser', target:'chrome90', outfile:path.join(output,'scene.bundle.js'), minify:true, legalComments:'eof'});
 await copyFile(path.join(here,'index.html'),path.join(output,'index.html'));
-await copyFile(path.join(root,'.superpowers/dh-packs/VRM1_Constraint_Twist_Sample.vrm'),path.join(output,'sample.vrm'));
+await copyFile(path.join(root,'demos/avatar-lab/models/HairSample_Female.vrm'),path.join(output,'sample.vrm'));
+await mkdir(path.join(output,'models'), { recursive: true });
+await copyFile(path.join(root,'demos/avatar-lab/models/SOURCES.md'),path.join(output,'models/SOURCES.md'));
 console.log('Local scene packaged into '+output);
