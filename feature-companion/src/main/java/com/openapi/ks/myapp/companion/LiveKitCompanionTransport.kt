@@ -103,6 +103,18 @@ class LiveKitCompanionTransport(
     @Volatile private var playbackAudible = true
 
     /**
+     * 本地打断的**独立**静音门（P2 契约 §2.1）。与 [playbackAudible] 是两个意图的与门：
+     * 上面那个是用户「要不要出声」（退通话页 / 语音回答开关），这个是「她这句话已经
+     * 被打断，剩下的不许播」。合并成一个字段的话，恢复被打断的那句会顺手把用户
+     * 刚刚关掉的出声又打开。
+     *
+     * 为什么必须端侧本地做而不是等服务端：服务端 `interrupt` 只保证它自己不再推流，
+     * 已经进了 jitter buffer 的音频照播（实测约 0.2~0.5 s），而用户体感是
+     * 「我打断了她还在说」——这一段的静默只能由端侧制造。
+     */
+    @Volatile private var bargeMuted = false
+
+    /**
      * §9 的语音时间线与表现 cue 队列。
      *
      * 单独一个对象而不是散在 transport 里：调度判定是纯逻辑，能用假时钟单测
@@ -679,6 +691,7 @@ class LiveKitCompanionTransport(
         // 本地立刻作废（§10.1）：哪怕发包失败，视觉也要停。
         speech.onCancel(JSONObject().put("speech_id", speechId))
         speechWake.trySend(Unit)
+        silenceCancelledSpeech(speechId, playedMs, reason = "vad")
 
         val current = room ?: return
         val protocolLink = link ?: return
@@ -701,6 +714,25 @@ class LiveKitCompanionTransport(
                 logInfo("attempt=$activeAttemptId event=barge_in id=$speechId playedMs=$playedMs")
             }
         }
+    }
+
+    /**
+     * 一句话被打断后**端侧自己**要做的那三件事（P2 契约 §2.1）。
+     *
+     * 1. 关门静音：已经进 jitter buffer 的音频不能再播出去（服务端 `interrupt` 管不到这一段）。
+     * 2. 停口型：见 [applyPlayback] 与 [feedRemotePcm] 里的门。
+     * 3. 发 [CompanionEvent.SpeechInterrupted]，字幕按「实际说出口的前缀」截断。
+     *
+     * 本地 barge 与服务端 `control.cancel` 共用这条：对端侧来说两者是同一件事——
+     * 这句话死了，残留不许出声。[playedMs] 是这句话已播毫秒（`t0` 未定时为 0，
+     * 于是前缀是空，正确）。
+     */
+    private fun silenceCancelledSpeech(speechId: String, playedMs: Long, reason: String) {
+        bargeMuted = true
+        applyPlayback()
+        val chars = speech.timeline(speechId)?.spokenChars(playedMs) ?: 0
+        bus.tryEmit(CompanionEvent.SpeechInterrupted(chars))
+        logInfo("attempt=$activeAttemptId event=speech_silenced id=$speechId reason=$reason spokenChars=$chars")
     }
 
     override suspend fun disconnect() {
@@ -784,6 +816,10 @@ class LiveKitCompanionTransport(
         frames: Int,
         absoluteCaptureTimestampMs: Long,
     ) {
+        // P2：这句话已被取消（本地 barge 或 control.cancel）。音量已经压到 0，
+        // 但 SDK 还在消费 jitter buffer 里的残留帧——不拦这里，嘴会替一段听不见的
+        // 声音继续动。新的 speech.seg 被接受时门才开（见 handleProtocol）。
+        if (bargeMuted) return
         val rms = rmsOf(data, bitsPerSample, frames, numberOfChannels)
         if (rms == null) {
             if (remotePcmCallbacks == 0L && bitsPerSample != 16) {
@@ -876,6 +912,17 @@ class LiveKitCompanionTransport(
      */
     override fun setPlaybackAudible(audible: Boolean) {
         playbackAudible = audible
+        applyPlayback()
+    }
+
+    /**
+     * 两个出声意图求与后落到音量上（[playbackAudible] × [bargeMuted]）。
+     *
+     * 音量置 0 而不是取消订阅：音频轨还在，恢复是一瞬间的事，不用重新协商。
+     * 关门的同时把嘴型归零：音量没了而嘴还在动，是比「没声音」更奇怪的穿帮。
+     */
+    private fun applyPlayback() {
+        val audible = playbackAudible && !bargeMuted
         runCatching { remoteAudio?.setVolume(if (audible) 1.0 else 0.0) }
         if (!audible) _mouthLevel.value = 0f
     }
@@ -1157,6 +1204,11 @@ class LiveKitCompanionTransport(
                 val accepted = speech.onSeg(args)
                 if (!accepted) {
                     logWarn("attempt=$activeAttemptId event=speech_seg_rejected id=${args.optString("speech_id")} idx=${args.optString("idx")}")
+                } else if (bargeMuted) {
+                    // 新的一句被接受 = 服务端已按打断后的新回合往下走，出声门重新打开。
+                    // 只在 accepted 上开：迟到的 / 墓碑里的 seg 不该把刚打断的句子放出来。
+                    bargeMuted = false
+                    applyPlayback()
                 }
                 speechWake.trySend(Unit)
             }
@@ -1167,9 +1219,16 @@ class LiveKitCompanionTransport(
             }
             "control.cancel" -> {
                 // 打断是 A 类：到达即生效，不排队、不判锚点（§10.2）。
+                // playedMs 必须在 onCancel **之前**取：取消会把时间线收进墓碑，
+                // 之后取到的前缀就不可信了。
+                val cancelledId = args.optString("speech_id")
+                val cancelledPlayed = speech.playedMs(cancelledId, SystemClock.elapsedRealtime())
                 speech.onCancel(args)
+                // 服务端主动掐这句（新回合抢话、TTS 放弃）。对端侧来说与本地 barge
+                // 是同一件事：这句死了，jitter buffer 里的残留不许出声（P2 契约 §2.1）。
+                silenceCancelledSpeech(cancelledId, cancelledPlayed, reason = "server")
                 logInfo(
-                    "attempt=$activeAttemptId event=speech_cancel id=${args.optString("speech_id")} reason=${args.optString("reason")}",
+                    "attempt=$activeAttemptId event=speech_cancel id=$cancelledId reason=${args.optString("reason")}",
                 )
                 speechWake.trySend(Unit)
             }

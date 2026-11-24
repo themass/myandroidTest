@@ -57,6 +57,40 @@
       "outcome": "ok"
     },
     {
+      "name": "presentation.state interrupted：契约 v2 状态词汇（P1，docs/design/2026-11-24-state-cancel-contract-v2.md）",
+      "json": {
+        "v": 2,
+        "t": "presentation.state",
+        "id": "01J9Z8K3QP7N6B",
+        "seq": 42,
+        "ep": "a3f1",
+        "ts": 1731900000470,
+        "args": {
+          "state": "interrupted"
+        }
+      },
+      "outcome": "ok"
+    },
+    {
+      "name": "speech.seg 带 turn_id：回合级取消关联键（P2，可选字段，旧端忽略未知键）",
+      "json": {
+        "v": 2,
+        "t": "speech.seg",
+        "id": "01J9Z8K3QP7N6C",
+        "seq": 43,
+        "ep": "a3f1",
+        "ts": 1731900000471,
+        "args": {
+          "speech_id": "s-9",
+          "idx": 1,
+          "chars": 12,
+          "est_ms": 900,
+          "turn_id": "t-77"
+        }
+      },
+      "outcome": "ok"
+    },
+    {
       "name": "客户端 hello",
       "json": {
         "v": 2,

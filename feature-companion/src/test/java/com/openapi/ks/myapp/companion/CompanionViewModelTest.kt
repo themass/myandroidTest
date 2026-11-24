@@ -234,6 +234,74 @@ class CompanionViewModelTest {
     }
 
     /**
+     * P2 契约（docs/design/2026-11-24-state-cancel-contract-v2.md §2.1）：本地 barge-in
+     * 不等服务端往返，传输层发一条「这句话被打断、实际说出口 N 个字」。ViewModel 必须把
+     * 气泡**截断**到那 N 个字并结束这条流。以前 barge 只作废时间线，气泡继续按 delta 长——
+     * 用户打断成功后看到的是她说了从没说过的话。
+     */
+    @Test
+    fun `a barge-in truncates the streaming subtitle to what was actually spoken`() = runTest(dispatcher) {
+        val transport = ScriptedTransport(
+            listOf(
+                // delta 流比 TTS 播放快：气泡已攒 10 字，她实际只说到第 8 个字。
+                CompanionEvent.TextDelta("一二三四"),
+                CompanionEvent.TextDelta("五六七八"),
+                CompanionEvent.TextDelta("九十"),
+                CompanionEvent.SpeechInterrupted(spokenChars = 8),
+            ),
+        )
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+
+        val msg = vm.state.value.messages.last()
+        assertEquals("一二三四五六七八", msg.text)
+        assertFalse("截断后这条回复已结束，不能再带打字光标", msg.streaming)
+        assertTrue(msg.interrupted)
+        // 状态乐观本地写：形象层不等服务端确认就该进 interrupted。
+        assertEquals("interrupted", vm.state.value.avatarState)
+    }
+
+    @Test
+    fun `a barge-in before any word was spoken leaves an empty prefix`() = runTest(dispatcher) {
+        val transport = ScriptedTransport(
+            listOf(
+                CompanionEvent.TextDelta("全都还没说出口"),
+                CompanionEvent.SpeechInterrupted(spokenChars = 0),
+            ),
+        )
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+
+        val msg = vm.state.value.messages.last()
+        assertEquals("", msg.text)
+        assertTrue(msg.interrupted)
+    }
+
+    /**
+     * `spokenChars` 来自 `speech.seg.chars` 累加（估计值），可能大于气泡当前长度
+     * （delta 流落后时）。取小值：不编出 delta 流没送到的字符。
+     */
+    @Test
+    fun `the spoken prefix never invents characters the delta stream has not delivered`() = runTest(dispatcher) {
+        val transport = ScriptedTransport(
+            listOf(
+                CompanionEvent.TextDelta("很短"),
+                CompanionEvent.SpeechInterrupted(spokenChars = 40),
+            ),
+        )
+        val vm = CompanionViewModel(api = null, transportFactory = { transport }, inboxPollMillis = 60_000)
+
+        vm.start("linche")
+        runCurrent()
+
+        assertEquals("很短", vm.state.value.messages.last().text)
+    }
+
+    /**
      * B3：降级进 L2 后 cue 全被端侧丢掉，卡在脸上的表情等不到下一条 emotion。
      * 传输层在升档那条边发 [CompanionEvent.ClearAvatarEmotion]，ViewModel 必须把
      * state.emotion 收回 null——若这条指令不生效，上一条 cue 留下的 "joy" 会留在这里。
