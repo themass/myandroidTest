@@ -25,4 +25,32 @@ class ThreeHtmlTest {
             scriptIndex > bodyIndex,
         )
     }
+
+    // 真机（WebView 内核 hwschromium）第二处：loadUrl 时 WebView 还没布局，首帧
+    // innerWidth 为 0 → setSize 后 canvas 只有 1px，圆环永远不可见。bundle 必须
+    // 每帧核对窗口尺寸（resize guard），不能只挂 window resize 事件。
+    @Test
+    fun bundleReChecksWindowSizeEveryFrame() {
+        val bundle = ApplicationProvider.getApplicationContext<android.content.Context>()
+            .assets.open("fx-lab/three.bundle.js").reader().readText()
+        assertTrue(
+            "bundle must re-apply setSize when the WebView finishes layout (innerWidth guard in frame loop)",
+            bundle.contains("innerWidth") && bundle.contains("innerHeight"),
+        )
+        val start = bundle.indexOf("window.FxLab")
+        assertTrue("FxLab seam must exist", start > 0)
+    }
+
+    // 真机（hwschromium）第三处：透明 WebView 里 WebGL 画布整层不参与合成
+    // （DOM 绿块可见、render.calls>0、软件层也无效）。方案：WebGL 离屏渲染，
+    // 每帧 drawImage 到可见的 2D canvas —— 2D 像素走的是已验证可合成的 DOM 通路。
+    @Test
+    fun webglIsBlittedIntoDomCanvas2d() {
+        val bundle = ApplicationProvider.getApplicationContext<android.content.Context>()
+            .assets.open("fx-lab/three.bundle.js").reader().readText()
+        assertTrue(
+            "bundle must blit the WebGL canvas into a 2D canvas each frame (GL layers do not composite in this WebView)",
+            bundle.contains("drawImage"),
+        )
+    }
 }

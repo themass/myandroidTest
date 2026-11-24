@@ -35,10 +35,10 @@ cd scripts/fx-lab/three-scene && npm install --no-audit --no-fund && node build.
 
 ## 实测 APK 体积（本分支）
 
-- debug：`app-chat-debug.apk` = 351,287,986 B（≈335 MB）
+- debug：`app-chat-debug.apk` = 351,288,741 B（≈335 MB）
 - release：签名 keystore（`/Users/liguoqing/soft/myapp/key`）在本开发机不存在，
   `:app:assembleChatRelease` 在 `validateSigningChatRelease` 失败，未能产出签名 release APK；
-  未签名 release 包审计见下节。
+  未签名 release 包审计见下节。debug 装机/真机验收不需要 keystore（debug 签名自动）。
 
 ## release 隔离证据（命令，不是口头）
 
@@ -54,5 +54,16 @@ cd scripts/fx-lab/three-scene && npm install --no-audit --no-fund && node build.
 
 ## 真机验收状态
 
-**未做。** 四场景 × 五引擎没有在 V2279A 上看过；按装机纪律，装机与真机验收由协调会话安排
-（本任务只 build、不 adb install、不 bump versionCode）。本文写的是「编译与单测已过、真机未验」。
+2026-11-24 在华为 ADY_AL00（SDK 31，arm64-v8a，WebView 内核 hwschromium）完成一轮
+（用户当面授权本设备直接装机，属装机单写者纪律的一次性豁免）。build 来自本分支 tip 现场 assemble。
+
+| 引擎 | 结果 |
+|---|---|
+| Lottie | 通过（基线贴纸/爱心弧正常） |
+| Rive | 首验失败后修复通过：app 里 Rive 的 androidx.startup 自动初始化被 `tools:node="remove"` 摘掉，JNI 报 `No implementation found for FileAssetLoader.constructor()`；`RiveRuntimeGate.ensure` 手动一次性 `Rive.init(context)` 后 loopy 正常渲染，「停」清除画面 |
+| GLES3 粒子 | 通过（互动/教学场景漂浮点与爆发正常） |
+| AGSL | 按设计诚实不可用：状态行显示「需要 API 33+，本机 API 31」，不出画面（互动+摄像头两场景都确认） |
+| Three.js | 首验失败后修复通过，两处：① bundle 必须在 `<body>` 内加载（否则 `document.body` 为 null，页内脚本崩）；② hwschromium 里整层 canvas/普通流全尺寸 img 不参与合成——合成路径改为 WebGL 离屏 → 2D canvas `drawImage` → `toDataURL` → `position:fixed` 的 `<img>`，圆环+光扫正常上屏 |
+
+未验的一格：摄像头场景的贴纸落脸（设备镜头前无人，`脸 0`，贴纸按设计需脸>0；adb 无法摆出真人脸，
+需人工正对镜头复验）。其余四场景 × 五引擎的停/复播、教学翻页、PIP 布局均通过。
