@@ -20,4 +20,8 @@
 
 Android 新增 HTTP 合约测试：真实本地 HTTP 服务器核对路径、query 编码、Bearer、原始图片体、普通 JSON 结果映射；未登录零请求；HTTP/业务码；非 JSON 与异常成功体；非题目返回；协程取消。
 
-服务端必须独立验证鉴权、图片验证与大小上限、视觉多模态请求、模型结构输出校验与错误映射。模型配置与生产部署、真机真实识别属于独立验证层：源码构建/假模型测试不能证明线上模型可看图或线上接口已存在。worker 不执行 adb install，不 bump versionCode。
+Android 已通过 `./gradlew --offline :feature-photosolve:testDebugUnitTest :app:compileChatDebugJavaWithJavac`：52 个 photosolve 测试、0 失败；合入当时最新 `origin/weifu-refactor` 后复跑通过。
+
+服务端必须独立验证鉴权、图片验证与大小上限、视觉多模态请求、模型结构输出校验与错误映射。模型配置与生产部署、真机真实识别属于独立验证层：源码构建/假模型测试不能证明线上模型可看图或线上接口已存在。上线顺序应先部署 agent 接口和视觉模型配置，再由协调会话从最新主线构建并装机验证；worker 不执行 adb install，不 bump versionCode。
+
+旧 testserverV 本地日额度、全站预算与幂等去重不会因为请求迁移而自动继承。`client_request_id` 用于关联结果，不代表 exactly-once 推理；端上不做自动重试，避免在响应丢失时悄悄重复计费。部署前应确认 agent 的对应配额策略。
