@@ -171,7 +171,12 @@ object CropGeometry {
 }
 
 /**
- * 把手命中测试：[touch] 落在某个角的 [slopPx] 方块内就算抓住它。
+ * 把手命中测试：[touch] 落在某个角的 [slopPx] 方块内，**或**到角点的欧氏距离 ≤ [slopPx]，
+ * 就算抓住它（方形与圆形取并集，见 [CROP_HANDLE_SLOP_DP] 为什么放大到 32dp）。
+ *
+ * 热区**不夹在框内**：贴边的角（初始 Free 框 = 铺满 fit 矩形）热区照样向框外延伸，
+ * 而框内侧同样是有效命中区——手指粗、角标只有 [CROP_HANDLE_ARM] 那么短，贴边时
+ * 「往框里按一点」是最自然的落点，必须抓住。
  *
  * 两个角都命中时取更近的（极小的框里会重叠），返回 null 表示抓的是框内/框外空白——
  * 本任务不做「拖动整框」，所以那种情况下选框不动。
@@ -188,8 +193,10 @@ fun hitHandle(rect: Rect, touch: Offset, slopPx: Float): CropHandle? {
     for ((handle, c) in corners) {
         val dx = abs(touch.x - c.x)
         val dy = abs(touch.y - c.y)
-        if (dx > slopPx || dy > slopPx) continue
         val d = dx * dx + dy * dy
+        val inSquare = dx <= slopPx && dy <= slopPx
+        val inCircle = d <= slopPx * slopPx
+        if (!inSquare && !inCircle) continue
         if (d < bestDist) {
             bestDist = d
             best = handle
@@ -216,8 +223,11 @@ enum class CropHandle { TopLeft, TopRight, BottomLeft, BottomRight }
 private val CROP_MASK = Color(0x99000000)
 private val CROP_FRAME_LINE = Color.White
 private val CROP_GRID = Color.White.copy(alpha = 0.45f)
-private val CROP_HANDLE_ARM = 14.dp
-private const val CROP_HANDLE_SLOP_DP = 24
+// 可见角标 18dp、触摸热区 32dp：实机反馈是贴边的角「抓不住」——初始 Free 框铺满 fit 矩形，
+// 四个角全在画幅边上，14dp 的角标加 24dp 的方形热区在手指宽度下仍然常常按空。
+// 热区半径随 [hitHandle] 一并放宽（方形 ∪ 圆形），可见臂加长到和热区比例更协调。
+private val CROP_HANDLE_ARM = 18.dp
+private const val CROP_HANDLE_SLOP_DP = 32
 
 /**
  * 裁剪模式的**舞台层**：外遮罩（四块半透明）、当前画幅轮廓、三分线、四角把手，

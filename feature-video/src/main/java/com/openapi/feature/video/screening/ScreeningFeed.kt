@@ -189,3 +189,37 @@ internal fun remoteEntry(
 }
 
 private const val DATA_TYPE_IMG_CHANNEL = 6
+
+/**
+ * 声音馆频道行（`sound/channel.json`）。真机 2026-11-25「0 个频道」的修复：
+ *
+ * 服务端这些行**没有 actionUrl 字段**（探针实测行 keys=title/img/rate/id/param/baseurl…），
+ * 走 [remoteEntry] 的「空地址行丢掉」规则会把整页丢光。旧页面（`SoundChannleBodyFragment`
+ * → `SoundItemsMusicFragment`）从来不看 actionUrl——直接拿 `vo.param` 当 items.json 的
+ * channel=。所以 hub 层的身份是 param：param 为空的行点开也没意义，照丢。
+ */
+internal fun soundHubEntry(
+    id: Long?,
+    index: Int,
+    title: String?,
+    description: String?,
+    imageUrl: String?,
+    rate: Float,
+    param: String?,
+): RemoteEntry? {
+    val key = param?.takeIf { it.isNotBlank() } ?: return null
+    return RemoteEntry(
+        key = feedKey(id, null, index),
+        title = title.orEmpty().ifBlank { "未命名" },
+        description = description.orEmpty().trim(),
+        imageUrl = imageUrl,
+        ratio = feedRatio(rate),
+        // hub 行没有可点开的地址，也没有可播的东西：路由和取数都不从 actionUrl 走，
+        // 点开的行为在 ScreeningSound 的 hub 层里由 soundListKey()=param 决定。
+        actionUrl = "",
+        needsLazyUrl = false,
+        channelParam = null,
+        param = key,
+        isImageCard = false,
+    )
+}

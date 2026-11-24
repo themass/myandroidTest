@@ -28,10 +28,11 @@ class SendActionsTest {
         val scope = TestScope(StandardTestDispatcher())
         var submitted: Pair<String, String>? = null
         val attachmentSends = mutableListOf<ChatMessage>()
+        val streamer: ReplyStreamer
         val send: SendActions
 
         init {
-            val streamer = ReplyStreamer(
+            streamer = ReplyStreamer(
                 repo, state, scope, SendMessageUseCase(repo),
                 attachmentActive = { false }, reconcile = {}, syncSessions = {},
                 strings = FakeChatStrings(),
@@ -123,6 +124,71 @@ class SendActionsTest {
         assertEquals(location, message.location)
         // 发出去之后草稿必须清空，否则下一条消息会再带一次同一个位置
         assertEquals(null, h.state.value.locationDraft)
+    }
+
+    // ---------------------------------------------------------------- followup 排队（生成中也能发下一条）
+
+    /** 新语义（取代旧 `canSend == … && !sending` 的闸）：生成中输入非空就能按发送键。 */
+    @Test
+    fun canSendStaysTrueWhileSending() {
+        val h = Harness(ChatUiState(input = "下一条", sending = true, streaming = true))
+        assertTrue("生成中输入框有文字，发送键必须可用（走排队）", h.state.value.canSend)
+    }
+
+    /** 生成中 sendText：不直发、不插用户气泡，按 Enter 顺序进队列。 */
+    @Test
+    fun sendTextWhileSendingQueuesInOrderWithoutStartingStream() {
+        val h = Harness(ChatUiState(sending = true, streaming = true))
+        h.send.sendText("第一条")
+        h.send.sendText("第二条")
+        h.scope.advanceUntilIdle()
+
+        assertEquals(listOf("第一条", "第二条"), h.state.value.queued)
+        // 没有直发：没有新的用户气泡/占位气泡，仓库一次流都没被调用
+        assertTrue(h.state.value.messages.isEmpty())
+        assertTrue(h.repo.sentTexts.isEmpty())
+    }
+
+    /** 生成中点发送（纯文字）：立即清空 input 并入队，不走附件发送路径。 */
+    @Test
+    fun onSendWhileSendingQueuesPlainTextAndClearsInput() {
+        val h = Harness(ChatUiState(input = " 追加的问题 ", sending = true, streaming = true))
+        h.send.onSend()
+        h.scope.advanceUntilIdle()
+
+        assertEquals(listOf("追加的问题"), h.state.value.queued)
+        assertEquals("", h.state.value.input)
+        assertEquals(0, h.attachmentSends.size)
+        assertTrue(h.state.value.messages.isEmpty())
+    }
+
+    /** 队列只收纯文字：生成中编辑/附件/位置维持旧的闸，不入队也不清输入。 */
+    @Test
+    fun onSendWhileSendingKeepsExistingGatesForEditDraftsAndLocation() {
+        val editing = Harness(ChatUiState(
+            messages = listOf(userText("u1", "原文")), input = "改过的字",
+            editingMessageId = "u1", sending = true,
+        ))
+        editing.send.onSend()
+        editing.scope.advanceUntilIdle()
+        assertNull("生成中不能提交编辑", editing.submitted)
+        assertTrue(editing.state.value.queued.isEmpty())
+        assertEquals("改过的字", editing.state.value.input)
+
+        val withDraft = Harness(ChatUiState(input = "带图", drafts = listOf(draft("d1")), sending = true))
+        withDraft.send.onSend()
+        withDraft.scope.advanceUntilIdle()
+        assertTrue("生成中附件不入队", withDraft.state.value.queued.isEmpty())
+        assertEquals(0, withDraft.attachmentSends.size)
+        assertEquals("带图", withDraft.state.value.input)
+
+        val withLocation = Harness(
+            ChatUiState(input = "带位置", locationDraft = com.openapi.feature.chat.domain.model.GeoLocation(31.0, 121.0), sending = true),
+        )
+        withLocation.send.onSend()
+        withLocation.scope.advanceUntilIdle()
+        assertTrue("生成中位置不入队", withLocation.state.value.queued.isEmpty())
+        assertEquals(0, withLocation.attachmentSends.size)
     }
 
     @Test

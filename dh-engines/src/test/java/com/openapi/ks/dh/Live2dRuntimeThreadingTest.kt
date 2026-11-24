@@ -83,6 +83,21 @@ class Live2dRuntimeThreadingTest {
     }
 
     @Test
+    fun `版本闸拒绝的模型 changeModel 不投递（切过去就是下一帧 SIGSEGV）`() {
+        val d = RecordingDispatcher()
+        val rt = Live2dRuntime.forTest(
+            modelsReady = true,
+            nativeLoadable = true,
+            cacheRoot = File("."),
+            started = true,
+            jniDispatcher = d,
+            modelGateReject = "模型版本过新：moc3 r7 > 端侧 Cubism Core r6",
+        )
+        rt.changeModel("OriginalDemo", "OriginalDemo.model3.json")
+        assertEquals(0, d.posted.size)
+    }
+
+    @Test
     fun `release 之后不再投递`() {
         val d = RecordingDispatcher()
         val rt = runtime(d)

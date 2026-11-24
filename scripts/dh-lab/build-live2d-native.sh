@@ -48,9 +48,16 @@ SO="$BUILD/libchatwaifu-live2d.so"
 # 符号面验收：20 个 Java_com_chatwaifu_live2d_JniBridgeJava_* 导出，一个不能少；
 # 少任何一个是把库存 .so 的调用方打瘸（Live2dNativeBridgeTest 钉 Kotlin 侧同一张表）。
 NM="$NDK_DIR/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-nm"
-EXPORTS=$("$NM" -D --defined-only "$SO" | grep -c 'Java_com_chatwaifu_live2d_JniBridgeJava_' || true)
+# 符号表先取一次存变量再查。以前是两条 `nm | grep -q`：Core 5 起动态符号涨到 3.5k 行，
+# grep -q 命中即退出把管道关了，nm 吃 SIGPIPE，pipefail 把整条流水线判死——
+# 明明 20 导出齐全却报「缺 nativeSetBackgroundColor」（2026-11-25 现场）。
+SYMS=$("$NM" -D --defined-only "$SO")
+EXPORTS=$(printf '%s\n' "$SYMS" | grep -c 'Java_com_chatwaifu_live2d_JniBridgeJava_' || true)
 [ "$EXPORTS" = "20" ] || { echo "!! JNI 导出数 = $EXPORTS，应为 20（19 库存 + nativeSetBackgroundColor）"; exit 1; }
-"$NM" -D --defined-only "$SO" | grep -q nativeSetBackgroundColor || { echo "!! 缺 nativeSetBackgroundColor 导出"; exit 1; }
+case "$SYMS" in
+  *nativeSetBackgroundColor*) ;;
+  *) echo "!! 缺 nativeSetBackgroundColor 导出"; exit 1 ;;
+esac
 
 mkdir -p "$OUT"
 [ -f "$OUT/libchatwaifu-live2d.so" ] && cp -n "$OUT/libchatwaifu-live2d.so" "$OUT/libchatwaifu-live2d.so.stock-backup"

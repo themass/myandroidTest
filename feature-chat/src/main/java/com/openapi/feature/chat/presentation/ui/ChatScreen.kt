@@ -131,7 +131,7 @@ fun ChatScreen(
     val byId = remember(state.messages) { state.messages.associateBy { it.id } }
     // stringResource 不能在 remember 的计算块里调用（@DisallowComposableCalls），先取出来
     val locationChipName = stringResource(R.string.chat_attach_location)
-    val composerState = remember(state.input, state.drafts, state.locationDraft, state.sending, state.streaming, state.recording, state.transcribing, state.partialText, state.editingMessageId, state.voiceDraft) {
+    val composerState = remember(state.input, state.drafts, state.locationDraft, state.sending, state.streaming, state.recording, state.transcribing, state.partialText, state.editingMessageId, state.voiceDraft, state.queued) {
         ComposerState(
             text = state.input,
             editing = state.editingMessageId != null,
@@ -170,6 +170,8 @@ fun ChatScreen(
             recording = state.recording,
             transcribing = state.transcribing,
             liveTranscript = state.partialText,
+            // followup 队列的可见反馈：输入栏上方「N 条排队中」
+            queuedCount = state.queued.size,
         )
     }
     val voiceLevel by com.openapi.speech.audio.VoiceRecorder.level.collectAsState()

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>uher 帮助中心</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1c1c1e;
+    --muted: #6e6e73;
+    --card: #f5f5f7;
+    --border: #e3e3e8;
+    --accent: #3b6cff;
+    --accent-fg: #ffffff;
+    --mark: #eef3ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101014;
+      --fg: #f2f2f5;
+      --muted: #a1a1aa;
+      --card: #1b1b21;
+      --border: #2c2c34;
+      --accent: #6f92ff;
+      --accent-fg: #0b0b0e;
+      --mark: #1d2536;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.7 -apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 24px 20px 64px;
+  }
+  header h1 {
+    font-size: 26px;
+    line-height: 1.35;
+    margin: 8px 0 4px;
+  }
+  header p.sub {
+    margin: 0 0 24px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .logo {
+    display: inline-block;
+    font-weight: 700;
+    letter-spacing: .5px;
+    color: var(--accent-fg);
+    background: var(--accent);
+    border-radius: 10px;
+    padding: 4px 10px;
+    font-size: 15px;
+  }
+  section { margin: 28px 0; }
+  h2 {
+    font-size: 19px;
+    margin: 0 0 12px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin: 10px 0;
+  }
+  .card h3 {
+    margin: 0 0 6px;
+    font-size: 17px;
+  }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  .card p strong { color: var(--fg); }
+  details {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin: 10px 0;
+    overflow: hidden;
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 15px 16px;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 48px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after {
+    content: "+";
+    color: var(--muted);
+    font-size: 20px;
+    line-height: 1;
+    flex: none;
+    transition: transform .15s ease;
+  }
+  details[open] summary::after { transform: rotate(45deg); }
+  details .a {
+    padding: 0 16px 16px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  details .a p { margin: 0 0 10px; }
+  details .a p:last-child { margin-bottom: 0; }
+  .steps { margin: 0; padding-left: 20px; }
+  .steps li { margin: 4px 0; }
+  kbd, .key {
+    display: inline-block;
+    background: var(--mark);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1px 7px;
+    font-size: 14px;
+  }
+  footer {
+    margin-top: 40px;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+  }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="logo">uher</span>
+    <h1>帮助中心</h1>
+    <p class="sub">聊天、拍照解题、图片编辑与陪伴通话，常见问题都在这里。</p>
+  </header>
+
+  <section aria-label="功能总览">
+    <h2>主要功能</h2>
+
+    <div class="card">
+      <h3>聊天</h3>
+      <p>与 AI 角色连续对话，支持<strong>发送图片和附件</strong>。消息发出后若上一条还在生成，会进入<strong>排队续发</strong>，不会丢失；生成过程中可点<strong>停止</strong>，失败的消息可点<strong>重试</strong>。</p>
+    </div>
+
+    <div class="card">
+      <h3>拍照解题</h3>
+      <p>拍题目或选相册照片，AI 识别题目并给出解答。每一次解题都保存在<strong>历史记录</strong>里，可以随时回看、继续追问。</p>
+    </div>
+
+    <div class="card">
+      <h3>图片编辑</h3>
+      <p>支持<strong>裁剪、涂鸦、加文字、马赛克、滤镜</strong>等编辑，编辑完点保存即可写入系统相册。</p>
+    </div>
+
+    <div class="card">
+      <h3>陪伴通话</h3>
+      <p>与陪伴角色进行<strong>实时语音通话</strong>，可随时打断对方说话（直接开口即可），通话中会显示实时字幕。</p>
+    </div>
+  </section>
+
+  <section aria-label="常见问题">
+    <h2>常见问题</h2>
+
+    <details>
+      <summary>消息发不出去，或者一直显示排队怎么办？</summary>
+      <div class="a">
+        <p>上一条回复还在生成时，新消息会自动排队，等上一条完成后继续发送，这是正常行为。</p>
+        <p>如果长时间没有结果：检查网络是否通畅；点该条消息旁的<strong>停止</strong>结束当前生成，再重新发送；仍失败时可点<strong>重试</strong>。</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>图片发不出去？</summary>
+      <div class="a">
+        <p>请先在系统设置里允许 uher 访问相册/相机权限。图片过大时上传会慢一些，请耐心等待；发送失败时可以重试。</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>拍照解题没有识别出题目？</summary>
+      <div class="a">
+        <p>常见原因：照片模糊、光线不足、题目只拍了一部分。建议平放纸张、对齐边框重新拍摄。识别结果可以在历史记录里找到原题再次提问。</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>编辑好的图片保存在哪里？</summary>
+      <div class="a">
+        <p>点编辑界面的<strong>保存</strong>后会写入系统相册（一般在「相机」或「图片」相册里可以看到）。未保存就退出，修改不会保留。</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>陪伴通话没有声音 / 连不上？</summary>
+      <div class="a">
+        <p>通话需要稳定网络，弱网下连接可能失败，请切换网络后重试。</p>
+        <p>确认已授予麦克风权限；通话界面如显示连接失败，挂断后重新拨打即可。</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>通话中可以打断对方吗？</summary>
+      <div class="a">
+        <p>可以。对方说话时你直接开口，系统会停下播放来听你说，这就是「随时打断」。</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>历史记录会丢吗？换手机能看到吗？</summary>
+      <div class="a">
+        <p>聊天与拍照解题的历史保存在你的账号下，登录同一账号即可查看。</p>
+      </div>
+    </details>
+  </section>
+
+  <section aria-label="更多帮助">
+    <h2>更多帮助</h2>
+    <div class="card">
+      <p>问题没有在这里解决？在「我的」页面找到<strong>意见反馈</strong>告诉我们，我们会尽快处理。</p>
+    </div>
+  </section>
+
+  <footer>uher · 帮助中心</footer>
+</div>
+</body>
+</html>

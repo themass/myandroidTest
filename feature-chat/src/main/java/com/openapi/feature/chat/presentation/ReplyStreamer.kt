@@ -43,6 +43,9 @@ internal class ReplyStreamer(
 
     /** 停止当前的文字回复。 */
     fun cancel() {
+        // 点停止 = 用户的中断意图：排队中的文字一并清空，不能接着发下一条
+        // （排空只发生在自然结束的收尾，见 stream 末尾的 drainQueue）。
+        state.update { it.copy(queued = emptyList()) }
         replyJob?.cancel()
     }
 
@@ -198,6 +201,24 @@ internal class ReplyStreamer(
             // 正常路径靠 done 帧里的正式 id，不再每轮拉历史；只有缺 id（失败、没有 done 帧、空回复）时兜底拉一页
             if (syncAfter && (failed || serverId == null)) reconcile()
             if (startsNewSession) syncSessions()
+
+            // 排空 followup 队列（FIFO 取队首续发，保持 Enter 顺序）。只有**自然结束**会走到这里：
+            // 用户点停止的那条 catch 分支会 rethrow，永远不会从这里起新回合；
+            // cancel() 同时清空了 queued，中断意图明确。空队列零成本。
+            val next = state.value.queued.firstOrNull()
+            if (next != null) {
+                state.update { it.copy(queued = it.queued.drop(1)) }
+                val now = System.currentTimeMillis()
+                val user = ChatMessage(
+                    id = "local-user-$now",
+                    role = ChatRole.USER,
+                    text = next,
+                    createdAtMillis = now,
+                    delivery = DeliveryStatus.SENDING,
+                )
+                state.update { it.copy(messages = it.messages + user) }
+                stream(next, userMessageId = user.id, persistUser = true)
+            }
         }
     }
 
