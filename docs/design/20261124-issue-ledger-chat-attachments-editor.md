@@ -174,6 +174,75 @@
 
 ---
 
+# 第二批 20261125 · 影视 / 放映场 / 文章页（用户真机截图 6 条）
+
+对应原始编号（用户本轮顺序）：`1→A21`，`2→A22`，`3→A23`，`4→A24`，`文章详情页卡顿→A25`，`右滑抽屉→A26`。
+
+## A21 · 影视列表「放映场」部分没有数据时也要展示（当前行为不对）
+
+- **现象**：首页/影视列表里放映场区块在没有数据时的展示行为与预期不符（用户原话「没有数据的时候不展示」——具体是「本该显示却空白」还是「不该显示却显示空壳」以取证结论为准，截图为放映场内页 28 条正常列表）。
+- **根因（取证完成，CONFIRMED）**：结论=「不该显示却显示空壳」。`ScreeningActivity.kt` `ChannelsFeed`（:505-607）两处无守卫：①hero 空盒——hero==null 且非 loading 时仍渲染 216dp 占位 Box（:517-523）；②「逛频道」标题+FilterRow 无条件渲染（:565-566）。频道网格本身已有 `isNotEmpty` 守卫（:571）。数据侧纯网络无缓存（`ScreeningFeedStore.kt:24-38,135-162`，无样例兜底）→ 弱网/失败时整页只剩空壳。次级疑点（PLAUSIBLE，未改只加注释）：:506 `filter { routeOf(it) != FeedRoute.PLAY }` 可能把有数据的一屏全滤空。
+- **修复**：hero 外包 `if (hero != null || pager.loading)`；「逛频道」标题+过滤条外包 `if (pager.loading || cards.isNotEmpty())`。:514-515「高度恒定不挪布局」旧注释以用户要求为准改写。
+- **状态**：**根因已定位 + 派工中**（worker a83b4227）。
+
+## A22 · 放映页字幕开关「没效果和反应，勾一直在」
+
+- **现象**：字幕面板点「关闭字幕」（已是绿勾选中态）没有任何反应；面板显示「这个视频服务端没有字幕。」
+- **根因（取证完成，CONFIRMED）**：全部内联在 `feature-video/.../screening/ScreeningPlayback.kt`。`captionSource` 初始即 0（:148，页面内存不落 prefs），「关闭字幕」项 `selected = captionSource == 0`（:422），onClick 是 `captionSource = 0`——**写入与当前值相同的幂等值，零状态变化**；勾完全由 `selected` 决定（`Setting` :843-855）。服务端无字幕轨（:445 空态文案）、未导入文件、实时识别未开时，面板里唯一「选中」项就是「关」，**不存在任何能「开」的东西**；样式五选只改外观（cue 恒空画面无变化）→ 用户读作「点开关没反应」。不是断线，是**幂等点击+空态无反馈**的交互设计缺陷。
+- **修复**：①已关闭时再点给可见反馈（「字幕本来就是关的；这个视频没有可开的字幕轨」走现有 info/hint 通道）；②空态下不给「关闭字幕」画勾（`selected = captionSource == 0 && 有可选来源`），原因并入 hint。保持 :361/:454/:487 状态机一致。注意勿误改 `prototype/PlayerControlsLayer.kt:81-83` 旧播放页另一套 `subtitleEnabled`（不在放映场路径）。
+- **状态**：**根因已定位 + 派工中**（修复 worker）。
+
+## A23 · 发弹幕：键盘把输入框挡住，输入完要多步才能点发送
+
+- **现象**：键盘弹出时弹幕输入行（「发个弹幕见证当下」+发送）整个被盖；输完要先收键盘再重新点开才能发送。
+- **根因（取证完成，CONFIRMED）**：宿主 `HomeActivity` 虽 `windowSoftInputMode="adjustResize"`（app manifest:147），但 `enableEdgeToEdge()`（HomeActivity.kt:26）下 Android 11+ **不做经典 resize**，键盘只以 `WindowInsets.ime` 下发、须由 Compose 消费——而 `ScreeningPlayback.kt` **全文件没有任何 ime inset 消费**（grep `WindowInsets.ime`/`imePadding` 零命中；仓库先例只有 `ChatScreen.kt:180`、`CompanionScreen.kt:270`）。影院态根布局 `full` 分支不加任何 insets（:564-565），输入行挂在贴屏底 Column 的 BottomCenter（:719-730）→ 必被盖。信息态有 `safeDrawingPadding` 但内容超视口、无 `bringIntoView`（:776）。放大器：:284-286 自动收 chrome 只看 `danmakuDraft.isEmpty()` 不看键盘，聚焦未打字 3.5s 后输入框整体消失，加重「好几步」。
+- **修复**：Compose 级（唯一有效路径）——影院态 :720 底部 Column 加 `.imePadding()`；信息态 :776 `.imePadding()` 或聚焦 `bringIntoViewRequester`；:284-286 收起条件补「ime 高度==0」门。改 manifest 无收益（edge-to-edge 下 adjustResize 失效）。风险：部分机型 ime inset 含导航栏高度，真机验。
+- **状态**：**根因已定位 + 派工中**（与 A22 同一 worker、同文件不同行区）。
+
+## A24 · 放映场点后退直接退出 app，应该返回上一个页面
+
+- **现象**：放映场/播放页顶栏 ← 一点整个 app 退到桌面，不回上一页（首页）。**用户 20261125 追加：图集页（「图集 9 本」）后退同样直接退出 app → 这是「频道内各页共有」的问题，不是单页 bug**，按共性问题定性处理。
+- **根因（取证完成，CONFIRMED，频道级单一根因）**：全仓库**没有 Compose Navigation**（grep NavHost 零命中），放映场全部页面是 `ScreeningActivity.kt` :237-244 的 Compose 状态机（`screen when{...}`），宿主 HomeActivity 是 singleTask（manifest :143）且 LaunchActivity `finish()` 后是任务根。子页自己的 BackHandler（`ScreeningGallery.kt:66`、`ScreeningText.kt:55`、`ScreeningSound.kt:50`）**只在更深一级 enabled**，处于 gallery 封面列表级/textHub/soundHub 选择器级时它们全关，`ScreeningActivity.kt:228` 的外层守卫 `channelPage != null && !gallery && !textHub && !soundHub` 又不覆盖这些态 → 返回穿透到系统默认 → **结束整个任务回桌面**。播放器 `ScreeningPlayback.kt:270` 无条件 BackHandler 在内层组合优先消费（不受影响）。`ScreeningActivity` 的 manifest 声明是孤儿（无 startActivity 调用者）。
+- **修复（一处修全部）**：:228 扩成状态机总出口——`BackHandler(enabled = 任一非根态)`，onClick 按 when 优先级清一个 flag 回上层；播放器态从 enabled 排除避免抢返回。不改三个子页的深层退层语义。抽象点：**状态机导航必须有一个唯一的「出口判据」，任何层级都不允许落到系统默认返回**。
+- **状态**：**根因已定位 + 派工中**（worker a83b4227，与 A21 同文件）。
+
+## A25 · 文章详情页太卡（WebView 展示差，参考原来的设计）
+
+- **现象**：文章详情页（截图「今日美洲号」）滚动/打开明显卡顿；用户判断是 WebView 优化差或展示方式不对，要求参考旧设计。
+- **根因**：**取证中**（agent 定位文章详情页实现是 WebView 还是原生、配置项、git 历史里的旧实现对比）。
+- **状态**：**取证中**。
+
+## A26 · 页面「右滑」误开右侧抽屉；用户明确：整个频道所有页面都不需要这个抽屉
+
+- **现象**：文章详情页右滑弹出右侧抽屉（头条号/微头条/热点/…分类面板）。**用户 20261125 追加升级：「整个频道里所有的页面就没有"右滑"出抽屉的那个需要，你怎么都给加上了」——即抽屉在本产品里根本没有使用场景，是被错误地加到每个页面上的，要整体去掉而不是调灵敏度。**
+- **根因（取证完成，CONFIRMED，单一公共容器）**：不是每页各一份——整个首页（含频道/放映场/图集全部层级）被**同一个** `ModalNavigationDrawer` 包住（`app/.../HomeScreen.kt:173-182`），手势开关是纯函数 `HomeDrawer.kt:171-175` `drawerSwipeEnabled(currentIsChat, drawerOpen, callVisible)` = `drawerOpen || (currentIsChat.not() && callVisible.not())` → **除 chat 外所有页面右滑都会开抽屉**，且旧语义里还允许「已打开时右滑关」。
+- **修复（一处修全部）**：纯函数改返回 `drawerOpen`——关闭态任何页面都不给右滑开，打开态仍允许右滑关；`HomeScreen.kt:173-182` 调用点同步；`HomeDrawerGestureTest` 钉新语义。抽屉入口保留顶栏菜单按钮（HomeScreen.kt:306/316）。抽象点：**手势能力的默认值放在公共容器的单一判定函数里，新页面自动继承正确行为，而不是每页自己接**。
+- **状态**：**根因已定位 + 派工中**（worker aa83013a）。
+
+## A27 · 图集页封面网格应每行 3 个（当前每行 2 个）
+
+- **现象**：图集列表页（「图集 9 本」）封面每行只有 2 个，用户要求「一行暂时 3 个」。
+- **根因（取证完成，CONFIRMED）**：不是 `GridCells`，是手写双列瀑布流硬编码——`feature-video/.../screening/ScreeningGallery.kt` `AlbumCovers()`：**:164 `repeat(2) { column ->`**、**:166 `index % 2 == column`**（文件注释 :50 自述「双列受控瀑布流」）。对照：同文件册内图片已是 3 列（:226 `chunked(3)`）；**旧 View 版图集 span 本来就是 3**（`feature-content/.../ImgChannleBodyFragment.java:51`、`ImgChannelImgListFragment.java:52`、`ImgItemFragment.java:183`）——又是迁移时把 3 列写成了 2。
+- **修复**：:164 `repeat(2)`→`repeat(3)`、:166 `% 2`→`% 3`。风险：列宽 1/3 后标题 19.sp（:181）与徽标（:171-179）拥挤、高封面滚动更深——修后需真机看一眼排版。
+- **状态**：**根因已定位 + 派工中**（与 A22/A23 同 worker）。
+
+## A28 · 用户设计的图片占位图被去掉了（图集封面加载无占位）
+
+- **现象**：截图里两枚封面是纯黑圆角块。用户：「我以前设计了一个占位图，你怎么都给去掉了？」
+- **根因（取证完成，CONFIRMED，缺失型回归）**：占位图资源**一直都在**——`core/src/main/res/drawable-xxhdpi/img_bg.png`（`feature-content` 同 MD5 副本），旧链路全程在用（`core/.../ImagePhotoLoad.java:46-48` `.placeholder(R.drawable.img_bg)`、`FullScreenImagePagerAdapter.java:44-45` placeholder+error）。**新 Compose 放映场从诞生就没接**：封面链 `ScreeningActivity.kt:633 EntryCover` → `ScreeningFeedUi.kt:210 RemoteCover`，其 **Glide 链（:222-223）没有 `.placeholder()/.error()`**；空 url 退化为纯色 Box（:213）＝截图黑块。`git log -S img_bg -- feature-video` 零命中——不是删了，是重写时没带过来（P1-10 占位专项只落了 chat 的 Coil，没覆盖影视 Glide 路径）。
+- **修复**：`ScreeningFeedUi.kt:222` Glide 链补 `.placeholder(R.drawable.img_bg).error(R.drawable.img_bg)`（feature-video 已依赖 :core，资源可直接引用）；:213/`ScreeningActivity.kt:636` 空 url 分支同样换成 img_bg。抽象点与 A5 同族：**占位/错误图是资源加载的默认配置，不该每次重写时靠人想起来**。
+- **状态**：**根因已定位 + 派工中**（与 A22/A23 同 worker）。
+
+---
+
+# 第三批 20261125 · AdMob 广告消失（AD 专项线）
+
+用户原话：「开一个 admob 广告专项。我原来在很多地方增加了广告，现在都不见了」。
+编号 `AD1 开屏`，`AD2 插屏`，`AD3 电影/图集/文章页插屏+banner`，`AD4 chat 消息列表 banner`。
+专项由独立会话执行（分支自推，台账文件 `docs/design/20261125-admob-ads-ledger.md`）：第一步取证每条广告「原来在哪→怎么没的→恢复落点」，第二步按台账恢复（AD4 待 chat 三路 worker 收口后才动 feature-chat/chatkit 文件）。恢复需真实 ad unit id 而仓库找不到时上报用户，不编造。
+
+---
+
 ## 架构抽象点汇总（共性问题一次解决）
 
 | # | 共性问题 | 抽象/封装 | 本次落点 |
@@ -192,6 +261,10 @@
 | 12 | 本地行没有可对账键，历史合并必复活重复（A16 数据层；A19 tombstone 另一面） | 本地写入的每一行必须携带可与服务端对账的键（服务端 id / client_message_id） | `persistTurn` / `cacheRemote` |
 | 13 | 同毫秒时间戳做文件名，多选互相覆盖（A13；companion 已修、chat 没修） | 暂存命名统一 CAS 单调 stamp，放 `common/media` 层共用 | `AttachmentStager` |
 | 14 | 网络错误被抹平成 null，失败原因看不见（A15，A14 相邻） | 失败必须带码上抛（HTTP/errno → `ChatStrings` 文案 + 日志） | `BaseServiceAwait` / `AttachmentSender` |
+| 15 | 状态机导航无唯一出口判据，浅层返回穿透到系统默认退出 app（A24，全频道） | 状态机顶层单一 `BackHandler` 覆盖全部非根态，任何层级不落系统默认返回 | `ScreeningActivity:228` |
+| 16 | 手势能力默认值散在各页，新页面自动继承错误（A26，全频道） | 抽屉手势判定收在公共容器单一纯函数：关闭态不给开、打开态才给关 | `HomeDrawer.drawerSwipeEnabled` |
+| 17 | 占位/错误图靠每次重写人想起来（A28，与 A5 同族） | 图片加载默认配置必含 placeholder+error（Glide/Coil 两条链都是） | `ScreeningFeedUi.RemoteCover` |
+| 18 | 空数据仍渲染空壳占位（A21） | 区块渲染守卫 = `数据非空 || loading`，空态不占版面 | `ChannelsFeed` hero/逛频道 |
 
 ## 未闭环项（明确列出，不当作已解决）
 

@@ -23,8 +23,8 @@ livekit-performance 会话）、不做数字人/摄像头/特效视觉线（另�
 
 | # | 事项 | 状态 | 层级到哪 |
 | --- | --- | --- | --- |
-| C1 | cue 空壳被吞（`cues=0/0`）修复 | **PASS** | 已合线（agent-docs main `ee2e7969`）；未部署、未真机 |
-| C2 | F16 prewarm + 20s init budget 合并验证 | **BLOCKED**（部署窗口） | 已合线（两项都在 main，无需再合并）；收益未验证 |
+| C1 | cue 空壳被吞（`cues=0/0`）修复 | **PASS** | 已合线 + **已部署 104**（`ee2e7969`，11-24 16:41 UTC）；真机 `cues=x/y` 待下一通拨测 |
+| C2 | F16 prewarm + 20s init budget 合并验证 | **PARTIAL PASS** | 已合线；**prewarm `modules=27` 与 20s 预算已在 104 生效**（取证见 C2-部署）；首帧收益仍需通话取数 |
 | C3 | `claude/dazzling-darwin-6c5ae3` P4/P5 决策 | **MERGE**（已决策并合线） | 已合线 `8685251b`；真机腿未跑 |
 | C4 | sound-subtitle-server 收口 | **PASS（代码）/BLOCKED（部署+真机）** | 已合线并已 push（`testjava_springboot`）|
 | C5 | testserverV 拍照解题 maxTokens 链 | **PASS** | 已合线且**已在 origin**（前提与 brief 不同，见内文）|
@@ -89,7 +89,19 @@ livekit-performance 会话）、不做数字人/摄像头/特效视觉线（另�
   `Decision.Now` + lateMs 路径支撑。
 
 **阻塞与目标内遗留**
-- 部署与真机复验：依赖协调人给的部署/装机窗口（与 C2 同一窗口最省）；解除条件 = 用户开窗口。
+- ~~部署与真机复验~~ → **2026-11-24 16:41 UTC 已部署**（见下 C2-部署取证）；剩真机 `cues=x/y` 复验，等设备窗口拨测（C6）。
+
+**部署证据（11-24 16:41 UTC，用户开窗口后本会话执行）**
+- 104：`/home/web/work/agent-docs`（已干净）ff 到 `ee2e7969` → `publish.sh --dry-run`
+  确认改动面=2 文件 → `publish.sh` → `process.sh restart voice`。
+- `.deploy-version`：`commit: ee2e7969 / published: 2026-11-24 16:41:06 +0000`。
+- 部署码三处签名都在：`agent.py` `last_declared`×4、`capacity.py`
+  `INITIALIZE_PROCESS_TIMEOUT_S`×3、`prewarm.py` volcengine×4。
+- 新 voice worker pid 1362844：`registered worker`（16:41:49）、重启后
+  `error initializing process` = **0**、无崩溃/退出。
+- 部署前确认无活跃通话（最后 voice 事件 15:54，间隔 46 分钟）。
+- 真机复验未做：V2279A 当时未连 adb（机上挂着 ADY-AL00）；`cues=x/y` 从服务端
+  voice.log 也能取，已挂监视器等下一通。
 
 **独立后续（不改本任务状态）**
 - C1-附带（归 F16 owner，本次未修）：say 闭合引号与句末标点落在同一个 delta 时，标点
@@ -104,7 +116,18 @@ livekit-performance 会话）、不做数字人/摄像头/特效视觉线（另�
 - Owner / session：收口 worker（代码线）；收益验证 owner 仍是 F16 侧线 `local_e2a702b2-de82-4ba3-98f6-0de8b11707b9`
 - 目标分支 / commit：agent-docs `main`（`2a098aa4` prewarm 清单补火山插件本体；
   `316f53f8` 钉住 20s 预算挂进真实 WorkerOptions）
-- 状态：**BLOCKED（真实收益验证）／已合线**
+- 状态：**PARTIAL PASS（②③④ 已取证）／已合线 + 已部署 104**
+
+**部署取证更新（2026-11-24 16:41 UTC，用户开窗口后本会话执行）**
+- 现场比 brief 假设更进一步：另一会话 14:22 已发过 `dced3cab`，其中**已含** `2a098aa4`
+  （prewarm）与 `316f53f8`（20s 预算）——线上当时就在跑 `prewarm done modules=27
+  vad=loaded cost_ms=7673/9178/9437`，且该 worker 段 `error initializing process` = 0。
+  所以 C2 的 **③④ 当场即满足**（历史 10870 笔超时全在旧 worker 段、最新一笔 05:26）。
+- 本会话补发 `ee2e7969`（只多 cue 修复）后重启 voice：新 worker pid 1362844
+  `registered worker` 16:41:49，重启后 spawn 超时 **0**、无崩溃。
+- ②（`importing livekit.plugins.volcengine*` blocked）新 worker 段 **0 笔**——但新段
+  还没跑过通话，该签名要等拨测才算最终确认。
+- ①（`first_frame_ms` 对照基线）与 ⑤（`received job → joined room`）等下一通拨测取数。
 
 **先纠正 brief 的前提（本次取证）**
 - `2a098aa4`（prewarm）**已在 `origin/main`**：`git merge-base --is-ancestor` 返回真。
