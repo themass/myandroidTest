@@ -90,7 +90,23 @@ class StickerSlotState {
     val smoother = PlacementSmoother()
     val tracker = StickerHoldTracker()
     var lastPlacement: StickerPlacementPx? = null
-    var lastWasAnchored: Boolean = false
+        private set
+    private var lastWasAnchored: Boolean = false
+
+    /** Smooth observed placements; reacquisition after Held starts a fresh EMA at the target. */
+    fun anchor(target: StickerPlacementPx): StickerPlacementPx {
+        if (lastPlacement != null && !lastWasAnchored) smoother.reset()
+        return smoother.smooth(target).also {
+            lastPlacement = it
+            lastWasAnchored = true
+        }
+    }
+
+    /** Keep the last visible placement and mark the next anchor as a reacquisition. */
+    fun hold(): StickerPlacementPx? {
+        if (lastPlacement != null) lastWasAnchored = false
+        return lastPlacement
+    }
 
     fun reset() {
         smoother.reset()
