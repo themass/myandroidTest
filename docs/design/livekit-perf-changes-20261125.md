@@ -46,10 +46,26 @@
 - `livekit.service.d/perf.conf`: **CPUWeight=1000**（systemd 默认 100 上限；1vCPU 上
   SFU 必须压过邻居）。已验证 `systemctl show livekit -p CPUWeight` = 1000。
 - 已知邻居（未动，需要时再议）：testserverV java(333MB, prod)、new-api、next-server、
-  job-come uvicorn、v2ray。**voice worker + companion api 目前裸跑在 ssh session scope
-  里（非 systemd unit）**——这是结构性问题：重启机器它们不会自起。
+  job-come uvicorn、v2ray。**voice worker + companion api 此前裸跑在 ssh session scope
+  里（非 systemd unit）**——结构性问题，已在 c) 收口。
 
-### c) livekit 配置（备份 `config.yaml.orig` + `config.yaml.bak-20261125`）
+### c) companion api/voice 落到 systemd（agent-docs main `86fbef1a`，104 已部署）
+- 背景：api/voice 此前裸跑在 ssh session scope（session-1019/691，已 abandoned）——
+  机器重启不自起；进程族在 user.slice，CPUWeight/cgroup 策略对它们无效。
+- 新增 `myproject/companion-agent/deploy/systemd/companion-{api,voice}.service` +
+  `scripts/run-as-service.sh`（unit 前台执行器，.env 导出口径与 process.sh 一致）+
+  `deploy/systemd/README.md`（装/切换/回滚）。日志改走 journal（`.data/logs/*.log` 停更）。
+- `process.sh` 检测 unit 已装且 web 可免密 systemctl（sudoers 白名单，只放行这两个
+  unit 的 start/stop/restart/status/is-active）时整体委托 systemctl；
+  切换窗口（旧 setsid 进程未停干净）仍走 PID 文件模式。publish.sh --restart 不变。
+- 切换实录（18:47–18:49 UTC 静默窗口）：process.sh stop 旧进程 → cp unit +
+  daemon-reload + `enable --now` → api `/health` ok、8081/8082 重新监听、
+  livekit `worker registered`（18:49:10）、`process.sh status/restart` 委托生效、
+  `systemctl is-enabled`=enabled×2、CGroup 归 /system.slice/companion-*.service。
+- journald 上限 `SystemMaxUse=500M`（voice 日志曾单文件 98MB/日级增长）。
+- 回滚：README「回滚」节——disable --now + 删 unit/sudoers 行，process.sh 自动回落 setsid 模式。
+
+### d) livekit 配置（备份 `config.yaml.orig` + `config.yaml.bak-20261125`）
 - `prometheus: port 9090 (basic auth metrics/<rand32hex>，只绑 127.0.0.1)` ——
   SLO 指标数据面落地（C8 ICE 分布、CPU/内存 capacity 数据从这里开始攒），
   已验证 /metrics 返回 67 条 livekit_* 指标。
