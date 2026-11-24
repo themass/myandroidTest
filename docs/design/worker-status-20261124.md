@@ -3,9 +3,9 @@
 ## 口径与基线
 
 - 本文按用户要求汇总所有能在 linked sessions、提交记录和仓库文档中识别的 worker；把开发和设计排在前面，设备/测试验证统一放到最后。
-- 远端 fetch 本轮因 GitHub HTTPS 连接超时失败。可用的本机跟踪引用 `origin/weifu-refactor` 指向 `62697dab`，其父提交为装机代码 `5e17a2f5`；因此“远端最新”尚未通过本轮联网 fetch 再确认。主线代码基准按 `62697dab`（应用代码 tip `5e17a2f5` + 状态文档更新）记录。
+- 本轮最初 GitHub fetch 因 HTTPS 连接超时失败；之后 worker 推送并更新本机跟踪引用 `origin/weifu-refactor` 到 `6d16f201`。该提交在装机代码 `5e17a2f5` 之后，主要补充 PhotoSolve 真机结果表与 QA 记录。远端最新仍未由本轮 fetch 独立确认；当前以本机最新跟踪引用 `6d16f201` 为同步基准。
 - V2279A 最近已证实安装 `5e17a2f5` 构建的 `1.1.0.72 / 1001000072`；安装时间 `2026-11-24 10:36:54`，APK MD5 `741637d1d3f208166f4caf80c53f0ad7`。**只有协调会话装机**；worker 不执行 adb install、不 bump 版本、不复用旧 APK。
-- 当前本机原始 `refs/heads/weifu-refactor` 仍停在 `5e17a2f5`；已将安全可快进的闲置 worker worktree 更新到 `origin/weifu-refactor` 跟踪引用 `62697dab`。详见文末同步清单。
+- 当前本机原始 `refs/heads/weifu-refactor` 仍停在 `5e17a2f5`；本轮已将 15 个安全、干净且闲置的 worker worktree 更新到 `6d16f201`（其中 14 个从 `62697dab` 快进，`happy-fermi` 已在该 tip）。活跃、脏或分叉 worktree 保留原样。详见文末同步清单。
 
 ## 1. 数字人、舞台特效与素材调研
 
@@ -31,7 +31,7 @@
 
 | Worker / 主题 | 目标与开发计划 | 当前进展 | 遗留事项 |
 |---|---|---|---|
-| `design-3-tasks` | 收敛图片编辑、权限去重、PhotoSolve 端到端链路；先完成 S0/S1，再设备验收和后续切片。 | S0 操作模型/渲染器/编辑器、S1 选图/拍照后编辑并替换草稿已在主线；S3 草稿托盘长按“再编辑”由 `4b1c2b37` 合入。当前会话仍运行，已请求其回报最新工作状态。 | 图片编辑 S2 真机检查表仍为空；PhotoSolve PS1–PS5 需要逐项记结果。PS1–PS5 当日装机清单不等于逐项已通过。40002 是否退款、屏幕题识别是否补 DocQuadNet 样本/几何兜底属于待产品决策。 |
+| `design-3-tasks` | 收敛图片编辑、权限去重、PhotoSolve 端到端链路；先完成 S0/S1，再设备验收和后续切片。 | S0 操作模型/渲染器/编辑器、S1 选图/拍照后编辑并替换草稿、S3 草稿托盘长按“再编辑”均已完成；worker 报告 `feature-photosolve` 42/0（含 4 项 CaptureFlowTest）、`imaging` 48/0、`:app:compileChatDebugKotlin` 通过。提交 `ece403c2`、`28e9a193`、`8d38e82f`、`6d16f201` 位于 `origin/weifu-refactor` 祖先链；worktree 当前 HEAD `6d16f201`。 | PS1–PS5 与图片编辑 S2 真机验收仍未跑完，设备窗口交回给放映场 worker 后等待协调信号；已准备两张失败实拍素材，可经「对话→拍照解题→从相册选择」验证。worker 如实记录一次 force-stop 与一次误坐标 tap，现已停手排队；后续开跑前先确认前台页面归属。40002 是否退款、屏幕题识别是否补 DocQuadNet 样本/几何兜底属于待产品决策。 |
 | `p1-10` | 图片加载失败时显示占位并支持点击重试。 | 代码及测试基线修复 `0464c151`、weifu 合入记录在主线；已同步到新 tip。 | 弱网下点击重试的真机点测仍列为 deferred。 |
 | `p0-5-testserverV-maxtoken` | 修复拍题 JSON 因 maxTokens 截断后被误报非题目，并补结构 salvage。 | testserverV 三提交 `f0de0021 → a48e2425 → cbc260d9`；报告 photosolve 41 测 0 失败。 | **独立 testserverV 仓库/分支，未 push**；worker 明确等待用户决定，不能代推。真实豆包 API 联调需可用 API key。 |
 | `p0-5-p2` / PhotoSolve 额度 | 梳理 40002/50001 额度行为和真机通话/产品边界。 | 产品问题已记录：当前 50001 才退款，40002 不退。 | 是否把 40002 纳入退款规则影响计费，须用户决策；不作为已完成改动。 |
@@ -99,23 +99,23 @@
 
 ## 9. Worktree 同步与分支归属
 
-同步目标采用本机 `origin/weifu-refactor` 跟踪引用 `62697dab`。本轮对**干净、可 fast-forward、闲置** worktree 执行快进，共 **15 个**。这只是更新本机 worktree 的分支指针，不代表重新构建或安装了 APK。
+`origin/weifu-refactor` 当前本机跟踪 tip 为 `6d16f201`。共 15 个干净、可快进且闲置的 worker worktree 已位于该 tip：14 个从 `62697dab` 快进，`happy-fermi` 已经在 tip。这里只更新 worktree 分支指针，不代表重新构建或安装了 APK。
 
-### 已同步到 `62697dab`
+### 已同步到 `6d16f201`
 
-`charming-shaw`、`avatar-2d-design`、`lottie-device-accept`、`tts-25-32s-f16`、`p0-5-p2`、`camera-sticker-follow`、`f16-3d859c44`、`screening-auto-retry`、`p1-10`、`roleplay-design`、`cam-lab-adb`、`f16`、`tos`、`p2-13`、`SSE`、`p1-12-markdown` 等安全 worktree（总计 15 个；每个实际更新结果见本轮同步命令输出）。
+`charming-shaw`（p1-12-markdown）、`determined-leavitt`（avatar-2d-design）、`distracted-wright`（lottie-device-accept）、`elastic-lovelace`（tts-25-32s-f16）、`elastic-mendeleev`（p0-5-p2）、`exciting-tereshkova`（camera-sticker-follow）、`f16-3d859c44`、`gallant-brahmagupta`（p1-10）、`gifted-shtern`（roleplay-design）、`happy-fermi`（design-3-tasks）、`mystifying-vaughan`（cam-lab）、`recursing-hugle`（f16）、`recursing-lederberg`（tos）、`vibrant-hugle`（p2-13）、`zealous-franklin`（SSE）。
 
 ### 按纪律保留、未擅自改动
 
-- `happy-fermi`（design-3-tasks）和 `optimistic-pike`（text-sound-screening）会话仍在运行；不在运行中改它们的 worktree。前者 HEAD `8d38e82f`、后者 HEAD `5e17a2f5`，都应在 worker 收尾后再由协调器确认同步。
+- 活跃会话 worktree 不改：`focused-mclean`（数字人，HEAD `62697dab`）与 `optimistic-pike`（text-sound-screening，HEAD `5e17a2f5`）。前者分支名仍显示 `screening-auto-retry`，以当前 session 的 cwd 和运行状态为准；待会话结束后再核实并同步。
 - `distracted-mirzakhani`（lottie-fx-mvp）和 `gifted-jepsen`（psd2live-eval）有未提交改动；保留现场，禁止 reset 覆盖。
 - `upbeat-poitras`（camera-demo）与本 fork `vigorous-goldwasser` 相对 `weifu-refactor` 分叉；不得强制重置。camera-demo 的文档提交尚未确认合入主线。
 - `weifu-refactor` 主 checkout 在 `5e17a2f5` 且有未提交修改；未动。
-- `/private/tmp/weifu-push` 当前位于 `62697dab`，工作区干净；本轮 GitHub fetch 连接失败，故没有声称该远端引用已在此刻刷新。
+- `/private/tmp/weifu-push` 仍位于 `62697dab`，工作区干净；它不在 worker worktrees 目录中，本轮未改动。GitHub fetch 连接失败，因此 `6d16f201` 是本机跟踪引用当前值，未声称本轮独立确认了远端实时 tip。
 
 ## 10. 下一步执行顺序
 
-1. 等仍运行的 design-3-tasks 与 text-sound-screening 回报；确认两者工作区/提交后，再快进其干净 worktree 到 `62697dab`。
+1. 等仍运行的 text-sound-screening 回报；确认其工作区/提交后，再快进其干净 worktree 到 `6d16f201`。
 2. 对齐相机与 PSD2Live 两个独立/脏 worktree 的差异，先保存未提交工作，再决定是否合入；camera-demo 文档需要单独集成。
 3. 逐项完成上面的真机验收表并回填 P/F/阻塞，不以“已装机”代替验收。
 4. 对独立 testserverV 分支保留“未 push，等待用户决定”的状态；不代替用户推送。
