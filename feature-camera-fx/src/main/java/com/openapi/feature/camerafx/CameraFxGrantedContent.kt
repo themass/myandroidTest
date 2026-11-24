@@ -70,6 +70,7 @@ fun CameraFxGrantedContent(
     modifier: Modifier = Modifier,
     overlayPolicy: CameraFxOverlayPolicy = CameraFxOverlayPolicy(),
     onStageGesture: ((String) -> Unit)? = null,
+    stickerRenderer: CameraFxStickerRenderer? = null,
 ) {
     val showDebugHud = overlayPolicy.showDebugHud
     val drawWireframe = overlayPolicy.drawWireframe
@@ -267,33 +268,31 @@ fun CameraFxGrantedContent(
                     }
                     val half = placeFinal.sizePx / 2f
                     val stickerSize = with(density) { placeFinal.sizePx.toDp() }
-                    if (comp != null) {
+                    val stickerModifier = Modifier
+                        .zIndex(2f)
+                        .offset {
+                            IntOffset(
+                                (placeFinal.centerX - half).roundToInt(),
+                                (placeFinal.centerY - half).roundToInt(),
+                            )
+                        }
+                        .size(stickerSize)
+                        .rotate(placeFinal.rotationDeg)
+                    if (stickerRendererTakesOverWhenSet(
+                            rendererSet = stickerRenderer != null,
+                            compLoaded = comp != null,
+                        )
+                    ) {
+                        // 注入的后端拿到的是**同一个**已平滑位置/尺寸/倾角；几何仍归相机侧。
+                        stickerRenderer!!.invoke(placeFinal, stickerModifier)
+                    } else if (comp != null) {
                         LottieAnimation(
                             composition = comp,
                             progress = { progress },
-                            modifier = Modifier
-                                .zIndex(2f)
-                                .offset {
-                                    IntOffset(
-                                        (placeFinal.centerX - half).roundToInt(),
-                                        (placeFinal.centerY - half).roundToInt(),
-                                    )
-                                }
-                                .size(stickerSize)
-                                .rotate(placeFinal.rotationDeg),
+                            modifier = stickerModifier,
                         )
                     } else {
-                        Canvas(
-                            Modifier
-                                .zIndex(2f)
-                                .offset {
-                                    IntOffset(
-                                        (placeFinal.centerX - half).roundToInt(),
-                                        (placeFinal.centerY - half).roundToInt(),
-                                    )
-                                }
-                                .size(stickerSize),
-                        ) {
+                        Canvas(stickerModifier) {
                             drawCircle(
                                 color = Color(0xCCFF4081),
                                 radius = size.minDimension / 2f,
@@ -367,6 +366,7 @@ fun CameraFxGrantedContent(
 fun CameraFxStickerPip(
     modifier: Modifier = Modifier,
     onStageGesture: ((String) -> Unit)? = null,
+    stickerRenderer: CameraFxStickerRenderer? = null,
 ) {
     CameraFxGrantedContent(
         modifier = modifier,
@@ -376,6 +376,7 @@ fun CameraFxStickerPip(
             showDebugHud = false,
         ),
         onStageGesture = onStageGesture,
+        stickerRenderer = stickerRenderer,
     )
 }
 
