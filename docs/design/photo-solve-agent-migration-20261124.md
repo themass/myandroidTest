@@ -24,4 +24,6 @@ Android 已通过 `./gradlew --offline :feature-photosolve:testDebugUnitTest :ap
 
 服务端必须独立验证鉴权、图片验证与大小上限、视觉多模态请求、模型结构输出校验与错误映射。模型配置与生产部署、真机真实识别属于独立验证层：源码构建/假模型测试不能证明线上模型可看图或线上接口已存在。上线顺序应先部署 agent 接口和视觉模型配置，再由协调会话从最新主线构建并装机验证；worker 不执行 adb install，不 bump versionCode。
 
+服务端实现已推入 agent-docs 的 `main`：功能提交 `8e0dd2f6`，合最新服务端主线的集成提交 `ed40f79`。合主线后独立复跑 photosolve、llm_router、uploads、附件 MIME 和 token kind 五组共 65 项测试，全部通过。服务端现有 import-linter 的 `prewarm → bootstrap.catalog_cache` 违规未由本次修改引入，仍保留。
+
 旧 testserverV 本地日额度、全站预算与幂等去重不会因为请求迁移而自动继承。`client_request_id` 用于关联结果，不代表 exactly-once 推理；端上不做自动重试，避免在响应丢失时悄悄重复计费。部署前应确认 agent 的对应配额策略。
