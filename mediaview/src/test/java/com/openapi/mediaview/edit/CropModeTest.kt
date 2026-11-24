@@ -60,6 +60,51 @@ class CropModeTest {
         assertEquals(CropHandle.BottomRight, hitHandle(rect, Offset(111f, 106f), slop))
     }
 
+    /**
+     * 实机抱怨的场景：初始 Free 框 = 铺满 fit 矩形（[CropGeometry.fitAspectRect]），
+     * 四个角全部贴画幅边，可见角标只有 18dp 臂——手指按在角**往框内**处必须抓住该角。
+     * 热区 32dp（[CROP_HANDLE_SLOP_DP]），比旧的 24dp 够得着这一按；
+     * dx=28 那一按在旧 24dp 方形下会脱手（距离 29.1 也出圆），这里钉住新半径。
+     *
+     * 落点用 20×12 的不对称偏移：贴满整幅时两邻角都在彼此的 32dp 里，
+     * 正中 20×20 会出现「两个角等距」的平手（取先遍历到的那个，不是我们要钉的角），
+     * 所以每角按自己那侧 20dp、邻边方向 12dp，命中才唯一。
+     */
+    @Test
+    fun edgeFlushCornerIsGrabbedFromInsideTheFrame() {
+        val rect = Rect(0f, 0f, 400f, 200f) // 贴边：框 = 画幅
+        val slopPx = 32f
+        assertEquals(CropHandle.TopLeft, hitHandle(rect, Offset(20f, 12f), slopPx))
+        assertEquals(CropHandle.TopRight, hitHandle(rect, Offset(400f - 20f, 12f), slopPx))
+        assertEquals(CropHandle.BottomLeft, hitHandle(rect, Offset(20f, 200f - 12f), slopPx))
+        assertEquals(CropHandle.BottomRight, hitHandle(rect, Offset(400f - 20f, 200f - 12f), slopPx))
+        // 旧的 24dp 方形热区够不到 dx=28；新的 32dp 必须够到
+        assertEquals(CropHandle.TopLeft, hitHandle(rect, Offset(28f, 8f), slopPx))
+    }
+
+    /** 命中判据的圆形分支：到角点的欧氏距离 ≤ slop 就算抓住（贴边时沿画幅边方向也抓得到）。 */
+    @Test
+    fun hitWithinCircleRadiusOfTheCorner() {
+        val rect = Rect(50f, 30f, 350f, 180f)
+        val slopPx = 32f
+        // 正好在圆周边上（贴着角、沿边方向向外）：命中
+        assertEquals(CropHandle.TopLeft, hitHandle(rect, Offset(rect.left, rect.top - slopPx), slopPx))
+        // 差 1px 出圆（同时出方形）：不命中
+        assertNull(hitHandle(rect, Offset(rect.left, rect.top - slopPx - 1f), slopPx))
+    }
+
+    /** 热区再大也不是哪儿都抓：框边中点、框中心、斜向越出 slop 都不算把手（不做整框平移）。 */
+    @Test
+    fun missesFarFromAnyCornerEvenWithTheWiderSlop() {
+        val rect = Rect(0f, 0f, 400f, 200f)
+        val slopPx = 32f
+        assertNull(hitHandle(rect, Offset(200f, 0f), slopPx))   // 上边中点
+        assertNull(hitHandle(rect, Offset(0f, 100f), slopPx))   // 左边中点
+        assertNull(hitHandle(rect, Offset(200f, 100f), slopPx)) // 框中心
+        // 斜向越出：方形（dx=33>32）和圆（距离 ≈46.7>32）都落空
+        assertNull(hitHandle(rect, Offset(-33f, -33f), slopPx))
+    }
+
     // ---- 比例预设 ----
 
     @Test

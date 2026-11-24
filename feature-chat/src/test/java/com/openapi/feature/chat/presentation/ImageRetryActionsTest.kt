@@ -67,6 +67,26 @@ class ImageRetryActionsTest {
     }
 
     @Test
+    fun weakNetworkThrowKeepsPathUntouchedAndAllowsAnotherTap() {
+        // 弱网的真实形状是异常（超时/连接重置），不是 null：不能崩，不能改 path，
+        // 而且这一次失败的在途标记必须清掉——用户还能再点一次。
+        val h = Harness(listOf(remoteMsg("m1", listOf("https://expired/u1"), listOf("u1"))))
+        h.repo.refreshImageUrlThrows = java.io.IOException("timeout")
+        h.actions.retry("m1", 0)
+        h.scope.advanceUntilIdle()
+
+        assertEquals("异常不吃消息：path 原样", "https://expired/u1", h.state.value.messages[0].images[0].path)
+        // 异常后允许下一次点击（在途已释放），第二次网络恢复就能换到新地址
+        h.repo.refreshImageUrlThrows = null
+        h.repo.refreshImageUrlResult = "https://new/u1"
+        h.actions.retry("m1", 0)
+        h.scope.advanceUntilIdle()
+
+        assertEquals(listOf("u1", "u1"), h.repo.refreshImageUrlCalls)
+        assertEquals("恢复后换到 new URL", "https://new/u1", h.state.value.messages[0].images[0].path)
+    }
+
+    @Test
     fun doubleTapWhileInFlightOnlyAsksTheServerOnce() {
         val h = Harness(listOf(remoteMsg("m1", listOf(""), listOf("u1"))))
         h.repo.refreshImageUrlResult = "https://new/u1"

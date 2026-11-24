@@ -56,6 +56,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.abs
 import com.openapi.imaging.cropassist.CropAssistResult
 import com.openapi.imaging.CropNorm
 import com.openapi.imaging.cropassist.CropAssistRegistry
@@ -210,28 +211,59 @@ internal sealed interface Grab {
                 b = t + h
             }
         }
-        l = l.coerceIn(0f, r - min)
-        r = r.coerceIn(l + min, 1f)
-        t = t.coerceIn(0f, b - min)
-        b = b.coerceIn(t + min, 1f)
+        // 夹取顺序：先把每条边各自夹进 [0,1]，再保证最小边长。
+        // 旧写法 `l.coerceIn(0f, r - min)` 在 r < min 时是 coerceIn(0, 负数) → min > max，
+        // Kotlin 直接抛 IllegalArgumentException：把一个角一路拖向对边就崩（真机可复现路径）。
+        l = l.coerceIn(0f, 1f - min)
+        r = r.coerceIn(0f, 1f).coerceAtLeast(l + min)
+        t = t.coerceIn(0f, 1f - min)
+        b = b.coerceIn(0f, 1f).coerceAtLeast(t + min)
         return CropNorm(l, t, r, b)
     }
 }
 
-/** 按下的位置离哪个手柄最近（半径内），否则如果在框内就是整体移动。 */
+/**
+ * 按下的位置抓哪个把手。
+ *
+ * 判定顺序（对拇指粗、贴边的情况都不误判）：
+ * 1. **角优先**：离任一角的切比雪夫距离 ≤ [radius] → 那个角。用切比雪夫（max(|dx|,|dy|)）
+ *    而不是欧氏距离：贴边时手指只能落在角内侧，欧氏判定下半径被对角线吃掉，用户按 24dp
+ *    已经按到角标上却抓不住（用户原话「根本无法移动」）。
+ * 2. **边其次**：不在角带内、但离某条边（沿边方向上的线段）垂直距离 ≤ [radius] → 那条边。
+ * 3. 只有明确落在框内部（离四边都 > [radius]）才是整体平移。
+ *
+ * 之前是「8 个点取最近、半径内命中，否则框内一律 Move」：角/边中点的可视尺寸远小于 36dp，
+ * 落在两者之间或贴边角外侧就掉进 Move，看起来就是「裁剪框跟图片不搭噶、一拖整个框在动」。
+ * 热区一律向框内侧扩展（贴边角的外侧本来在图片外，点不到），框外空白仍返回 null 不吞事件。
+ */
 internal fun pickGrab(p: Offset, rect: Rect, radius: Float): Grab? {
-    val handles = listOf(
+    // 1. 角（切比雪夫）
+    val corners = listOf(
         Offset(rect.left, rect.top) to Grab.TopLeft,
         Offset(rect.right, rect.top) to Grab.TopRight,
         Offset(rect.left, rect.bottom) to Grab.BottomLeft,
         Offset(rect.right, rect.bottom) to Grab.BottomRight,
-        Offset((rect.left + rect.right) / 2f, rect.top) to Grab.Top,
-        Offset((rect.left + rect.right) / 2f, rect.bottom) to Grab.Bottom,
-        Offset(rect.left, (rect.top + rect.bottom) / 2f) to Grab.Left,
-        Offset(rect.right, (rect.top + rect.bottom) / 2f) to Grab.Right,
     )
-    val nearest = handles.minByOrNull { (pos, _) -> (pos - p).getDistance() }
-    if (nearest != null && (nearest.first - p).getDistance() <= radius) return nearest.second
+    var best: Grab? = null
+    var bestDist = Float.MAX_VALUE
+    for ((pos, grab) in corners) {
+        val d = maxOf(abs(pos.x - p.x), abs(pos.y - p.y))
+        if (d <= radius && d < bestDist) {
+            best = grab
+            bestDist = d
+        }
+    }
+    best?.let { return it }
+
+    // 2. 边：沿该边的参数区间内、垂直距离在半径内（中点粗横线只是一半宽，热区沿整条边）
+    val withinX = p.x >= rect.left - radius && p.x <= rect.right + radius
+    val withinY = p.y >= rect.top - radius && p.y <= rect.bottom + radius
+    if (withinX && abs(p.y - rect.top) <= radius) return Grab.Top
+    if (withinX && abs(p.y - rect.bottom) <= radius) return Grab.Bottom
+    if (withinY && abs(p.x - rect.left) <= radius) return Grab.Left
+    if (withinY && abs(p.x - rect.right) <= radius) return Grab.Right
+
+    // 3. 明确在框内部才整体平移
     return if (rect.contains(p)) Grab.Move else null
 }
 

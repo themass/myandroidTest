@@ -978,6 +978,8 @@ class CompanionViewModel(
                         it.copy(incomingCall = ProactiveKind.CALL)
                     }
 
+                    is CompanionEvent.SpeechInterrupted -> truncateStreaming(event.spokenChars)
+
                     is CompanionEvent.ClearAvatarEmotion -> _state.update {
                         // 降级进 L2（B3）：表情到 UI state 这一层收回 null，
                         // 界面那一跳的 LaunchedEffect 会把它翻成 ClearEmotion 指令。
@@ -1034,6 +1036,30 @@ class CompanionViewModel(
             st.copy(messages = st.messages.toMutableList().also {
                 it[idx] = it[idx].copy(text = it[idx].text + delta)
             })
+        }
+    }
+
+    /**
+     * 把正在流式的回复截断到「实际说出口的前缀」，结束这条流，并把形象状态乐观写进
+     * `interrupted`（P2 契约 §2.1）。
+     *
+     * `spokenChars` 来自 `speech.seg` 的 `chars` 累加与已播毫秒的比例——是估计值。
+     * 因此对气泡取 `min`：delta 流落后于音频时宁可少留一个字，绝不凭空多出没送到的字。
+     * 状态在这里写而不只靠 cue：barge-in 是端侧发起的，形象层的反馈必须发生在
+     * 本地这一帧，而不是等一条 DEADLINE 级别的 cue 往返。
+     */
+    fun truncateStreaming(spokenChars: Int) {
+        _state.update { st ->
+            val idx = st.messages.indexOfLast { it.streaming }
+            val messages = if (idx < 0) st.messages else st.messages.toMutableList().also {
+                val msg = it[idx]
+                it[idx] = msg.copy(
+                    text = msg.text.take(spokenChars.coerceAtLeast(0)),
+                    streaming = false,
+                    interrupted = true,
+                )
+            }
+            messages.let { st.copy(messages = it, avatarState = "interrupted") }
         }
     }
 
