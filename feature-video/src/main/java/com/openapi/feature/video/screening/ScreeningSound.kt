@@ -1,6 +1,11 @@
 package com.openapi.feature.video.screening
 
 import android.content.ComponentName
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.widget.FrameLayout
 import androidx.activity.compose.BackHandler
 import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedContent
@@ -31,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.Player
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.session.MediaController
@@ -41,6 +47,8 @@ import com.openapi.core.favorite.FavoriteUtil
 import com.openapi.common.net.http.NetUtils
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.core.model.RecommendVo
+import com.openapi.speech.subtitle.api.StreamingSubtitleOverlayPresenter
+import com.openapi.speech.subtitle.realtime.VideoRealtimeSubtitleSession
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.isActive
@@ -201,11 +209,17 @@ internal fun soundPlaybackMode(savedName: String?): SoundPlaybackMode =
 
 internal fun clampSoundPlaybackSpeed(speed: Float): Float = speed.coerceIn(0.25f, 3f)
 
+internal const val SOUND_SWITCH_DEFAULT_ENABLED = true
+
 internal fun shouldPromptForSoundNetwork(
     isWifi: Boolean,
     soundSwitch: Boolean,
     sessionOverride: Boolean,
-): Boolean = !isWifi && !soundSwitch && !sessionOverride
+    isPlaying: Boolean,
+): Boolean = isPlaying && !isWifi && !soundSwitch && !sessionOverride
+
+internal fun screeningSubtitleMediaUrl(currentMediaUrl: String?, selectedTrackUrl: String?): String =
+    currentMediaUrl?.takeIf { it.isNotBlank() } ?: selectedTrackUrl.orEmpty()
 
 internal fun manualNextSoundTrackIndex(
     mode: SoundPlaybackMode,
@@ -333,27 +347,85 @@ private fun SoundTrackHub(
     var pendingManualNextFromCount by remember(player) { mutableIntStateOf(-1) }
     var speedDialogOpen by rememberSaveable { mutableStateOf(false) }
     var networkDialogOpen by rememberSaveable { mutableStateOf(false) }
-    var networkOverride by rememberSaveable { mutableStateOf(false) }
+    var networkOverride by remember { mutableStateOf(false) }
     var pendingNetworkTrack by remember(player) { mutableIntStateOf(-1) }
     var resumeAfterNetworkConfirmation by remember(player) { mutableStateOf(false) }
     val context = LocalContext.current
-    fun needsNetworkConfirmation(): Boolean = shouldPromptForSoundNetwork(
-        isWifi = NetUtils.isWifi(context),
-        soundSwitch = PreferenceUtils.getPrefBoolean(context, Constants.SOUND_SWITCH, false),
-        sessionOverride = networkOverride,
-    )
+    var isWifi by remember(context) { mutableStateOf(NetUtils.isWifi(context)) }
+    val current = tracks.getOrNull(currentIndex)
+    val subtitleHost = remember(context) { FrameLayout(context) }
+    val subtitleSession = remember(player, subtitleHost, current?.fileUrl) {
+        VideoRealtimeSubtitleSession(
+            context,
+            subtitleHost,
+            {
+                screeningSubtitleMediaUrl(
+                    player.currentMediaItem?.localConfiguration?.uri?.toString(),
+                    current?.fileUrl,
+                )
+            },
+            null,
+            object : VideoRealtimeSubtitleSession.PlaybackProbe {
+                override fun isPlaying(): Boolean = player.isPlaying
+                override fun positionMs(): Long = player.currentPosition.coerceAtLeast(0L)
+            },
+        )
+    }
+    val subtitlePresenter = remember(subtitleSession) {
+        StreamingSubtitleOverlayPresenter().apply { setSession(subtitleSession) }
+    }
+    var subtitlesVisible by remember(subtitlePresenter) { mutableStateOf(false) }
+    LaunchedEffect(current?.fileUrl, subtitlePresenter) {
+        if (subtitlePresenter.isVisible) subtitlePresenter.detach()
+        subtitlesVisible = false
+    }
+    DisposableEffect(subtitlePresenter) {
+        onDispose { subtitlePresenter.detach() }
+    }
+    fun interruptPlaybackForNetwork(wifi: Boolean) {
+        isWifi = wifi
+        if (networkDialogOpen) return
+        val shouldPrompt = shouldPromptForSoundNetwork(
+            isWifi = wifi,
+            soundSwitch = PreferenceUtils.getPrefBoolean(context, Constants.SOUND_SWITCH, SOUND_SWITCH_DEFAULT_ENABLED),
+            sessionOverride = networkOverride,
+            isPlaying = player.isPlaying,
+        )
+        if (shouldPrompt) {
+            player.pause()
+            pendingNetworkTrack = -1
+            resumeAfterNetworkConfirmation = true
+            networkDialogOpen = true
+        }
+    }
+    val latestInterruptPlaybackForNetwork by rememberUpdatedState<(Boolean) -> Unit>({ wifi ->
+        interruptPlaybackForNetwork(wifi)
+    })
+    DisposableEffect(context, player) {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val mainExecutor = ContextCompat.getMainExecutor(context)
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                mainExecutor.execute { latestInterruptPlaybackForNetwork(NetUtils.isWifi(context)) }
+            }
+
+            override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
+                val wifi = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                mainExecutor.execute { latestInterruptPlaybackForNetwork(wifi) }
+            }
+
+            override fun onLost(network: Network) {
+                mainExecutor.execute { latestInterruptPlaybackForNetwork(NetUtils.isWifi(context)) }
+            }
+        }
+        connectivityManager.registerDefaultNetworkCallback(callback)
+        onDispose { connectivityManager.unregisterNetworkCallback(callback) }
+    }
     LaunchedEffect(player, playbackSpeed) {
         player.setPlaybackParameters(PlaybackParameters(playbackSpeed, 1f))
     }
     fun playAt(index: Int) {
         val track = tracks.getOrNull(index) ?: return
-        if (needsNetworkConfirmation()) {
-            pendingNetworkTrack = index
-            resumeAfterNetworkConfirmation = false
-            networkDialogOpen = true
-            player.pause()
-            return
-        }
         pendingNetworkTrack = -1
         playbackEnded = false
         pendingManualNextFromCount = -1
@@ -375,21 +447,17 @@ private fun SoundTrackHub(
         previousSoundTrackIndex(currentIndex, tracks.size)?.let(::playAt)
     }
     fun togglePlayback() {
-        if (player.isPlaying) {
-            player.pause()
-        } else if (needsNetworkConfirmation()) {
-            pendingNetworkTrack = -1
-            resumeAfterNetworkConfirmation = true
-            networkDialogOpen = true
-        } else {
-            player.play()
-        }
+        if (player.isPlaying) player.pause() else player.play()
     }
     val latestPlayAt by rememberUpdatedState<(Int) -> Unit>({ index -> playAt(index) })
     DisposableEffect(player) {
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState == Player.STATE_ENDED) playbackEnded = true
+            }
+
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (isPlaying) interruptPlaybackForNetwork(isWifi)
             }
         }
         player.addListener(listener)
@@ -432,7 +500,6 @@ private fun SoundTrackHub(
             delay(200)
         }
     }
-    val current = tracks.getOrNull(currentIndex)
     var isFavorite by remember(current?.fileUrl) { mutableStateOf(false) }
     LaunchedEffect(current?.fileUrl) {
         val fileUrl = current?.fileUrl ?: return@LaunchedEffect
@@ -445,7 +512,8 @@ private fun SoundTrackHub(
         }
     }
     // 列表外壳自带安全区；外层 Column 不再垫 insets（会双重），播放条自己贴底。
-    Column(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize()) {
         FeedListShell(
             pager = pager,
             state = state,
@@ -506,6 +574,12 @@ private fun SoundTrackHub(
                             tint = if (isFavorite) Peach else White,
                         )
                     }
+                    TextButton(onClick = {
+                        subtitlePresenter.setPlaybackPositionMs(player.currentPosition.coerceAtLeast(0L))
+                        subtitlesVisible = subtitlePresenter.toggle()
+                    }) {
+                        Text(if (subtitlesVisible) "字幕中" else "字幕", color = if (subtitlesVisible) Mint else White, fontSize = 12.sp)
+                    }
                     IconButton(onClick = { playPreviousManually() }) {
                         Icon(Icons.Default.SkipPrevious, "上一首", tint = White)
                     }
@@ -518,6 +592,11 @@ private fun SoundTrackHub(
                 }
             }
         }
+        }
+        AndroidView(
+            factory = { subtitleHost.apply { isClickable = false; isFocusable = false } },
+            modifier = Modifier.fillMaxSize(),
+        )
     }
     if (speedDialogOpen) {
         AlertDialog(
