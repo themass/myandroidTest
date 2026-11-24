@@ -302,6 +302,8 @@ private fun PhotoSolveApp(
                     // 退出结果页：回首页（不是 finish 整个 Activity，用户可能还想再拍一题）
                     onExit = viewModel::onRetake,
                     onOpenHistory = { historyOpen = true },
+                    historySaveFailed = uiState.historySaveFailed,
+                    onDismissHistorySaveFailure = viewModel::onDismissHistorySaveFailure,
                 )
             }
         }

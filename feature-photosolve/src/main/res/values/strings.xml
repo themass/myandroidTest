@@ -58,6 +58,7 @@
     <string name="result_thinking_collapse">收起思考过程</string>
     <string name="result_exit">退出</string>
     <string name="result_saved">已保存到解题历史</string>
+    <string name="result_history_save_failed">这道题没能存进解题历史（本机存储写入失败），解题结果不受影响</string>
     <string name="home_history">解题历史</string>
     <string name="history_title">解题历史</string>
     <string name="history_empty">还没有解题记录</string>
@@ -82,4 +83,5 @@
     <string name="ui_more">更多</string>
     <string name="ui_collapse">收起</string>
     <string name="ui_expand">展开</string>
+    <string name="ui_dismiss">知道了</string>
 </resources>
