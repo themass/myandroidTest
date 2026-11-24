@@ -108,7 +108,11 @@ class EngineAdaptersAvailabilityTest {
     }
 
     @Test
-    fun live2d_without_cache_is_unavailable_with_download_reason_and_menu_still_switches() {
+    fun live2d_without_cache_is_unavailable_and_gate_shows_seed_reason_not_fake_download() {
+        // e9efa170 起的既定语义：LIVE2D 清单为空（ATRI 无公开 URL，只能 seed/adb 推），
+        // 闸不能假装「正在下载」，要回 seed 提示——与 DhEngineDownloadGateTest
+        // .live2d_no_online_pack_shows_reason_not_fake_download 钉的是同一件事。
+        // 菜单行仍然可切（needsDownload=true），切过去后走 seed 引导。
         val row = DhEngineRegistry.available(context).first { it.id == DhEngineId.LIVE2D }
         assertFalse(row.available)
         assertEquals("未下载", row.reason)
@@ -117,7 +121,7 @@ class EngineAdaptersAvailabilityTest {
         val menuRow = dhEngineMenuRows(listOf(row)).first { it.id == DhEngineId.LIVE2D }
         assertTrue(menuRow.switches)
         val gate = DhEngineDownloadGate(availability = { false }, ensure = { _, _ -> Result.success(Unit) })
-        assertEquals(EngineClickAction.NOT_READY_START_DOWNLOAD, gate.actionFor(menuRow))
+        assertEquals(EngineClickAction.UNAVAILABLE_REASON, gate.actionFor(menuRow))
     }
 
     @Test
