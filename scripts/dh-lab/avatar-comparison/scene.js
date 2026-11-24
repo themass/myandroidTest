@@ -67,8 +67,8 @@ async function loadModel(url, label) {
       const bone = vrm.humanoid.getNormalizedBoneNode(name);
       if (bone) baseRotations.set(name, bone.quaternion.clone());
     }
-    poseBone('leftUpperArm', 0, 0, -1.08);
-    poseBone('rightUpperArm', 0, 0, 1.08);
+    poseBone('leftUpperArm', 0, 0, 1.08);
+    poseBone('rightUpperArm', 0, 0, -1.08);
     vrm.update(0);
     const box = new THREE.Box3().setFromObject(vrm.scene);
     height = Math.max(box.max.y - box.min.y, 0.1);
@@ -97,7 +97,7 @@ document.querySelector('#speak').onclick = event => {
 };
 document.querySelector('#turn').onclick = () => { turn = !turn; };
 document.querySelector('#reset').onclick = () => { turn = false; if (vrm) vrm.scene.rotation.y = 0; frame(); };
-document.querySelector('#retry').onclick = () => loadModel('./sample.vrm', '官方约束测试模型');
+document.querySelector('#retry').onclick = () => loadModel('./sample.vrm', 'VRoid HairSample_Female · CC0');
 document.querySelector('#model').onchange = async event => {
   const file = event.target.files[0]; if (!file) return;
   const url = URL.createObjectURL(file);
@@ -118,8 +118,8 @@ renderer.setAnimationLoop(() => {
   if (vrm) {
     poseBone('head', Math.sin(elapsed * 0.8) * 0.025, Math.sin(elapsed * 0.55) * 0.04, 0);
     poseBone('spine', 0, 0, Math.sin(elapsed) * 0.008);
-    poseBone('leftUpperArm', 0, 0, -1.08);
-    poseBone('rightUpperArm', mode === 'lecture' ? -0.25 : 0, 0, mode === 'lecture' ? 0.75 + Math.sin(elapsed * 1.8) * 0.12 : 1.08);
+    poseBone('leftUpperArm', 0, 0, 1.08);
+    poseBone('rightUpperArm', mode === 'lecture' ? -0.25 : 0, 0, mode === 'lecture' ? -0.75 + Math.sin(elapsed * 1.8) * 0.12 : -1.08);
     poseBone('rightLowerArm', mode === 'lecture' ? -0.6 : -0.1);
     const manager = vrm.expressionManager;
     for (const name of ['happy', 'sad', 'angry', 'relaxed', 'surprised']) manager?.setValue(name, expression === name ? 0.75 : 0);
@@ -135,4 +135,4 @@ renderer.setAnimationLoop(() => {
     fpsFrames = 0; fpsSince = performance.now();
   }
 });
-loadModel('./sample.vrm', '官方约束测试模型');
+loadModel('./sample.vrm', 'VRoid HairSample_Female · CC0');
