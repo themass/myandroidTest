@@ -55,6 +55,11 @@ data class PhotoSolveUiState(
     val frameCheck: QuestionFrameCheck? = null,
     /** 服务端错误码（[PhotoSolveError]），界面按它决定是否显示「重试」。 */
     val errorCode: Int? = null,
+    /**
+     * 本次结果写入解题历史失败（true=失败）。只在失败时置位，成功不显示任何东西。
+     * 之前失败只打 logcat，用户看到的是「解完题退出，历史是空的」，且没有任何线索。
+     */
+    val historySaveFailed: Boolean = false,
 )
 
 data class QualityWarning(

@@ -38,7 +38,9 @@ fun MathText(
     selectable: Boolean = true,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val markwon = remember(context) { markwon(context) }
+    // 公式字号必须跟 fontSize 走：之前 markwon 只按 context remember，公式永远按 16sp 渲染，
+    // 于是「思考过程 15sp / 题目 20sp」这类设定里，公式和正文对不上，整页看起来忽大忽小。
+    val markwon = remember(context, fontSize) { markwon(context, fontSize.value) }
     val text = remember(markdown) { MathMarkdown.normalize(markdown) }
 
     AndroidView(
@@ -86,10 +88,10 @@ private fun textDrawable(context: Context, text: String): android.graphics.drawa
     }
 }
 
-private fun markwon(context: Context): Markwon {
+private fun markwon(context: Context, textSizeSp: Float): Markwon {
     val app = context.applicationContext
-    // 公式字号比正文稍大一点：jlatexmath 的行内公式默认偏小
-    val latexSize = 16f * app.resources.displayMetrics.scaledDensity * 1.15f
+    // 公式字号 = 正文字号 × 1.15：jlatexmath 的行内公式默认偏小，但仍以调用方给的正文为基准
+    val latexSize = textSizeSp.coerceAtLeast(10f) * app.resources.displayMetrics.scaledDensity * 1.15f
     return Markwon.builder(app)
         .usePlugin(MarkwonInlineParserPlugin.create())
         .usePlugin(SingleDollarLatexPlugin())

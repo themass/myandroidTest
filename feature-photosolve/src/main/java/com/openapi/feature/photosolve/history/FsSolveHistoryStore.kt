@@ -174,14 +174,14 @@ class FsSolveHistoryStore(context: Context) : SolveHistoryStore {
         val arr = JSONArray()
         all.forEach { arr.put(it.toJson()) }
         val tmp = File(root, "index.json.tmp")
-        runCatching {
-            tmp.writeText(arr.toString(), Charsets.UTF_8)
-            if (!tmp.renameTo(indexFile)) {
-                // 某些文件系统上 rename 到已存在的文件会失败
-                indexFile.delete()
-                tmp.renameTo(indexFile)
-            }
-        }.onFailure { Log.e(TAG, "failed to write history index", it) }
+        // 不吞异常：写不进去必须让 save() 失败，界面才能提示「没存进历史」。
+        // 之前这里 runCatching + Log.e，结果是解完题历史空着、用户毫无线索。
+        tmp.writeText(arr.toString(), Charsets.UTF_8)
+        if (!tmp.renameTo(indexFile)) {
+            // 某些文件系统上 rename 到已存在的文件会失败
+            indexFile.delete()
+            tmp.renameTo(indexFile)
+        }
     }
 
     private fun SolveRecord.toJson() = JSONObject().apply {
