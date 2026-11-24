@@ -101,8 +101,22 @@ internal class FakeChatRepository : ChatRepository {
         return cachedMessages[sessionId] ?: emptyList()
     }
     override suspend fun deleteMessage(sessionId: Long, messageId: String): Boolean {
+        // 挂起模式：模拟「服务端删除还没回」，钉住乐观更新的时序（UI 已经移除、服务端还挂着）。
+        if (deleteMessageHangs) kotlinx.coroutines.suspendCancellableCoroutine<Nothing> { }
         deletedMessages += messageId
         return deleteMessageOk
+    }
+    /** true 时 deleteMessage 永不返回（只能被取消打断）。 */
+    var deleteMessageHangs = false
+    /** 乐观删除先走的「只删本地缓存」：记录删了哪些 id。 */
+    val locallyDeleted = mutableListOf<String>()
+    override suspend fun deleteLocalMessage(messageId: String) {
+        locallyDeleted += messageId
+    }
+    /** 点停止时服务端取消被调了几次、都是哪个会话：「停止必须停两端」的观测点。 */
+    val cancelledTurns = mutableListOf<Long>()
+    override suspend fun cancelTurn(sessionId: Long) {
+        cancelledTurns += sessionId
     }
     override fun currentSessionId(): Long = current
     override suspend fun loadCharacters(): List<ChatCharacterOption> = emptyList()

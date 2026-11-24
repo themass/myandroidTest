@@ -119,7 +119,12 @@ object AttachmentActions {
         return ShareKit.shareableUri(context, file)
     }
 
-    private fun localImageFile(context: Context, source: String): File? {
+    /**
+     * 消息/编辑产物的来源 -> 本机可读文件：非 http 的当本地路径（含 `file://` 导出的 path），
+     * http 先下载到缓存目录并验证能解码。对外可见：ChatRoute 的「编辑已发送消息的大图」也要走它
+     * （大图来源可能是本机路径、也可能是远程地址，两种都要能进编辑流）。
+     */
+    fun localImageFile(context: Context, source: String): File? {
         if (!source.startsWith("http")) return File(source).takeIf { it.exists() }
         val dir = File(context.cacheDir, "attachments").apply { mkdirs() }
         val file = File(dir, "img_" + source.hashCode().toUInt().toString() + ".jpg")
@@ -130,9 +135,24 @@ object AttachmentActions {
         return file.takeIf { it.exists() && BitmapFactory.decodeFile(it.path) != null }
     }
 
+    /**
+     * 把编辑导出的产物（`PhotoEditExporter.export` 返回的 `file://` 地址）另存到公共相册。
+     * 走与「下载附件」同一条 MediaStore 路（ Pictures 目录、零权限、Android 10+）。
+     * 成功返回相册里的文件名；低版本（< Android 10）或写盘失败返回 null——调用方必须给可读提示，
+     * 不能静默（保存失败和「没保存」对用户是同一件事）。
+     */
+    fun saveEditedImageToGallery(context: Context, edited: Uri): String? {
+        val file = edited.path?.let { File(it) }?.takeIf { it.exists() } ?: return null
+        return saveFileToPictures(context, file)
+    }
+
     /** 保存到公共相册 Pictures 目录（Android 10 及以上用 MediaStore，不需要存储权限）。成功返回文件名。 */
     private fun saveToPictures(context: Context, source: String): String? {
         val file = localImageFile(context, source) ?: return null
+        return saveFileToPictures(context, file)
+    }
+
+    private fun saveFileToPictures(context: Context, file: File): String? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
         val name = "chat_${System.currentTimeMillis()}.jpg"
         val values = ContentValues().apply {

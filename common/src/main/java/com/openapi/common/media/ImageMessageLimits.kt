@@ -17,3 +17,13 @@ package com.openapi.common.media
  * - 加入草稿时再挡一次：`maxItems` 只是**建议**，厂商 ROM 的选择器可以不认。
  */
 const val MAX_MESSAGE_IMAGES: Int = 9
+
+/**
+ * 产品上限：一条消息最多带 4 张图片（图片+视频合计的暂存闸也用它，计数语义与
+ * [MAX_MESSAGE_IMAGES] 那道闸相同）。
+ *
+ * **刻意与 9 分开**：9 是服务端传输硬上限（`MAX_MESSAGE_ATTACHMENTS`，改它要两端同步），
+ * 4 是产品要的用户体验上限——选择器一次最多给 4 张、草稿托盘最多压 4 个图/视频。
+ * 4 ≤ 9，所以客户端永远够不到服务端那道 422 闸；服务端值保持原样不动。
+ */
+const val MAX_IMAGES_PER_MESSAGE_PICK: Int = 4

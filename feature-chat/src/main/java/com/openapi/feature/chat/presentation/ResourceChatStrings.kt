@@ -36,4 +36,6 @@ class ResourceChatStrings(private val context: Context) : ChatStrings {
     override fun videoNotMp4() = context.getString(R.string.chat_video_not_mp4)
     override fun locationFailed() = context.getString(R.string.chat_location_failed)
     override fun attachmentLimitReached(max: Int) = context.getString(R.string.chat_attachment_limit_reached, max)
+    override fun turnTimeout() = context.getString(R.string.chat_turn_timeout)
+    override fun previousTurnRunning() = context.getString(R.string.chat_previous_turn_running)
 }

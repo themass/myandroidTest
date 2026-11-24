@@ -43,6 +43,9 @@ internal fun AgentMessageVo.toChatMessage(): ChatMessage {
         videos = videos,
         location = location,
         clientMessageId = clientMessageId,
+        // 服务端标记的「这一轮被中断过」（半截回复）。以前解析了但在这里被丢掉，
+        // 历史里一条半截回复和一条完整回复在端上就无法区分（任务：中断可见性）。
+        interrupted = interrupted,
     )
 }
 
