@@ -7,6 +7,8 @@ data class DhEngineMenuRow(
     /** false：点了不换舞台，菜单上写出 [detail]。素材未下载但下完能用的引擎仍为 true（点了先下载）。 */
     val switches: Boolean,
     val detail: String? = null,
+    /** A debug-only named model entry, handled by the caller outside the engine download gate. */
+    val demoModel: String? = null,
 )
 
 fun DhEngineMenuRow.menuLabel(selected: Boolean): String {
