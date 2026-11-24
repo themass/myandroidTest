@@ -49,7 +49,7 @@ Owner：elastic-mendeleev 会话（`claude/elastic-mendeleev-ab3d36` @ `5db985a9
 | # | 项 | 状态 | 说明 |
 |---|---|---|---|
 | 2 | 首帧 blocked imports | **PARTIAL** | redis/VAD/langgraph 已进 prewarm；`first_ms` 仍 25–32s（F16 候选，见 `f16-measured.md` / `f16-voice-fragments-shipped.md`）。**不等于** 2019 快照里的 `osc_data._core` 998ms 仍在——那条已过时，但「首帧够快」还没过线。 |
-| 3 | `presentation.emotion` 陪伴通话真机 | **PARTIAL（2026-11-23 夜复核后收窄）** | 代码两跳已合入；剧本房见过 cue；陪伴通话 PASS 窗**没有**单独把端侧 `event=emotion*` 钉成主证据。`remote-pcm-rca.md` 有一条 calm 到达后 `cue_dropped … CANCELLED`——说明 cue 能到端，但被 cancel 清掉，**听感/脸感未单独验收**。新复核（tip-71 三轮）：104 侧对 `AJ_UNX4td6gFQfp`/`AJ_WQikByEhPQ8U`/`AJ_r2VuLzGL8Dj6`/`AJ_itNehYhcGDpf` 四 job grep 不到任何 `presentation.emotion` 发出行；端侧只有 `emotion_cleared`（降级/清理），无 cue 送达行。**即这三通的空窗不是端侧丢 cue，而是服务端根本没发**——验收需服务端在陪伴通话里实际发 cue 后另取一轮。 |
+| 3 | `presentation.emotion` 陪伴通话真机 | **PARTIAL（11-24 取证口径再降级）** | 代码两跳已合入；剧本房见过 cue；陪伴通话 PASS 窗端侧只有 `emotion_cleared`（降级/清理），无 cue 送达行。~~四 job grep 不到发出行 → 服务端没发~~——**该 grep 口径不可靠**（成功路径不打这串字，见 agent.py:214 / anchored_cues.py:92 注释）。44d2d27 已给成功/闸掉/汇总加签名行（`cue sent` / `cue gate` / `voice reply … cues=`），当前日志内三类行全零（部署后无样本）。待下一通通话按新签名复核后才能定性「服务端没发」还是「端侧丢」。 |
 | — | 统一构建回归冒烟 | **DONE（2026-11-23 夜）** | A1/F11 已在**当刻 tip** 复现并钉证：tip-71（`4b1c2b37`）两轮 attempt `fe591de0`↔`AJ_WQikByEhPQ8U`、`b3a67d32`↔`AJ_r2VuLzGL8Dj6`，见 `p05p2-proc-table-20261123.md`（含用户「听到了」口径）。 |
 | — | 本会话新缺陷：PENDING barge-in 自掐 | **真机已过线（2026-11-23 夜）** | `8a7c909e`（PLAYING-only）+ t0 RMS 能量门（`23295c62`）均在 tip 内；三轮真机取证：静音预缓冲 rms=0.0000 不标 t0、静默窗零 barge、barge 只随 first_audio(rms>0.02) 后出现。见 `p05p2-proc-table-20261123.md`。 |
 
