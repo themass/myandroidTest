@@ -194,3 +194,21 @@ PhotoEditor 逻辑覆盖核对（对 S2 的 25 行逐行判断 JVM 能不能兜�
 - **真机怎么验**：PS4a/PS4b 在**包含 `f420985e` 的包**上应显示自动贴合（白框贴住
   纸面、无黄说明）；旧包（1.1.0.72）上按 §3 预判走默认框——两版结果都要记，
   新版自动贴合即本切片 PASS。PS4c 消耗额度照旧。
+
+## 9. ADY 探索性实机核验（非 V2279A 正式验收）
+
+按用户授权，2026-11-24 从当时 `origin/weifu-refactor` tip `aa55f52d`（含 `f420985e`）
+现场构建 `:app:assembleChatDebug`，安装到在线的 ADY-AL00 `2MH0224B20002068`；
+安装后 `versionCode=1001000072`、`versionName=1.1.0.72`、`lastUpdateTime=14:46:56`。
+V2279A `10CE7P1G56004B7` 当时不在 `adb devices` 列表，故本节只记 ADY 探索结果，
+**不替代 V2279A 正式行**。
+
+| 行 | ADY 结果 | 证据 |
+|---|---|---|
+| PS4a `ps_paper_1.jpg` | **P（探索性）**：进四角页，无黄色“未找到边框”提示；白框覆盖两道计算题，保留纸面倾斜 | 截图 `…/side-session-notes/local_0c440dde-5831-45ce-9a97-c5d3f275b91b/assets/ady_ps_paper1_20261124.png`；logcat `DocQuadNetCropAssist: corner path rejected; mask-fallback quad accepted`（14:52:02） |
+| PS4b `ps_paper_2.jpg` | **P（探索性）**：进四角页，无黄色判负提示；白框覆盖题目与图形 | 截图 `…/side-session-notes/local_0c440dde-5831-45ce-9a97-c5d3f275b91b/assets/ady_ps_paper2_20261124.png`；同一 mask-fallback 日志再次出现（14:54:49） |
+| PS4c | **未执行**：没有点击“裁剪并识别”，不触发线上请求/不消耗额度 | — |
+
+本次通过 `adb install -r` 安装了主线新构建，并把两张已备纸张素材复制到 ADY 相册。
+验收窗口仍归协调端；V2279A 上应从更新后的主线 tip `a3b599ff` 现场构建后重跑 PS4a/b，
+再按设备实际截图更新正式结果表。
