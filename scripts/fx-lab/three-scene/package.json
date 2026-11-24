@@ -1,0 +1,16 @@
+{
+  "name": "fxlab-three-scene",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Effects Lab Three.js 叠加场景源码：esbuild 打包产物落 app/src/debug/assets/fx-lab/three.bundle.js（仅 debug）",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}

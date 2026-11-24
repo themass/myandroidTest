@@ -1,5 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
+        <!-- 特效引擎对比 Lab：debug-only（specs §11）。release 清单合并不到这一条，
+             所以 release 包里既没有这个 Activity，也没有它的任何依赖与资产。
+             无 LAUNCHER category——入口只在抽屉的 debug 区块里（HomeScreen）。 -->
+        <activity
+            android:name="com.openapi.app.fxlab.EffectsLabActivity"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.openapi.app.action.EFFECTS_LAB" />
+            </intent-filter>
+        </activity>
         <!-- 本地真机验收：把陪伴 API 指到本地栈（runbook §1）。release 清单合并不到这一条。 -->
         <provider
             android:name="com.openapi.app.DevCompanionServer"
