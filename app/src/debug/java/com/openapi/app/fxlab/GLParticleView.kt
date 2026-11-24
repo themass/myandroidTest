@@ -29,10 +29,8 @@ fun GLParticleOverlay(kind: ParticleKind, tick: Long, modifier: Modifier) {
     }
 }
 
-@Composable
-fun GLParticleStickerRenderer(placement: StickerPlacementPx, modifier: Modifier) {
-    GLParticleOverlay(ParticleKind.AMBIENT_LOOP, 0L, modifier)
-}
+// 相机侧 GL 贴纸由 cameraRendererFor 直接给 GLParticleOverlay 带 slot.tick——
+// 这里不再提供硬编码 tick=0 的旧入口（停必须能停住相机场景，终审 Important #2）。
 
 /** EGL and all GL calls belong to one worker. SurfaceTexture ownership transfers to it. */
 private class ParticleTexture(

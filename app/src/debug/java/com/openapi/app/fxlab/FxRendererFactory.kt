@@ -29,26 +29,65 @@ fun rendererKindIfEnabled(engine: FxEngineId, gate: GateOutcome): RendererKind? 
  */
 fun replayTick(triggerSeq: Long, stopSeq: Long): Long = triggerSeq * 1_000_000L + stopSeq
 
-fun cameraRendererFor(engine: FxEngineId): CameraFxStickerRenderer? = when (engine) {
-    // null = the camera module keeps its own Lottie sticker branch.
+/**
+ * After a 停 with no new trigger, nothing may keep running: an un-stopped backend
+ * (ambient GL, breathing AGSL, looping rAF) would leave motion or a frozen frame.
+ * Before any stop this turn, idle ambience is allowed ([stopSeq] == 0).
+ */
+fun labEffectActive(gestureId: String?, stopSeq: Long): Boolean = gestureId != null || stopSeq == 0L
+
+/**
+ * Cue state a camera renderer closure reads on every invocation. The camera module
+ * re-invokes the renderer per recomposition; this slot is how 停/replay reaches it —
+ * the closure must not hardcode active/tick (final review Important #2).
+ */
+data class LabCueSlot(val active: Boolean, val tick: Long, val cueId: String?)
+
+/**
+ * Unavailable camera engine: draw nothing. Passing null would hand the camera module
+ * its own Lottie sticker branch — another engine's pixels under an "不可用" label
+ * (final review Important #1). The reason line already names the cause.
+ */
+val blankCameraSticker: CameraFxStickerRenderer = { _, _ -> }
+
+fun cameraStickerFor(engine: FxEngineId, gate: GateOutcome, slot: LabCueSlot): CameraFxStickerRenderer? {
+    if (engine != FxEngineId.LOTTIE && gate != GateOutcome.Enabled) return blankCameraSticker
+    return cameraRendererFor(engine, slot)
+}
+
+fun cameraRendererFor(engine: FxEngineId, slot: LabCueSlot): CameraFxStickerRenderer? = when (engine) {
+    // null = the camera module keeps its own Lottie sticker branch (selected Lottie only).
     FxEngineId.LOTTIE -> null
     FxEngineId.RIVE -> { placement: StickerPlacementPx, modifier: Modifier ->
-        RiveStickerRenderer(riveRawResFor("fxlab_loopy"), placement, modifier)
+        if (slot.active) {
+            key(slot.tick) {
+                RiveStickerRenderer(riveRawResFor("fxlab_loopy"), placement, modifier)
+            }
+        }
     }
     FxEngineId.GL_PARTICLE -> { _, modifier: Modifier ->
-        GLParticleStickerRenderer(StickerPlacementPx(0f, 0f, 0f, 0f), modifier)
+        if (slot.active) {
+            GLParticleOverlay(particleKindFor(slot.cueId), slot.tick, modifier)
+        }
     }
     FxEngineId.THREE_WEBGL -> { _, modifier: Modifier ->
-        ThreeOverlay(active = true, command = null, modifier = modifier)
+        ThreeOverlay(
+            active = slot.active,
+            command = slot.cueId?.let {
+                "{\"type\":\"cue\",\"name\":\"$it\",\"seq\":${slot.tick}}"
+            },
+            modifier = modifier,
+        )
     }
     FxEngineId.AGSL_SHADER -> { _, modifier: Modifier ->
-        AgslGlowOverlay(active = true, modifier = modifier)
+        AgslGlowOverlay(active = slot.active, modifier = modifier)
     }
 }
 
 /** One place maps (engine, gate, scene) to a renderer; both scene families call this. */
 @Composable
 fun LabEffectLayer(state: LabUiState, modifier: Modifier = Modifier) {
+    val active = labEffectActive(state.gestureId, state.stopSeq)
     when (rendererKindIfEnabled(state.engine, state.gate)) {
         null -> Text(
             labStatusLine(FxEngineCatalog.meta.getValue(state.engine), state.gate, state.scene),
@@ -62,20 +101,29 @@ fun LabEffectLayer(state: LabUiState, modifier: Modifier = Modifier) {
             stageZoomed = false,
             modifier = modifier,
         )
-        RendererKind.RIVE -> key(replayTick(state.gestureSeq, state.stopSeq)) {
-            RiveStageRenderer(
-                riveRawResFor(if (state.gestureId == "wave") "fxlab_circle_move" else "fxlab_loopy"),
-                modifier,
+        // 停之后四个自研后端全部不渲染：待机循环（ambient GL / 呼吸 AGSL / rAF Three）
+        // 或重键重播（Rive autoplay）都会把「已停」画成还在动（终审 Important #2）。
+        RendererKind.RIVE -> if (active) {
+            key(replayTick(state.gestureSeq, state.stopSeq)) {
+                RiveStageRenderer(
+                    riveRawResFor(if (state.gestureId == "wave") "fxlab_circle_move" else "fxlab_loopy"),
+                    modifier,
+                )
+            }
+        }
+        RendererKind.GL -> if (active) {
+            GLParticleOverlay(
+                kind = particleKindFor(state.gestureId),
+                tick = replayTick(state.gestureSeq, state.stopSeq),
+                modifier = modifier,
             )
         }
-        RendererKind.GL -> GLParticleOverlay(
-            kind = particleKindFor(state.gestureId),
-            tick = replayTick(state.gestureSeq, state.stopSeq),
+        RendererKind.AGSL -> AgslGlowOverlay(
+            active = active && state.gestureId != null,
             modifier = modifier,
         )
-        RendererKind.AGSL -> AgslGlowOverlay(active = state.gestureId != null, modifier = modifier)
         RendererKind.THREE -> ThreeOverlay(
-            active = true,
+            active = active,
             command = cueCommand(state),
             modifier = modifier,
         )

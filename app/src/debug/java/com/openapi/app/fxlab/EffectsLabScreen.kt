@@ -122,8 +122,17 @@ fun EffectsLabScreen(
                         FxScene.CAMERA_PIP, FxScene.CAMERA_FULL ->
                             CameraScene(
                                 state = state,
-                                // 不可用时传 null（模块自己的 Lottie 基线），原因由状态行说明。
-                                renderer = if (gate == GateOutcome.Enabled) cameraRendererFor(engine) else null,
+                                // 不可用时传 blankCameraSticker（不画任何东西），原因由状态行说明；
+                                // null 只留给选中的 Lottie（模块自己的贴纸分支）。
+                                renderer = cameraStickerFor(
+                                    engine,
+                                    gate,
+                                    LabCueSlot(
+                                        active = labEffectActive(gestureId, stopSeq),
+                                        tick = replayTick(gestureSeq, stopSeq),
+                                        cueId = gestureId,
+                                    ),
+                                ),
                                 modifier = Modifier.fillMaxSize(),
                             )
                     }
