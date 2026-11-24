@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -33,6 +35,10 @@ import androidx.media3.common.Player
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.openapi.core.config.Constants
+import com.openapi.core.db.FavoriteVo
+import com.openapi.core.favorite.FavoriteUtil
+import com.openapi.core.model.RecommendVo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.isActive
@@ -169,6 +175,15 @@ internal data class SoundTrackRef(
     val fileUrl: String,
     val subtitle: String,
 )
+
+internal fun SoundTrackRef.toSoundFavorite(): FavoriteVo {
+    val recommend = RecommendVo().apply {
+        title = this@toSoundFavorite.title
+        actionUrl = this@toSoundFavorite.fileUrl
+        dataType = RecommendVo.dataType_SOUND_CHANNEL
+    }
+    return recommend.tofavorite(Constants.FavoriteType.SOUND)
+}
 
 internal enum class SoundPlaybackMode(val label: String) {
     SINGLE("单曲循环"),
@@ -381,6 +396,18 @@ private fun SoundTrackHub(
         }
     }
     val current = tracks.getOrNull(currentIndex)
+    val context = LocalContext.current
+    var isFavorite by remember(current?.fileUrl) { mutableStateOf(false) }
+    LaunchedEffect(current?.fileUrl) {
+        val fileUrl = current?.fileUrl ?: return@LaunchedEffect
+        FavoriteUtil.getFavoriteAsync(context, fileUrl) { favorite -> isFavorite = favorite != null }
+    }
+    fun toggleFavorite() {
+        val track = current ?: return
+        FavoriteUtil.modLocalFavoritesAsync(context, track.toSoundFavorite()) {
+            FavoriteUtil.getFavoriteAsync(context, track.fileUrl) { favorite -> isFavorite = favorite != null }
+        }
+    }
     // 列表外壳自带安全区；外层 Column 不再垫 insets（会双重），播放条自己贴底。
     Column(Modifier.fillMaxSize()) {
         FeedListShell(
@@ -435,6 +462,13 @@ private fun SoundTrackHub(
                     }
                     TextButton(onClick = { speedDialogOpen = true }) {
                         Text("${playbackSpeed}×", color = Mint, fontSize = 12.sp)
+                    }
+                    IconButton(onClick = { toggleFavorite() }) {
+                        Icon(
+                            if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = if (isFavorite) "取消收藏" else "收藏",
+                            tint = if (isFavorite) Peach else White,
+                        )
                     }
                     IconButton(onClick = { playPreviousManually() }) {
                         Icon(Icons.Default.SkipPrevious, "上一首", tint = White)
