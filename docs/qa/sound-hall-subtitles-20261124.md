@@ -27,6 +27,12 @@
 
 The rows above distinguish code ownership facts from Android/Media3 behavior that needs a verified runtime result. No device installation or playback was performed for this report.
 
+## Wi-Fi playback gate (slice ⑤)
+
+**Code-side status:** The preference defaults to `true`, matching the Settings screen; `true` means mobile playback is allowed without a prompt. The prompt is now checked only after playback becomes active or the default network changes while playback is active. The `ConnectivityManager.NetworkCallback` pauses active playback and prompts when the network becomes non-Wi-Fi and the preference/session override do not allow it. The one-session override uses `remember`, so leaving and reopening the sound track screen resets it. Focused `ScreeningSoundNetworkGateTest` passed.
+
+**Device check BLOCKED:** With the preference disabled, (1) start a track on cellular and confirm it begins before the prompt; (2) confirm the prompt pauses it and Continue resumes; (3) switch active playback from Wi-Fi to cellular and confirm pause+prompt; (4) dismiss the prompt and confirm playback stays paused; (5) accept once, exit the sound track screen, reopen on cellular and confirm the one-session override reset. With the preference enabled (default), cellular playback should proceed without a prompt.
+
 ## Realtime subtitles
 
 **Implemented:** ScreeningSound exposes a subtitle toggle and reuses the existing realtime Volcengine ASR session (`VideoRealtimeSubtitleSession` plus `StreamingSubtitleOverlayPresenter`). The session reads the active Media3 media URL, falls back to the selected sound track URL, and probes the service-owned player's play state and position. Subtitle overlays detach on track change and when the track screen is disposed.

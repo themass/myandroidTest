@@ -1,6 +1,10 @@
 package com.openapi.feature.video.screening
 
 import android.content.ComponentName
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.widget.FrameLayout
 import androidx.activity.compose.BackHandler
 import androidx.core.content.ContextCompat
@@ -205,11 +209,14 @@ internal fun soundPlaybackMode(savedName: String?): SoundPlaybackMode =
 
 internal fun clampSoundPlaybackSpeed(speed: Float): Float = speed.coerceIn(0.25f, 3f)
 
+internal const val SOUND_SWITCH_DEFAULT_ENABLED = true
+
 internal fun shouldPromptForSoundNetwork(
     isWifi: Boolean,
     soundSwitch: Boolean,
     sessionOverride: Boolean,
-): Boolean = !isWifi && !soundSwitch && !sessionOverride
+    isPlaying: Boolean,
+): Boolean = isPlaying && !isWifi && !soundSwitch && !sessionOverride
 
 internal fun screeningSubtitleMediaUrl(currentMediaUrl: String?, selectedTrackUrl: String?): String =
     currentMediaUrl?.takeIf { it.isNotBlank() } ?: selectedTrackUrl.orEmpty()
@@ -340,10 +347,11 @@ private fun SoundTrackHub(
     var pendingManualNextFromCount by remember(player) { mutableIntStateOf(-1) }
     var speedDialogOpen by rememberSaveable { mutableStateOf(false) }
     var networkDialogOpen by rememberSaveable { mutableStateOf(false) }
-    var networkOverride by rememberSaveable { mutableStateOf(false) }
+    var networkOverride by remember { mutableStateOf(false) }
     var pendingNetworkTrack by remember(player) { mutableIntStateOf(-1) }
     var resumeAfterNetworkConfirmation by remember(player) { mutableStateOf(false) }
     val context = LocalContext.current
+    var isWifi by remember(context) { mutableStateOf(NetUtils.isWifi(context)) }
     val current = tracks.getOrNull(currentIndex)
     val subtitleHost = remember(context) { FrameLayout(context) }
     val subtitleSession = remember(player, subtitleHost, current?.fileUrl) {
@@ -374,23 +382,50 @@ private fun SoundTrackHub(
     DisposableEffect(subtitlePresenter) {
         onDispose { subtitlePresenter.detach() }
     }
-    fun needsNetworkConfirmation(): Boolean = shouldPromptForSoundNetwork(
-        isWifi = NetUtils.isWifi(context),
-        soundSwitch = PreferenceUtils.getPrefBoolean(context, Constants.SOUND_SWITCH, false),
-        sessionOverride = networkOverride,
-    )
+    fun interruptPlaybackForNetwork(wifi: Boolean) {
+        isWifi = wifi
+        if (networkDialogOpen) return
+        val shouldPrompt = shouldPromptForSoundNetwork(
+            isWifi = wifi,
+            soundSwitch = PreferenceUtils.getPrefBoolean(context, Constants.SOUND_SWITCH, SOUND_SWITCH_DEFAULT_ENABLED),
+            sessionOverride = networkOverride,
+            isPlaying = player.isPlaying,
+        )
+        if (shouldPrompt) {
+            player.pause()
+            pendingNetworkTrack = -1
+            resumeAfterNetworkConfirmation = true
+            networkDialogOpen = true
+        }
+    }
+    val latestInterruptPlaybackForNetwork by rememberUpdatedState<(Boolean) -> Unit>({ wifi ->
+        interruptPlaybackForNetwork(wifi)
+    })
+    DisposableEffect(context, player) {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val mainExecutor = ContextCompat.getMainExecutor(context)
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                mainExecutor.execute { latestInterruptPlaybackForNetwork(NetUtils.isWifi(context)) }
+            }
+
+            override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
+                val wifi = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                mainExecutor.execute { latestInterruptPlaybackForNetwork(wifi) }
+            }
+
+            override fun onLost(network: Network) {
+                mainExecutor.execute { latestInterruptPlaybackForNetwork(NetUtils.isWifi(context)) }
+            }
+        }
+        connectivityManager.registerDefaultNetworkCallback(callback)
+        onDispose { connectivityManager.unregisterNetworkCallback(callback) }
+    }
     LaunchedEffect(player, playbackSpeed) {
         player.setPlaybackParameters(PlaybackParameters(playbackSpeed, 1f))
     }
     fun playAt(index: Int) {
         val track = tracks.getOrNull(index) ?: return
-        if (needsNetworkConfirmation()) {
-            pendingNetworkTrack = index
-            resumeAfterNetworkConfirmation = false
-            networkDialogOpen = true
-            player.pause()
-            return
-        }
         pendingNetworkTrack = -1
         playbackEnded = false
         pendingManualNextFromCount = -1
@@ -412,21 +447,17 @@ private fun SoundTrackHub(
         previousSoundTrackIndex(currentIndex, tracks.size)?.let(::playAt)
     }
     fun togglePlayback() {
-        if (player.isPlaying) {
-            player.pause()
-        } else if (needsNetworkConfirmation()) {
-            pendingNetworkTrack = -1
-            resumeAfterNetworkConfirmation = true
-            networkDialogOpen = true
-        } else {
-            player.play()
-        }
+        if (player.isPlaying) player.pause() else player.play()
     }
     val latestPlayAt by rememberUpdatedState<(Int) -> Unit>({ index -> playAt(index) })
     DisposableEffect(player) {
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState == Player.STATE_ENDED) playbackEnded = true
+            }
+
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (isPlaying) interruptPlaybackForNetwork(isWifi)
             }
         }
         player.addListener(listener)
