@@ -79,6 +79,41 @@ prewarm/imports 只影响接房段；它们修好后 `first_ms` 不会跟着变�
 5. **模型段方差**：修复后 ttft 2.2–5s（`voice llm` 行已在打），原「同网关 2s vs 30s」的主体其实是被守卫放大的 total；残余方差继续用 `voice llm` 行观测即可，不必急着给 worker 挂 /metrics。
 6. **止血备选**（仅当线上异常）：语音通道停注 `CUE_OUTPUT_SNIPPET`（`roleplay.py:182`、`assemble.py:63`）。
 
+## ⓪ 段拆解（2026-11-24，只读日志 + 代码地图 + 探针 86d63a7）
+
+全日志分布（比先前 8 条锚点样本宽）：`voice turn`→`recall` **n=564：中位 4.33s / p75 8.7s / p95 15.6s / max 28.7s**（先前看到的 9–10s 是修复后窗口的高段，不是中位）。反向锚点 `recall`→`voice llm start` **n=184：中位 0.31s / max 2.24s**——**checkpoint 读取与图中间件不是问题**，⓪ 段全部在 `recall` 行之前：提交链 → turn 前奏 → context build。
+
+现网找出一个每回合都出现的信号：**`relationship read failed`（context.py:97，无 exc_info）自 11-22 起在每个语音回合触发**（11-22 163/163、11-23 52/52），且时间戳总贴在 `recall` 行前 ~0.02s——即 relationship 任务就是 gather 的尾巴。自然实验：
+
+| 窗口 | relfail | n | voice turn→recall 中位 |
+|---|---|---|---|
+| ≤11-21（feature 未上线） | 无 | 347 | 3.51s |
+| ≥11-22 | 有 | 213 | **5.10s** |
+
+`voice turn`→relfail 的直方图有两个众数：**4–6s（72 例）** 和 **9.5–10.5s（20 例）≈ POOL_TIMEOUT_SEC=10**（voice 池 pool_size 2 + max_overflow 2，见 bootstrap/database.py）。两个候选病因，现网无法分辨（异常被吞）：
+- **(a) 表缺失**：`ca_relationship` 是 fd31c47（11-22）加进 `0001_baseline` 的，而生产库 uher 卡在 0001_baseline head——基线后加的表不会自动建（既有教训 `prod-db-baseline-catchup`）。但表缺失应当**快速**失败，解释不了 10s 众数。
+- **(b) 连接池排队**：gather 里 4–5 个成员并发抢 4 条连接（再加后台任务），relationship 最后 checkout → 等满 10s 超时才失败 → gather 尾巴整段拖住。10s 众数强指向这条。
+
+次要发现（不主导但要记账）：
+- **排队不是当前大头**：`queued`→`drained` 中位 12.0s n=131，但部署后窗口 29 个锚点里只有 2 个 queued——现网回合基本都是 STARTED 直跑。
+- **事件循环阻塞**：`event loop blocked` 中位 213ms、max 31.5s；其中 pathlib `open/read_text` 一类 100 起、合计 439.8s（角色卡/技能文件每回合无缓存读盘 + 并发的其它任务）。50 起里 13 起落在某个语音回合 12s 内，但只有 7/564 的 context 窗口含阻塞——是放大器，不是主因。
+- `recall` 行的 `sources` 里 facts/timeline 常年 `error=timeout`（单源 0.8s 预算）——记忆召回本身在超时边缘，但被预算兜住了。
+- `1146` 在日志里的 grep 命中全是访问日志端口号，**不是** MySQL 表缺失错误码——(a) 假说不能靠它定罪。
+
+**探针已入 server main（`86d63a7`，只加日志、零行为改动，测试 133 passed / 18 skipped）**，部署待用户同意（归 tos 线，勿抢）：
+
+| 新日志行 | 定位 |
+|---|---|
+| `voice turn submit done cursor_ms= submit_ms= status= disposition=` | 提交链总时长 + 游标读 |
+| `voice submit chain upstream_ms= activity_ms=` | 上游 submit vs `note_activity`（语音路径上同步等的库往返） |
+| `voice prepare ms=` | context build 总时长（语音 worker 无 /metrics） |
+| `recall … recall_ms= session_ms= gather_ms=` + `context build ms= plan_ms=` | C1 会话读 / gather / 纯拼提示词三段分开 |
+| `relationship read failed … error=` | **区分假说 (a) 表缺失 vs (b) 池超时** 的判决行 |
+| `turn prelude ms= inputs=` | turn 任务里 `_load_inputs`+`attach_turn` 两次串行库往返 |
+| `brain first graph chunk ms=` | astream 启动→首个图消息（checkpoint 读+中间件） |
+
+**部署后决策树**：relfail `error=` 出现 `Table ... doesn't exist` → 按基线补表纪律手动 `CREATE TABLE ca_relationship`（一次性）；出现池超时 → 调 voice 池或把 relationship 读挪出关键路径（同 persona/profile_doc 的容错形状）；`upstream_ms` 大 → 打提交链六次串行往返；`turn prelude`/`plan_ms` 大 → 打对应段。另 ③ 段 TTS 保活实验独立可做。
+
 ## 未验证事项（别当已修）
 
 - 部署后样本 n=8 且多数被 barge-in 取消——**ratio<0.9 的方向确凿，精确值待一通不被打断的 A1 姿态通话**。

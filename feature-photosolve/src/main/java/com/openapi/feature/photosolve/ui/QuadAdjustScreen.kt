@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -126,25 +127,48 @@ fun QuadAdjustScreen(
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 8.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(onClick = onRedetect, enabled = !detecting) {
+            TextButton(
+                onClick = onRedetect,
+                enabled = !detecting,
+                contentPadding = PaddingValues(horizontal = 4.dp),
+            ) {
                 Icon(Icons.Filled.Refresh, contentDescription = null, tint = Color.White)
-                Text(stringResource(R.string.photosolve_auto_detect), color = Color.White)
+                Text(
+                    stringResource(R.string.photosolve_auto_detect),
+                    color = Color.White,
+                    maxLines = 1,
+                    softWrap = false,
+                )
             }
-            TextButton(onClick = onRotate, enabled = !detecting) {
+            TextButton(
+                onClick = onRotate,
+                enabled = !detecting,
+                contentPadding = PaddingValues(horizontal = 4.dp),
+            ) {
                 Icon(Icons.AutoMirrored.Filled.RotateRight, contentDescription = null, tint = Color.White)
-                Text(stringResource(R.string.photosolve_rotate), color = Color.White)
+                Text(
+                    stringResource(R.string.photosolve_rotate),
+                    color = Color.White,
+                    maxLines = 1,
+                    softWrap = false,
+                )
             }
             Button(
                 onClick = onConfirm,
                 modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(horizontal = 8.dp),
                 enabled = quad.isValid && !detecting,
             ) {
                 Icon(Icons.Filled.Check, contentDescription = null)
-                Text(stringResource(R.string.photosolve_quad_confirm))
+                Text(
+                    stringResource(R.string.photosolve_quad_confirm),
+                    maxLines = 1,
+                    softWrap = false,
+                )
             }
         }
     }

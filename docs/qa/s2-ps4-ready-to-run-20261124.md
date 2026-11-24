@@ -135,8 +135,8 @@ warp/质量闸门/enhance/压缩逐段重放——早前草稿三处错都已修
 
 | # | 操作 | 期望 | 结果 | 备注 |
 |---|---|---|---|---|
-| PS4a | 相册选 `ps_paper_1.jpg`（五年级计算，略倾斜） | 自动贴合（Found：白框贴住纸面、**无**黄说明） | — | 预判失败（§3 重放 2/4），失败按实际填并开算法切片评估 |
-| PS4b | 同上选 `ps_paper_2.jpg`（几何题，纸面占比大） | 同上 | — | 同上 |
+| PS4a | 相册选 `ps_paper_1.jpg`（五年级计算，略倾斜） | 自动贴合（Found：白框贴住纸面、**无**黄说明） | — | 旧包预判失败（2/4 角）；**含 `f420985e` 的包应自动贴合**（掩码兜底 0.301，见 §8）——按装机版本填 |
+| PS4b | 同上选 `ps_paper_2.jpg`（几何题，纸面占比大） | 同上 | — | 同上（兜底 0.336）；两版行为都是记录点，不判 FAIL |
 | PS4c | 贴合后「裁剪并识别」 | Recognizing → 结果页出解答 | — | 消耗额度 1 次（成功不退款） |
 | PS4d | 成功后 `run-as com.openapi.ks.chat ls files/photosolve_history/img/` | 新增记录 | — | 已有 `1.jpg`（PS2 证据），新增看序号 |
 
@@ -175,3 +175,40 @@ PhotoEditor 逻辑覆盖核对（对 S2 的 25 行逐行判断 JVM 能不能兜�
      DraftTrayEditTest 钉住，手势本身只能真机）。
 - 结论：**真机 25 行没有一行是 JVM 已覆盖可以省掉的**；最薄弱点是涂鸦颜色和
   马赛克反例，验收时对这两处留截图证据。
+
+## 8. 算法切片已落地：mask_logits 兜底补框（`f420985e`）
+
+用户拍板「先开算法切片」后的实现（不改四角规则本身，只加判负后的兜底）：
+
+- **依据**（§3 取证 + mask 重放）：模型第二输出 `mask_logits` 在同一批样本上一直健康——
+  `ps_paper_1` 框面积 0.301、`ps_paper_2` 0.336（肉眼核对：paper_1 紧贴两道计算题，
+  paper_2 覆盖题目+图形，均远好于默认 80% 框）；`probe_5`（翻拍屏幕）mask 只有
+  0.054，被 `MIN_AREA 0.08` 正确挡掉 → 照旧默认框，行为零变化。
+- **实现**：`MaskQuadDecoder`（纯函数，7 条 JVM 先行测试）——sigmoid≥0 前景格取
+  四对角极值 → `ordered()/isValid/MAX_AREA` 保守把关，退化一律 null；
+  `DocQuadNetCropAssistProvider` 在四角路径判负后调用它；模型没有 mask 输出时
+  行为完全回到旧路径。日志 `mask-fallback quad accepted` 可在 logcat 分辨兜底命中。
+- **修的一个脚本 bug**：重放脚本曾把 `(1,4,64,64)` 多切一层只剩通道 0，四角 sigmoid
+  全显 0——脚本问题，不是模型/端上问题；已修并复跑核对与独立取证一致。
+- **测试**：imaging 55/0（含新增 7）、feature-photosolve 46/0、mediaview 118/0。
+- **真机怎么验**：PS4a/PS4b 在**包含 `f420985e` 的包**上应显示自动贴合（白框贴住
+  纸面、无黄说明）；旧包（1.1.0.72）上按 §3 预判走默认框——两版结果都要记，
+  新版自动贴合即本切片 PASS。PS4c 消耗额度照旧。
+
+## 9. ADY 探索性实机核验（非 V2279A 正式验收）
+
+按用户授权，2026-11-24 从当时 `origin/weifu-refactor` tip `aa55f52d`（含 `f420985e`）
+现场构建 `:app:assembleChatDebug`，安装到在线的 ADY-AL00 `2MH0224B20002068`；
+安装后 `versionCode=1001000072`、`versionName=1.1.0.72`、`lastUpdateTime=14:46:56`。
+V2279A `10CE7P1G56004B7` 当时不在 `adb devices` 列表，故本节只记 ADY 探索结果，
+**不替代 V2279A 正式行**。
+
+| 行 | ADY 结果 | 证据 |
+|---|---|---|
+| PS4a `ps_paper_1.jpg` | **P（探索性）**：进四角页，无黄色“未找到边框”提示；白框覆盖两道计算题，保留纸面倾斜 | 截图 `…/side-session-notes/local_0c440dde-5831-45ce-9a97-c5d3f275b91b/assets/ady_ps_paper1_20261124.png`；logcat `DocQuadNetCropAssist: corner path rejected; mask-fallback quad accepted`（14:52:02） |
+| PS4b `ps_paper_2.jpg` | **P（探索性）**：进四角页，无黄色判负提示；白框覆盖题目与图形 | 截图 `…/side-session-notes/local_0c440dde-5831-45ce-9a97-c5d3f275b91b/assets/ady_ps_paper2_20261124.png`；同一 mask-fallback 日志再次出现（14:54:49） |
+| PS4c | **未执行**：没有点击“裁剪并识别”，不触发线上请求/不消耗额度 | — |
+
+本次通过 `adb install -r` 安装了主线新构建，并把两张已备纸张素材复制到 ADY 相册。
+验收窗口仍归协调端；V2279A 上应从更新后的主线 tip `a3b599ff` 现场构建后重跑 PS4a/b，
+再按设备实际截图更新正式结果表。

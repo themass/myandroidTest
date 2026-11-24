@@ -277,6 +277,20 @@ fun HomeScreen() {
                             colors = DrawerItemColors,
                             modifier = Modifier.padding(horizontal = 12.dp),
                         )
+                        NavigationDrawerItem(
+                            label = { Text(stringResource(R.string.drawer_entry_teaching_demo)) },
+                            icon = { Icon(Icons.Filled.ChatBubble, contentDescription = null) },
+                            selected = false,
+                            onClick = {
+                                scope.launch { drawerState.close() }
+                                context.startActivity(Intent().setClassName(
+                                    context,
+                                    "com.openapi.ks.myapp.companion.teaching.TeachingDemoActivity",
+                                ))
+                            },
+                            colors = DrawerItemColors,
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                        )
                         // 特效引擎对比（多后端 demo）：只引用 main-source 的两个 const
                         // （EffectsLabLaunch），Activity/依赖/资产全在 debug source set 里。
                         NavigationDrawerItem(

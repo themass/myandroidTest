@@ -176,6 +176,12 @@ public class Constants {
     public static final String API_SUBTITLE_LIST_URL = "/video/subtitle/items.json?start=%s&limit=20&id=%s";
     /** 服务端字幕：整份字幕文本（JSON 信封下发，过现有 AES 解密链路）。对齐 /text/item.json?id=%s。 */
     public static final String API_SUBTITLE_CONTENT_URL = "/video/subtitle/item.json?id=%s";
+    /** 声音馆歌词（契约 docs/design/sound-lyrics-contract-20261124.md）：列表不含正文，无轨回空列表。 */
+    public static final String API_SOUND_SUBTITLE_LIST_URL = "/sound/subtitle/items.json?soundItemId=%s";
+    /** 声音馆歌词：整份 SRT 文本，信封/解密与视频字幕同一条链路。 */
+    public static final String API_SOUND_SUBTITLE_CONTENT_URL = "/sound/subtitle/item.json?id=%s";
+    /** 声音馆歌词：无轨时按需触发生成（服务端去重，端上 fire-and-forget）。 */
+    public static final String API_SOUND_SUBTITLE_GENERATE_URL = "/sound/subtitle/generate.json?soundItemId=%s";
     public static final String API_TV_ITEM_URL = "/video/tv/item.json?start=%s&limit=50&channel=%s";
     public static final String API_TV_CHANNEL_URL = "/video/tv/channel.json?start=%s&limit=50&channel=%s&keyword=%s";
     public static final String API_VIDEO_USER_URL = "/video/user.json?channel=%s&keyword=%s&start=%s&limit=50";
