@@ -50,9 +50,11 @@ import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.core.model.RecommendVo
 import com.openapi.common.util.android.ToastUtil
 import com.openapi.speech.asr.VolcengineAsrConfig
+import com.openapi.feature.video.subtitle.local.ScreeningCaption
 import com.openapi.feature.video.subtitle.style.CaptionOverlay
 import com.openapi.feature.video.subtitle.style.CaptionPosition
 import com.openapi.feature.video.subtitle.style.captionPresets
+import java.io.StringReader
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.isActive
@@ -179,6 +181,7 @@ internal fun ScreeningSound(
                     }
                 } else {
                     SoundTrackHub(
+                        store = store,
                         pager = tracksPager,
                         state = tracksState,
                         seen = trackSeen,
@@ -206,7 +209,25 @@ internal data class SoundTrackRef(
     val title: String,
     val fileUrl: String,
     val subtitle: String,
+    /** 服务端条目 id：歌词按它挂轨；老服务端没透出 id 的条目为 null。 */
+    val serverId: Long? = null,
 )
+
+/**
+ * 声音馆字幕数据源三级阶梯（契约 docs/design/sound-lyrics-contract-20261124.md §3.3）：
+ * 服务端歌词 SRT → 实时 ASR（片⑥兜底）→ 无字幕。
+ */
+internal enum class SoundCaptionSource { SERVER, REALTIME, NONE }
+
+internal fun soundCaptionSource(
+    serverTrackLoaded: Boolean,
+    realtimeConfigured: Boolean,
+    urlUsable: Boolean,
+): SoundCaptionSource = when {
+    serverTrackLoaded -> SoundCaptionSource.SERVER
+    realtimeConfigured && urlUsable -> SoundCaptionSource.REALTIME
+    else -> SoundCaptionSource.NONE
+}
 
 internal fun SoundTrackRef.toSoundFavorite(): FavoriteVo {
     val recommend = RecommendVo().apply {
@@ -312,7 +333,7 @@ internal fun nextSoundTrackIndex(
 
 internal fun RemoteEntry.soundTrackRef(listIndex: Int): SoundTrackRef? {
     if (actionUrl.isBlank()) return null
-    return SoundTrackRef(listIndex, title, actionUrl, description)
+    return SoundTrackRef(listIndex, title, actionUrl, description, serverId)
 }
 
 @Composable
@@ -372,6 +393,7 @@ private fun SoundHubPicker(
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 private fun SoundTrackHub(
+    store: ScreeningFeedStore,
     pager: FeedPager,
     state: LazyListState,
     seen: MutableSet<String>,
@@ -403,16 +425,44 @@ private fun SoundTrackHub(
     var subtitlesVisible by remember(subtitleRunner) { mutableStateOf(false) }
     var subtitleText by remember(subtitleRunner) { mutableStateOf("") }
     var subtitleStatus by remember(subtitleRunner) { mutableStateOf("") }
+    // 服务端歌词（契约 sound-lyrics-contract §2/§3）：条目有 id 才探轨；无轨 fire-and-forget
+    // 触发按需生成，本次照常走实时 ASR——下次再进就有歌词。探轨失败≠无轨，不触发。
+    val serverId = current?.serverId
+    var lyricsTrack by remember(current?.fileUrl) { mutableStateOf<ScreeningCaption?>(null) }
     DisposableEffect(subtitleRunner) { onDispose { subtitleRunner.stop() } }
+    LaunchedEffect(serverId) {
+        lyricsTrack = null
+        val id = serverId ?: return@LaunchedEffect
+        val items = runCatching { store.soundSubtitles(id) }.getOrNull() ?: return@LaunchedEffect
+        val first = items.firstOrNull()
+        if (first == null) {
+            runCatching { store.requestSoundSubtitleGeneration(id) }
+            return@LaunchedEffect
+        }
+        val content = runCatching { store.soundSubtitleContent(first.id) }.getOrNull()
+        if (content != null && looksLikeSubtitle(content)) {
+            lyricsTrack = runCatching { ScreeningCaption(StringReader(content)) }.getOrNull()
+        }
+    }
+    // 歌词轨在场：字幕开关打开后按播放位置取 cue（随进度高亮、seek 秒跟，无需重连）。
+    val lyrics = lyricsTrack
+    LaunchedEffect(subtitlesVisible, lyrics, player, current?.fileUrl) {
+        if (!subtitlesVisible || lyrics == null) return@LaunchedEffect
+        while (isActive) {
+            subtitleText = lyrics.at(player.currentPosition.coerceAtLeast(0L), 0)
+            delay(200)
+        }
+    }
     LaunchedEffect(current?.fileUrl, subtitleRunner) {
         subtitleRunner.stop()
         subtitlesVisible = false
         subtitleText = ""
         subtitleStatus = ""
     }
-    LaunchedEffect(subtitlesVisible, subtitleUrl, player, playbackSpeed) {
+    LaunchedEffect(subtitlesVisible, subtitleUrl, player, playbackSpeed, lyrics) {
         subtitleRunner.stop()
         if (!subtitlesVisible) return@LaunchedEffect
+        if (lyrics != null) return@LaunchedEffect // 服务端歌词优先——三级阶梯 SERVER > REALTIME
         val url = subtitleUrl ?: run {
             subtitleStatus = "当前片源无法用于实时识别。"
             return@LaunchedEffect
