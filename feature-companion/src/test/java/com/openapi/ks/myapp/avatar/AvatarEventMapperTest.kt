@@ -50,6 +50,8 @@ class AvatarEventMapperTest {
         assertEquals(AvatarCommand.SetState(AvatarState.THINKING), AvatarEventMapper.mapState("THINKING"))
         assertEquals(AvatarCommand.SetState(AvatarState.IDLE), AvatarEventMapper.mapState("idle"))
         assertEquals(AvatarCommand.SetState(AvatarState.SPEAKING), AvatarEventMapper.mapState("speaking"))
+        // P1 契约：interrupted 是端侧 barge-in 乐观写入的状态，必须一路走到渲染器。
+        assertEquals(AvatarCommand.SetState(AvatarState.INTERRUPTED), AvatarEventMapper.mapState("interrupted"))
     }
 
     @Test

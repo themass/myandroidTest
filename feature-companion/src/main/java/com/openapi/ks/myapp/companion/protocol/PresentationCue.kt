@@ -41,13 +41,21 @@ object PresentationCue {
     }
 
     /**
+     * P1 契约的状态词汇（docs/design/2026-11-24-state-cancel-contract-v2.md §1）。
+     *
+     * 与情绪同一口径:不认识的值丢弃而不是透传。渲染器查不到状态词时只是静默不动,
+     * 但 UI state 会存下一个两端都不认识的词——「她卡住了」变成查不出来的问题。
+     */
+    val STATES: Set<String> = setOf("idle", "listening", "thinking", "speaking", "interrupted")
+
+    /**
      * `presentation.state` 的 args：`{"state":"LISTENING"}`，取值大写、不带 `at`（§11.1）。
      *
      * v1 的形状是小写，ViewModel 也按小写存，所以这里统一转小写再交出去。
      */
     fun parseState(args: JSONObject): String? {
         val raw = args.optString("state").trim().lowercase()
-        return raw.takeIf { it.isNotEmpty() }
+        return raw.takeIf { it in STATES }
     }
 
     /** v1 事件串，供 [com.openapi.ks.myapp.companion.CompanionEvent.AvatarJson] 使用。 */

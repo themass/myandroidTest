@@ -43,6 +43,18 @@ sealed interface CompanionEvent {
      * 情绪」的哨兵（mapper 丢弃），承担不了「画面回立绘」这层意思。
      */
     data object ClearAvatarEmotion : CompanionEvent
+
+    /**
+     * 她这句话被打断了，实际说出口 [spokenChars] 个字（P2 契约
+     * docs/design/2026-11-24-state-cancel-contract-v2.md §2.1）。
+     *
+     * 由**端侧**在 barge-in 触发瞬间发出，不等服务端往返：视觉与字幕的停止必须发生在
+     * 本地那一帧，而服务端往返（停生成、清队列）是另一条路。ViewModel 据此把流式气泡
+     * 截断到 [spokenChars] —— 打断成功却留着一整条没说的话，比不停更让用户困惑。
+     *
+     * 不塞进 [AvatarJson]：那条流的形状是服务端 cue，端侧造的本地事实不该冒充它。
+     */
+    data class SpeechInterrupted(val spokenChars: Int) : CompanionEvent
 }
 
 /**
