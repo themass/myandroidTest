@@ -18,8 +18,13 @@ import java.io.RandomAccessFile
  */
 object Live2dModelGate {
 
-    /** vendored Cubism Core 4.2.1 的 moc3 revision 上限（设备日志自证）。 */
-    const val CORE_MAX_MOC3_REVISION = 4
+    /** 端侧 Cubism Core 5-r.5 的 moc3 revision 上限（头文件 `csmMocVersion_53 = 6`）。
+     *  历史：Core 4.2.1 时代这个值是 4，OriginalDemo（psd2live 恒出 r5）就是被它拦下的——
+     *  2026-11-25 Core 升 5-r.5，闸随之抬到 6，闸本身保留（比 6 新的模型仍要先拦）。
+     *  注意配对：闸是 APK 里的编译期常量，Core 是设备缓存里 dlopen 的 .so
+     *  （native-libs/<abi>/libchatwaifu-live2d.so）。改这个常量必须同批推新 .so，
+     *  否则闸放行的模型设备上仍会撞旧 Core。见 scripts/dh-lab/build-live2d-native.sh。 */
+    const val CORE_MAX_MOC3_REVISION = 6
 
     private val MOC_KEY = Regex("\"Moc\"\\s*:\\s*\"([^\"]+)\"")
 
