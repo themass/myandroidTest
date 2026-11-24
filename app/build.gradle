@@ -205,6 +205,8 @@ dependencies {
     implementation project(':chatkit')
     // 摄像头五官/肢体定位 spike（MediaPipe 离线；debug 抽屉入口，不进生产导航）
     implementation project(':feature-camera-fx')
+    // Effects Lab only: no Rive runtime or native library in release.
+    debugImplementation 'app.rive:rive-android:11.16.3'
 
     // MyApplication 继承 MultiDexApplication
     implementation 'androidx.multidex:multidex:2.0.1'

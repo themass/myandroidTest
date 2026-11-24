@@ -14,7 +14,9 @@ import com.openapi.imaging.image.RealEsrganUpscaler
 import com.openapi.imaging.quality.QuestionImagePreparer
 import com.openapi.imaging.quad.QuadNorm
 import com.openapi.imaging.quad.QuadWarp
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -330,7 +332,12 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
 
     /** 把这次结果写进解题历史。同一 requestId 重复保存会更新原记录（重试成功不会出现两条）。 */
     private fun saveToHistory(result: PhotoSolveResult, image: Bitmap) {
-        viewModelScope.launch {
+        // 关键：**不用 viewModelScope**。解完题用户经常立刻退出解题页（这正是复现
+        // 「历史是空的」的路径）：ViewModel.onCleared → viewModelScope 取消 → 压图 + 写索引
+        // 做到一半被杀，而且当时只打一行 logcat，用户完全看不到线索。
+        // 落盘是幂等的短任务（store 内部有 Mutex、索引 tmp+rename），所以用非取消的
+        // IO 协程跑完它；失败才在结果页提示一次。
+        CoroutineScope(NonCancellable + Dispatchers.IO).launch {
             runCatching {
                 history.save(
                     com.openapi.feature.photosolve.history.SolveDraft(
@@ -343,8 +350,17 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
                     ),
                     image,
                 )
-            }.onFailure { android.util.Log.w("PhotoSolveHistory", "save failed", it) }
+            }.onFailure {
+                android.util.Log.e("PhotoSolveHistory", "save failed", it)
+                // 历史是附加价值，不能挡结果展示：只在结果页提示一次「没存上」。
+                _uiState.update { it.copy(historySaveFailed = true) }
+            }
         }
+    }
+
+    /** 结果页提示条上的「知道了」。 */
+    fun onDismissHistorySaveFailure() {
+        _uiState.update { it.copy(historySaveFailed = false) }
     }
 
     /** 结果页/错误弹窗上的「重试」：用同一张裁剪图再解一次。 */

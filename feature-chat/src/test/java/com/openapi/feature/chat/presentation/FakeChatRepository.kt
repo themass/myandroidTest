@@ -48,6 +48,8 @@ internal class FakeChatRepository : ChatRepository {
     }
     /** 非 null 时 sendMessageStream 返回它：流式回复的表征测试在这里注入 Delta/Done 序列。 */
     var streamFlow: Flow<ChatStreamEvent>? = null
+    /** 每次 sendMessageStream 带走的 userText，按调用顺序；排队续发用例钉发送顺序用。 */
+    val sentTexts = mutableListOf<String>()
     /** 最近一次 sendMessageStream 带的位置（P2-13）；null = 没带。 */
     var sentLocation: com.openapi.feature.chat.domain.model.GeoLocation? = null
     val sentLocations = mutableListOf<com.openapi.feature.chat.domain.model.GeoLocation?>()
@@ -57,6 +59,7 @@ internal class FakeChatRepository : ChatRepository {
         attachments: List<OutgoingAttachment>,
         location: com.openapi.feature.chat.domain.model.GeoLocation?,
     ): Flow<ChatStreamEvent> {
+        sentTexts += userText
         sentLocation = location
         sentLocations += location
         return streamFlow ?: emptyFlow()
@@ -130,9 +133,12 @@ internal class FakeChatRepository : ChatRepository {
     }
     /** 重签通道（整改清单 P1-10）：非 null 时 refreshImageUrl 返回它；记录每个 id 的调用次数。 */
     var refreshImageUrlResult: String? = null
+    /** 非 null 时 refreshImageUrl 抛它：弱网/超时是异常而不是 null，这条形状必须单独钉。 */
+    var refreshImageUrlThrows: Throwable? = null
     val refreshImageUrlCalls = mutableListOf<String>()
     override suspend fun refreshImageUrl(uploadId: String): String? {
         refreshImageUrlCalls += uploadId
+        refreshImageUrlThrows?.let { throw it }
         return refreshImageUrlResult
     }
     override suspend fun sendAttachment(

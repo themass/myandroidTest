@@ -39,6 +39,16 @@ internal class SendActions(
         val drafts = snapshot.drafts
         // 正在编辑一条用户消息：提交的是编辑，而不是新消息（附件草稿不参与编辑）
         val editingId = snapshot.editingMessageId
+        // 生成中：只有纯文字走排队（ChatUiState.queued，FIFO，回合自然结束后由
+        // ReplyStreamer 取队首续发）。编辑/附件/位置维持旧的「生成中不能发」闸：
+        // 编辑的目标消息可能已被这一轮改变，附件要等上传窗口，都不适合插进队列。
+        if (snapshot.sending) {
+            if (editingId == null && drafts.isEmpty() && snapshot.locationDraft == null && text.isNotEmpty()) {
+                state.update { it.copy(input = "") }
+                sendText(text)
+            }
+            return
+        }
         if (editingId != null && drafts.isEmpty()) {
             submitEdit(editingId, text)
             return
@@ -89,7 +99,13 @@ internal class SendActions(
     }
 
     fun sendText(text: String) {
-        if (text.isBlank() || state.value.sending) return
+        if (text.isBlank()) return
+        if (state.value.sending) {
+            // 生成中不直发：按 Enter 顺序入队（FIFO），回合**自然结束**后由
+            // ReplyStreamer 取队首续发；用户点停止会清空队列（见 ReplyStreamer.cancel）。
+            state.update { it.copy(queued = it.queued + text) }
+            return
+        }
         val now = System.currentTimeMillis()
         val user = ChatMessage(
             id = "local-user-$now",

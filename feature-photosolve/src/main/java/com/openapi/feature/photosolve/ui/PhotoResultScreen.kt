@@ -65,6 +65,10 @@ import com.openapi.feature.photosolve.presentation.PhotoSolveResult
  * 思考过程默认折叠的理由：学生第一眼要看的是「答案对不对」和「步骤怎么写」，思考过程是辅助理解用的；
  * 全部展开会让结果页很长，答案被挤到屏幕外。折叠标题旁显示一行摘要，不展开也知道内容方向。
  *
+ * 排版（对齐 Astryx 样稿 protos/photosolve-ui）：正文统一 15sp 一档、行距放宽，
+ * 思考过程退到 secondary 色 + 14sp，比正式步骤小一号；步骤编号用 accent 色的等宽数字，
+ * 与正文拉开层次。之前题目 20sp / 步骤 16sp / 答案 20sp 加上公式字号固定 16sp，整页忽大忽小。
+ *
  * 所有公式文本都走 [MathText]（Markwon + jlatexmath），`$...$` 会渲染成真正的公式，
  * 而不是显示成 `$\frac{1}{2}$` 这样的源码。
  */
@@ -76,6 +80,8 @@ fun PhotoResultScreen(
     onExit: () -> Unit,
     onOpenHistory: () -> Unit,
     modifier: Modifier = Modifier,
+    historySaveFailed: Boolean = false,
+    onDismissHistorySaveFailure: () -> Unit = {},
 ) {
     Column(modifier.fillMaxSize().safeDrawingPadding()) {
         // 顶栏：退出（回首页/关闭解题页面）与历史入口。
@@ -117,11 +123,34 @@ fun PhotoResultScreen(
                 Spacer(Modifier.height(20.dp))
             }
 
+            // 历史没存上必须让用户看到：之前的沉默失败 = 用户以为「没有历史记录」
+            if (historySaveFailed) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.errorContainer)
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(R.string.result_history_save_failed),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(onClick = onDismissHistorySaveFailure) {
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.ui_dismiss))
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+
             SectionLabel(stringResource(R.string.result_question_label))
             MathText(
                 markdown = result.recognizedQuestion,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 20.sp,
+                fontSize = 17.sp,
             )
 
             if (result.thinking.isNotBlank()) {
@@ -133,18 +162,24 @@ fun PhotoResultScreen(
                 Spacer(Modifier.height(20.dp))
                 SectionLabel(stringResource(R.string.result_steps_label))
                 result.steps.forEachIndexed { index, step ->
-                    Row(modifier = Modifier.padding(vertical = 6.dp)) {
+                    Row(
+                        modifier = Modifier.padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.Top,
+                    ) {
+                        // 编号：accent 色 + 等宽数字，和正文拉开层次（样稿里的 01/02 编号样式）
                         Text(
-                            "${index + 1}.",
-                            style = MaterialTheme.typography.bodyLarge,
+                            String.format("%02d", index + 1),
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontFeatureSettings = "tnum",
+                            ),
                             color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                         )
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(10.dp))
                         MathText(
                             markdown = step,
                             color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 16.sp,
+                            fontSize = 15.sp,
                         )
                     }
                 }
@@ -166,7 +201,7 @@ fun PhotoResultScreen(
                         MathText(
                             markdown = result.finalAnswer,
                             color = AppColors.Success,
-                            fontSize = 20.sp,
+                            fontSize = 18.sp,
                         )
                     }
                 }
@@ -245,10 +280,11 @@ fun ThinkingSection(
         }
         AnimatedVisibility(visible = expanded) {
             Column(Modifier.padding(top = 8.dp)) {
+                // 与正式步骤区分：小一号（14sp）+ secondary 色，样稿里的 supporting 档
                 MathText(
                     markdown = thinking,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp,
                 )
             }
         }

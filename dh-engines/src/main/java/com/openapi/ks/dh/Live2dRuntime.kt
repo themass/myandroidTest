@@ -42,6 +42,10 @@ class Live2dRuntime internal constructor(
         fun modelsReady(): Boolean
         fun nativeLoadable(): Boolean
         fun cacheRoot(): File?
+        /** 版本闸拒绝原因（[Live2dModelGate]）；null = 放行。 */
+        fun modelGateReject(): String? = null
+        /** 对**目标**形象目录设闸（changeModel 热切换用）；null = 放行。 */
+        fun gateRejectFor(modelDirName: String, modelJsonName: String): String? = null
     }
 
     /**
@@ -59,8 +63,10 @@ class Live2dRuntime internal constructor(
         context: Context,
         assetStore: AssetStore,
         modelDirName: String = DEFAULT_MODEL_DIR,
-        modelJsonName: String = "$DEFAULT_MODEL_DIR.model3.json",
-    ) : this(AndroidEnv(assetStore, modelDirName), modelDirName, modelJsonName) {
+        // 默认必须跟着 modelDirName 走：probe 只给目录名时（switchToModel 热切换探测），
+        // 写死 ATRI 的 json 会让版本闸在 Amadeus/Yuuka 目录里找不到 ATRI.model3.json 而误拒。
+        modelJsonName: String = "$modelDirName.model3.json",
+    ) : this(AndroidEnv(assetStore, modelDirName, modelJsonName), modelDirName, modelJsonName) {
         appContext = context.applicationContext
     }
 
@@ -90,7 +96,9 @@ class Live2dRuntime internal constructor(
         released -> EngineStatus(false, REASON_RELEASED)
         !env.modelsReady() -> EngineStatus(false, REASON_NOT_DOWNLOADED)
         !env.nativeLoadable() -> EngineStatus(false, REASON_NATIVE_MISSING)
-        else -> EngineStatus(true, null)
+        // 版本闸在 native 之前：Core 读不动的 moc3 会让 native 建模型失败**照常进渲染循环**，
+        // 逐帧空指针 SIGSEGV（ADY-AL00 2026-11-24 23:44/23:49）。不出画面远好于崩。
+        else -> env.modelGateReject()?.let { EngineStatus(false, it) } ?: EngineStatus(true, null)
     }
 
     /**
@@ -203,6 +211,8 @@ class Live2dRuntime internal constructor(
     fun changeModel(modelDirName: String, modelJsonName: String = "$modelDirName.model3.json") {
         if (!started || released || modelDirName.isEmpty()) return
         val root = env.cacheRoot() ?: return
+        // 热切换同样过版本闸：native 换模型失败后旧场景已被拆，逐帧渲染空指针 SIGSEGV。
+        if (env.gateRejectFor(modelDirName, modelJsonName) != null) return
         val modelPath = File(root, modelDirName).absolutePath + File.separator
         val d = dispatcher ?: return
         runCatching {
@@ -266,6 +276,7 @@ class Live2dRuntime internal constructor(
     private class AndroidEnv(
         private val store: AssetStore,
         private val modelDirName: String,
+        private val modelJsonName: String,
     ) : Env {
         // Same ruling as DuixRuntime: the stock .so lives in the AssetStore cache
         // (cacheRoot(LIVE2D)/native-libs/<abi>) and is dlopen'd by absolute path —
@@ -290,6 +301,12 @@ class Live2dRuntime internal constructor(
         }
 
         override fun nativeLoadable(): Boolean = nativeOk
+
+        override fun modelGateReject(): String? =
+            Live2dModelGate.rejectReason(cacheRoot(), modelDirName, modelJsonName)
+
+        override fun gateRejectFor(modelDirName: String, modelJsonName: String): String? =
+            Live2dModelGate.rejectReason(cacheRoot(), modelDirName, modelJsonName)
     }
 
     companion object {
@@ -314,11 +331,14 @@ class Live2dRuntime internal constructor(
             viewBuilder: ViewBuilder? = null,
             started: Boolean = false,
             jniDispatcher: JniDispatcher? = null,
+            modelGateReject: String? = null,
         ): Live2dRuntime = Live2dRuntime(
             env = object : Env {
                 override fun modelsReady() = modelsReady
                 override fun nativeLoadable() = nativeLoadable
                 override fun cacheRoot(): File? = cacheRoot
+                override fun modelGateReject() = modelGateReject
+                override fun gateRejectFor(modelDirName: String, modelJsonName: String) = modelGateReject
             },
             modelDirName = modelDirName,
             modelJsonName = modelJsonName,

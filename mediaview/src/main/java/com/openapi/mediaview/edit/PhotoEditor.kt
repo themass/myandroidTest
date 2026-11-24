@@ -497,6 +497,27 @@ private val PALETTE = listOf(
     Color(0xFFFF3B30), Color(0xFFFFCC00), Color(0xFF34C759),
     Color(0xFF0A84FF), Color.White, Color.Black,
 )
+
+/**
+ * 编辑器 UI 的**令牌**：mediaview 不依赖 :common，所以「一处定义、多处引用」就落在本文件的
+ * 这个对象上——面板底色、强调色、文字层级、色块描边、间距只在这里出现一次。
+ *
+ * [PALETTE] 不在这里：它是涂鸦/文字落到图上的墨色，是**数据**，不是界面 chrome。
+ */
+private object EditPalette {
+    val PanelBg = Color(0xFF111111)
+    val Accent = Color(0xFFFFCC00)
+    val Danger = Color(0xFFFF6B6B)
+    val TextPrimary = Color.White
+    /** 未选中标签、面板提示：60% 白 */
+    val TextSecondary = Color.White.copy(alpha = 0.6f)
+    val Disabled = Color.Gray
+    /** 选中色块的描边（白）与未选中的淡描边 */
+    val SwatchRing = Color.White
+    val SwatchIdleRing = Color.Gray
+    /** Swatches 行的行高与色块间距共用这一个间距常量 */
+    val SwatchGap = 8.dp
+}
 private const val DEFAULT_BRUSH = 0.008f
 private const val DEFAULT_MOSAIC = 0.06f
 private const val DEFAULT_TEXT = 0.05f
@@ -669,7 +690,7 @@ private fun DrawScope.drawSelectionBox(box: Rect, fit: Rect) {
     val tl = Offset(fit.left + box.left * fit.width, fit.top + box.top * fit.height)
     val size = Size(box.width * fit.width, box.height * fit.height)
     drawRect(
-        Color(0xFFFFCC00), tl, size,
+        EditPalette.Accent, tl, size,
         style = Stroke(width = 3f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f))),
     )
 }
@@ -731,7 +752,7 @@ private fun ToolBar(
     // SpaceEvenly 只会在算出负间距后退成 0 间距，于是最后一项被挤出可视区（点不到也看不见）。
     // 等分保证任何宽度下八项都在，宽屏上的观感与原来的 SpaceEvenly 同节奏。
     Row(
-        modifier = Modifier.fillMaxWidth().background(Color(0xFF111111)).padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().background(EditPalette.PanelBg).padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val slot = Modifier.weight(1f)
@@ -751,6 +772,10 @@ private fun ToolBar(
 /**
  * 一个工具入口。[enabled] = false 时置灰且点不动（IconButton 自己吞掉点击）——
  * 用的是 Material 自己的 enabled 视觉，不另造一套「看起来不能点」的样式。
+ *
+ * 选中态**不再整项染黄**（黄色是全局强调色，八个入口里两块染黄既抢又看不出边界）：
+ * 图标和文字都保持白色，选中项在标签下方点一条 2dp 的 [EditPalette.Accent] 短横线。
+ * 横线槽位恒在（未选中时透明），这样八项的标签基线不会因为选中态移动。
  */
 @Composable
 private fun ToolItem(
@@ -761,18 +786,36 @@ private fun ToolItem(
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    val tint = when {
-        !enabled -> Color.Gray
-        active -> Color(0xFFFFCC00)
-        else -> Color.White
-    }
+    val tint = if (enabled) EditPalette.TextPrimary else EditPalette.Disabled
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         IconButton(onClick = onClick, enabled = enabled) { Icon(icon, stringResource(label), tint = tint) }
-        Text(stringResource(label), color = tint, style = MaterialTheme.typography.labelSmall)
+        Text(
+            stringResource(label),
+            color = when {
+                !enabled -> EditPalette.Disabled
+                active -> EditPalette.TextPrimary
+                else -> EditPalette.TextSecondary
+            },
+            style = MaterialTheme.typography.labelSmall,
+        )
+        Box(
+            Modifier
+                .padding(top = 2.dp)
+                .size(width = 16.dp, height = 2.dp)
+                .background(if (active) EditPalette.Accent else Color.Transparent),
+        )
     }
 }
 
-/** 没有选中标注时：当前工具的默认样式（颜色、粗细/字号/笔刷、粗体）。 */
+/**
+ * 没有选中标注时：当前工具的默认样式（颜色、粗细/字号/笔刷、粗体）。
+ *
+ * 滑杆**离散成 5 档**（`steps = 4`，range 与 label 语义都不变）：连续的 0.003–0.03 这种
+ * 小数区间在手机上根本停不准，档位化之后「粗细 N」的当前值文本才有意义。
+ * 注意这三根滑杆只写 brushWidth/textSize/mosaicWidth 的默认样式，**不经过** liveBase
+ * 那条「松手一步撤销」的路（那是 SelectionPanel/Adjust/Filter 的事，见 PhotoEditsTest），
+ * 所以档位化不碰撤销语义。
+ */
 @Composable
 private fun StylePanel(
     hint: String,
@@ -785,19 +828,53 @@ private fun StylePanel(
     bold: Boolean? = null,
     onBold: () -> Unit = {},
 ) {
-    Column(Modifier.fillMaxWidth().background(Color(0xFF111111)).padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Text(hint, color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+    Column(Modifier.fillMaxWidth().background(EditPalette.PanelBg).padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Text(hint, color = EditPalette.TextSecondary, style = MaterialTheme.typography.labelSmall)
         if (color != null) Swatches(color, onColor)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(sliderLabel, color = Color.White, modifier = Modifier.width(48.dp))
-            Slider(value = slider, onValueChange = onSlider, valueRange = range, modifier = Modifier.weight(1f))
+            Text(sliderLabel, color = EditPalette.TextPrimary, modifier = Modifier.width(48.dp))
+            // 当前档位（1..5）：放在滑杆前，拖动时一眼知道停在哪一档
+            Text(
+                "${sliderStep(slider, range)}",
+                color = EditPalette.Accent,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.width(20.dp),
+            )
+            Slider(
+                value = slider,
+                onValueChange = onSlider,
+                valueRange = range,
+                steps = SLIDER_STEPS,
+                modifier = Modifier.weight(1f),
+            )
             if (bold != null) {
                 TextButton(onClick = onBold) {
-                    Text(stringResource(R.string.mediaview_edit_bold), color = if (bold) Color(0xFFFFCC00) else Color.White)
+                    Text(stringResource(R.string.mediaview_edit_bold), color = if (bold) EditPalette.Accent else EditPalette.TextPrimary)
                 }
             }
         }
     }
+}
+
+/** 滑杆档数：`steps = SLIDER_STEPS` → 含端点共 5 档。 */
+private const val SLIDER_STEPS = 4
+
+/** 连续值 → 当前档位（1..5），用于滑杆前的「粗细 N」文本。 */
+private fun sliderStep(value: Float, range: ClosedFloatingPointRange<Float>): Int {
+    val span = range.endInclusive - range.start
+    if (span <= 0f) return 1
+    val t = ((value - range.start) / span * SLIDER_STEPS).roundToInt().coerceIn(0, SLIDER_STEPS)
+    return t + 1
+}
+
+/**
+ * 色块上 ✓ 的着色：按色块的感知亮度取反（亮块配黑勾、暗块配白勾）。
+ * [PALETTE] 里有白块，白勾压白块就隐形了——白描边环仍然恒是 [EditPalette.SwatchRing]。
+ * 权重是 Rec.601 的近似，只需要「哪边更亮」这个粗判断。
+ */
+private fun checkTintOn(swatch: Color): Color {
+    val luminance = 0.299f * swatch.red + 0.587f * swatch.green + 0.114f * swatch.blue
+    return if (luminance > 0.6f) Color.Black else EditPalette.SwatchRing
 }
 
 /** 选中了一条标注：对它本身改样式、删除；文字额外可以改内容、粗细。 */
@@ -827,26 +904,26 @@ private fun SelectionPanel(
         is EditOp.Text -> Color(op.colorArgb.toInt())
         else -> null
     }
-    Column(Modifier.fillMaxWidth().background(Color(0xFF111111)).padding(horizontal = 16.dp, vertical = 8.dp)) {
+    Column(Modifier.fillMaxWidth().background(EditPalette.PanelBg).padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(title), color = Color(0xFFFFCC00), modifier = Modifier.weight(1f))
+            Text(stringResource(title), color = EditPalette.Accent, modifier = Modifier.weight(1f))
             if (op is EditOp.Text) {
                 TextButton(onClick = { onEditText(op) }) {
-                    Icon(Icons.Filled.Edit, null, tint = Color.White, modifier = Modifier.size(18.dp))
-                    Text(" " + stringResource(R.string.mediaview_edit_edit_text), color = Color.White)
+                    Icon(Icons.Filled.Edit, null, tint = EditPalette.TextPrimary, modifier = Modifier.size(18.dp))
+                    Text(" " + stringResource(R.string.mediaview_edit_edit_text), color = EditPalette.TextPrimary)
                 }
             }
             TextButton(onClick = onDelete) {
-                Icon(Icons.Filled.Delete, null, tint = Color(0xFFFF6B6B), modifier = Modifier.size(18.dp))
-                Text(" " + stringResource(R.string.mediaview_edit_delete), color = Color(0xFFFF6B6B))
+                Icon(Icons.Filled.Delete, null, tint = EditPalette.Danger, modifier = Modifier.size(18.dp))
+                Text(" " + stringResource(R.string.mediaview_edit_delete), color = EditPalette.Danger)
             }
             TextButton(onClick = onDeselect) {
-                Text(stringResource(R.string.mediaview_edit_deselect), color = Color.White)
+                Text(stringResource(R.string.mediaview_edit_deselect), color = EditPalette.TextPrimary)
             }
         }
         if (currentColor != null) Swatches(currentColor, onColor)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(sliderLabel), color = Color.White, modifier = Modifier.width(48.dp))
+            Text(stringResource(sliderLabel), color = EditPalette.TextPrimary, modifier = Modifier.width(48.dp))
             Slider(
                 value = op.sizeValue().coerceIn(range.start, range.endInclusive),
                 onValueChange = onSlider,
@@ -856,7 +933,7 @@ private fun SelectionPanel(
             )
             if (op is EditOp.Text) {
                 TextButton(onClick = onBold) {
-                    Text(stringResource(R.string.mediaview_edit_bold), color = if (op.bold) Color(0xFFFFCC00) else Color.White)
+                    Text(stringResource(R.string.mediaview_edit_bold), color = if (op.bold) EditPalette.Accent else EditPalette.TextPrimary)
                 }
             }
         }
@@ -866,20 +943,33 @@ private fun SelectionPanel(
 @Composable
 private fun Swatches(selected: Color, onPick: (Color) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = EditPalette.SwatchGap),
+        horizontalArrangement = Arrangement.spacedBy(EditPalette.SwatchGap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         PALETTE.forEach { c ->
             val on = c.toArgb() == selected.toArgb()
+            // 选中：2dp 白描边 + 中央 ✓（用现成的 Icon，不引新库）。
+            // ✓ 的着色按色块明度取反：PALETTE 里有白块，白勾压白块就看不见了。
+            // 未选中：24dp 细灰环；选中 28dp。行高由 CenterVertically 兜住。
             Box(
                 Modifier
-                    .size(if (on) 30.dp else 26.dp)
+                    .size(if (on) 28.dp else 24.dp)
                     .clip(CircleShape)
                     .background(c)
-                    .border(if (on) 3.dp else 1.dp, if (on) Color(0xFFFFCC00) else Color.Gray, CircleShape)
+                    .border(if (on) 2.dp else 1.dp, if (on) EditPalette.SwatchRing else EditPalette.SwatchIdleRing, CircleShape)
                     .clickable { onPick(c) },
-            )
+                contentAlignment = Alignment.Center,
+            ) {
+                if (on) {
+                    Icon(
+                        Icons.Filled.Check,
+                        null,
+                        tint = checkTintOn(c),
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
+            }
         }
     }
 }
@@ -892,11 +982,11 @@ private fun AdjustPanel(
     onFinished: () -> Unit,
     onClose: () -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth().background(Color(0xFF111111)).padding(horizontal = 16.dp, vertical = 8.dp)) {
+    Column(Modifier.fillMaxWidth().background(EditPalette.PanelBg).padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.mediaview_edit_adjust), color = Color(0xFFFFCC00), modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.mediaview_edit_adjust), color = EditPalette.Accent, modifier = Modifier.weight(1f))
             TextButton(onClick = onClose) {
-                Text(stringResource(R.string.mediaview_edit_adjust_done), color = Color.White)
+                Text(stringResource(R.string.mediaview_edit_adjust_done), color = EditPalette.TextPrimary)
             }
         }
         AdjustRow(stringResource(R.string.mediaview_edit_brightness), adjust.brightness, { onChange(adjust.copy(brightness = it)) }, onFinished)
@@ -908,7 +998,7 @@ private fun AdjustPanel(
 @Composable
 private fun AdjustRow(label: String, value: Int, onChange: (Int) -> Unit, onFinished: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(label, color = Color.White, modifier = Modifier.width(56.dp))
+        Text(label, color = EditPalette.TextPrimary, modifier = Modifier.width(56.dp))
         Slider(
             value = value.toFloat(),
             onValueChange = { onChange(it.roundToInt()) },
@@ -916,7 +1006,7 @@ private fun AdjustRow(label: String, value: Int, onChange: (Int) -> Unit, onFini
             valueRange = -100f..100f,
             modifier = Modifier.weight(1f),
         )
-        Text("$value", color = Color.White, modifier = Modifier.width(36.dp))
+        Text("$value", color = EditPalette.TextPrimary, modifier = Modifier.width(36.dp))
     }
 }
 
