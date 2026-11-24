@@ -245,8 +245,6 @@ fun CameraFxGrantedContent(
                     // 从 Held/Off 恢复到 Anchored：头可能已在漏检期间移动，直接 snap 回跟随。
                     val placeFinal: StickerPlacementPx = when (track) {
                         is StickerTrack.Anchored -> {
-                            val wasHeld = slot.lastPlacement != null && !slot.lastWasAnchored
-                            if (wasHeld) slot.smoother.reset()
                             val place = stickerAtHeadTop(
                                 map,
                                 head!!,
@@ -254,16 +252,14 @@ fun CameraFxGrantedContent(
                                 face.tiltDeg,
                                 widthFractionOfFace = 1.05f,
                             )
-                            // 尺寸也要跟着平滑值走，否则 offset 平滑、size 逐帧跳，等于没平滑
-                            slot.smoother.smooth(place).also {
-                                slot.lastPlacement = it
-                                slot.lastWasAnchored = true
-                            }
+                            // 尺寸也要跟着平滑值走，否则 offset 平滑、size 逐帧跳，等于没平滑。
+                            // StickerSlotState 在 Held 后重获锚点时会先 reset EMA 并直接 snap。
+                            slot.anchor(place)
                         }
                         is StickerTrack.Held ->
                             // 漏检宽限内：钉在最后一次成功位置，不喂 smoother（否则把
                             // 「没有观测」当「目标不动」，EMA 会被拉死在旧值附近）。
-                            slot.lastPlacement ?: continue
+                            slot.hold() ?: continue
                         StickerTrack.Off -> {
                             slot.reset()
                             continue

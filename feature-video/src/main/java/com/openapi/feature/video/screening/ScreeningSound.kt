@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -73,6 +75,15 @@ internal fun ScreeningSound(
         tracksPager.items.mapIndexedNotNull { i, e -> e.soundTrackRef(i) }
     }
     var currentIndex by rememberSaveable { mutableIntStateOf(-1) }
+    val soundPreferences = remember(context) {
+        context.getSharedPreferences("screening_sound", android.content.Context.MODE_PRIVATE)
+    }
+    var playbackMode by rememberSaveable {
+        mutableStateOf(soundPlaybackMode(soundPreferences.getString("playback_mode", null)))
+    }
+    LaunchedEffect(playbackMode) {
+        soundPreferences.edit().putString("playback_mode", playbackMode.name).apply()
+    }
     val player = remember { ExoPlayer.Builder(context).build() }
     DisposableEffect(player) {
         onDispose { player.release() }
@@ -105,6 +116,8 @@ internal fun ScreeningSound(
                     tracks = tracks,
                     player = player,
                     currentIndex = currentIndex,
+                    playbackMode = playbackMode,
+                    onPlaybackModeChange = { playbackMode = it },
                     onSelect = { currentIndex = it },
                     onBack = { hub = null },
                 )
@@ -122,6 +135,42 @@ internal data class SoundTrackRef(
     val fileUrl: String,
     val subtitle: String,
 )
+
+internal enum class SoundPlaybackMode(val label: String) {
+    SINGLE("单曲循环"),
+    LIST("列表循环"),
+    SEQUENTIAL("顺序播放"),
+    SHUFFLE("随机播放");
+
+    fun nextMode(): SoundPlaybackMode = entries[(ordinal + 1) % entries.size]
+}
+
+internal fun soundPlaybackMode(savedName: String?): SoundPlaybackMode =
+    SoundPlaybackMode.entries.firstOrNull { it.name == savedName } ?: SoundPlaybackMode.LIST
+
+internal fun nextSoundTrackIndex(
+    mode: SoundPlaybackMode,
+    currentIndex: Int,
+    trackCount: Int,
+    chooseRandom: (List<Int>) -> Int = { it.random() },
+): Int? {
+    if (trackCount <= 0) return null
+    val currentIsValid = currentIndex in 0 until trackCount
+    return when (mode) {
+        SoundPlaybackMode.SINGLE -> if (currentIsValid) currentIndex else 0
+        SoundPlaybackMode.LIST -> if (currentIsValid) (currentIndex + 1) % trackCount else 0
+        SoundPlaybackMode.SEQUENTIAL -> when {
+            !currentIsValid -> 0
+            currentIndex < trackCount - 1 -> currentIndex + 1
+            else -> null
+        }
+        SoundPlaybackMode.SHUFFLE -> {
+            if (!currentIsValid) 0
+            else if (trackCount == 1) currentIndex
+            else chooseRandom((0 until trackCount).filter { it != currentIndex })
+        }
+    }
+}
 
 internal fun RemoteEntry.soundTrackRef(listIndex: Int): SoundTrackRef? {
     if (actionUrl.isBlank()) return null
@@ -191,15 +240,38 @@ private fun SoundTrackHub(
     tracks: List<SoundTrackRef>,
     player: ExoPlayer,
     currentIndex: Int,
+    playbackMode: SoundPlaybackMode,
+    onPlaybackModeChange: (SoundPlaybackMode) -> Unit,
     onSelect: (Int) -> Unit,
     onBack: () -> Unit,
 ) {
+    var playbackEnded by remember(player) { mutableStateOf(false) }
     fun playAt(index: Int) {
         val track = tracks.getOrNull(index) ?: return
+        playbackEnded = false
         onSelect(index)
         player.setMediaItem(MediaItem.fromUri(Uri.parse(track.fileUrl)))
         player.prepare()
         player.play()
+    }
+    val latestPlayAt by rememberUpdatedState<(Int) -> Unit>({ index -> playAt(index) })
+    DisposableEffect(player) {
+        val listener = object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_ENDED) playbackEnded = true
+            }
+        }
+        player.addListener(listener)
+        onDispose { player.removeListener(listener) }
+    }
+    LaunchedEffect(playbackEnded, tracks, currentIndex, playbackMode, pager.hasMore, pager.loading) {
+        if (!playbackEnded) return@LaunchedEffect
+        if (playbackMode != SoundPlaybackMode.SINGLE && currentIndex == tracks.lastIndex && pager.hasMore) {
+            if (!pager.loading) pager.loadMore()
+            return@LaunchedEffect
+        }
+        val nextIndex = nextSoundTrackIndex(playbackMode, currentIndex, tracks.size)
+        if (nextIndex == null) playbackEnded = false else latestPlayAt(nextIndex)
     }
     LaunchedEffect(state, pager) {
         snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
@@ -266,6 +338,9 @@ private fun SoundTrackHub(
                     onValueChange = { fraction -> player.seekTo((durationMs * fraction).toLong()) },
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = { onPlaybackModeChange(playbackMode.nextMode()) }) {
+                        Text(playbackMode.label, color = Mint, fontSize = 12.sp)
+                    }
                     IconButton(onClick = {
                         if (tracks.isEmpty()) return@IconButton
                         playAt((currentIndex - 1).coerceAtLeast(0))
