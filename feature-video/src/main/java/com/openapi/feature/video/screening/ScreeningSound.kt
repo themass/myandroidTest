@@ -38,6 +38,8 @@ import androidx.media3.session.SessionToken
 import com.openapi.core.config.Constants
 import com.openapi.core.db.FavoriteVo
 import com.openapi.core.favorite.FavoriteUtil
+import com.openapi.common.net.http.NetUtils
+import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.core.model.RecommendVo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -199,6 +201,12 @@ internal fun soundPlaybackMode(savedName: String?): SoundPlaybackMode =
 
 internal fun clampSoundPlaybackSpeed(speed: Float): Float = speed.coerceIn(0.25f, 3f)
 
+internal fun shouldPromptForSoundNetwork(
+    isWifi: Boolean,
+    soundSwitch: Boolean,
+    sessionOverride: Boolean,
+): Boolean = !isWifi && !soundSwitch && !sessionOverride
+
 internal fun manualNextSoundTrackIndex(
     mode: SoundPlaybackMode,
     currentIndex: Int,
@@ -324,11 +332,29 @@ private fun SoundTrackHub(
     var playbackEnded by remember(player) { mutableStateOf(false) }
     var pendingManualNextFromCount by remember(player) { mutableIntStateOf(-1) }
     var speedDialogOpen by rememberSaveable { mutableStateOf(false) }
+    var networkDialogOpen by rememberSaveable { mutableStateOf(false) }
+    var networkOverride by rememberSaveable { mutableStateOf(false) }
+    var pendingNetworkTrack by remember(player) { mutableIntStateOf(-1) }
+    var resumeAfterNetworkConfirmation by remember(player) { mutableStateOf(false) }
+    val context = LocalContext.current
+    fun needsNetworkConfirmation(): Boolean = shouldPromptForSoundNetwork(
+        isWifi = NetUtils.isWifi(context),
+        soundSwitch = PreferenceUtils.getPrefBoolean(context, Constants.SOUND_SWITCH, false),
+        sessionOverride = networkOverride,
+    )
     LaunchedEffect(player, playbackSpeed) {
         player.setPlaybackParameters(PlaybackParameters(playbackSpeed, 1f))
     }
     fun playAt(index: Int) {
         val track = tracks.getOrNull(index) ?: return
+        if (needsNetworkConfirmation()) {
+            pendingNetworkTrack = index
+            resumeAfterNetworkConfirmation = false
+            networkDialogOpen = true
+            player.pause()
+            return
+        }
+        pendingNetworkTrack = -1
         playbackEnded = false
         pendingManualNextFromCount = -1
         onSelect(index)
@@ -347,6 +373,17 @@ private fun SoundTrackHub(
     }
     fun playPreviousManually() {
         previousSoundTrackIndex(currentIndex, tracks.size)?.let(::playAt)
+    }
+    fun togglePlayback() {
+        if (player.isPlaying) {
+            player.pause()
+        } else if (needsNetworkConfirmation()) {
+            pendingNetworkTrack = -1
+            resumeAfterNetworkConfirmation = true
+            networkDialogOpen = true
+        } else {
+            player.play()
+        }
     }
     val latestPlayAt by rememberUpdatedState<(Int) -> Unit>({ index -> playAt(index) })
     DisposableEffect(player) {
@@ -396,7 +433,6 @@ private fun SoundTrackHub(
         }
     }
     val current = tracks.getOrNull(currentIndex)
-    val context = LocalContext.current
     var isFavorite by remember(current?.fileUrl) { mutableStateOf(false) }
     LaunchedEffect(current?.fileUrl) {
         val fileUrl = current?.fileUrl ?: return@LaunchedEffect
@@ -473,7 +509,7 @@ private fun SoundTrackHub(
                     IconButton(onClick = { playPreviousManually() }) {
                         Icon(Icons.Default.SkipPrevious, "上一首", tint = White)
                     }
-                    IconButton(onClick = { if (player.isPlaying) player.pause() else player.play() }) {
+                    IconButton(onClick = { togglePlayback() }) {
                         Icon(if (playing) Icons.Default.Pause else Icons.Default.PlayArrow, "播放", tint = Mint, modifier = Modifier.size(36.dp))
                     }
                     IconButton(onClick = { playNextManually() }) {
@@ -500,6 +536,35 @@ private fun SoundTrackHub(
             },
             confirmButton = {
                 TextButton(onClick = { speedDialogOpen = false }) { Text("完成") }
+            },
+        )
+    }
+    if (networkDialogOpen) {
+        AlertDialog(
+            onDismissRequest = {
+                networkDialogOpen = false
+                pendingNetworkTrack = -1
+                resumeAfterNetworkConfirmation = false
+            },
+            title = { Text("非 Wi-Fi 网络播放音频？") },
+            text = { Text("当前使用移动网络，继续播放可能消耗流量。") },
+            dismissButton = {
+                TextButton(onClick = {
+                    networkDialogOpen = false
+                    pendingNetworkTrack = -1
+                    resumeAfterNetworkConfirmation = false
+                }) { Text("取消") }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val trackIndex = pendingNetworkTrack
+                    val shouldResume = resumeAfterNetworkConfirmation
+                    networkOverride = true
+                    networkDialogOpen = false
+                    pendingNetworkTrack = -1
+                    resumeAfterNetworkConfirmation = false
+                    if (shouldResume) player.play() else if (trackIndex >= 0) playAt(trackIndex)
+                }) { Text("继续播放") }
             },
         )
     }
