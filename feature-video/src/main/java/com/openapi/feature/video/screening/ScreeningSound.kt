@@ -1,7 +1,8 @@
 package com.openapi.feature.video.screening
 
-import android.net.Uri
+import android.content.ComponentName
 import androidx.activity.compose.BackHandler
+import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -28,15 +29,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.common.PlaybackParameters
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.isActive
 
 /**
- * 声音馆：频道列表 → 曲目列表 + 底栏播放器（ExoPlayer）。
+ * 声音馆：频道列表 → 曲目列表 + 底栏播放器（MediaSessionService）。
  * 接口对齐 SoundChannleBodyFragment / SoundItemsMusicFragment。
  *
  * 取数状态挂在转场之上（对齐 [ScreeningGallery]、[ScreeningText]）：退回频道列表
@@ -91,9 +93,25 @@ internal fun ScreeningSound(
     LaunchedEffect(playbackSpeed) {
         soundPreferences.edit().putFloat("playback_speed", playbackSpeed).apply()
     }
-    val player = remember { ExoPlayer.Builder(context).build() }
-    DisposableEffect(player) {
-        onDispose { player.release() }
+    var player by remember { mutableStateOf<MediaController?>(null) }
+    DisposableEffect(context) {
+        val token = SessionToken(context, ComponentName(context, ScreeningAudioService::class.java))
+        val future = MediaController.Builder(context, token).buildAsync()
+        var disposed = false
+        future.addListener(
+            {
+                if (!disposed) player = runCatching { future.get() }.getOrNull()
+            },
+            ContextCompat.getMainExecutor(context),
+        )
+        onDispose {
+            disposed = true
+            if (future.isDone && !future.isCancelled) {
+                runCatching { future.get().release() }
+            } else {
+                future.cancel(true)
+            }
+        }
     }
 
     val motion = LocalScreeningMotion.current
@@ -116,20 +134,27 @@ internal fun ScreeningSound(
                     onOpenHub = { hub = it },
                 )
             } else {
-                SoundTrackHub(
-                    pager = tracksPager,
-                    state = tracksState,
-                    seen = trackSeen,
-                    tracks = tracks,
-                    player = player,
-                    currentIndex = currentIndex,
-                    playbackMode = playbackMode,
-                    onPlaybackModeChange = { playbackMode = it },
-                    playbackSpeed = playbackSpeed,
-                    onPlaybackSpeedChange = { playbackSpeed = clampSoundPlaybackSpeed(it) },
-                    onSelect = { currentIndex = it },
-                    onBack = { hub = null },
-                )
+                val connectedPlayer = player
+                if (connectedPlayer == null) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("正在连接播放器…", color = Muted)
+                    }
+                } else {
+                    SoundTrackHub(
+                        pager = tracksPager,
+                        state = tracksState,
+                        seen = trackSeen,
+                        tracks = tracks,
+                        player = connectedPlayer,
+                        currentIndex = currentIndex,
+                        playbackMode = playbackMode,
+                        onPlaybackModeChange = { playbackMode = it },
+                        playbackSpeed = playbackSpeed,
+                        onPlaybackSpeedChange = { playbackSpeed = clampSoundPlaybackSpeed(it) },
+                        onSelect = { currentIndex = it },
+                        onBack = { hub = null },
+                    )
+                }
             }
         }
     }
@@ -272,7 +297,7 @@ private fun SoundTrackHub(
     state: LazyListState,
     seen: MutableSet<String>,
     tracks: List<SoundTrackRef>,
-    player: ExoPlayer,
+    player: Player,
     currentIndex: Int,
     playbackMode: SoundPlaybackMode,
     onPlaybackModeChange: (SoundPlaybackMode) -> Unit,
@@ -284,13 +309,15 @@ private fun SoundTrackHub(
     var playbackEnded by remember(player) { mutableStateOf(false) }
     var pendingManualNextFromCount by remember(player) { mutableIntStateOf(-1) }
     var speedDialogOpen by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(player, playbackSpeed) { player.setPlaybackSpeed(playbackSpeed) }
+    LaunchedEffect(player, playbackSpeed) {
+        player.setPlaybackParameters(PlaybackParameters(playbackSpeed, 1f))
+    }
     fun playAt(index: Int) {
         val track = tracks.getOrNull(index) ?: return
         playbackEnded = false
         pendingManualNextFromCount = -1
         onSelect(index)
-        player.setMediaItem(MediaItem.fromUri(Uri.parse(track.fileUrl)))
+        player.setMediaItem(screeningAudioMediaItem(track.title, track.subtitle, track.fileUrl))
         player.prepare()
         player.play()
     }
