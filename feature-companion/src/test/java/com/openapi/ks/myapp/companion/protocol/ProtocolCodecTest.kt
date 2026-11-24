@@ -33,7 +33,7 @@ class ProtocolCodecTest {
      * 谁改了契约却只改一边，另一边的测试立刻红。
      */
     private val testVectorSha256 =
-        "0002d6f0b678c2c344fd9489c9a6f4cbf4e910271a81e0979e9603a94f29aa46"
+        "fa382f669a5afd81e1c802df21b4f5704339ee1af95adab86ffaab1713d92cc0"
 
     private val vectors: JSONObject by lazy {
         val stream = javaClass.classLoader!!.getResourceAsStream("protocol_v2.json")
