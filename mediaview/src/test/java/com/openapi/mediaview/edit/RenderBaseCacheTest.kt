@@ -186,13 +186,13 @@ class RenderBaseCacheTest {
 
         // 第一遍：miss → 真的渲染（provider 被调）→ 入缓存
         assertNull(cache.get(source, edits, 640))
-        val base = cache.get(source, edits, 640) ?: PhotoRenderer.renderBase(source, edits, 640, counting).also {
+        val base = cache.get(source, edits, 640) ?: PhotoRenderer.renderBase(source, edits, 640, lutProvider = counting).also {
             cache.put(source, edits, 640, it)
         }
         assertEquals("miss 时必须渲染一次", 1, calls)
 
         // 第二遍：走同一个「查缓存，没有才渲染」的调用点形状 → 预处理一段一个像素都不重算
-        val second = cache.get(source, edits, 640) ?: PhotoRenderer.renderBase(source, edits, 640, counting).also {
+        val second = cache.get(source, edits, 640) ?: PhotoRenderer.renderBase(source, edits, 640, lutProvider = counting).also {
             cache.put(source, edits, 640, it)
         }
         assertSame(base, second)
