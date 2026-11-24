@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -100,6 +101,67 @@ internal fun dragSeekMs(totalDragPx: Float, viewportWidthPx: Float): Long {
     if (viewportWidthPx <= 0f) return 0L
     return (totalDragPx / (viewportWidthPx / 4f)).roundToInt() * 30_000L
 }
+
+/**
+ * 现在是否存在「可切换的字幕来源」：服务端有轨道、已导入过文件、或这条片源能做实时识别，任一即可。
+ * serverList 为 null 表示还没成功取到列表——这时不能断言服务端没有，只按另两条判。
+ * 纯函数抽出来是为了 JVM 单测钉住判定口径（A22）。
+ */
+internal fun hasCaptionSourceChoice(
+    serverList: List<SubtitleItem>?,
+    hasImportedCaption: Boolean,
+    realtimeAvailable: Boolean,
+): Boolean = serverList?.isNotEmpty() == true || hasImportedCaption || realtimeAvailable
+
+/**
+ * 字幕面板里「关闭字幕」这一项要不要显示成选中（勾）。
+ * A22：只在「当前确实关着」且「存在可切换来源」时才打勾——
+ * 一条可开来源都没有时，勾会让用户以为「有字幕被我关了」，而实情是这条片子本来就没字幕。
+ */
+internal fun captionOffSettingSelected(captionSource: Int, hasCaptionSourceChoice: Boolean): Boolean =
+    captionSource == 0 && hasCaptionSourceChoice
+
+/**
+ * 空态（没有任何可开来源）时并进「关闭字幕」hint 的原因说明（A22）。
+ * 「没有导入过字幕文件」在空态恒成立（有导入就不算空态）；服务端那条只在确实取到过列表时才敢写死。
+ */
+internal fun captionNoSourceHint(serverList: List<SubtitleItem>?, realtimeAvailable: Boolean): String {
+    val reasons = buildList {
+        if (serverList != null) add("服务端没有字幕轨")
+        add("没有导入过字幕文件")
+        if (!realtimeAvailable) add("这个片源不能现场识别")
+    }
+    return "现在没有可开的字幕：" + reasons.joinToString("，")
+}
+
+/**
+ * 「关闭字幕」已经是关闭态时再点一次的可见反馈（A22：写同值零变化，用户以为按钮坏了）。
+ * 有可开来源和没有来源两种措辞分开，别把「没字幕」说给有字幕轨的片子。
+ */
+internal fun captionAlreadyOffNotice(
+    serverList: List<SubtitleItem>?,
+    hasImportedCaption: Boolean,
+    realtimeAvailable: Boolean,
+): String = if (hasCaptionSourceChoice(serverList, hasImportedCaption, realtimeAvailable)) {
+    "字幕本来就是关的；要开字幕，直接选下面列出的字幕来源。"
+} else {
+    "字幕本来就是关的；这个视频没有可开的字幕轨。"
+}
+
+/**
+ * 影院态底部走带要不要在 3.5 秒后自动收起。
+ * imeVisible 是 A23 新加的闸门：edge-to-edge 下 adjustResize 失效，键盘弹着时收走带
+ * 会把正在输入的弹幕发送栏整个藏掉，所以键盘没弹出才允许自动收。
+ */
+internal fun shouldAutoHideChrome(
+    full: Boolean,
+    playing: Boolean,
+    locked: Boolean,
+    panelOpen: Boolean,
+    chromeVisible: Boolean,
+    draft: String,
+    imeVisible: Boolean,
+): Boolean = full && playing && !locked && !panelOpen && chromeVisible && draft.isEmpty() && !imeVisible
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -281,9 +343,13 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
         }
     }
     LaunchedEffect(host) { while (true) { refresh(); delay(125) } }
-    LaunchedEffect(full, playing, locked, panel, interaction, danmakuDraft) {
+    // A23：edge-to-edge（HomeActivity enableEdgeToEdge）下 adjustResize 失效，键盘弹没弹只能自己读
+    // ime insets。自动收走带要过这道闸：键盘弹着、输入框聚焦但还没打字时，收走带=输入框整体消失。
+    val density = LocalDensity.current
+    val imeVisible = WindowInsets.ime.getBottom(density) > 0
+    LaunchedEffect(full, playing, locked, panel, interaction, danmakuDraft, imeVisible) {
         // 正在打弹幕就不收走带：发送栏挂在走带上，收了等于把输入框藏起来
-        if (full && playing && !locked && panel == null && chrome && danmakuDraft.isEmpty()) { delay(3500); chrome = false }
+        if (shouldAutoHideChrome(full, playing, locked, panel != null, chrome, danmakuDraft, imeVisible)) { delay(3500); chrome = false }
     }
     val picker = rememberLauncherForActivityResult(OpenDocument()) { uri ->
         uri?.let {
@@ -419,7 +485,23 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
         Spacer(Modifier.height(6.dp))
         when (current) {
             "字幕" -> {
-                Setting("关闭字幕", "不影响播放和弹幕", captionSource == 0) { captionSource = 0 }
+                // A22：没有任何可开来源时「关闭字幕」不再显示成选中勾——勾会让用户以为
+                // 「有字幕被我关了」，实情是这条片子本来就没字幕。serverList == null 是列表还没取到，
+                // 这时不能断言服务端没有轨道，只按导入/实时两条真路判。
+                val captionChoice = hasCaptionSourceChoice(serverList, captions != null, realtimeUrl != null)
+                Setting(
+                    "关闭字幕",
+                    if (captionChoice) "不影响播放和弹幕" else captionNoSourceHint(serverList, realtimeUrl != null),
+                    captionOffSettingSelected(captionSource, captionChoice),
+                ) {
+                    if (captionSource == 0) {
+                        // A22：关闭态再点写入同值、界面上零变化（勾不动），用户以为按钮坏了——
+                        // 走现成的 info 通道给可见反馈（面板底部那行 Mint 文案）
+                        info = captionAlreadyOffNotice(serverList, captions != null, realtimeUrl != null)
+                    } else {
+                        captionSource = 0; info = "字幕已关闭"
+                    }
+                }
                         // 样式放最前：面板在弹窗里能滚的范围有限，样式是主功能不该藏在延时/导入后面
                         Text("字幕样式", Modifier.padding(top = 8.dp), fontWeight = FontWeight.Bold)
                         captionPresets.forEachIndexed { index, preset ->
@@ -562,7 +644,9 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
         if (info.isNotEmpty()) Text(info, Modifier.padding(top = 9.dp), color = Mint)
     }
     Column(Modifier.fillMaxSize().background(Ink).then(
-        if (!full) Modifier.safeDrawingPadding().verticalScroll(rememberScrollState()) else Modifier
+        // A23：信息态把键盘高度并进滚动视口（imePadding 在 verticalScroll 之外），
+        // 配合输入框聚焦自带的 bring-into-view，弹幕发送行不再被键盘压在视口外
+        if (!full) Modifier.safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()) else Modifier
     )) {
         // 竖屏（信息态，设计稿的主要改动）：返回+片名不再压在画面上，走页面自己的顶栏；
         // 画面下移成一张圆角卡，和瀑布流同一套 13dp 语言。
@@ -717,7 +801,9 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
                 }
                 if (full) {
                     Column(
-                        Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                        // A23：键盘不再靠 resize 顶起窗口，会把挂在走带底部的弹幕发送栏整个盖住——
+                        // imePadding 把底部这条（走带+工具+发送栏）抬到键盘上方（先例：ChatScreen/CompanionScreen）
+                        Modifier.align(Alignment.BottomCenter).fillMaxWidth().imePadding()
                             .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = .88f))))
                             .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
                             .padding(horizontal = 20.dp, vertical = 8.dp),
