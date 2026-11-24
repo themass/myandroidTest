@@ -8,7 +8,7 @@
 
 | 层 | 模块 | 职责 |
 |----|------|------|
-| 感知 | `:feature-camera-fx` | CameraX + Face/Pose、纯函数锚点、**仅设备内存** |
+| 感知 | `:feature-camera-fx` | CameraX + Face/Pose/Hand、纯函数锚点、**仅设备内存**；app 接线见 `2026-11-23-camera-fx-app-lab-wiring.md` |
 | 呈现选项 | `CameraFxOverlayPolicy` | wireframe / stickers / assetId（纯数据） |
 | 舞台特效 | `feature-companion.fx` | `LottieFxLayer` + `StageEffectMapper` ← **gesture 链** |
 | 通话 UI | `CompanionRoute` / `CompanionCallScreen` | 何时开相机（用户意图）；**`cameraAvailable`** = LiveKit 视频轨（另线） |
@@ -48,9 +48,9 @@
 - [x] 关通话页自动小窗
 - [x] `CameraFxOverlayPolicy` + lab SharedPreferences
 - [x] 通话 debug 菜单「人脸贴纸」接 `labFaceCameraPip` + prefs（主线 `cbe826e1`；真机体验另验）
-- [x] Pose 腕连指尖（默认开）；可选开关 **二期**
+- [x] Pose 腕→指尖扇区默认绘制；可选开关仍待做（二期）
 - [x] Hand landmark + lab HUD 手势启发式
-- [x] Hand 手势 → `emitStageGesture`（张→wave、捏→pat_head；主线 `cbe826e1`；真机链路验收待补）
+- [x] Hand 手势 → `emitStageGesture`（`CameraGestureCue` 单一事实源：张→`wave`、捏→`pat_head`、拳不映射；`StageGestureEdge` 稳定 2 帧 + 冷却 24 帧 + 收手复位；通话 PIP cue 经 Route `emitStageGesture` 进入现有舞台词表；真机链路验收待补）
 
 ## 分工（camera-fx 线与 lottie-fx-mvp，2026-11-23）
 
