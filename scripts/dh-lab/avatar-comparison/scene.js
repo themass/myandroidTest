@@ -97,7 +97,7 @@ document.querySelector('#speak').onclick = event => {
 };
 document.querySelector('#turn').onclick = () => { turn = !turn; };
 document.querySelector('#reset').onclick = () => { turn = false; if (vrm) vrm.scene.rotation.y = 0; frame(); };
-document.querySelector('#retry').onclick = () => loadModel('./sample.vrm', '官方约束测试模型');
+document.querySelector('#retry').onclick = () => loadModel('./sample.vrm', 'VRoid HairSample_Female · CC0');
 document.querySelector('#model').onchange = async event => {
   const file = event.target.files[0]; if (!file) return;
   const url = URL.createObjectURL(file);
@@ -135,4 +135,4 @@ renderer.setAnimationLoop(() => {
     fpsFrames = 0; fpsSince = performance.now();
   }
 });
-loadModel('./sample.vrm', '官方约束测试模型');
+loadModel('./sample.vrm', 'VRoid HairSample_Female · CC0');
