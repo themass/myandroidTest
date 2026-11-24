@@ -47,6 +47,7 @@
     <string name="photosolve_quad_hint">拖动四个角或四条边，让边框贴合题目纸张</string>
     <string name="photosolve_quad_confirm">裁剪并识别</string>
     <string name="photosolve_not_question">画面里没找到题目，请把题目放进取景框后再拍</string>
+    <string name="photosolve_quad_no_auto">没自动找到题目边框，已放了一个默认框：请拖动四角对准题目（翻拍屏幕常见）</string>
     <string name="photosolve_detector_unavailable">自动对齐不可用（%1$s），可以手动拖动四个角</string>
     <string name="photosolve_solving">上传图片并解题中…</string>
     <string name="photosolve_retry">重试</string>

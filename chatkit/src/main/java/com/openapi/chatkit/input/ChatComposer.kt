@@ -81,6 +81,8 @@ fun ChatComposer(
     onSend: () -> Unit,
     onStop: () -> Unit = {},
     onRemoveDraft: (String) -> Unit,
+    /** 长按草稿托盘里的图片（S3「再编辑」）。不传 = 该页不提供编辑。 */
+    onEditDraftImage: (String) -> Unit = {},
     onVoiceStart: () -> Unit,
     onVoiceStop: () -> Unit,
     onVoiceCancel: () -> Unit,
@@ -161,7 +163,7 @@ fun ChatComposer(
             Box(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp)) {
                 InputCard(modifier = Modifier.graphicsLayer { alpha = if (hideCard) 0f else 1f }) {
                     if (state.drafts.isNotEmpty()) {
-                        DraftTray(drafts = state.drafts, onRemove = onRemoveDraft)
+                        DraftTray(drafts = state.drafts, onRemove = onRemoveDraft, onEditImage = onEditDraftImage)
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),

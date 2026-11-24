@@ -384,4 +384,50 @@ class ScreeningFeedTest {
         assertEquals(ScreeningPageKind.VIDEO_USERS, videoChannelPageKind(movieHub))
         assertEquals("qvod_user", videoUserListChannelKey(movieHub))
     }
+
+    @Test
+    fun `video_item_user 卡走子频道层（旧路由同一个 BodyFragment）`() {
+        // ConfigActionJump 把 video_item_user:// 也交 VideoChannleActivity →
+        // VideoChannleBodyFragment 第一层发 /video/channel.json，跟 video:// 完全同构。
+        assertTrue(isConfigAction("video_item_user://config?channel=user_1"))
+        val card = remoteEntry(4L, 0, "用户上传频道", null, null, 1f,
+            "video_item_user://config?channel=user_1", false, dataType = 5)!!
+        assertEquals(FeedRoute.CHANNEL, routeOf(card))
+        assertEquals(ScreeningPageKind.SUBCHANNELS, videoChannelPageKind(card))
+        // 不带 channel 的同样不算（和 video:// 同规则）
+        assertFalse(isConfigAction("video_item_user://play?id=1"))
+    }
+
+    // ---- 外来协议兜底：放映场没原生页的一律交回原路由，不许落 PLAY 黑屏 ----
+
+    @Test
+    fun `没接住的 scheme 走 WEB 交回原路由，不进播放器也不当频道`() {
+        // browser→浏览器页、local_chat→首页：旧注册表有去处，放映场没有对应 Compose 页。
+        assertTrue(isForeignScheme("browser://open?url=x"))
+        assertTrue(isForeignScheme("local_chat://home"))
+        // pic/video_item 旧注册表根本没有（旧行为就是「版本太低」提示），同样别瞎猜
+        assertTrue(isForeignScheme("pic://album?id=1"))
+        assertTrue(isForeignScheme("video_item://x?id=1"))
+        // 完全没 scheme 的脏数据也不算已接住
+        assertTrue(isForeignScheme("no-scheme-here"))
+        assertTrue(isForeignScheme(null))
+        // 已接住的族不算外来（白名单跟 routeOf 分层判定一致）
+        assertFalse(isForeignScheme("video://config?channel=x"))
+        assertFalse(isForeignScheme("videoList://config?channel=x"))
+        assertFalse(isForeignScheme("sound://config?channel=x"))
+        assertFalse(isForeignScheme("img://channel/list?channel=x"))
+        assertFalse(isForeignScheme("https://ddys.io/movie/1"))
+    }
+
+    @Test
+    fun `外来协议带 param 也不被吸收成频道`() {
+        // 旧分发器把 query 原样拷进 CONFIG_PARAM：外来协议的 param 不是频道 key。
+        // 以前 routeOf 兜底是 PLAY，这种卡会进播放器黑屏；现在钉回 WEB。
+        val card = remoteEntry(9L, 0, "浏览器页", null, null, 1f,
+            "browser://open?url=https://ex.example/x", false, dataType = 5, param = "some_channel")!!
+        assertEquals(FeedRoute.WEB, routeOf(card))
+        assertFalse(card.isGroupEntry)
+        val dirty = remoteEntry(10L, 0, "脏数据", null, null, 1f, "no-scheme-here", false, dataType = 5)!!
+        assertEquals(FeedRoute.WEB, routeOf(dirty))
+    }
 }

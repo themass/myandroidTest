@@ -1,13 +1,14 @@
 package com.openapi.feature.video.screening
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,6 +22,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.openapi.common.net.http.HttpUtils
-import com.openapi.core.config.Constants
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
@@ -38,6 +39,11 @@ import kotlinx.coroutines.launch
  * 接口与旧 [com.openapi.feature.content.text.TextChannleBodyFragment] /
  * [com.openapi.feature.content.text.TextChannelListFragment] /
  * [com.openapi.feature.content.text.TextItemsFragment] 一致。
+ *
+ * 取数状态（pager、滚动位置）挂在转场之上，对齐 [ScreeningGallery]：进正文、退回目录
+ * 拆掉的只是展示的那一层，pager 活着、列表原样在——回到目录不再自动重新取数
+ * （用户点名「不是进入列表页都要刷新」）。数据重取只由用户下拉触发（[FeedPager.refresh]），
+ * 触底续页仍是 loadMore。
  */
 @Composable
 internal fun ScreeningText(
@@ -60,6 +66,22 @@ internal fun ScreeningText(
         }
     }
 
+    // 两层列表的 pager 都建在这一层：AnimatedContent 换层拆的是展示组件，不是取数状态。
+    val hubs = remember(hubChannel) {
+        FeedPager(scope) { start -> store.textChannelHub(hubChannel ?: "", start) }
+    }
+    val hubParam = hub
+    val articles = remember(hubParam) {
+        FeedPager(scope) { start -> store.textArticles(hubParam ?: "", start) }
+    }
+    val hubState = rememberLazyListState()
+    val articlesState = rememberLazyListState()
+    val hubSeen = remember { mutableSetOf<String>() }
+    val articleSeen = remember { mutableSetOf<String>() }
+    // 首屏只在 pager 新建立刻取一次；load() 自带「已取过不再取」的闸。
+    LaunchedEffect(hubs, hubChannel) { if (hubChannel != null) hubs.load() }
+    LaunchedEffect(articles, hubParam) { if (hubParam != null) articles.load() }
+
     val motion = LocalScreeningMotion.current
     val density = androidx.compose.ui.platform.LocalDensity.current
     val slidePx = with(density) { motion.slideDistanceDp().dp.toPx() }
@@ -76,14 +98,17 @@ internal fun ScreeningText(
         ) { level ->
             when (level) {
                 0 -> TextHubPicker(
-                    store = store,
+                    pager = hubs,
+                    state = hubState,
+                    seen = hubSeen,
                     seedChannel = hubChannel,
                     onExit = onExit,
                     onOpenHub = { hub = it },
                 )
                 1 -> TextArticleList(
-                    store = store,
-                    hubParam = hub ?: return@AnimatedContent,
+                    pager = articles,
+                    state = articlesState,
+                    seen = articleSeen,
                     onBack = { hub = null },
                     onOpenBody = { entry ->
                         val ref = entry.textArticleRef() ?: return@TextArticleList
@@ -116,39 +141,27 @@ internal data class TextArticleRef(
 
 @Composable
 private fun TextHubPicker(
-    store: ScreeningFeedStore,
+    pager: FeedPager,
+    state: LazyListState,
+    seen: MutableSet<String>,
     seedChannel: String?,
     onExit: () -> Unit,
     onOpenHub: (String) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val pager = remember(seedChannel) {
-        FeedPager(scope) { start -> store.textChannelHub(seedChannel ?: "", start) }
-    }
-    val state = rememberLazyListState()
-    val seen = remember { mutableSetOf<String>() }
-    LaunchedEffect(pager, seedChannel) { if (seedChannel != null) pager.load() }
     LaunchedEffect(state, pager) {
         snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
             .distinctUntilChanged()
             .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
     }
     val rows = pager.items
-    LazyColumn(
-        Modifier.fillMaxSize().safeDrawingPadding(),
+    FeedListShell(
+        pager = pager,
         state = state,
-        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 26.dp),
+        title = "文字馆",
+        onBack = onExit,
+        detail = feedToolbarDetail(pager.loading, rows.size, "个频道"),
     ) {
         item {
-            Row(Modifier.fillMaxWidth().height(64.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onExit) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") }
-                Text("文字馆", fontSize = 22.sp, fontWeight = FontWeight.Black)
-                Spacer(Modifier.weight(1f))
-                Text(
-                    if (pager.loading) "正在取数据…" else "${rows.size} 个频道",
-                    color = Muted, fontSize = 12.sp,
-                )
-            }
             Text("一个故事换一屏。", color = White, fontSize = 32.sp, lineHeight = 38.sp, fontWeight = FontWeight.Black)
             FeedError(pager.error, pager::reload)
             if (seedChannel == null) {
@@ -182,29 +195,27 @@ private fun TextHubPicker(
 
 @Composable
 private fun TextArticleList(
-    store: ScreeningFeedStore,
-    hubParam: String,
+    pager: FeedPager,
+    state: LazyListState,
+    seen: MutableSet<String>,
     onBack: () -> Unit,
     onOpenBody: (RemoteEntry) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val pager = remember(hubParam) {
-        FeedPager(scope) { start -> store.textArticles(hubParam, start) }
-    }
-    val state = rememberLazyListState()
-    val seen = remember { mutableSetOf<String>() }
-    LaunchedEffect(pager) { pager.load() }
     LaunchedEffect(state, pager) {
         snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
             .distinctUntilChanged()
             .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
     }
     val rows = pager.items
-    LazyColumn(Modifier.fillMaxSize().safeDrawingPadding(), state = state,
-        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp)) {
+    FeedListShell(
+        pager = pager,
+        state = state,
+        title = "目录",
+        onBack = onBack,
+        detail = feedToolbarDetail(pager.loading, rows.size, "篇"),
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp),
+    ) {
         item {
-            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回频道") }
-            Heading("目录", if (pager.loading) "正在取数据…" else "${rows.size} 篇")
             FeedError(pager.error, pager::reload)
             if (pager.loading && rows.isEmpty()) ListSkeleton(rowHeight = 56.dp)
         }
@@ -230,6 +241,10 @@ private fun TextArticleList(
     }
 }
 
+/**
+ * 正文页。取数失败必须留下日志（id + 原因）再给文案：这一层把异常吞成一句话是排查
+ * 「正文没加载出来」最大的黑洞——服务端到底回了什么，只有 logcat 知道。
+ */
 @Composable
 private fun TextArticleReader(
     store: ScreeningFeedStore,
@@ -240,13 +255,28 @@ private fun TextArticleReader(
     var html by remember(ref.id) { mutableStateOf<String?>(null) }
     var err by remember(ref.id) { mutableStateOf<String?>(null) }
     var loading by remember(ref.id) { mutableStateOf(true) }
-    LaunchedEffect(ref.id) {
+    suspend fun fetch() {
         loading = true
         err = null
-        val body = runCatching { store.textArticleBody(ref.id) }.getOrNull()
+        val result = runCatching { store.textArticleBody(ref.id) }
         loading = false
-        if (body.isNullOrBlank()) err = "正文没加载出来，点重试再试一次" else html = body
+        val failure = result.exceptionOrNull()
+        when {
+            failure != null -> {
+                Log.w(TAG_BODY, "正文取数失败 id=${ref.id} url=${ref.fileUrl}: ${failure.message}", failure)
+                err = friendlyFeedError(failure)
+            }
+            result.getOrNull().isNullOrBlank() -> {
+                Log.w(TAG_BODY, "正文取回为空 id=${ref.id}（服务端回了解析成功的空 file）")
+                err = "这篇服务端没给正文，点重试再试一次"
+            }
+            else -> {
+                html = result.getOrNull()
+                Log.i(TAG_BODY, "正文取回 id=${ref.id} len=${html?.length}")
+            }
+        }
     }
+    LaunchedEffect(ref.id) { fetch() }
     Column(Modifier.fillMaxSize().safeDrawingPadding()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回目录") }
@@ -255,29 +285,56 @@ private fun TextArticleReader(
         }
         when {
             loading -> ListSkeleton(rows = 4, rowHeight = 120.dp)
-            err != null -> FeedError(err, {
-                loading = true
-                err = null
-                retryScope.launch {
-                    val body = runCatching { store.textArticleBody(ref.id) }.getOrNull()
-                    loading = false
-                    if (body.isNullOrBlank()) err = "正文没加载出来，点重试再试一次" else html = body
-                }
-            })
+            err != null -> FeedError(err, { retryScope.launch { fetch() } })
             html != null -> TextHtmlBody(html!!)
         }
     }
 }
+
+private const val TAG_BODY = "ScreeningTextBody"
+
+/**
+ * 正文纸面色：旧文章页是浅色背景图（`boob_bg2`）+ 黑字，不是纯白——深色放映场里
+ * 纯白会刺眼，这里取同一档柔和纸白。CSS 与 Compose 兜底共用这一个值，别漂移。
+ */
+private const val PAPER_RGB = 0xFFFFFDF8
+
+/**
+ * 正文 HTML 的纸面包装——用户点名「背景是黑的，文字也是黑的，全都看不见」。
+ *
+ * 根因：服务端 `item.json` 回的 `file` 是论坛帖子片段（Discuz `t_msgfontfix` 一类的 `<div>`），
+ * 它没带任何颜色声明，天生按白底黑字写。旧文章页
+ * （[com.openapi.feature.content.text.TextItemsFragment] + [com.openapi.common.ui.widget.MyWebView]）
+ * 之所以读得出来：`layout_textitems.xml` 整页是浅色背景图（`boob_bg2`），WebView 透明、
+ * `textColor=base_black`，黑字压在浅底上。放映场整屏深色（Ink），WebView 再透明就是黑字压黑底。
+ *
+ * 修法照旧页的观感来：正文区自带浅色纸面 + 显式字色（不再靠底下那层颜色碰巧是对的），
+ * 顺带把旧 `loadHtmlBody` 的 viewport 与图片自适应一起补齐——帖子内容原样，不加工不删减。
+ */
+internal fun articleBodyHtml(body: String): String =
+    "<html><head>" +
+        "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1," +
+        "minimum-scale=1,maximum-scale=1,user-scalable=no\" />" +
+        "<style>" +
+        "html,body{margin:0;padding:0;background:#FFFDF8;color:#1A1A1A;}" +
+        "body{padding:16px 14px;word-wrap:break-word;word-break:break-word;" +
+        "font-size:17px;line-height:1.7;}" +
+        "img,video,iframe{max-width:100%;height:auto;}" +
+        "a{color:#0B5CAB;}" +
+        "table{max-width:100%;}" +
+        "</style>" +
+        "</head><body>" + body + "</body></html>"
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 private fun TextHtmlBody(html: String) {
     val context = LocalContext.current
     AndroidView(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(Color(PAPER_RGB)),
         factory = {
             WebView(context).apply {
-                setBackgroundColor(0)
+                // 纸面白而不是透明：深色屏幕上透明=黑底，而帖子正文没声明颜色（天生黑字）。
+                setBackgroundColor(PAPER_RGB.toInt())
                 settings.javaScriptEnabled = true
                 settings.allowFileAccess = false
                 settings.domStorageEnabled = true
@@ -285,6 +342,6 @@ private fun TextHtmlBody(html: String) {
                 webViewClient = WebViewClient()
             }
         },
-        update = { it.loadDataWithBaseURL(null, html, "text/html", "utf-8", null) },
+        update = { it.loadDataWithBaseURL(null, articleBodyHtml(html), "text/html", "utf-8", null) },
     )
 }

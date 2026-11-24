@@ -114,4 +114,82 @@ class FeedPagerRetryTest {
         // 首屏只归 load()/reload() 管：loadMore 一枪都不该补，否则就是无限拉取刷屏
         assertEquals(2, starts.size)
     }
+
+    @Test
+    fun `下拉刷新重取第一页，旧内容先留在屏上，成功后才换`() = runTest {
+        val starts = mutableListOf<Int>()
+        val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val pager = FeedPager(this) { start ->
+            starts += start
+            if (starts.size == 1) page(listOf(entry("旧一条")), nextStart = 10)
+            else {
+                // 挂到闸开为止：这样「刷新在路上」才真的可观察（Unconfined 会把不挂起的取数当场跑完）
+                gate.await()
+                page(listOf(entry("新一条"), entry("新二条")), nextStart = 20)
+            }
+        }
+        Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+
+        pager.load()
+        advanceUntilIdle()
+        assertEquals(1, pager.items.size)
+
+        pager.refresh()
+        // 刷新在路上：旧列表不能先清空（清空就是「一进列表页先白一遍」的观感来源）
+        assertEquals(1, pager.items.size)
+        assertEquals("旧一条", pager.items.first().title)
+        assertTrue(pager.loading)
+        assertTrue(pager.refreshing)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+        assertEquals(listOf("新一条", "新二条"), pager.items.map { it.title })
+        assertEquals(2, starts.size)
+        assertFalse(pager.refreshing)
+        // 刷新拿回的新页带着新的翻页游标：翻下一页从新页尾续，不该续旧游标
+        assertTrue(pager.hasMore)
+    }
+
+    @Test
+    fun `刷新失败不清已加载的列表，只报错误`() = runTest {
+        val starts = mutableListOf<Int>()
+        val pager = FeedPager(this) { start ->
+            starts += start
+            if (starts.size == 1) page(listOf(entry("旧一条")), nextStart = 10)
+            else throw IOException("连不上")
+        }
+        Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+
+        pager.load()
+        advanceUntilIdle()
+
+        pager.refresh()
+        advanceUntilIdle()
+
+        // 刷新失败不自动补枪（列表已在屏上），也绝不把已有内容清掉
+        assertEquals(2, starts.size)
+        assertEquals(1, pager.items.size)
+        assertEquals("旧一条", pager.items.first().title)
+        assertTrue(pager.error?.contains("内容没加载出来") == true)
+    }
+
+    @Test
+    fun `返回列表不重新取数：load 只发一次，重复调不再打接口`() = runTest {
+        val starts = mutableListOf<Int>()
+        val pager = FeedPager(this) { start ->
+            starts += start
+            page(listOf(entry("一条")), nextStart = 10)
+        }
+        Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+
+        pager.load()
+        advanceUntilIdle()
+        // 页面组合被转场拆掉又重建（返回列表页）时会再调一次 load()：
+        // 首屏已经取过，这一声必须哑掉——用户点名的「不是进入列表页都要刷新」
+        pager.load()
+        pager.load()
+        advanceUntilIdle()
+
+        assertEquals(1, starts.size)
+    }
 }

@@ -5,10 +5,9 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -36,6 +35,10 @@ import kotlinx.coroutines.isActive
 /**
  * 声音馆：频道列表 → 曲目列表 + 底栏播放器（ExoPlayer）。
  * 接口对齐 SoundChannleBodyFragment / SoundItemsMusicFragment。
+ *
+ * 取数状态挂在转场之上（对齐 [ScreeningGallery]、[ScreeningText]）：退回频道列表
+ * 不重建曲目 pager、不重新取数；重取只由用户下拉触发。播放器也提到这一层——
+ * 从曲目列表退回频道列表不该把正在播的歌掐断（旧页面就是这个行为）。
  */
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
@@ -51,6 +54,30 @@ internal fun ScreeningSound(
         if (hub != null) hub = null else onExit()
     }
 
+    val context = LocalContext.current
+    val hubs = remember(hubChannel) {
+        FeedPager(scope) { start -> store.soundChannelHub(hubChannel ?: "", start) }
+    }
+    val hubParam = hub
+    val tracksPager = remember(hubParam) {
+        FeedPager(scope) { start -> store.soundTracks(hubParam ?: "", start) }
+    }
+    val hubState = rememberLazyListState()
+    val tracksState = rememberLazyListState()
+    val hubSeen = remember { mutableSetOf<String>() }
+    val trackSeen = remember { mutableSetOf<String>() }
+    LaunchedEffect(hubs, hubChannel) { if (hubChannel != null) hubs.load() }
+    LaunchedEffect(tracksPager, hubParam) { if (hubParam != null) tracksPager.load() }
+
+    val tracks = remember(tracksPager.items) {
+        tracksPager.items.mapIndexedNotNull { i, e -> e.soundTrackRef(i) }
+    }
+    var currentIndex by rememberSaveable { mutableIntStateOf(-1) }
+    val player = remember { ExoPlayer.Builder(context).build() }
+    DisposableEffect(player) {
+        onDispose { player.release() }
+    }
+
     val motion = LocalScreeningMotion.current
     val density = androidx.compose.ui.platform.LocalDensity.current
     val slidePx = with(density) { motion.slideDistanceDp().dp.toPx() }
@@ -62,11 +89,23 @@ internal fun ScreeningSound(
             label = "soundLevel",
         ) { level ->
             if (level == 0) {
-                SoundHubPicker(store, hubChannel, onExit) { hub = it }
+                SoundHubPicker(
+                    pager = hubs,
+                    state = hubState,
+                    seen = hubSeen,
+                    seedChannel = hubChannel,
+                    onExit = onExit,
+                    onOpenHub = { hub = it },
+                )
             } else {
                 SoundTrackHub(
-                    store = store,
-                    hubParam = hub ?: return@AnimatedContent,
+                    pager = tracksPager,
+                    state = tracksState,
+                    seen = trackSeen,
+                    tracks = tracks,
+                    player = player,
+                    currentIndex = currentIndex,
+                    onSelect = { currentIndex = it },
                     onBack = { hub = null },
                 )
             }
@@ -91,39 +130,27 @@ internal fun RemoteEntry.soundTrackRef(listIndex: Int): SoundTrackRef? {
 
 @Composable
 private fun SoundHubPicker(
-    store: ScreeningFeedStore,
+    pager: FeedPager,
+    state: LazyListState,
+    seen: MutableSet<String>,
     seedChannel: String?,
     onExit: () -> Unit,
     onOpenHub: (String) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val pager = remember(seedChannel) {
-        FeedPager(scope) { start -> store.soundChannelHub(seedChannel ?: "", start) }
-    }
-    val state = rememberLazyListState()
-    val seen = remember { mutableSetOf<String>() }
-    LaunchedEffect(pager, seedChannel) { if (seedChannel != null) pager.load() }
     LaunchedEffect(state, pager) {
         snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
             .distinctUntilChanged()
             .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
     }
     val rows = pager.items
-    LazyColumn(
-        Modifier.fillMaxSize().safeDrawingPadding(),
+    FeedListShell(
+        pager = pager,
         state = state,
-        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 26.dp),
+        title = "声音馆",
+        onBack = onExit,
+        detail = feedToolbarDetail(pager.loading, rows.size, "个频道"),
     ) {
         item {
-            Row(Modifier.fillMaxWidth().height(64.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onExit) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") }
-                Text("声音馆", fontSize = 22.sp, fontWeight = FontWeight.Black)
-                Spacer(Modifier.weight(1f))
-                Text(
-                    if (pager.loading) "正在取数据…" else "${rows.size} 个频道",
-                    color = Muted, fontSize = 12.sp,
-                )
-            }
             Text("戴上耳机，\n慢慢来。", color = White, fontSize = 32.sp, lineHeight = 38.sp, fontWeight = FontWeight.Black)
             FeedError(pager.error, pager::reload)
             if (seedChannel == null) {
@@ -155,37 +182,25 @@ private fun SoundHubPicker(
     }
 }
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 private fun SoundTrackHub(
-    store: ScreeningFeedStore,
-    hubParam: String,
+    pager: FeedPager,
+    state: LazyListState,
+    seen: MutableSet<String>,
+    tracks: List<SoundTrackRef>,
+    player: ExoPlayer,
+    currentIndex: Int,
+    onSelect: (Int) -> Unit,
     onBack: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val pager = remember(hubParam) {
-        FeedPager(scope) { start -> store.soundTracks(hubParam, start) }
-    }
-    val state = rememberLazyListState()
-    val seen = remember { mutableSetOf<String>() }
-    var currentIndex by rememberSaveable { mutableIntStateOf(-1) }
-    val tracks = remember(pager.items) {
-        pager.items.mapIndexedNotNull { i, e -> e.soundTrackRef(i) }
-    }
-    val player = remember {
-        ExoPlayer.Builder(context).build()
-    }
-    DisposableEffect(player) {
-        onDispose { player.release() }
-    }
     fun playAt(index: Int) {
         val track = tracks.getOrNull(index) ?: return
-        currentIndex = index
+        onSelect(index)
         player.setMediaItem(MediaItem.fromUri(Uri.parse(track.fileUrl)))
         player.prepare()
         player.play()
     }
-    LaunchedEffect(pager) { pager.load() }
     LaunchedEffect(state, pager) {
         snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
             .distinctUntilChanged()
@@ -202,15 +217,18 @@ private fun SoundTrackHub(
         }
     }
     val current = tracks.getOrNull(currentIndex)
-    Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-        LazyColumn(
-            Modifier.weight(1f),
+    // 列表外壳自带安全区；外层 Column 不再垫 insets（会双重），播放条自己贴底。
+    Column(Modifier.fillMaxSize()) {
+        FeedListShell(
+            pager = pager,
             state = state,
+            title = "曲目",
+            onBack = onBack,
+            detail = feedToolbarDetail(pager.loading, tracks.size, "首"),
             contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp),
+            modifier = Modifier.weight(1f).fillMaxWidth(),
         ) {
             item {
-                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回频道") }
-                Heading("曲目", if (pager.loading) "正在取数据…" else "${tracks.size} 首")
                 FeedError(pager.error, pager::reload)
                 if (pager.loading && tracks.isEmpty()) ListSkeleton(rowHeight = 56.dp)
             }
@@ -239,7 +257,9 @@ private fun SoundTrackHub(
             item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
         }
         if (current != null) {
-            Column(Modifier.fillMaxWidth().background(Lift).padding(14.dp)) {
+            // 播放条在壳之外（壳的安全区够不到它）：自己垫导航条，同旧写法——
+            // 以前整页 Column 带 safeDrawingPadding，撤掉包装时这份底部安全区不能丢。
+            Column(Modifier.fillMaxWidth().safeDrawingPadding().background(Lift).padding(14.dp)) {
                 Text(current.title, color = White, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Slider(
                     value = (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f),

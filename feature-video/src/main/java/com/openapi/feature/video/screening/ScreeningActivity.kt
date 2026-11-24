@@ -150,6 +150,12 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
     /** 频道 pager 按分类留档（进内页返回也不丢）；图集 pager 按频道留档，同理。 */
     val channelPagers = remember { mutableStateMapOf<FeedCategory, FeedPager>() }
     val galleryPagers = remember { mutableStateMapOf<String, FeedPager>() }
+    /**
+     * 内页片单 pager 挂在这一层，由 [openChannel] 建好再换页：进播放器退回来、切走再回来，
+     * 片单原样留在屏上，不重新取数——用户点名「不是进入列表页都要刷新」。
+     * 下钻换页（新的 ScreeningChannelPage）才换一份 pager。
+     */
+    var libraryPager by remember { mutableStateOf<Pair<ScreeningChannelPage, FeedPager>?>(null) }
     /** 懒播放地址在路上：点了卡到地址回来之间要有反馈，不能像没点上。 */
     var opening by remember { mutableStateOf(false) }
     val holder = rememberSaveableStateHolder()
@@ -184,7 +190,7 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
             ScreeningPageKind.VIDEO_USER_ITEMS -> entry.actionUrl
             else -> entry.videoChannelKey()
         }
-        channelPage = ScreeningChannelPage(
+        val page = ScreeningChannelPage(
             title = entry.title,
             detail = entry.description,
             coverUrl = entry.imageUrl,
@@ -194,9 +200,31 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
             channelParam = fetchKey,
             // 夜色配置频道卡（hsex_all 这类）进去先列子频道，点一行再下钻片单
             kind = kind,
-            // 片单查不到时给的回网页退路；内部频道卡没有网页，为 null 就不画按钮
+            // 片单查不到时给的回网页退路；内部频道卡没有网页为 null 就不画按钮
             webFallback = entry.webFallbackUrl(),
         )
+        // pager 跟着这一页在这里建（不是建在 AnimatedContent 的分支里）：
+        // 之后从播放器退回内页，换的是 screen 状态，pager 不动——列表原样在，不重新取数。
+        val fetch: suspend (Int) -> ScreeningFeedStore.Page<RemoteEntry> = { start ->
+            when {
+                // 夜色配置频道页：先列子频道（channel.json），点一行再下钻片单
+                fetchKey != null && kind == ScreeningPageKind.SUBCHANNELS ->
+                    store.subchannels(fetchKey, start)
+                fetchKey != null && kind == ScreeningPageKind.VIDEO_USERS ->
+                    store.videoUsers(fetchKey, start)
+                fetchKey != null && kind == ScreeningPageKind.VIDEO_USER_ITEMS ->
+                    store.videoUserItems(fetchKey, start)
+                fetchKey != null -> store.videos(fetchKey, start)
+                // 没有取数键（路由判定下理论上不出现）：诚实空页，不拿随包样片填屏
+                else -> ScreeningFeedStore.Page(emptyList(), null, false)
+            }
+        }
+        // 同键（同一个频道再点一次）复用已加载的那份，不重新取；换频道才新建。
+        val existing = libraryPager
+        val pager = if (existing != null && sameLibraryPage(existing.first, page)) existing.second
+        else FeedPager(feedScope, fetch = fetch)
+        libraryPager = page to pager
+        channelPage = page
     }
     /** http(s) 地址交回原路由（`ConfigActionJump` 按 scheme 分流 WebView）。 */
     val openUrl: (String, String) -> Unit = { url, title ->
@@ -285,28 +313,17 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
                     ScreeningSound(store, target.channelParam) { forward = false; soundHub = false }
                 }
                 is LibraryScreen -> holder.SaveableStateProvider(target.page.title) {
-                    // 真频道的 pager 随这一页建、离开即弃（缓存策略不同）。
-                    // scope 用首页层的 feedScope：退场动画播的同时，在途请求不该被组合拆散牵连取消。
-                    val param = target.page.channelParam
-                    val pagePager = remember(target.page) {
-                        FeedPager(feedScope) { start ->
-                            when {
-                                // 夜色配置频道页：先列子频道（channel.json），点一行再下钻片单
-                                param != null && target.page.kind == ScreeningPageKind.SUBCHANNELS ->
-                                    store.subchannels(param, start)
-                                param != null && target.page.kind == ScreeningPageKind.VIDEO_USERS ->
-                                    store.videoUsers(param, start)
-                                param != null && target.page.kind == ScreeningPageKind.VIDEO_USER_ITEMS ->
-                                    store.videoUserItems(param, start)
-                                param != null -> store.videos(param, start)
-                                // 没有取数键（路由判定下理论上不出现）：诚实空页，不拿随包样片填屏
-                                else -> ScreeningFeedStore.Page(emptyList(), null, false)
-                            }
-                        }
+                    // 片单 pager 由 openChannel 在首页层建好带过来（feedScope 也在首页层）：
+                    // 从播放器退回内页、tab 切走再回来，列表原样在，不重建不重取
+                    //（用户点名「不是进入列表页都要刷新」）。重取只由用户下拉触发。
+                    val pagePager = libraryPager?.second
+                    if (pagePager != null) {
+                        Library(target.page, progress, preferences, pagePager,
+                            back = { forward = false; channelPage = null }, openEntry = openRoute,
+                            onWeb = { url, title -> openUrl(url, title) })
                     }
-                    Library(target.page, progress, preferences, pagePager,
-                        back = { forward = false; channelPage = null }, openEntry = openRoute,
-                        onWeb = { url, title -> openUrl(url, title) })
+                    // libraryPager 与 channelPage 由 openChannel 成对写，为 null 理论上不发生；
+                    // 真发生了就留空屏——不拿空 pager 现建一份去重复打接口。
                 }
                 else -> holder.SaveableStateProvider("channels") {
                     HomeTabs(store, feedScope, homeTab, { homeTab = it },
@@ -633,6 +650,14 @@ private data class PlayScreen(val source: ScreeningSource, val channel: String)
 /** 进度存的键：所有条目（样例和真实）都按 [RemoteEntry.key] 存，一条规则。 */
 private fun progressKey(entryKey: String) = "position:$entryKey"
 
+/**
+ * 「同一张内页」按取数口径判定：取数键和接口种类一致就算同一页。
+ * 再点一次同一个频道卡时复用已加载的 pager——列表原样在，不重新打接口
+ * （用户点名「不是进入列表页都要刷新」）。换频道才新建一份。
+ */
+private fun sameLibraryPage(a: ScreeningChannelPage, b: ScreeningChannelPage): Boolean =
+    a.channelParam == b.channelParam && a.kind == b.kind
+
 /** 续播阈值（用户点名「开头 10+ 秒被跳」）：只瞥了几秒不值得跳过片头，低于它就当没看过，从头播。 */
 private const val RESUME_MIN_MS = 5_000L
 
@@ -652,8 +677,8 @@ internal fun EntryCover(entry: RemoteEntry, modifier: Modifier = Modifier) {
 
 
 /**
- * 频道内页。片单 pager 由调用方注入：真频道页在页面层建、离开即弃
- * （同 [ChannelsFeed] 的 pager 留档理由）。
+ * 频道内页。片单 pager 由调用方注入：pager 挂在首页层（见 openChannel），
+ * 这里只渲染——进播放器退回来列表原样在，不重建不重取。
  */
 @Composable
 private fun Library(
@@ -684,11 +709,16 @@ private fun Library(
     val shown = pager.items.filter { filter != "未观看" || (progress[it.key] ?: 0L) == 0L }
     val resume = pager.items.firstOrNull { (progress[it.key] ?: 0L) > 0L }
     val seen = remember(page) { mutableSetOf<String>() }
-    LazyColumn(Modifier.fillMaxSize(), state = listState,
+    FeedListShell(
+        pager = pager,
+        state = listState,
+        title = page.title,
+        onBack = back,
+        detail = feedToolbarDetail(pager.loading, pager.items.size, "条"),
+        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 9.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 9.dp)) {
+    ) {
         item {
-            IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回频道") }
             // 顶卡 168→148dp：屏小，头部只做到「认出这是哪个频道」就够，高度留给片单
             Box(Modifier.fillMaxWidth().height(148.dp).clip(RoundedCornerShape(12.dp, 22.dp, 12.dp, 12.dp))) {
                 RemoteCover(page.coverUrl, Modifier.matchParentSize())

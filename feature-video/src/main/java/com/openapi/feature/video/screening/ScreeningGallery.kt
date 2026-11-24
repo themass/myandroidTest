@@ -136,18 +136,14 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
             .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
     }
     val shown = pager.items
-    LazyColumn(
-        Modifier.fillMaxSize().safeDrawingPadding(), state = listState,
-        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 26.dp),
+    FeedListShell(
+        pager = pager,
+        state = listState,
+        title = "图集",
+        onBack = onExit,
+        detail = feedToolbarDetail(pager.loading, shown.size, "本"),
     ) {
         item {
-            Row(Modifier.fillMaxWidth().height(64.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onExit) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回频道") }
-                Text("图集", fontSize = 22.sp, fontWeight = FontWeight.Black)
-                Spacer(Modifier.weight(1f))
-                Text(if (pager.loading) "正在取数据…" else "${shown.size} 本",
-                    color = Muted, fontSize = 12.sp)
-            }
             Text("一册一个地方，\n翻到最后一张为止。", color = White, fontSize = 37.sp, lineHeight = 42.sp, fontWeight = FontWeight.Black)
             FeedError(pager.error, pager::reload)
             Spacer(Modifier.height(12.dp))
@@ -200,12 +196,15 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
             .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 9) pager.loadMore() }
     }
     val shots = pager.items
-    LazyColumn(
-        Modifier.fillMaxSize().safeDrawingPadding(), state = state,
+    FeedListShell(
+        pager = pager,
+        state = state,
+        title = book.title,
+        onBack = onBack,
+        detail = feedToolbarDetail(pager.loading, shots.size, "张"),
         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp),
     ) {
         item {
-            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回图集") }
             Box(Modifier.fillMaxWidth().aspectRatio(16f / 11f).clip(RoundedCornerShape(12.dp, 32.dp, 12.dp, 12.dp))) {
                 EntryCover(book, Modifier.matchParentSize())
                 Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink))))
@@ -216,7 +215,6 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
                 }
             }
             FeedError(pager.error, pager::reload)
-            Heading("全部照片", if (pager.loading) "正在取数据…" else "${shots.size} 张")
             // 同列表页：首屏等待只留扫光骨架，不叠第二个转圈
             if (pager.loading && shots.isEmpty()) {
                 ListSkeleton(rows = 2, rowHeight = 120.dp)

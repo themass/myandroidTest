@@ -1,6 +1,9 @@
 package com.openapi.feature.video.screening
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -12,18 +15,33 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +50,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -43,6 +63,76 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+/**
+ * 放映场所有翻页列表的共用外壳（用户点名 2026-11-24：对应旧页面的列表基类）。
+ *
+ * 结构：置顶工具条（返回箭头 + 标题 + 右侧计数）+ 可下拉刷新的列表 + 浮动回顶按钮。
+ * 工具条在滚动容器**外面**，不是列表的第一行——翻很多页之后返回箭头仍在顶上可按
+ * （旧写法把返回行放进 LazyColumn 首 item，滚远了就再也退不出去）。
+ * 回顶按钮只在列表离开顶部后出现（[LazyListState.canScrollBackward]），点击平滑滚回第一行。
+ *
+ * 各列表层只提供标题、右侧计数、列表内容和各自的 contentPadding/间距——
+ * 下拉刷新、回顶、安全区这些行为从此只有一份。
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun FeedListShell(
+    pager: FeedPager,
+    state: LazyListState,
+    title: String,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    /** 工具条右侧计数文案（[feedToolbarDetail]）。 */
+    detail: String = "",
+    contentPadding: PaddingValues = PaddingValues(start = 18.dp, end = 18.dp, bottom = 26.dp),
+    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
+    listContent: LazyListScope.() -> Unit,
+) {
+    val scrollScope = rememberCoroutineScope()
+    // 外层 Box：回顶按钮直接压在列表区之上（BottomEnd），跟 ScreeningGallery 的 lightbox
+    // 同一形状。Column 套 Box 里再放 AnimatedVisibility 会撞 BoxScope/ColumnScope 的接收者解析。
+    Box(modifier.fillMaxSize().safeDrawingPadding()) {
+        Column(Modifier.fillMaxSize()) {
+            Row(
+                Modifier.fillMaxWidth().height(56.dp).background(Ink).padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") }
+                Text(title, Modifier.weight(1f), fontSize = 20.sp, fontWeight = FontWeight.Black,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                if (detail.isNotEmpty()) Text(detail, color = Muted, fontSize = 12.sp)
+            }
+            // 一条比底稍亮的分界线：列表滚到工具条底下时能看清「被吸顶挡住」的边界。
+            Box(Modifier.fillMaxWidth().height(1.dp).background(Lift))
+            PullToRefreshBox(
+                isRefreshing = pager.refreshing,
+                onRefresh = pager::refresh,
+                modifier = Modifier.fillMaxWidth().weight(1f),
+            ) {
+                LazyColumn(
+                    Modifier.fillMaxSize(),
+                    state = state,
+                    contentPadding = contentPadding,
+                    verticalArrangement = verticalArrangement,
+                    content = listContent,
+                )
+            }
+        }
+        AnimatedVisibility(
+            visible = state.canScrollBackward,
+            enter = fadeIn(tween(160)),
+            exit = fadeOut(tween(160)),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(18.dp),
+        ) {
+            SmallFloatingActionButton(
+                onClick = { scrollScope.launch { state.animateScrollToItem(0) } },
+                containerColor = Lift,
+                contentColor = Mint,
+            ) { Icon(Icons.Default.KeyboardArrowUp, "回到顶部") }
+        }
+    }
+}
 
 /**
  * 一页可分页的服务端列表状态：首屏、翻页、失败重试。
@@ -61,6 +151,9 @@ internal class FeedPager(
 ) {
     val items = mutableStateListOf<RemoteEntry>()
     var loading by mutableStateOf(false)
+        private set
+    /** 下拉刷新在路上（[refresh] 置真、取回即假）。[loading] 还盖着翻页，刷新指示只认这个。 */
+    var refreshing by mutableStateOf(false)
         private set
     var hasMore by mutableStateOf(false)
         private set
@@ -96,7 +189,28 @@ internal class FeedPager(
         request(start, append = true)
     }
 
-    private fun request(start: Int, append: Boolean) {
+    /**
+     * 下拉刷新：重取第一页，但不先清屏。
+     *
+     * 用户定的规矩：数据只在他自己下拉时动。刷新路上旧列表原样留在屏上，
+     * 新数据到了才换；失败也保留旧列表、只报错误——用户自己拉的就自动补一次不补，
+     * 那和 [reload]（失败界面上的重试）是两回事。
+     */
+    fun refresh() {
+        if (loading) return
+        requested = true
+        refreshing = true
+        request(0, append = false, retryOnFail = false, keepOnFail = true)
+    }
+
+    private fun request(
+        start: Int,
+        append: Boolean,
+        /** 首屏失败补一枪；翻页、下拉刷新不补（屏上有内容，失败说清楚就够）。 */
+        retryOnFail: Boolean = !append,
+        /** 失败时是否保留屏上已有列表（首屏清场，翻页/刷新保留）。 */
+        keepOnFail: Boolean = append,
+    ) {
         loading = true
         scope.launch(Dispatchers.Main) {
             // 目视验证钩子：`adb shell setprop log.tag.FeedPagerDbg DEBUG` 后每次取数慢 5 秒，
@@ -106,12 +220,13 @@ internal class FeedPager(
                 // 首屏失败自动补一次（短退避）：一次网络抖动不该逼用户去找「重试」按钮；
                 // 只补这一次，再失败就落到 error，不会无限打服务端。
                 // 翻页失败不补——屏上已有列表，保留它、说清失败就够了。
-                if (append) throw cause
+                if (!retryOnFail) throw cause
                 Log.i(TAG, "首屏取数失败，${RETRY_BACKOFF_MS}ms 后自动重试: ${cause.message}")
                 delay(RETRY_BACKOFF_MS)
                 fetch(start)
             }
             loading = false
+            refreshing = false
             page.fold(
                 onSuccess = { data ->
                     if (!append) items.clear()
@@ -124,7 +239,7 @@ internal class FeedPager(
                     // 首屏失败清干净，别让半截列表冒充数据；翻页失败保留已加载的部分。
                     // nextStart 保持 0：空列表时触底判定恒真会反复调 loadMore()，
                     // 由 loadMore 的「空列表且 start==0 直接返回」挡住，首屏只归 load()/reload() 管。
-                    if (!append) { items.clear(); nextStart = 0; hasMore = false }
+                    if (!append && !keepOnFail) { items.clear(); nextStart = 0; hasMore = false }
                     Log.w(TAG, "取数最终失败(append=$append): ${cause.message}")
                     error = friendlyFeedError(cause)
                 },
@@ -139,6 +254,13 @@ internal class FeedPager(
         const val RETRY_BACKOFF_MS = 800L
     }
 }
+
+/**
+ * 工具条右侧计数文案：取数中显示「正在取数据…」，取回后显示 `N 个词`。
+ * 各列表层（频道/篇/首/本/张/条）只差量词，行为一致——放纯函数里钉住，别在八处各写各的。
+ */
+internal fun feedToolbarDetail(loading: Boolean, count: Int, unit: String): String =
+    if (loading) "正在取数据…" else "$count $unit"
 
 /**
  * 取数失败的文案：只说「发生了什么、能做什么」，不印接口细节。
