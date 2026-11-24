@@ -14,12 +14,24 @@ package com.openapi.ks.dh
  * 主线程（buildGlView / release 的调用线程），GL 线程只读不写。
  */
 internal class Live2dNativeOwnership {
+    /**
+     * 可被逐出的宿主：交还归属权时**必须当场停止**继续喂 native 单例的渲染源
+     * （GLSurfaceView/GLThread）。只让旧实例「不拆 native」不够——它的 GL 线程还活着，
+     * 每帧 nativeOnDrawFrame 与新人格互踩同一个进程级单例（两个 EGL 上下文）。
+     */
+    interface Evictable {
+        fun onEvictedFromNativeScene()
+    }
+
     private var owner: Any? = null
 
     /** 登记 [owner] 为 native 场景主人；返回被逐出的前任（无前任返回 null）。 */
     fun claim(owner: Any): Any? {
         val previous = this.owner
         this.owner = owner
+        if (previous != null && previous !== owner) {
+            (previous as? Evictable)?.onEvictedFromNativeScene()
+        }
         return previous
     }
 

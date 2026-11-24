@@ -63,6 +63,34 @@ class Live2dNativeOwnershipTest {
     }
 
     @Test
+    fun `逐出前任时回调前任的 onEvicted（旧 GL 线程必须当场停）`() {
+        // 只让旧实例「不再拆 native」还不够：它的 GLSurfaceView/GLThread 还活着，
+        // 每帧继续 nativeOnDrawFrame 喂同一个进程级单例（第二个 EGL 上下文）。真机上
+        // 这既可能崩（fork v2 的 C++ 守卫只是兜底），也会让新形象画不出来。
+        val o = Live2dNativeOwnership()
+        var evicted = 0
+        val previous = object : Live2dNativeOwnership.Evictable {
+            override fun onEvictedFromNativeScene() { evicted++ }
+        }
+        o.claim(previous)
+        assertEquals(0, evicted)
+        o.claim(Any())
+        assertEquals("旧主人必须被通知停下自己的 GL 线程", 1, evicted)
+    }
+
+    @Test
+    fun `同一实例重复 claim 不触发逐出回调`() {
+        val o = Live2dNativeOwnership()
+        var evicted = 0
+        val a = object : Live2dNativeOwnership.Evictable {
+            override fun onEvictedFromNativeScene() { evicted++ }
+        }
+        o.claim(a)
+        o.claim(a)
+        assertEquals(0, evicted)
+    }
+
+    @Test
     fun `Live2dRuntime 接线：OnStart 前 claim，native 拆除只属于当前主人`() {
         // buildGlView 必须先 claim 再 nativeOnStart（fork v2 的 OnStart 幂等守卫配合），
         // release 里的 nativeOnStop/nativeOnDestroy 必须在归属判定之后——被逐出的旧实例

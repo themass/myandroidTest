@@ -35,7 +35,7 @@ class Live2dRuntime internal constructor(
     private val modelDirName: String,
     private val modelJsonName: String,
     private val viewBuilder: ViewBuilder? = null,
-) {
+) : Live2dNativeOwnership.Evictable {
 
     /** Everything [Live2dRuntime] needs from the outside world; tests inject a fake. */
     internal interface Env {
@@ -256,6 +256,21 @@ class Live2dRuntime internal constructor(
                     }
             }
         }
+    }
+
+    /**
+     * 被后来者接管 native 场景时回调（[Live2dNativeOwnership.claim] 内，主线程）。
+     *
+     * 关键：**当场停掉自己的 GL 线程**。native 场景是进程级单例，旧实例的 GLThread 若继续
+     * 逐帧 nativeOnDrawFrame，就是第二个 EGL 上下文在喂同一个 LAppDelegate/LAppLive2DManager
+     * ——真机上既可能崩（fork v2 的 C++ 空守卫只是兜底），也让新形象「加载成功但画不出人」。
+     * 只把 native 拆除让给新人格是不够的（那是 release 侧的守卫）。
+     */
+    override fun onEvictedFromNativeScene() {
+        if (released) return
+        Log.i(TAG, "evicted from native scene — pausing own GL thread")
+        runCatching { surface?.onPause() }
+        started = false
     }
 
     fun release() {
