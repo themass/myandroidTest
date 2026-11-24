@@ -19,6 +19,28 @@ fun RiveStickerRenderer(resId: Int, placement: StickerPlacementPx, modifier: Mod
     RiveStageRenderer(resId, modifier)
 }
 
+/**
+ * Rive 的 androidx.startup 自动初始化在本 app 被 tools:node="remove" 摘掉（见 APK 合并
+ * manifest），所以 native 注册不会自动发生。构造任何 SDK 对象前必须 ensure 一次，
+ * 否则 JNI 报 "No implementation found for FileAssetLoader.constructor()"（真机踩过）。
+ */
+class RiveRuntimeGate {
+    @Volatile private var done = false
+    @Volatile var failure: String? = null
+        private set
+
+    fun ensure(init: () -> Unit) {
+        if (done) return
+        synchronized(this) {
+            if (done) return
+            runCatching(init).onFailure { failure = it.message ?: it.javaClass.simpleName }
+            done = true // 失败也只试一次，失败原因由调用方展示
+        }
+    }
+}
+
+private val riveGate = RiveRuntimeGate()
+
 /** The official fixtures contain linear animations, supported by this SDK's view API. */
 @Composable
 fun RiveStageRenderer(resId: Int, modifier: Modifier) {
@@ -32,6 +54,8 @@ fun RiveStageRenderer(resId: Int, modifier: Modifier) {
                 // runCatching: the SDK loads a native library at construction. If that ever
                 // fails (or a fixture is corrupt), the Lab shows the reason instead of a blank.
                 runCatching {
+                    riveGate.ensure { app.rive.runtime.kotlin.core.Rive.init(context) }
+                    riveGate.failure?.let { error(it) }
                     RiveAnimationView(context).apply {
                         isOpaque = false
                         // Decorative overlay: never claim avatar/camera touch events.

@@ -3,9 +3,22 @@
 // command 处理 {"type":"cue","name":"pat_head"|"wave"|"connected"}。
 import * as THREE from "three";
 
-const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+// 真机（华为 hwschromium WebView）：canvas 元素整层不参与合成——2D/GL 都一样，
+// getImageData 有内容（blit 成功）但屏幕上不可见；普通 DOM div 可见。
+// 合成路径：WebGL 离屏渲染 → 2D canvas 搬运 → toDataURL 喂给可见的 <img>。
+const glCanvas = document.createElement("canvas");
+const renderer = new THREE.WebGLRenderer({
+  canvas: glCanvas, alpha: true, antialias: true, preserveDrawingBuffer: true,
+});
+const buffer2d = document.createElement("canvas");
+const ctx2d = buffer2d.getContext("2d");
+const shown = document.createElement("img");
+shown.alt = "";
+// 真机判定（四标记实验）：position:fixed 的小 img/canvas 都能合成，唯一不显示的是
+// 普通流里的全尺寸 img —— 把搬运目标钉成 fixed。
+shown.style.cssText = "position:fixed;top:0;left:0;";
+document.body.appendChild(shown);
 renderer.setClearColor(0x000000, 0); // 透明底：叠在数字人/摄像头上，不是盖住它们
-document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
@@ -31,16 +44,23 @@ let cueUntil = 0;
 let cueName = null;
 
 function resize() {
-  const w = window.innerWidth || 1;
-  const h = window.innerHeight || 1;
+  lastW = window.innerWidth; lastH = window.innerHeight;
+  const w = lastW || 1;
+  const h = lastH || 1;
   renderer.setSize(w, h, false);
+  buffer2d.width = w; buffer2d.height = h;
+  shown.style.width = w + "px"; shown.style.height = h + "px";
   const aspect = w / h;
   camera.left = -aspect; camera.right = aspect;
   camera.updateProjectionMatrix();
 }
+let lastW = 0, lastH = 0;
 
 function frame(nowMs) {
   if (!running) return;
+  // Android WebView 在 loadUrl 时往往还没被布局：首帧 innerWidth 是 0，
+  // canvas 只有 1px（真机踩过）。每帧核对窗口尺寸，布局到达后立即重排。
+  if (window.innerWidth !== lastW || window.innerHeight !== lastH) resize();
   const t = nowMs / 1000;
   ring.rotation.z = t * 0.8;
   sweep.position.y = ((t * 0.35) % 1.4) - 0.7;
@@ -55,6 +75,10 @@ function frame(nowMs) {
     ring.scale.setScalar(1.0);
   }
   renderer.render(scene, camera);
+  // GL→2D→img 搬运：这就是本页唯一的合成路径（canvas 元素本身不可见）。
+  ctx2d.clearRect(0, 0, buffer2d.width, buffer2d.height);
+  ctx2d.drawImage(glCanvas, 0, 0);
+  shown.src = buffer2d.toDataURL("image/png");
   rafId = requestAnimationFrame(frame);
 }
 
