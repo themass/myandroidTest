@@ -16,14 +16,14 @@
 
 | Path | Current code evidence | Verification / status |
 | --- | --- | --- |
-| Leave track list for channel picker | `SoundTrackHub` and its subtitle presenter leave composition; the controller belongs to the enclosing `ScreeningSound` route | Code-reviewed contract; subtitle detaches on track hub disposal; **device check BLOCKED**: verify audio continues and captions stop |
+| Leave track list for channel picker | `SoundTrackHub` and its `RealtimeSubtitleRunner` leave composition; the controller belongs to the enclosing `ScreeningSound` route | Code-reviewed contract; subtitle detaches on track hub disposal; **device check BLOCKED**: verify audio continues and captions stop |
 | Dispose the enclosing `ScreeningSound` route while service is alive | Release the `MediaController` client; service player release is only in `onDestroy` | **device check BLOCKED**: start playback, exit the route, confirm notification audio continues, reopen and reconnect |
 | User dismisses the notification | Media3 records dismissal to suppress that notification; no app callback stops playback | **BLOCKED**: verify playback continues, notification stays dismissed, and later notification state follows expected policy |
 | User swipes app task away | Inherited Media3 `onTaskRemoved` stops the service if playback is not ongoing or no session is playing; actively playing session is retained | **BLOCKED**: play audio, swipe task away, verify the documented Media3 branch and notification state on target OS |
 | Natural list end in sequential mode | UI sets no next track; no explicit service stop call | **BLOCKED**: play final track to completion and inspect whether service/notification remains; define expected idle policy |
 | Audio focus loss | No app-level focus-loss policy or test in this service | **BLOCKED**: exercise transient and permanent focus loss, verify pause/resume and notification state |
 | Android reclaims process | Service player is released in `onDestroy`; no recreation/resume persistence is implemented here | **BLOCKED**: background playback under memory pressure, then return and verify whether playback resumes or presents a recoverable idle state |
-| MediaController connection failure | `future.get()` failure becomes `null`, and UI continues showing the connecting state | **OPEN**: add a visible recoverable error/retry path and a test for failure state before treating connection lifecycle as closed |
+| MediaController connection failure | Failed `buildAsync()` completion becomes a visible error state with a retry action; retry creates a new controller attempt. Controller disposal releases only the controller client. `ScreeningAudioConnectionTest` covers connecting, failed, and connected state resolution. | **Code-side PASS**; Android service reconnection and retry behavior still **device check BLOCKED** |
 
 The rows above distinguish code ownership facts from Android/Media3 behavior that needs a verified runtime result. No device installation or playback was performed for this report.
 
@@ -35,9 +35,9 @@ The rows above distinguish code ownership facts from Android/Media3 behavior tha
 
 ## Realtime subtitles
 
-**Implemented:** ScreeningSound exposes a subtitle toggle and reuses the existing realtime Volcengine ASR session (`VideoRealtimeSubtitleSession` plus `StreamingSubtitleOverlayPresenter`). The session reads the active Media3 media URL, falls back to the selected sound track URL, and probes the service-owned player's play state and position. Subtitle overlays detach on track change and when the track screen is disposed.
+**Implemented:** ScreeningSound uses the Compose `RealtimeSubtitleRunner` and `CaptionOverlay`. The reprocessing URL prefers the active Media3 media URL, falls back to the selected track URL, and accepts only HTTP(S) or file paths; unsupported `content://` sources show a clear unavailable state. ASR credentials are checked before starting and the existing missing-credentials toast is shown. A 500 ms progress sampler restarts recognition after `realtimeSeekJumped` detects a seek, using the selected playback speed; pausing is excluded by the helper. The subtitle runner stops on track change and track screen disposal, independently of the service-owned audio player.
 
-**Verification:** `ScreeningSoundSubtitleTest`, full `:feature-video:testDebugUnitTest`, and `:app:assembleChatDebug` passed. This is build/unit-test evidence; no device playback was performed.
+**Verification:** Focused `ScreeningSoundSubtitleTest` and existing `ScreeningRealtimeSubtitleTest` seek coverage passed. Full `:feature-video:testDebugUnitTest` and `:app:assembleChatDebug` remain to be run for this revision. No device playback was performed; runtime subtitle behavior remains **BLOCKED**.
 
 ## Static lyrics
 

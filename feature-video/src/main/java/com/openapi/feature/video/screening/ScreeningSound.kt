@@ -5,7 +5,8 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
-import android.widget.FrameLayout
+import java.net.URI
+import android.os.SystemClock
 import androidx.activity.compose.BackHandler
 import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedContent
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -36,7 +38,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.Player
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.session.MediaController
@@ -47,8 +48,11 @@ import com.openapi.core.favorite.FavoriteUtil
 import com.openapi.common.net.http.NetUtils
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.core.model.RecommendVo
-import com.openapi.speech.subtitle.api.StreamingSubtitleOverlayPresenter
-import com.openapi.speech.subtitle.realtime.VideoRealtimeSubtitleSession
+import com.openapi.common.util.android.ToastUtil
+import com.openapi.speech.asr.VolcengineAsrConfig
+import com.openapi.feature.video.subtitle.style.CaptionOverlay
+import com.openapi.feature.video.subtitle.style.CaptionPosition
+import com.openapi.feature.video.subtitle.style.captionPresets
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.isActive
@@ -110,13 +114,24 @@ internal fun ScreeningSound(
         soundPreferences.edit().putFloat("playback_speed", playbackSpeed).apply()
     }
     var player by remember { mutableStateOf<MediaController?>(null) }
-    DisposableEffect(context) {
+    var playerConnectionFailed by remember { mutableStateOf(false) }
+    var playerConnectionAttempt by remember { mutableIntStateOf(0) }
+    DisposableEffect(context, playerConnectionAttempt) {
+        player = null
+        playerConnectionFailed = false
         val token = SessionToken(context, ComponentName(context, ScreeningAudioService::class.java))
         val future = MediaController.Builder(context, token).buildAsync()
         var disposed = false
         future.addListener(
             {
-                if (!disposed) player = runCatching { future.get() }.getOrNull()
+                if (!disposed) {
+                    val connectedPlayer = runCatching { future.get() }.getOrNull()
+                    if (connectedPlayer == null) {
+                        playerConnectionFailed = true
+                    } else {
+                        player = connectedPlayer
+                    }
+                }
             },
             ContextCompat.getMainExecutor(context),
         )
@@ -153,7 +168,14 @@ internal fun ScreeningSound(
                 val connectedPlayer = player
                 if (connectedPlayer == null) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("正在连接播放器…", color = Muted)
+                        when (soundPlayerConnectionState(hasPlayer = false, failed = playerConnectionFailed)) {
+                            SoundPlayerConnectionState.CONNECTING -> Text("正在连接播放器…", color = Muted)
+                            SoundPlayerConnectionState.FAILED -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("播放器连接失败，请检查网络后重试。", color = Muted)
+                                Button(onClick = { playerConnectionAttempt++ }) { Text("重试") }
+                            }
+                            SoundPlayerConnectionState.CONNECTED -> Unit
+                        }
                     }
                 } else {
                     SoundTrackHub(
@@ -211,6 +233,14 @@ internal fun clampSoundPlaybackSpeed(speed: Float): Float = speed.coerceIn(0.25f
 
 internal const val SOUND_SWITCH_DEFAULT_ENABLED = true
 
+internal enum class SoundPlayerConnectionState { CONNECTING, CONNECTED, FAILED }
+
+internal fun soundPlayerConnectionState(hasPlayer: Boolean, failed: Boolean): SoundPlayerConnectionState = when {
+    hasPlayer -> SoundPlayerConnectionState.CONNECTED
+    failed -> SoundPlayerConnectionState.FAILED
+    else -> SoundPlayerConnectionState.CONNECTING
+}
+
 internal fun shouldPromptForSoundNetwork(
     isWifi: Boolean,
     soundSwitch: Boolean,
@@ -220,6 +250,18 @@ internal fun shouldPromptForSoundNetwork(
 
 internal fun screeningSubtitleMediaUrl(currentMediaUrl: String?, selectedTrackUrl: String?): String =
     currentMediaUrl?.takeIf { it.isNotBlank() } ?: selectedTrackUrl.orEmpty()
+
+internal fun screeningSoundRealtimeUrl(currentMediaUrl: String?, selectedTrackUrl: String?): String? {
+    val candidate = currentMediaUrl?.takeIf { it.isNotBlank() } ?: selectedTrackUrl?.takeIf { it.isNotBlank() }
+        ?: return null
+    val uri = runCatching { URI(candidate) }.getOrNull() ?: return null
+    return when (uri.scheme?.lowercase()) {
+        "http", "https" -> candidate
+        "file" -> candidate.takeIf { uri.path?.startsWith("/") == true }
+        null -> candidate.takeIf { candidate.startsWith("/") }
+        else -> null
+    }
+}
 
 internal fun manualNextSoundTrackIndex(
     mode: SoundPlaybackMode,
@@ -353,34 +395,57 @@ private fun SoundTrackHub(
     val context = LocalContext.current
     var isWifi by remember(context) { mutableStateOf(NetUtils.isWifi(context)) }
     val current = tracks.getOrNull(currentIndex)
-    val subtitleHost = remember(context) { FrameLayout(context) }
-    val subtitleSession = remember(player, subtitleHost, current?.fileUrl) {
-        VideoRealtimeSubtitleSession(
-            context,
-            subtitleHost,
-            {
-                screeningSubtitleMediaUrl(
-                    player.currentMediaItem?.localConfiguration?.uri?.toString(),
-                    current?.fileUrl,
-                )
-            },
-            null,
-            object : VideoRealtimeSubtitleSession.PlaybackProbe {
-                override fun isPlaying(): Boolean = player.isPlaying
-                override fun positionMs(): Long = player.currentPosition.coerceAtLeast(0L)
-            },
-        )
-    }
-    val subtitlePresenter = remember(subtitleSession) {
-        StreamingSubtitleOverlayPresenter().apply { setSession(subtitleSession) }
-    }
-    var subtitlesVisible by remember(subtitlePresenter) { mutableStateOf(false) }
-    LaunchedEffect(current?.fileUrl, subtitlePresenter) {
-        if (subtitlePresenter.isVisible) subtitlePresenter.detach()
+    val subtitleUrl = screeningSoundRealtimeUrl(
+        player.currentMediaItem?.localConfiguration?.uri?.toString(),
+        current?.fileUrl,
+    )
+    val subtitleRunner = remember(context) { RealtimeSubtitleRunner(context) }
+    var subtitlesVisible by remember(subtitleRunner) { mutableStateOf(false) }
+    var subtitleText by remember(subtitleRunner) { mutableStateOf("") }
+    var subtitleStatus by remember(subtitleRunner) { mutableStateOf("") }
+    DisposableEffect(subtitleRunner) { onDispose { subtitleRunner.stop() } }
+    LaunchedEffect(current?.fileUrl, subtitleRunner) {
+        subtitleRunner.stop()
         subtitlesVisible = false
+        subtitleText = ""
+        subtitleStatus = ""
     }
-    DisposableEffect(subtitlePresenter) {
-        onDispose { subtitlePresenter.detach() }
+    LaunchedEffect(subtitlesVisible, subtitleUrl, player, playbackSpeed) {
+        subtitleRunner.stop()
+        if (!subtitlesVisible) return@LaunchedEffect
+        val url = subtitleUrl ?: run {
+            subtitleStatus = "当前片源无法用于实时识别。"
+            return@LaunchedEffect
+        }
+        if (!VolcengineAsrConfig.load(context).isConfigured()) {
+            subtitlesVisible = false
+            ToastUtil.showShort(com.openapi.speech.R.string.volcano_asr_not_configured)
+            return@LaunchedEffect
+        }
+        subtitleRunner.onLoading = { subtitleStatus = "正在连接识别服务…" }
+        subtitleRunner.onText = { subtitleText = it; subtitleStatus = "" }
+        subtitleRunner.onError = { subtitleStatus = "识别失败：$it" }
+        subtitleRunner.onStopped = { if (subtitlesVisible) subtitleStatus = "识别已停止，可以重试。" }
+        subtitleText = ""
+        subtitleStatus = "正在连接识别服务…"
+        subtitleRunner.start(url, player.currentPosition.coerceAtLeast(0L), { player.isPlaying }, { player.currentPosition.coerceAtLeast(0L) })
+        var previousPosition = player.currentPosition.coerceAtLeast(0L)
+        var previousElapsed = SystemClock.elapsedRealtime()
+        try {
+            while (isActive) {
+                delay(500)
+                val position = player.currentPosition.coerceAtLeast(0L)
+                val elapsed = SystemClock.elapsedRealtime()
+                if (realtimeSeekJumped(previousPosition, position, previousElapsed, elapsed, playbackSpeed, player.isPlaying)) {
+                    subtitleText = ""
+                    subtitleRunner.start(url, position, { player.isPlaying }, { player.currentPosition.coerceAtLeast(0L) })
+                }
+                previousPosition = position
+                previousElapsed = elapsed
+            }
+        } finally {
+            subtitleRunner.stop()
+        }
     }
     fun interruptPlaybackForNetwork(wifi: Boolean) {
         isWifi = wifi
@@ -574,10 +639,7 @@ private fun SoundTrackHub(
                             tint = if (isFavorite) Peach else White,
                         )
                     }
-                    TextButton(onClick = {
-                        subtitlePresenter.setPlaybackPositionMs(player.currentPosition.coerceAtLeast(0L))
-                        subtitlesVisible = subtitlePresenter.toggle()
-                    }) {
+                    TextButton(onClick = { subtitlesVisible = !subtitlesVisible }) {
                         Text(if (subtitlesVisible) "字幕中" else "字幕", color = if (subtitlesVisible) Mint else White, fontSize = 12.sp)
                     }
                     IconButton(onClick = { playPreviousManually() }) {
@@ -593,10 +655,23 @@ private fun SoundTrackHub(
             }
         }
         }
-        AndroidView(
-            factory = { subtitleHost.apply { isClickable = false; isFocusable = false } },
-            modifier = Modifier.fillMaxSize(),
-        )
+        if (subtitleText.isNotEmpty()) {
+            val subtitleStyle = captionPresets.first().style
+            CaptionOverlay(
+                subtitleText,
+                subtitleStyle,
+                Modifier.align(
+                    when (subtitleStyle.position) {
+                        CaptionPosition.BOTTOM -> Alignment.BottomCenter
+                        CaptionPosition.MIDDLE -> Alignment.Center
+                        CaptionPosition.TOP -> Alignment.TopCenter
+                    },
+                ).padding(horizontal = 12.dp, vertical = 20.dp),
+            )
+        }
+        if (subtitlesVisible && subtitleStatus.isNotEmpty() && subtitleText.isEmpty()) {
+            Text(subtitleStatus, Modifier.align(Alignment.BottomCenter).padding(16.dp), color = White, fontSize = 12.sp)
+        }
     }
     if (speedDialogOpen) {
         AlertDialog(
