@@ -22,6 +22,11 @@ class StageEffectMapperTest {
         val petals = StageEffectMapper.fromGesture(StageEffectMapper.GESTURE_CONNECTED) as StageEffect.Play
         assertEquals(FxAssets.CONNECTED, petals.assetId)
         assertEquals(StageEffect.Anchor.FULL, petals.anchor)
+
+        // 手指滑动（本地 cue，见 camera-fx CameraSwipeCue）→ 流光横扫
+        val streak = StageEffectMapper.fromGesture("swipe") as StageEffect.Play
+        assertEquals(FxAssets.SWIPE, streak.assetId)
+        assertEquals(StageEffect.Anchor.FULL, streak.anchor)
     }
 
     @Test
@@ -39,6 +44,19 @@ class StageEffectMapperTest {
         assertNull(StageEffectMapper.fromAction("sit_close"))
         assertNull(StageEffectMapper.fromAction("turn"))
         assertNull(StageEffectMapper.fromAction(null))
+    }
+
+    @Test
+    fun everyRegisteredAssetExistsOnDisk() {
+        // 白名单与资产文件必须同步：词表加了 id 但忘放 JSON，运行时永远「加载…」，
+        // 单测先把这层钉住（src/main/assets 从测试工作目录直达）。
+        val assetsDir = java.io.File("src/main/assets/fx")
+        assertTrue("找不到 $assetsDir.absolutePath", assetsDir.isDirectory)
+        for (spec in FxAssets.all) {
+            val f = java.io.File(assetsDir, "${spec.assetId}.json")
+            assertTrue("缺资产：${spec.assetId}", f.isFile)
+            assertTrue("${spec.assetId} 超过 100KB", f.length() <= 100_000L)
+        }
     }
 
     @Test

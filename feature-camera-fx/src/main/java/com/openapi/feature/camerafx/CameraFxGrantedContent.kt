@@ -167,12 +167,20 @@ fun CameraFxGrantedContent(
     // 手势 → 舞台 cue：边沿检测在纯函数层（JVM 钉死），这里只喂帧 + 转发。
     // 选「主手」= 第一个非 NONE 手势的手，都没有则第一只手。
     val gestureEdge = remember { StageGestureEdge() }
+    // 滑动 → 舞台 cue（`swipe`，见 [CameraSwipeCue]）：跟踪器同样是纯函数层，
+    // HUD 要显示最近方向，所以不管有没有舞台联动都喂帧。
+    val swipeTracker = remember { FingerSwipeTracker() }
+    var lastSwipe by remember { mutableStateOf(SwipeDirection.NONE) }
     LaunchedEffect(frame?.seq) {
         val f = frame ?: return@LaunchedEffect
-        if (onStageGesture == null) return@LaunchedEffect
         val primary = f.hands.firstOrNull { it.gesture != HandGestureKind.NONE } ?: f.hands.firstOrNull()
         val cue = gestureEdge.update(primary?.gesture ?: HandGestureKind.NONE)
-        if (cue != null) onStageGesture.invoke(cue)
+        if (cue != null) onStageGesture?.invoke(cue)
+        val dir = swipeTracker.update(f.hands, f.imgW, f.imgH)
+        if (dir != SwipeDirection.NONE) {
+            lastSwipe = dir
+            CameraSwipeCue.stageGestureId(dir)?.let { onStageGesture?.invoke(it) }
+        }
     }
 
     Box(
@@ -326,6 +334,7 @@ fun CameraFxGrantedContent(
                     "fx ${f?.fps?.let { "%.1f fps".format(it) } ?: "--"} · 脸 $faceN · 姿态 $poseN · 手 $handN" +
                         (if (gestures.isNotEmpty()) " · 手势 $gestures" else "") +
                         (if (tilt != null) " · 倾角 %.1f°".format(tilt) else "") +
+                        (if (lastSwipe != SwipeDirection.NONE) " · 滑动 ${lastSwipe.hudLabel()}" else "") +
                         (f?.let { " · ${it.imgW}x${it.imgH}" } ?: ""),
                     color = Color.White,
                     fontSize = 13.sp,
