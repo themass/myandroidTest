@@ -243,7 +243,7 @@ fun ChatRoute(
                                 android.net.Uri.fromFile(file), context.contentResolver,
                             )
                         }
-                        if (bitmap != null) pendingEdit = file to bitmap
+                        if (bitmap != null) pendingEdit = PendingEdit.Draft(file, bitmap)
                     }
                 }
             },
