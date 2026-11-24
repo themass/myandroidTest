@@ -26,6 +26,9 @@ object PhotoSolveError {
     /** 服务端没配置模型。 */
     const val PROVIDER_NOT_CONFIGURED = 50002
 
+    /** 登录凭证缺失或失效。 */
+    const val LOGIN_REQUIRED = 40101
+
     /** 参数错误。 */
     const val BAD_REQUEST = 40000
 
@@ -39,6 +42,7 @@ object PhotoSolveError {
         MODEL_UNAVAILABLE -> "识别服务暂时不可用，请重试"
         PROVIDER_NOT_CONFIGURED -> "解题服务尚未配置好，请稍后再试"
         BAD_REQUEST -> "请求有误，请重试"
+        LOGIN_REQUIRED -> "请登录后再识别图片"
         else -> "识别失败，请重试"
     }
 

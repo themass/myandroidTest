@@ -65,8 +65,8 @@
     <tr>
       <td><b>Live2D</b></td>
       <td><span class="dot g"></span><b>强</b><br>表情/口型参数级,已在线上</td>
-      <td><span class="dot m"></span>中等<br>半身可行,无站姿骨骼</td>
-      <td><span class="dot p"></span>弱<br>平面,无全身/转身</td>
+      <td><span class="dot m"></span>中等<br>可做讲课动作，依赖专门绑定与素材</td>
+      <td><span class="dot p"></span>弱<br>可做全身平面动画；自由 3D 视角受限</td>
       <td>强(4 轴已上线)</td>
       <td>Cubism 专有<br>模板/模型条款待书面确认</td>
       <td class="hide-m"><span class="tag main">主线已上线</span></td>
@@ -77,25 +77,25 @@
       <td><span class="dot g"></span><b>强</b><br>站姿/手势绑骨骼,天然合适</td>
       <td><span class="dot p"></span>弱<br>2D,无纵深转身</td>
       <td>强(skin 合成 spike 已证)</td>
-      <td>Runtime MIT(编辑器素材费另计)</td>
+      <td>Spine Runtime 专有许可<br>须按官方运行库与编辑器条款确认</td>
       <td class="hide-m"><span class="tag test">测试线</span></td>
     </tr>
     <tr>
       <td><b>VRM + three.js</b></td>
       <td><span class="dot g"></span>强<br>blendshape 表情+眨眼+口型</td>
       <td><span class="dot g"></span><b>强</b><br>视线、站姿、手势、转镜全有</td>
-      <td><span class="dot g"></span><b>唯一真 3D</b><br>全身/转身/空间/多机位</td>
+      <td><span class="dot g"></span><b>真 3D</b><br>全身/转身/空间/多机位</td>
       <td>中(节点显隐/材质)</td>
       <td>three.js / three-vrm MIT<br>模型许可单独计</td>
       <td class="hide-m"><span class="tag test">试验田·独立 demo</span></td>
     </tr>
     <tr>
       <td>TalkingHead</td>
-      <td><span class="dot m"></span>中<br>说话头像</td>
+      <td><span class="dot m"></span>真 3D<br>支持全身角色与口型</td>
       <td><span class="dot m"></span>中</td>
-      <td><span class="dot p"></span>弱</td>
-      <td>弱</td>
-      <td>MIT</td>
+      <td><span class="dot g"></span>支持 3D 全身角色</td>
+      <td>依素材与实现</td>
+      <td>MIT；模型条款另计</td>
       <td class="hide-m"><span class="tag ref">在线评估</span></td>
     </tr>
     <tr>
@@ -130,7 +130,7 @@
     <p><b>场景 B 讲课 —— Spine 补测试位,VRM 留作对照。</b>讲课要的是站姿/手势/视线:Spine 骨骼天生适合,换装 skin 合成已 spike 验证;VRM 半身课式(视线+手势+站姿)已在独立 demo 里跑通。两个都值得真机一比。</p>
   </div>
   <div class="card verdict">
-    <p><b>场景 C 全身 —— 只有 VRM/three.js 能干,而且是目前唯一空档。</b>如果"转身、走位、多角度"是产品目标,这是三条路线里唯一能落地的;代价是要投入建模与美术。</p>
+    <p><b>场景 C 全身 —— 优先评估 VRM/three.js。</b>如果"转身、走位、多角度"是产品目标,VRM/three.js 是当前 demo 已跑通的路线，TalkingHead 等也可支持 3D;代价是要投入建模与美术。</p>
   </div>
 </section>
 
@@ -140,8 +140,8 @@
     <ul>
       <li><b>素材不对等:</b>Live2D 用的是精修的产品形象;之前那个 VRM 是 three-vrm 官方的"约束测试模型",不是角色,效果自然差——这是演示配置问题,不是引擎问题。</li>
       <li><b>灯光/构图没做:</b>旧 VRM 演示是平光 + 默认镜头;独立 demo 里补了三点布光、ACES 色调、机位与构图、常驻呼吸/眨眼动画后,同一模型观感完全不同。</li>
-      <li><b>"看一眼就没了"更像链路问题:</b>引擎是实验室门控选择 + 隔离/回退路径,不是引擎渲染失败。真机逐屏排查才能定性。</li>
-      <li><b>three.js 能力是真的强:</b>全局光照、阴影、物理 Camera、多机位、高级着色器都在;上限远高于当前演示,缺的是"把这个模型美术做好"。</li>
+      <li><b>"看一眼就没了"更像链路问题:</b>引擎是实验室门控选择 + 隔离/回退路径,原因尚未确认；不能凭此排除渲染或生命周期故障，需另行取证。</li>
+      <li><b>three.js 能力是真的强:</b>可扩展灯光、阴影、多机位和着色器；完整全局光照并非默认内置效果;上限远高于当前演示,缺的是"把这个模型美术做好"。</li>
     </ul>
     <p class="note">公平比较的做法:同一台真机、同一背景,分"形象表现"与"场景适配"两行分别观察,再叠加生命周期埋点——独立 demo 库的本地场景即为此搭。</p>
   </div>
@@ -152,7 +152,7 @@
   <div class="card">
     <ul>
       <li>已交付:独立 demo 库 <b>avatar-lab</b>(目录覆盖全部调研引擎 + 本地 3 模式场景);一页对比在此。</li>
-      <li>下一步:真机安装 demo,完成 A/B 对照;再就课程页(白板/PPT/讲义)出一个最小可讲原型。</li>
+      <li>已装独立 demo 并核对三种构图，替换为 CC0 HairSample_Female（证据见 docs/evidence/avatar-lab-20261124）;再就课程页(白板/PPT/讲义)出一个最小可讲原型。</li>
       <li>约束:不成立即换主引擎;换装走 wardrobe-spec 抽象;Live2D 生产化需条款书面确认;模型素材涉及许可时先取证。</li>
     </ul>
   </div>
