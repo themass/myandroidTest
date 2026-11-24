@@ -186,15 +186,17 @@
 
 ## A22 · 放映页字幕开关「没效果和反应，勾一直在」
 
-- **现象**：字幕面板点「关闭字幕」（已是绿勾选中态）没有任何反应；面板显示「这个视频服务端没有字幕。」；样式五选（默认/醒目/纯净/顶部/大字走字）与延时档位是否可改未知。
-- **根因**：**取证中**（agent 查 `feature-video/subtitle/` 全目录、`CaptionStyle.kt`/`CaptionView.kt`：选择状态存储、点击接线、服务端无字幕时的兜底语义）。
-- **状态**：**取证中**。
+- **现象**：字幕面板点「关闭字幕」（已是绿勾选中态）没有任何反应；面板显示「这个视频服务端没有字幕。」
+- **根因（取证完成，CONFIRMED）**：全部内联在 `feature-video/.../screening/ScreeningPlayback.kt`。`captionSource` 初始即 0（:148，页面内存不落 prefs），「关闭字幕」项 `selected = captionSource == 0`（:422），onClick 是 `captionSource = 0`——**写入与当前值相同的幂等值，零状态变化**；勾完全由 `selected` 决定（`Setting` :843-855）。服务端无字幕轨（:445 空态文案）、未导入文件、实时识别未开时，面板里唯一「选中」项就是「关」，**不存在任何能「开」的东西**；样式五选只改外观（cue 恒空画面无变化）→ 用户读作「点开关没反应」。不是断线，是**幂等点击+空态无反馈**的交互设计缺陷。
+- **修复**：①已关闭时再点给可见反馈（「字幕本来就是关的；这个视频没有可开的字幕轨」走现有 info/hint 通道）；②空态下不给「关闭字幕」画勾（`selected = captionSource == 0 && 有可选来源`），原因并入 hint。保持 :361/:454/:487 状态机一致。注意勿误改 `prototype/PlayerControlsLayer.kt:81-83` 旧播放页另一套 `subtitleEnabled`（不在放映场路径）。
+- **状态**：**根因已定位 + 派工中**（修复 worker）。
 
 ## A23 · 发弹幕：键盘把输入框挡住，输入完要多步才能点发送
 
-- **现象**：弹幕输入框（placeholder「发个弹幕见证当下」+发送）被软键盘整个盖住；输完文字要先收键盘、再重新点开，才能按「发送」。
-- **根因**：**取证中**（agent 查弹幕输入组件位置、宿主 Activity `windowSoftInputMode`、有无 `imePadding`/`adjustResize`；chat 键盘问题 A1 的同类根因在影视页重演——共性抽象点：**任何贴底输入都必须走同一条 ime 处理**）。
-- **状态**：**取证中**。
+- **现象**：键盘弹出时弹幕输入行（「发个弹幕见证当下」+发送）整个被盖；输完要先收键盘再重新点开才能发送。
+- **根因（取证完成，CONFIRMED）**：宿主 `HomeActivity` 虽 `windowSoftInputMode="adjustResize"`（app manifest:147），但 `enableEdgeToEdge()`（HomeActivity.kt:26）下 Android 11+ **不做经典 resize**，键盘只以 `WindowInsets.ime` 下发、须由 Compose 消费——而 `ScreeningPlayback.kt` **全文件没有任何 ime inset 消费**（grep `WindowInsets.ime`/`imePadding` 零命中；仓库先例只有 `ChatScreen.kt:180`、`CompanionScreen.kt:270`）。影院态根布局 `full` 分支不加任何 insets（:564-565），输入行挂在贴屏底 Column 的 BottomCenter（:719-730）→ 必被盖。信息态有 `safeDrawingPadding` 但内容超视口、无 `bringIntoView`（:776）。放大器：:284-286 自动收 chrome 只看 `danmakuDraft.isEmpty()` 不看键盘，聚焦未打字 3.5s 后输入框整体消失，加重「好几步」。
+- **修复**：Compose 级（唯一有效路径）——影院态 :720 底部 Column 加 `.imePadding()`；信息态 :776 `.imePadding()` 或聚焦 `bringIntoViewRequester`；:284-286 收起条件补「ime 高度==0」门。改 manifest 无收益（edge-to-edge 下 adjustResize 失效）。风险：部分机型 ime inset 含导航栏高度，真机验。
+- **状态**：**根因已定位 + 派工中**（与 A22 同一 worker、同文件不同行区）。
 
 ## A24 · 放映场点后退直接退出 app，应该返回上一个页面
 
