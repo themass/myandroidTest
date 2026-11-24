@@ -121,6 +121,10 @@ internal class ScreeningFeedStore(context: Context) {
     suspend fun albumImages(channelParam: String, start: Int = 0): Page<RemoteEntry> =
         page(Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, channelParam, ""))
 
+    /** Lightbox 翻到尾部续取：旧 ImgItemFragment 以当前图片行的 actionUrl 作为 itemUrl。 */
+    suspend fun imageItemPage(itemUrl: String, start: Int = 0): Page<RemoteEntry> =
+        page(Constants.getUrlWithParam(Constants.API_IMG_ITEM_PAGE_URL, start, itemUrl))
+
     /**
      * 懒播放地址：`needLazyUrl` 的条目要再问一次才拿到真正可播的地址。
      * 与 `VideoShowActivityLazyUrl` 用同一份接口、同一条兜底（问不到就用原 actionUrl）。
