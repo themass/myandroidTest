@@ -171,3 +171,29 @@ internal fun DrawerSectionTitle(@StringRes title: Int) {
  * 打开抽屉只用顶栏菜单按钮；抽屉已打开时仍允许右滑关闭。
  */
 internal fun drawerSwipeEnabled(drawerOpen: Boolean): Boolean = drawerOpen
+
+/**
+ * 首页根层的返回键该做什么（纯函数，HomeBackStepTest 钉住）。
+ *
+ * 用户点名 2026-11-25：「频道首页的后退键还不对，怎么后退就退出 app 了，不是让你改了么」。
+ * A24 那次修的是放映场**内部**各层（screeningBackStep 覆盖 CHANNEL_PAGE/GALLERY/TEXT_HUB/SOUND_HUB）——
+ * 那些层现在都对。但在「频道」标签的根（放映场首页本身）screeningBackStep 返回 NONE、
+ * 处理器 disabled，根上又没有人接 → 穿透到系统默认 → HomeActivity 是 singleTask 任务根 → 退出 app。
+ * 用户在这层按返回的预期是回主标签（对话），不是杀掉 app——底栏应用通行口径：
+ * 只有停在默认标签上再按返回才退出。
+ *
+ * 优先级从外到内：抽屉开着先收抽屉（原行为不变）→「我的」覆盖页开着先关它（此前它没有
+ * 返回键出口，同样会退 app，一并补上）→ 不在对话标签回对话 → 已在对话标签交回系统（正常退出）。
+ */
+internal enum class HomeBackStep { NONE, DRAWER, PROFILE_PAGE, TAB_TO_CHAT }
+
+internal fun homeBackStep(
+    drawerOpen: Boolean,
+    profilePageOpen: Boolean,
+    currentTab: HomeTab,
+): HomeBackStep = when {
+    drawerOpen -> HomeBackStep.DRAWER
+    profilePageOpen -> HomeBackStep.PROFILE_PAGE
+    currentTab != HomeTab.Chat -> HomeBackStep.TAB_TO_CHAT
+    else -> HomeBackStep.NONE
+}
