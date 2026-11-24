@@ -41,6 +41,9 @@ class SimpleDigitalHumanEngine(
 
 /** 注册 Lab 引擎。幂等。三方适配器始终注册；可用性由各引擎 [DigitalHumanEngine.availability] 判定。 */
 object DhLabBootstrap {
+    /** debug 源集注册器的类名（main 只按名字反射，release 里类不存在 = 未编入）。 */
+    const val DEBUG_ENGINE_REGISTRAR = "com.openapi.ks.myapp.dh.DebugDhEngineRegistrar"
+
     @Volatile
     private var done = false
 
@@ -53,6 +56,14 @@ object DhLabBootstrap {
             DhEngineRegistry.register(DhEngineId.LIVE2D) { Live2dDigitalHumanEngine() }
             DhEngineRegistry.register(DhEngineId.TAO_AVATAR) { TaoDigitalHumanEngine() }
             DhEngineRegistry.register(DhEngineId.VRM) { VrmDigitalHumanEngine() }
+            DhEngineRegistry.register(DhEngineId.SPINE) { SpineDigitalHumanEngine() }
+            DhEngineRegistry.register(DhEngineId.TALKING_HEAD) { TalkingHeadDigitalHumanEngine() }
+            // debug 变体的引擎（Rive）不在 main 编译产物里：按类名反射找 debug 注册器；
+            // release 里类不存在 → ClassNotFoundException，静默 = 未编入。
+            // 改注册器类名必须同步 [DEBUG_ENGINE_REGISTRAR]（testDebug 测试钉死）。
+            runCatching {
+                Class.forName(DEBUG_ENGINE_REGISTRAR).getMethod("registerDebugEngines").invoke(null)
+            }
             done = true
         }
     }
