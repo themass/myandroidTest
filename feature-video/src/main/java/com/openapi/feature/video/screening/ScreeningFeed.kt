@@ -29,6 +29,8 @@ internal data class RemoteEntry(
      */
     val param: String? = null,
     val isImageCard: Boolean,
+    /** 服务端条目 id（声音馆歌词按它挂轨）；服务端没下发的条目为 null。 */
+    val serverId: Long? = null,
 )
 
 /**

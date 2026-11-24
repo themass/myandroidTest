@@ -143,9 +143,11 @@ fun DigitalHumanLabHost(
     // 不 key live2dModel：bridge 不 key initial（见下），多造的那个实例没人接管会直接泄漏。
     // 换形象由下面的 LaunchedEffect(live2dModel) 走 replaceWith，与切引擎同一条路径。
     val initial = remember(effectiveEngineId) {
-        val row = DhEngineRegistry.available(context).firstOrNull { it.id == effectiveEngineId }
-        if (row?.available == true) DhEngineRegistry.create(context, effectiveEngineId)
-        else DhEngineRegistry.create(context, DhEngineId.SIMPLE)
+        if (labEngineAvailable(context, effectiveEngineId, live2dModel)) {
+            createLabEngine(context, effectiveEngineId, live2dModel)
+        } else {
+            DhEngineRegistry.create(context, DhEngineId.SIMPLE)
+        }
     }
     val bridge = remember { DigitalHumanBridge(initial) }
     var engine by remember { mutableStateOf(bridge.current()) }
@@ -252,8 +254,7 @@ fun DigitalHumanLabHost(
         watchdog.clear(engineId)
         val target = DhEngineSwapPolicy.target(engineId, previous, watchdog::isQuarantined)
             ?: return@LaunchedEffect
-        val row = DhEngineRegistry.available(context).firstOrNull { it.id == target }
-        if (row?.available != true) return@LaunchedEffect
+        if (!labEngineAvailable(context, target, live2dModel)) return@LaunchedEffect
         swapping = true
         val next = bridge.replaceWith { createLabEngine(context, target, live2dModel) }
         spec?.let { next.bind(it) }
@@ -563,3 +564,19 @@ private fun createLabEngine(context: android.content.Context, id: DhEngineId, li
     } else {
         DhEngineRegistry.create(context, id)
     }
+
+private fun labEngineAvailable(
+    context: android.content.Context,
+    id: DhEngineId,
+    live2dModel: String,
+): Boolean {
+    if (id != DhEngineId.LIVE2D) {
+        return DhEngineRegistry.available(context).firstOrNull { it.id == id }?.available == true
+    }
+    val candidate = Live2dDigitalHumanEngine(initialModelDirName = Live2dModels.sanitize(live2dModel))
+    return try {
+        candidate.availability(context).available
+    } finally {
+        candidate.release()
+    }
+}

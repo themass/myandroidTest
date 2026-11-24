@@ -1,7 +1,7 @@
 package com.openapi.feature.photosolve.presentation
 
 /**
- * 拍照解题的错误码。数值与服务端 errno 一一对应（见 testserverV `PhotoSolveErrno`），
+ * 拍照解题的错误码。agent 的 detail.code 沿用原 testserverV 错误码；
  * **不要改数值**：客户端和服务端/docs 靠这些数字对齐。
  */
 object PhotoSolveError {
