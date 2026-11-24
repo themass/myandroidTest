@@ -41,6 +41,8 @@
     <string name="chatkit_cancel_short">Cancel</string>
     <string name="chatkit_to_text">To text</string>
     <string name="chatkit_editing_banner">Editing message</string>
+    <!-- followup 队列：生成中按发送排队的纯文字条数（回合结束自动续发） -->
+    <string name="chatkit_queued_count">%d queued</string>
     <string name="chatkit_cancel_edit">Cancel edit</string>
     <string name="chatkit_sent">Sent</string>
     <string name="chatkit_answer_again">Answer again</string>
