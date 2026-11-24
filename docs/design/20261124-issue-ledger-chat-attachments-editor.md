@@ -66,33 +66,33 @@
 
 - **根因**：`feature-chat/.../ui/ChatRoute.kt:92-96` 刻意分流——`uris.first()` 带 `openEditor` 进编辑，`drop(1)` 直接进草稿（注释写「避免一次弹多个编辑器」）。相册与拍照本来就是两个 launcher（相册 `PickMultipleVisualMedia` :88-89，拍照 `TakePicture` :108-115）。
 - **修复**：相册路径两处合一、调 `onImagesPicked(context, uris)` **不传 openEditor**；拍照路径不动（「拍照才进编辑器」已成立）。接缝 `SendActions.imagesPicked(... openEditor: ((File,Bitmap)->Unit)?)`（`SendActions.kt:184-222`）已支持为空。
-- **状态**：**已修，待提交**（附件 UX worker 完成：相册多选不再直接进编辑器、草稿缩略图可点开大图、消息大图浮动「编辑」按钮进编辑页、编辑结果作为新草稿再入、编辑保存本地相册带 toast、单次选择上限 4）。文件区与回合状态机 worker 重叠，待其收口后复验提交；陪同侧上限仍是 9 需同步（见 A12）。
+- **状态**：**已修合线（843213b5）**：相册多选不再直接进编辑器、草稿缩略图点开大图（A9）、消息大图浮动「编辑」（A10）、编辑结果作新草稿再入、保存相册带 toast（A11）、选择上限 4（A12）。并线树 `:feature-chat` 265 测 0 失败（20261125 fresh 复跑，--rerun-tasks）。陪同侧上限仍是 9 需同步（见 A12 残留）。
 
 ## A9 · 选完图在输入框里无法点击看大图
 
 - **根因**：`chatkit/.../input/ComposerPanels.kt:56-157` 的 `DraftTray`，图片分支只有裸 `AsyncImage`（:66-73），全文件可点的只有删除 ×（:162）和「+」面板项（:193）。
 - **修复**：图片草稿缩略图加点击 → 复用现成全屏查看器 `chatkit/.../media/ImageViewer.kt:51-96`（Dialog 全屏 + HorizontalPager + 缩放/双击），sources = 当前全部图片草稿、startIndex = 被点那张；开关状态收在 chatkit 内部（不往 `ChatScreen` 加参数）。
 - **共性/抽象点**：**「大图查看器」必须是一个组件，被草稿托盘和消息气泡共用**（见 A10、A15）。抽象点：`ImageViewer(sources, startIndex, onDismiss, onEdit?, …)` 单一入口，调用方只提供数据与动作。
-- **状态**：**已修，待提交**（同上附件 UX worker，随批复验提交）。
+- **状态**：**已修合线（843213b5）**：同上——草稿缩略图 `combinedClickable(onClick=看大图, onLongClick=再编辑)` 收口在 ComposerPanels 一处（合并冲突按「两者都留」解）。
 
 ## A10 · 消息大图上浮动「编辑」按钮，点击再进编辑页
 
 - **根因**：查看器就是 `ImageViewer`（由 `ImageGrid` 调起，`chatkit/.../message/parts/MessageParts.kt:316,348-362`），但它只有 `onDismiss/onLongPress/onRetry`（`ImageViewer.kt:54-58`），没有动作槽；编辑机器 `pendingEdit` + `PhotoEditor` + `replaceDraftImage`（`ChatRoute.kt:80,300-327`）只对草稿里的 `File` 生效，已发送消息没有 draft。
 - **修复**：`ImageViewer` 加可选 `onEdit: ((String)->Unit)?`，非空时底部居中浮「编辑」按钮；`ImageGrid` 透传；`ChatRoute` 把该图解码进 `pendingEdit` 复用现有编辑流，**编辑结果作为新草稿附件加入输入框（`composer.addDraft`），不回写已发送消息**——已发送消息没有本地覆盖文件，硬造覆盖语义会腐化历史记录（这是本次的产品决策，代码里要写注释）。
-- **状态**：**已修，待提交**（同上附件 UX worker，随批复验提交）。
+- **状态**：**已修合线（843213b5）**：同上——大图浮动编辑按钮走 `PendingEdit.Message/Draft` 封闭类型；合并批把 ChatRoute 长按再编辑也统一改走 Draft。
 
 ## A11 · 编辑完保存到本地相册
 
 - **根因**：功能已有但接错地方——`AttachmentActions.saveToPictures`（`feature-chat/.../ui/AttachmentActions.kt:133-156`，MediaStore insert + `DIRECTORY_PICTURES` + IS_PENDING 两段式）是 **private**，只有长按图片菜单的 `Download` 动作能用；编辑产物 `PhotoEditExporter.export`（`mediaview/.../edit/PhotoEditExporter.kt:70-103`）返回 `Uri.fromFile(File(cacheDir,"photo_edit/..."))`，在 `ChatRoute.kt:307-324` 导出后没有任何保存入口。权限无忧：minSdk 28 / targetSdk 37，scoped storage，清单刻意不声明写权限（`app/src/main/AndroidManifest.xml:32-37`）。
 - **修复**：把保存提成可复用（`saveEditedImageToGallery(context, uri)` 走 `localImageFile` 本地分支 :121-130），编辑导出成功后提供「保存到相册」，成功/失败都要有可见反馈；`Build.VERSION < Q` 分支给可读提示（现有实现直接返回 null）。
-- **状态**：**已修，待提交**（同上附件 UX worker，随批复验提交）。
+- **状态**：**已修合线（843213b5）**：同上——`saveEditedImageToGallery` + toast。
 
 ## A12 · 图片消息限制最多 4 张
 
 - **根因/现状**：当前硬上限是 **9**（`common/.../media/ImageMessageLimits.kt:19` `MAX_MESSAGE_IMAGES`，注释说明与服务端 `MAX_MESSAGE_ATTACHMENTS` 同源）。三道闸：选择器 `ChatRoute.kt:89 maxItems`、草稿暂存 `ComposerActions.addDraft`（`ComposerActions.kt:57-62`，超限由 `SendActions.imagesPicked:199-208` 停止并报 `attachmentLimitReached`）、发送处无独立闸。用户看到的「4」只是气泡排布决策表（`MessageParts.kt:96-103` `count <= 4 -> Stack`），不是数量限制。
 - **修复**：**不动服务端锚定值 9**；新增产品上限常量（`MAX_IMAGES_PER_PICK = 4`）+ 注释区分「服务端传输 9 / 产品 4」，用它替换 `ChatRoute.kt:89` 的 `maxItems`，并让 `addDraft` 的闸用产品上限。陪伴页同一套（`CompanionViewModel.kt:1078,176-179`、`CompanionScreen.kt:178-179`）需同步，已在 worker brief 里标注为待协调项。
 - **共性/抽象点**：**「上限」分两层：协议上限（与服务端同源，改一处要同步服务端）与产品上限（客户端体验决策）**，必须两个常量两个注释，不能靠同一个数字兜两边。
-- **状态**：**已修，待提交**（附件 UX worker）：`ImageMessageLimits.MAX_IMAGES_PER_MESSAGE_PICK = 4` 产品值与服务端 9 分层各自注释锚定（抽象点 7）。**残留：陪同侧仍是 9（`CompanionViewModel.kt:1078`、`CompanionScreen.kt:179`），需同步成 4，随下一批。**
+- **状态**：**已修合线（843213b5）**：`MAX_IMAGES_PER_MESSAGE_PICK=4` 产品值与服务端 9 分层锚定。**残留未修：陪同侧仍是 9（`CompanionViewModel.kt`、`CompanionScreen.kt`），待同步成 4。**
 
 ## A13 · 图片消息里多张图片，服务端只看了一张就乱回
 
@@ -114,7 +114,7 @@
   另外：服务端 `interrupted` 布尔被解析（`AgentChatRemote.kt:411`）却在 `AgentVoMappers.toChatMessage():36-46` **被丢弃**，历史里被服务端标中断的回复端上与普通回复无差别。
 - **修复**：①**SSE 帧间看门狗**——事件流 `readTimeout(0)`（`AgentChatRemote.kt:55-57`）等于永不超时，服务端 15s 心跳在 :269 被直接 `continue`，「连接活着但 LLM 不出字」= 永远挂在 collect；看门狗判定「超过 N 个心跳周期无内容帧」即走现有失败收尾 + 明确文案（文案走 `ChatStrings` 端口，不硬编码）。②`interrupted` 并入 `ChatMessage` 并在 mapper 保留。
 - **共性/抽象点**：**任何「等待远端事件」的循环都必须有超时兜底**，不能假设「真断开时框架会报错」（OkHttp 只在 reset 时报，静默不报）。
-- **状态**：**派工中**（回合状态机 worker abeaf611 在途，文件区独占；其早前自跑 `:feature-chat` 测试 2/0 + assembleDebug 绿，收口后随批复验提交）。
+- **状态**：**已修合线（843213b5）**：帧间看门狗 45s（`TurnEventCollector`+`CODE_TURN_TIMEOUT`）+ 停止走服务端真取消（`ChatRepository.cancelTurn`）+ 409 冲突恢复（`TurnConflictRecovery` 取消一次重试一次）。并线树 fresh 复跑：`TurnWatchdogTest` 4/4、`TurnConflictRecoveryTest` 4/4。真机「中断太常见」复发率未复测——用户如果还看到频繁「（回复被中断）」，多半是服务端那条旧 jar 混跑线（A30 同因），要按回合现场取证。
 
 ## A15 · 文件消息必失败 + 输入框里的文件不能点击查看
 
@@ -133,7 +133,7 @@
   2. **数据层重复（取证新增，是真「两条」的来源）**：用户侧「图片+文字 = 1 记录 1 气泡」已逐环节证实（`SendActions.kt:62-98` 一个 `ChatMessage`；`ChatItemMapper.kt:25-78` 一个 `ChatItem`；`ChatMessageItem.kt:246-335` 同一行堆叠 parts）。但**助手侧会真的出现两条**：每轮 `persistTurn` 写一行 `local-assistant-<millis>`（`AgentBackedChatRepository.kt:242-249`，id 每次现取时间戳），服务端历史里同一条回复带**自己的** assistant id，而 `client_message_id` 只在用户行上（`AgentVoMappers.kt:45`）；`LocalChatStore.cacheRemote` 对齐只认 `chatId == 服务端 id 或 client_message_id`（`LocalChatStore.kt:138-144`），本地助手行两个都不匹配 → 服务端行另存一行；且 `deleteSessionTextOnly` 的 SQL 排除 `local-%`（`ChatLogDao.java:44-48`），整页刷新清不掉 → 切会话/离线回退缓存时本地+服务端助手行并存，chatkit 给每条已完成助手消息挂一排 footer 芯片（`ChatMessageItem.kt:182-188`）→「两条 AI 气泡各有一排 action」。刷新后消失、切会话又出现，与用户观察吻合。
 - **修复**：布局层——同一消息的附件块与文字块**共用一个气泡容器**（同底色同圆角，内部用分隔线而不是两个气泡）；有附件时收紧块间距；用户侧与助手侧都要成立。数据层——`persistTurn` 的助手行改用可与服务端对齐的键（done 帧返回的 assistant id 落 `ChatLog.chatId`，或 `cacheRemote` 对 `local-assistant-*` 按 turn 匹配消除）；这是数据层改动，与 A19 tombstone 同区。
 - **共性/抽象点**：**「一条消息 = 一个视觉容器」**是渲染不变量；任何新增 part 都往同一个气泡里加。**以及：本地写入的每一行都必须有可与服务端对账的键**——时间戳 id 的行在历史合并时必然复活成重复（与 A19 tombstone 是同一「本地/服务端对账层」缺失的两面）。
-- **状态**：布局层 **派工中**（附件 UX worker）；数据层重复 **待派工**（feature-chat data/**，与状态机 worker 同区，待其收口后合并处理）。
+- **状态**：布局层 **已修合线（843213b5）**（`MessageParts`「一条消息=一个气泡容器」不变量）。**数据层重复仍待派工**（feature-chat data/**）。
 
 ## A17 · 很容易「死机」：那边失败这边发不出新消息，点停止也不好使
 
@@ -143,21 +143,21 @@
   3. **sending 卡住时**（A14 的静默回合）：新输入被静默塞进 `queued`（A2 语义），而队列只在回合自然结束时排空 → 静默回合永不结束 → 队列永不出、界面「发了没反应」；`HistoryActions.loadOlder:33` 也被 `sending` 静默挡掉。
 - **修复**：①`ReplyStreamer.cancel()` fire-and-forget 调服务端 cancel；②submit 得 409 时先 cancel 再重试一次，仍失败给明确文案；③`attachmentJob` 赋值前取消旧句柄（或结构化并发）；④看门狗（A14）保证 sending 不会永远 true。
 - **共性/抽象点（用户说的「架构层面彻底解决」最典型的一条）**：**「回合进行中」现在有三份互不知晓的真相**——`ReplyStreamer.replyJob`（UI）、`ChatViewModel.attachmentJob`（UI，可被覆盖）、`MigrationGuard.busy`（仓库进程级，`AgentBackedChatRepository.kt:458-470`），外加服务端自己认为的回合状态端上完全不知道。读侧另有 4 个独立 `sending` 闸（`SendActions.kt:45,103,132,192`、`HistoryActions.kt:33`、`ResendActions.kt:26,44`）。**抽象点：`ChatTurnGate`**——单一可测的小类型，输入当前状态，输出 allowSend / allowLoadOlder / allowResend + 被挡原因；各调用点改为读它。写侧（谁写 sending/streaming）保持不动但集中注释清楚边界。本次只做最小收口，不做回合重写。
-- **状态**：**派工中**（回合状态机 worker abeaf611 在途，文件区独占；其早前自跑 `:feature-chat` 测试 2/0 + assembleDebug 绿，收口后随批复验提交）。
+- **状态**：**已修合线（843213b5）**：`ChatTurnGate` 读侧收口（决策表 `TurnGateTest` 7/7 fresh 绿）+ `attachmentJob` 句柄孤儿修 + 看门狗解「sending 卡死发不出」。
 
 ## A18 · 头顶「加载更早的消息」按钮常驻，下拉加载更多应是默认功能
 
 - **根因**：按钮条件只有 `state.hasMoreHistory`（`ChatScreen.kt:190-199`），而 hasMore 是「这页被填满(30)就当作还有」的粗近似（`AgentChatRemote.kt:110-122` 注释明说故意的），与滚动位置无关 → 几乎永远挂在顶栏。列表是普通 `LazyColumn`（`ChatMessageList.kt:231-283`，无 reverseLayout），**整个 chatkit 没有触顶判定**（三个滚动效果只服务贴底 :188-228）。加载逻辑在 `HistoryActions.loadOlder:31-51`，`sending` 时还静默 no-op（:33）。
 - **修复**：去掉常驻 TextButton；在 `ChatMessageList` 加「滚到顶自动加载」（用 `firstVisibleItemIndex`/`canScrollBackward`，加载中不重复触发，且与 `programmaticScroll` 配合——程序滚动不得触发加载）；`loadingOlder` 时列表顶部显示小进度指示。现成下拉件 `PullToRefreshBox`（`core/.../legacyui/list/ListShell.kt:189`；`ChannelBodyScreen.kt:115-117`、`FeedbackActivity.kt:280` 在用）作为备选，但 chat 列表贴底逻辑复杂，优先做触顶自动加载。`loadOlder` 的 `sending` 静默 no-op 放开（读操作与发送无关）。
 - **共性/抽象点**：**「还有更多」的判定要尽量精确化**：服务端应返回真实 hasMore（游标/总数），客户端「填满即当作还有」是权宜；至少在 UI 层把「有没有更多」与「用户滚到哪」两个概念分开。
-- **状态**：**派工中**（回合状态机 worker abeaf611 在途，文件区独占；其早前自跑 `:feature-chat` 测试 2/0 + assembleDebug 绿，收口后随批复验提交）。
+- **状态**：**已修合线（843213b5）**：常驻按钮删除，滚到顶自动加载（`shouldLoadOlderAtTop` 边沿触发；加载更早不再被 sending 静默吞）。`TopReachLoadOlderTest` 5/5 fresh 绿。真机滚顶加载未复测。
 
 ## A19 · 多选删除没有立刻在消息列表体现，应该立刻成功、后台异步删服务端
 
 - **根因**：`MessageRemoval`（`feature-chat/.../presentation/MessageRemoval.kt`）严格「服务端确认成功后才从 UI 移除」：`deleteMany:44-68` 逐条**串行** `deleteOnServer`（:49-56），全部跑完才一次性过滤（:57），再 `reconcile()`（:59 = `ChatViewModel.fallbackReloadMessages:276-292`）；`deleteOne:30-42` 同样。无逐条进度，失败也不回滚（因为从未前滚）。另有一处**契约矛盾**：确认框文案说「只会从本机移除，服务器不受影响」（`values-zh/strings.xml:15`），代码实际先删服务端（:27,36）。
 - **修复（乐观更新，正是用户要的产品语义）**：先立即从 `state.messages` 移除并落本地缓存 → 后台删服务端 → 失败则把条目放回**原位** + 报错误条（复用 `state.error`/`ChatErrorBar`）。多选点了立刻消失，服务端可并行。文案改成与代码一致（确实删服务端），选「诚实」而不是「假装只删本机」。竞态防护：删除过程中来了历史同步不能复活已乐观删除的条目——加「待删除 id」集合挡复活。
 - **共性/抽象点**：**乐观更新（local-first + 失败回滚 + 防复活）是本项目缺的一层**。「先等服务端再改 UI」的模式在删除、重命名、收藏等处会反复出现同样的「点了没反应」。抽象点：一个小的 optimistic mutation helper（快照 → 应用 → 失败回滚 → 错误上报），配合 reconcile 侧的 tombstone 集合。本次只在删除上落这个模式，其他调用点列为后续。
-- **状态**：**派工中**（回合状态机 worker abeaf611 在途，文件区独占；其早前自跑 `:feature-chat` 测试 2/0 + assembleDebug 绿，收口后随批复验提交）。
+- **状态**：**已修合线（843213b5）**：乐观删除 `removeOptimistically` + `PendingDeletions` tombstone 三道防复活。`MessageRemovalTest` 10/10 fresh 绿。
 
 ## A20 · chat 页首屏消息显示特别慢（用户追问：不是本地分页展示么？）
 
@@ -212,7 +212,7 @@
 - **根因（取证完成，CONFIRMED×2 + PLAUSIBLE×2）**：分流在 `feature-content/.../TextChannelListFragment.java:82`——条目 `fileUrl` 以 `.html` 结尾就走 `TextItemsWebViewFragment` 直接 `loadUrl(vo.fileUrl)`（:113-121），加载的是**整站文章页**（含站点自有页头、点赞/转发/收藏、自带滑出菜单——截图里的站点 chrome 都是远端页面画的）；「原来的设计」= `TextItemsFragment` 走 `/text/item.json` 取正文再 `MyWebView.loadHtmlBody`（`common/.../MyWebView.java:96-114`，纯净 body、无站点 chrome）。①CONFIRMED 渲染对象是整站页面非正文；②CONFIRMED 每次进页新建 WebView + 离页 destroy（无池化/复用，首帧白屏成本源）；③PLAUSIBLE 透明 WebView(`setBackgroundColor(0)`) + Compose 背景拉伸图合成开销；④PLAUSIBLE 无缓存策略/图片不降采样。Compose 化本身不是主因（`05d38cc0` 前后 WebView 设置逐项一致）。放映场同分流在 `ScreeningText.kt:90-94`。
 - **修复方向**：首选对齐旧设计——有 id 的文章条目改走 item.json 正文渲染；次选 WebView 池化 + 实色背景。顺带发现：`settings.setAllowFileAccess(false)`(:157) 与收藏夹 `file://` 离线页(`FavoriteFragment.java:96`)疑似互斥，修复时一并验证。
 - **B6 关联（重要反转）**：用户截图里「右滑弹出的分类抽屉」（头条号/微头条/热点…）**不是本 app 控件**——全仓源码+全部 git 历史搜不到这些字符串；它是 WebView 里远端文章页自带的 JS 菜单，与 A25 根因①同源。A26（首页原生抽屉手势）修复不受影响；文章页右滑=返回的载体 `SlidingLayout`（左缘 250px）本来就有，页面中部右滑被远端页面吃掉——A25 改走正文后该抽屉自然消失；另 `SlidingLayout.java:86` 拦截只比单增量 |dx|>|dy| 无 touch slop，上下滑抖动可误触，修复时补阈值。
-- **状态**：**根因已定位 + 派工中**（worker a0094965：正文条目改走 item.json 正文渲染、`SlidingLayout` 左缘拦截补 touch slop 阈值）。
+- **状态**：**已修合线（0f30155d）**：文章 `.html` 条目改走 `GET /text/item.json?id=` + `loadHtmlBody`（旧设计），失败回退整页 loadUrl；`setAllowFileAccess` 按 URL 逐次开关（解收藏离线互斥）；B6 左缘返回手势收 24dp 区 + 累计位移 + touch slop（`SlidingLayout.isEdgeSwipeGesture` 纯函数 5 例钉住）。WebView 池化未做（开放项）。真机「还卡不卡」未复测。
 
 ## A29 · 三馆页首行大字丑/硬折行/无用文字（用户 20261125）
 
@@ -264,6 +264,14 @@
 - **根因（探针实测，CONFIRMED）**：不是接口也不是服务端问题——`/sound/channel.json` 返回 30 行（errno 0，行字段=title/img/rate/id/param/baseurl，**没有 actionUrl**），被放映场共享 `page()` 的「空地址行丢掉」规则全量过滤。用 `param` 探 `items.json` 回 30 条 mp3 正常。抽象问题：**共享的行过滤器用「有没有 actionUrl」当通用身份判据，而不同协议族的身份键不同**（声音=param、图集=imageListKey、文字=textListKey）。
 - **修复（旁线 commit `cf758851`，分支 claude/optimistic-pike-092514）**：`soundChannelHub` 走专用 `soundHubEntry`，以 `param` 为身份；通用 `page()` 规则不动；新增测试钉住；`feature-video` 全套 0 失败。
 - **状态**：**已修（旁线），待并线复验**。装机验证按单写者规矩：APK 从主线 tip 现场 assemble，走夜色 →「好听的音乐」卡 → 声音馆应列出频道。
+
+## A32 · ADY-AL00 真机原生崩溃：Live2D 引擎 GLThread SIGSEGV（验证轮取证 20261125）
+
+- **现象**：真机走查 chat 页时 app 整个退出到桌面。crash buffer 取证：`signal 11 (SIGSEGV) SEGV_MAPERR fault addr 0xb8`，线程 `GLThread`，栈顶全在 `files/dh-engines/live2d/native-libs/arm64-v8a/libchatwaifu-live2d.so`（4 层 native 内部），Java 侧入口 `Live2dRuntime$buildGlView$view$1$1.onDrawFrame` → `JniBridgeJava.nativeOnDrawFrame`。
+- **定性**：数字人 Live2D 运行时 native 层空指针（native so 内部，非本仓 Kotlin/Java 代码栈帧）。发生在聊天页渲染数字人形象期间。**不是本轮 chat 修复引入**（崩溃栈无 chat 线改动文件），属数字人引擎线（dh live2d runtime）。
+- **状态**：**新立，待派工（数字人线）**。复现线索：ADY-AL00、聊天页带 Live2D 形象、切页/退出时机可疑（0xb8 ≈ 对象已释放后继续 onDrawFrame —— GLSurfaceView 销毁与 native 模型释放顺序竞态是常见根因，需引擎线取证）。
+
+---
 
 ## 架构抽象点汇总（共性问题一次解决）
 
