@@ -13,5 +13,6 @@
     <string name="drawer_group_test">Test</string>
     <string name="drawer_group_lab">Lab</string>
     <string name="drawer_entry_camera_fx">Camera face/pose demo</string>
+    <string name="drawer_entry_teaching_demo">Companion teaching demo (local)</string>
     <string name="home_tab_agent_chat">Role chat (new)</string>
 </resources>

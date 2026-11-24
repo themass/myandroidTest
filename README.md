@@ -40,6 +40,7 @@ AI 对话与视频类 Android 应用。对话页、角色目录、拍照解题�
 ## 文档
 
 - [`docs/roles-and-chat-design.md`](docs/roles-and-chat-design.md)：角色目录与对话页的设计。
+- [`docs/design/companion-teaching-demo/README.md`](docs/design/companion-teaching-demo/README.md)：仅 debug 包可见的陪伴教学 Demo 启动与边界说明。
 
 ## 还没迁移的部分
 
