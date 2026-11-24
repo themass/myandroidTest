@@ -26,6 +26,10 @@ The workspace browser launch configuration is `photo-editor-design`. `npm run bu
 - Snapshot undo/redo, selectable history rows and original-image restoration. Editing a restored history entry discards the later redo branch. Cmd/Ctrl-Z and Shift-Cmd/Ctrl-Z work outside text inputs.
 - Export generates a local PNG download without selection guides. The coast image is original artwork drawn procedurally in the browser; it has no network dependencies.
 
+## Native Android port
+
+For a source-backed migration plan aligned with the current `:mediaview` implementation, see [`docs/design/photo-editor-native-port-20261124.md`](../../docs/design/photo-editor-native-port-20261124.md). The short mapping below is an overview; the browser prototype itself is not the Android implementation.
+
 ## Compose mapping
 
 | Prototype | Proposed Compose mapping |
