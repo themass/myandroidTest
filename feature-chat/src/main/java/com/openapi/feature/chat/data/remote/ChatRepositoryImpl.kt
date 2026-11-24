@@ -127,6 +127,14 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
     /** 旧 Java 服务端没有「清空会话消息」接口，清空走 MessageRemoval 的逐条删除回退路径。 */
     override suspend fun clearHistory(sessionId: Long): Boolean = false
 
+    /**
+     * 旧 Java 后端（`/chat/...`）没有「取消回合」接口，这里给 no-op。
+     *
+     * 调用方（ReplyStreamer 的停止路径）把它当尽力而为：取消失败不影响本地已经完成的收尾。
+     * 要支持停止后服务端那一轮也真正结束，得先在旧后端加路由——那是后端的事，不在这里编一个假成功。
+     */
+    override suspend fun cancelTurn(sessionId: Long) = Unit
+
     override suspend fun deleteMessage(sessionId: Long, messageId: String): Boolean {
         val id = messageId.toLongOrNull() ?: return false
         if (sessionId <= 0) return false

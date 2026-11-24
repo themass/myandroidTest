@@ -2,6 +2,7 @@ package com.openapi.feature.chat.data.remote
 
 import android.content.Context
 import com.openapi.common.util.android.PreferenceUtils
+import com.openapi.common.util.log.LogUtil
 import com.openapi.core.config.Constants
 import com.openapi.feature.chat.domain.model.ChatCharacterOption
 import com.openapi.feature.chat.domain.model.ChatMessage
@@ -47,6 +48,8 @@ class AgentBackedChatRepository(
     private val attachments = AttachmentApi(remote)
 
     private companion object {
+        const val TAG = "AgentChatRepo"
+
         /**
          * `/v1` 的会话 id 与旧 Java 的会话 id 是两套独立编号，**绝不能共用一个 SP 键**：
          * 旧值 170 拿去请求 `/v1/sessions/170` 会打到别人的会话或 404。
@@ -111,7 +114,8 @@ class AgentBackedChatRepository(
 
         if (!guard.begin()) {
             // 同一个会话同时只允许一个回合：/v1 会返回 409，这里提前拦住，错误信息更直白。
-            emit(ChatStreamEvent.Error("上一轮回复还没结束"))
+            // 带机读 code：界面按 ChatStrings.previousTurnRunning() 出当前语言的文案。
+            emit(ChatStreamEvent.Error(describeAgentError("conflict"), code = ChatStreamEvent.Error.CODE_PREVIOUS_TURN_RUNNING))
             return@flow
         }
         try {
@@ -130,25 +134,47 @@ class AgentBackedChatRepository(
                 }
             }
             val locationJson = location?.let { buildAgentLocationJson(it.latitude, it.longitude, it.accuracyMeters) }
-            val receipt = if (attachments.isEmpty()) {
-                remote.submit(sid, userText, clientId, locationJson)
-            } else {
-                // 文字和附件一起提交：服务端把它们存成同一条消息、跑同一个回合，
-                // 模型因此只回一次话。分成两轮会让同一句话得到两条回复。
-                remote.submitWithAttachments(
-                    sessionId = sid,
-                    text = userText,
-                    clientMessageId = clientId,
-                    attachments = attachments.map {
-                        JSONObject().put("upload_id", it.uploadId)
-                            .put("kind", it.kind.name.lowercase())
-                            .put("name", it.name)
-                            // duration_s 只有视频带（服务端契约：可选 int 0..86400）；
-                            // 图片/文件不带这个 key，零时长也不写（没有可信值就别声称）
-                            .apply { it.durationSeconds?.let { d -> put("duration_s", d) } }
-                    },
-                    location = locationJson,
-                )
+            // 409「上一轮回复还没结束」的恢复：**先取消服务端那一轮，再重试一次**。
+            // 以前点停止只杀本地 Job，服务端回合继续跑，用户再发就吃 409——
+            // 「怎么发都失败」的那条链在这里断开。只重试一次：另一成因是别的设备正在跑这一轮，
+            // 那种重试到底也是 409，再多只是把会话卡得更久；仍失败就原样交给界面（明确文案）。
+            val receipt = try {
+                withTurnConflictRecovery(
+                    isConflict = { (it as? AgentChatRemote.Failure)?.status == 409 },
+                    cancelTurn = { withContext(Dispatchers.IO) { remote.cancel(sid) } },
+                    onConflictLogged = { LogUtil.w("$TAG cancel-before-retry failed session=$sid: ${it.message}") },
+                ) {
+                    withContext(Dispatchers.IO) {
+                        if (attachments.isEmpty()) {
+                            remote.submit(sid, userText, clientId, locationJson)
+                        } else {
+                            // 文字和附件一起提交：服务端把它们存成同一条消息、跑同一个回合，
+                            // 模型因此只回一次话。分成两轮会让同一句话得到两条回复。
+                            remote.submitWithAttachments(
+                                sessionId = sid,
+                                text = userText,
+                                clientMessageId = clientId,
+                                attachments = attachments.map {
+                                    JSONObject().put("upload_id", it.uploadId)
+                                        .put("kind", it.kind.name.lowercase())
+                                        .put("name", it.name)
+                                        // duration_s 只有视频带（服务端契约：可选 int 0..86400）；
+                                        // 图片/文件不带这个 key，零时长也不写（没有可信值就别声称）
+                                        .apply { it.durationSeconds?.let { d -> put("duration_s", d) } }
+                                },
+                                location = locationJson,
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // 取消过后仍然 409（多半是别的设备占着这一轮）：不再往上抛裸异常——
+                // 按机读 code 交给界面，文案走 ChatStrings.previousTurnRunning()。
+                if ((e as? AgentChatRemote.Failure)?.status == 409) {
+                    emit(ChatStreamEvent.Error(describeAgentError("conflict"), code = ChatStreamEvent.Error.CODE_PREVIOUS_TURN_RUNNING))
+                    return@flow
+                }
+                throw e
             }
             collectTurn(
                 sid,
@@ -173,7 +199,7 @@ class AgentBackedChatRepository(
         val sid = resolveSessionId(sessionId, roleId, characterId)
         val assistantId = "local-assistant-${System.currentTimeMillis()}"
         if (!MigrationGuard.begin()) {
-            emit(ChatStreamEvent.Error("上一轮回复还没结束"))
+            emit(ChatStreamEvent.Error(describeAgentError("conflict"), code = ChatStreamEvent.Error.CODE_PREVIOUS_TURN_RUNNING))
             return@flow
         }
         try {
@@ -292,6 +318,24 @@ class AgentBackedChatRepository(
         val ok = runCatching { withContext(Dispatchers.IO) { remote.deleteMessage(id) } }.isSuccess
         if (ok) withContext(Dispatchers.IO) { local.delete(messageId) }
         return ok
+    }
+
+    /**
+     * 只删本地缓存行，不问服务端——乐观删除（MessageRemoval）在界面移除的同一刻调它。
+     * 缓存行留着的话，「切会话先顶缓存」和兜底对齐会把刚删掉的消息再画出来。
+     */
+    override suspend fun deleteLocalMessage(messageId: String) {
+        withContext(Dispatchers.IO) { local.delete(messageId) }
+    }
+
+    /**
+     * 服务端取消（`POST /sessions/{id}/cancel`）。失败只记日志、不外抛：
+     * 「停止」的本地收尾已经做完了，取消是补上服务端那一侧，它挂了不能让停止本身变成一次失败。
+     */
+    override suspend fun cancelTurn(sessionId: Long) {
+        if (sessionId <= 0) return
+        runCatching { withContext(Dispatchers.IO) { remote.cancel(sessionId) } }
+            .onFailure { LogUtil.w("$TAG cancel turn failed session=$sessionId: ${it.message}") }
     }
 
     override suspend fun clearLocalMessages(sessionId: Long) {

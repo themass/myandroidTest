@@ -68,6 +68,9 @@ private fun WebviewPage(
     createFavorite: ((Context) -> View)?,
     @DrawableRes backgroundRes: Int?
 ) {
+    // A25：拉伸铺满的背景图（ContentScale.FillBounds）和 WebView 透明背景叠层是
+    // 文章页「背景杂色」的来源。调用方现全部传 null（WebView 改实色背景），
+    // 此分支保留仅为通用浏览器页等场景可选，正文页不要再启用。
     val outerModifier = if (backgroundRes != null) {
         Modifier
             .fillMaxSize()

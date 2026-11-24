@@ -185,6 +185,10 @@ class AgentSseReconnectIntegrationTest {
             val collector = TurnEventCollector(
                 open = { lastEventId -> remote.events(1L, lastEventId) },
                 parse = ::parseAgentEvent,
+                // 看门狗关掉：这两条测的是「真实 socket 上的重连环」，runTest 的虚拟时钟
+                // 会在 server.respond 阻塞真实 IO 时飞速越过默认 45s，把还在收帧的 pump
+                // 误杀。帧间看门狗本身由 TurnWatchdogTest 覆盖。
+                frameTimeoutMs = 0,
             )
             val rec = Recorded()
             val job = backgroundScope.launch {
@@ -232,6 +236,8 @@ class AgentSseReconnectIntegrationTest {
             val collector = TurnEventCollector(
                 open = { lastEventId -> remote.events(1L, lastEventId) },
                 parse = ::parseAgentEvent,
+                // 同上：真实 socket + runTest 虚拟时钟下必须关掉帧间看门狗
+                frameTimeoutMs = 0,
             )
             val rec = Recorded()
             val job = backgroundScope.launch {

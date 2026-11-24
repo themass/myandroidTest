@@ -131,6 +131,15 @@ data class ChatMessage(
      * 历史刷新用它把服务端行和本地富内容行（语音/图片）对成同一条；只存在于运行时，不落库。
      */
     val clientMessageId: String? = null,
+    /**
+     * 服务端把这条回复标记为**被中断**（历史 JSON 的 `interrupted`）。
+     *
+     * 与端上的 [pending] 不是一回事：pending 是「本机正在等这一轮」，
+     * interrupted 是「这一轮在服务端被打断过、内容是不完整的」（可能是别的设备、
+     * 也可能是一次网络中断后服务端自己收的尾）。以前这个布尔在 VO 里解析了、
+     * 映射时被丢掉，于是历史里一条半截回复和一条完整回复在端上完全无法区分。
+     */
+    val interrupted: Boolean = false,
 )
 
 /**

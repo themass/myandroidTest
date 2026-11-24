@@ -43,13 +43,14 @@ import com.openapi.feature.chat.presentation.LocationManagerFixer
 import com.openapi.chatkit.model.ComposerAction
 import com.openapi.chatkit.model.MessageAction
 import com.openapi.chatkit.model.VoiceStyle
+import com.openapi.chatkit.message.parts.LocalMessageImageEditHandler
 import com.openapi.speech.audio.AudioPlayer
 import com.openapi.common.ui.permission.PermissionGateway
 import com.openapi.common.ui.permission.PermissionOutcome
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.openapi.common.ui.permission.Permissions
-import com.openapi.common.media.MAX_MESSAGE_IMAGES
+import com.openapi.common.media.MAX_IMAGES_PER_MESSAGE_PICK
 import com.openapi.feature.chat.R
 
 /**
@@ -76,40 +77,38 @@ fun ChatRoute(
     val activity = LocalActivity.current
     var voiceStyle by remember { mutableStateOf(ChatPlatform.loadVoiceStyle(context)) }
     var cameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
-    // 选中/拍下的图片先暂存，再进入编辑；取消编辑时丢弃，不进入草稿
-    var pendingEdit by remember { mutableStateOf<Pair<java.io.File, android.graphics.Bitmap>?>(null) }
+    // 选/拍的图片先暂存，再进入编辑；取消编辑时丢弃，不进入草稿。
+    // 两种来源分开（见 PendingEdit）：草稿图编辑完写回暂存文件；消息图编辑完作为**新草稿**加入输入框。
+    var pendingEdit by remember { mutableStateOf<PendingEdit?>(null) }
     // 点开播放的那条视频；null = 没有播放页
     var playingVideo by remember { mutableStateOf<com.openapi.chatkit.model.MessagePart.Video?>(null) }
 
-    // 9 张是与服务端 `SendBody.attachments` 同源的硬上限（真值在 :common 的
-    // [MAX_MESSAGE_IMAGES]）。`maxItems` 只是**建议**：厂商 ROM 的选择器可以不认，
-    // 超了会一路漏进草稿托盘——由 [ComposerActions.addDraft] 的第二道闸挡下
-    // （终评 I-1：以前本页没有这道闸，选 12 张要先把 12 张的上传流量花完再吃一个 422）。
+    // 选择器一次最多 4 张：这是**产品上限**（[MAX_IMAGES_PER_MESSAGE_PICK]），不是服务端那条
+    // 9 张的传输硬上限（[com.openapi.common.media.MAX_MESSAGE_IMAGES]，改它要两端同步）——
+    // 4 ≤ 9，客户端永远够不到 422。`maxItems` 只是**建议**：厂商 ROM 的选择器可以不认，
+    // 超了会一路漏进草稿托盘——由 [ComposerActions.addDraft] 的第二道闸（同一个产品上限）挡下。
     val imagePicker = rememberLauncherForActivityResult(
-        ActivityResultContracts.PickMultipleVisualMedia(maxItems = MAX_MESSAGE_IMAGES),
+        ActivityResultContracts.PickMultipleVisualMedia(maxItems = MAX_IMAGES_PER_MESSAGE_PICK),
     ) { uris ->
-        // 只对第一张进入编辑：多选时其余图片照常加入草稿，避免一次弹多个编辑器
-        if (uris.isNotEmpty()) {
-            viewModel.onImagesPicked(context, listOf(uris.first()), openEditor = { file, bitmap ->
-                pendingEdit = file to bitmap
-            })
-            if (uris.size > 1) viewModel.onImagesPicked(context, uris.drop(1))
-        }
+        // 相册多选**完全不进编辑器**（用户要求）：全部图片直接加入草稿，
+        // 逐张弹编辑器在多选场景里是灾难。要编辑走「拍照」或大图上的「编辑」入口。
+        if (uris.isNotEmpty()) viewModel.onImagesPicked(context, uris)
     }
     val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { viewModel.onAttachmentPicked(context, MessageKind.FILE, it) }
     }
     val videoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         // 只有视频选择器返回 null（取消）时什么都不做；超限/格式错误由暂存层的 Rejected 提示。
-        // 这条选择器是单选、恒可用（没有条数上限可加），所以「9 图 + 1 视频 = 10 个附件」全靠
-        // [ComposerActions.addDraft] 的合计闸挡下——不挡的话十份字节传完才吃 422（cleanup P0）。
+        // 这条选择器是单选、恒可用（没有条数上限可加），所以「满格的图片 + 1 视频」全靠
+        // [ComposerActions.addDraft] 的合计闸（产品上限 4）挡下——不挡的话字节传完才吃 422（cleanup P0）。
         if (uri != null) viewModel.onAttachmentPicked(context, MessageKind.VIDEO, uri)
     }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
         val uri = cameraUri
         if (saved && uri != null) {
+            // 拍照保持进编辑器（用户要求：只有相册多选不进）。暂存文件已入草稿，编辑结果写回它。
             viewModel.onImagesPicked(context, listOf(uri), openEditor = { file, bitmap ->
-                pendingEdit = file to bitmap
+                pendingEdit = PendingEdit.Draft(file, bitmap)
             })
         }
     }
@@ -197,6 +196,27 @@ fun ChatRoute(
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(Modifier.fillMaxSize()) {
+        // 消息大图上的「编辑」入口（chatkit 的 ImageViewer 只有拿到非空 handler 才画按钮）：
+        // 把那张图解码后送进同一个编辑流。已发送消息没有草稿可覆盖——编辑结果**另存为新草稿附件**
+        // 加入输入框（见 PendingEdit.Message 的注释），不回写历史消息。
+        androidx.compose.runtime.CompositionLocalProvider(
+            LocalMessageImageEditHandler provides { source ->
+                scope.launch {
+                    // 消息大图的来源可能是本机路径、也可能是远程地址：先落成本地文件
+                    // （http 先下载到缓存，见 AttachmentActions.localImageFile），再按 EXIF 方向解码。
+                    val bitmap = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        AttachmentActions.localImageFile(context, source)?.let { file ->
+                            com.openapi.common.image.ImageUtils.decodeUriApplyingExifOrientation(
+                                context,
+                                android.net.Uri.fromFile(file),
+                            )
+                        }
+                    }
+                    if (bitmap == null) toast(R.string.chat_image_read_failed)
+                    else pendingEdit = PendingEdit.Message(bitmap)
+                }
+            },
+        ) {
         ChatScreen(
             state = state,
             voiceStyle = voiceStyle,
@@ -311,19 +331,23 @@ fun ChatRoute(
             ),
         )
 
-        // 待发送图片的本地编辑：编辑结果覆盖暂存文件，UI 走同一张草稿
+        // 待发送/消息图片的本地编辑（两个入口、同一台编辑机器，见 PendingEdit）：
+        // - 草稿（拍照进来的）：编辑结果覆盖暂存文件，UI 走同一张草稿；
+        // - 消息大图上的「编辑」：编辑结果**另存为新草稿附件**加入输入框。已发送的消息没有
+        //   本地覆盖文件——服务端也没有单条替换附件的接口，硬造「覆盖已发送消息」的语义会让
+        //   本地显示与服务端正式版本各说各话（腐化历史），所以发不发、发给谁由用户再决定一次。
+        // 导出成功后顺带存一份到本地相册（要求④），成功与失败都有 toast。
         val editing = pendingEdit
         if (editing != null) {
             Box(modifier = Modifier.fillMaxSize()) {
                 com.openapi.mediaview.edit.PhotoEditor(
-                    bitmap = editing.second,
+                    bitmap = editing.bitmap,
                     onCancel = { pendingEdit = null },
                     onDone = { edits ->
-                        val target = editing.first
                         scope.launch {
                             val exported = withContext(kotlinx.coroutines.Dispatchers.IO) {
                                 com.openapi.mediaview.edit.PhotoEditExporter.export(
-                                    editing.second, edits, context.cacheDir, context.assets,
+                                    editing.bitmap, edits, context.cacheDir, context.assets,
                                 )
                             }
                             // 导出失败（渲染或写盘）时**不覆盖暂存**：草稿里还是原图，
@@ -332,7 +356,30 @@ fun ChatRoute(
                             if (exported == null) {
                                 toast(R.string.chat_image_edit_fallback)
                             } else {
-                                viewModel.onReplaceDraftImage(target, exported, context)
+                                // 保存到相册：与草稿写回相互独立，保存失败不影响编辑结果本身。
+                                // Android 9（minSdk 28）没有 scoped storage 的零权限写入口，单独给可读提示。
+                                val savedName = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                    AttachmentActions.saveEditedImageToGallery(context, exported)
+                                }
+                                when {
+                                    savedName != null -> toast(R.string.chat_image_saved)
+                                    android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q ->
+                                        toast(R.string.chat_image_save_needs_android10)
+                                    else -> toast(R.string.chat_image_save_failed)
+                                }
+                                when (editing) {
+                                    is PendingEdit.Draft ->
+                                        viewModel.onReplaceDraftImage(editing.target, exported, context)
+                                    is PendingEdit.Message -> {
+                                        // 「另存为新草稿附件」而不是覆盖已发送的消息：已发送消息没有
+                                        // 本地覆盖文件（服务端也没有单条替换附件的接口），硬造覆盖语义
+                                        // 会让本地显示与服务端正式版本各说各话——腐化历史。走与相册同一
+                                        // 条暂存路（onImagesPicked）：同一道 4 张产品闸、同一套失败提示。
+                                        // exported 不能在这里删：onImagesPicked 在自己的协程里异步读它；
+                                        // photo_edit 是缓存目录，系统会回收。
+                                        viewModel.onImagesPicked(context, listOf(exported))
+                                    }
+                                }
                             }
                         }
                         pendingEdit = null
@@ -355,7 +402,24 @@ fun ChatRoute(
             }
         }
         }
+        }
     }
+}
+
+/**
+ * 进入图片编辑器的两个来源，编辑机器同一台（PhotoEditor + PhotoEditExporter）：
+ *
+ * - [Draft]：草稿里的图（拍照进来的）。暂存文件已经在草稿托盘里，编辑结果**覆盖暂存文件**，
+ *   UI 走同一张草稿。
+ * - [Message]：**已发送消息**大图上的「编辑」。消息没有对应的草稿/暂存文件，编辑结果
+ *   作为**新的草稿附件**加入输入框（见 ChatRoute 导出流程的注释）——不回写历史消息。
+ */
+private sealed interface PendingEdit {
+    val bitmap: android.graphics.Bitmap
+
+    data class Draft(val target: java.io.File, override val bitmap: android.graphics.Bitmap) : PendingEdit
+
+    data class Message(override val bitmap: android.graphics.Bitmap) : PendingEdit
 }
 
 /** 单次粗定位的等待上限：网络定位通常在 10 秒内出结果，再久用户已经放弃这一条了。 */

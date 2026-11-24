@@ -23,8 +23,26 @@ sealed interface ChatStreamEvent {
     /**
      * 请求失败或服务端在流中报错。[userMessageId] 是服务端已保存的用户消息 id（错误帧带来时才有），
      * 有它时重试直接用服务端 id，没有则退回到用本地 id 重发文字。
+     *
+     * [code] 是**机读**的错误类别（见下面两个常量），不是给人看的文字：data 层只能给出协议级的
+     * 中文兜底串，用户真正看到的这句话要由 presentation 层按系统语言取（[ChatStrings] 端口），
+     * 所以这里必须把类别带上来，而不是让 UI 去猜 message 的字面量。
      */
-    data class Error(val message: String, val userMessageId: String? = null) : ChatStreamEvent {
+    data class Error(val message: String, val userMessageId: String? = null, val code: String? = null) : ChatStreamEvent {
+        companion object {
+            /**
+             * 帧间看门狗触发：本轮开始（或上一个内容帧）之后 [watchdogMs] 内没有任何内容帧。
+             * 见 [com.openapi.feature.chat.data.remote.TurnEventCollector]。
+             */
+            const val CODE_TURN_TIMEOUT = "turn_timeout"
+
+            /**
+             * 取消上一轮之后服务端仍然回 409：这一轮确实还占着会话。
+             * 见 [com.openapi.feature.chat.data.remote.AgentBackedChatRepository]。
+             */
+            const val CODE_PREVIOUS_TURN_RUNNING = "turn_still_running"
+        }
+
         // 每次出错都记日志（包括服务端返回的错误帧、HTTP 状态、网络异常），方便从 logcat 查真实原因
         init { android.util.Log.w("ChatStream", "stream error: $message") }
     }

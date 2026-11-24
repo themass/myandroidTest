@@ -22,6 +22,7 @@ class HistoryActionsTest {
         val repo = FakeChatRepository()
         val state = MutableStateFlow(ChatUiState(messages = messages, hasMoreHistory = hasMore))
         val scope = TestScope(StandardTestDispatcher())
+        val pendingDeletions = PendingDeletions()
         val history = HistoryActions(
             repository = repo,
             state = state,
@@ -29,6 +30,7 @@ class HistoryActionsTest {
             isInFlight = { it in inFlight },
             strings = FakeChatStrings(),
             io = StandardTestDispatcher(scope.testScheduler),
+            pendingDeletions = pendingDeletions,
         )
     }
 
@@ -92,5 +94,43 @@ class HistoryActionsTest {
         val server = listOf(msg("srv-1", 10L), msg("srv-3", 20L))
         val merged = runBlocking { h.history.mergePending(server, sessionId = 1L) }
         assertEquals(listOf("srv-1", "srv-3", "local-2"), merged.map { it.id })
+    }
+
+    // ---------------------------------------------------- 乐观删除不能被历史复活（任务 3）
+
+    /** 墓碑挡 id：兜底合并（refresh 的路径）不能把「正在等确认删除」的条目带回来。 */
+    @Test
+    fun mergePendingDropsMessagesPendingDeletion() {
+        val h = Harness()
+        h.pendingDeletions.mark(msg("20", 20L))
+        val merged = runBlocking { h.history.mergePending(listOf(msg("20", 20L), msg("21", 21L)), sessionId = 1L) }
+        assertEquals(listOf("21"), merged.map { it.id })
+    }
+
+    /** loadOlder 那一页同理：刚删过的条目不能在翻页时从服务端历史里回来。 */
+    @Test
+    fun loadOlderDoesNotRevivePendingDeletions() {
+        val h = Harness(messages = listOf(msg("20", 20L)))
+        h.repo.olderMessages = listOf(msg("10", 10L), msg("15", 15L))
+        h.pendingDeletions.mark(msg("15", 15L))
+        h.history.loadOlder()
+        h.scope.advanceUntilIdle()
+        assertEquals(listOf("10", "20"), h.state.value.messages.map { it.id })
+    }
+
+    // ---------------------------------------------------- 生成中允许读历史（任务 4）
+
+    /**
+     * 旧闸把 `sending` 也算进 loadOlder：生成中翻到顶，这次请求被**静默吞掉**。
+     * 读历史是只读操作，与当前回合无关——现在必须照常加载。
+     */
+    @Test
+    fun loadOlderWorksWhileASendIsInFlight() {
+        val h = Harness(messages = listOf(msg("20", 20L)))
+        h.state.value = h.state.value.copy(sending = true)
+        h.repo.olderMessages = listOf(msg("10", 10L))
+        h.history.loadOlder()
+        h.scope.advanceUntilIdle()
+        assertEquals(listOf("10", "20"), h.state.value.messages.map { it.id })
     }
 }

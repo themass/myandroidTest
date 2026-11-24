@@ -23,7 +23,8 @@ internal class ResendActions(
     fun retry(messageId: String) {
         val snapshot = state.value
         val message = snapshot.messages.firstOrNull { it.id == messageId } ?: return
-        if (snapshot.sending || message.role != ChatRole.USER) return
+        // 重发起新回合：回合占用中挡住（判据见 ChatTurnGate.allowResend）
+        if (!ChatTurnGate.of(snapshot).allowResend || message.role != ChatRole.USER) return
         // 视频走同一条附件通道；位置没有附件但同样是「一条消息一个回合」的富内容，
         // 由 AttachmentSender 直接把这个回合发出（它认 message.location）。
         if (message.images.isNotEmpty() || message.files.isNotEmpty() ||
@@ -41,7 +42,7 @@ internal class ResendActions(
      */
     fun regenerate(assistantId: String) {
         val snapshot = state.value
-        if (snapshot.sending) return
+        if (!ChatTurnGate.of(snapshot).allowResend) return
         val lastUserIndex = snapshot.messages.indexOfLast { it.role == ChatRole.USER }
         if (lastUserIndex < 0) return
         val lastUser = snapshot.messages[lastUserIndex]

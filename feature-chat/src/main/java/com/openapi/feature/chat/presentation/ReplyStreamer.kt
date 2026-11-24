@@ -41,11 +41,21 @@ internal class ReplyStreamer(
 
     fun isReplyActive(): Boolean = replyJob?.isActive == true
 
-    /** 停止当前的文字回复。 */
+    /**
+     * 停止当前的文字回复。
+     *
+     * **两端都要停**：只杀本地 Job 的话，服务端那一轮继续跑，用户接着发下一条就吃
+     * 409「上一轮回复还没结束」——「点停止也不好使、怎么发都失败」的成因。
+     * 所以这里 fire-and-forget 一条服务端取消：它失败只记日志（仓库实现内部记），
+     * 绝不改变本地已经完成的收尾（停止就是停止，取消只是补服务端那一侧）。
+     * 用 [scope] 而不是 replyJob：replyJob 马上就要被取消，挂在它下面的清理会被一起取消。
+     */
     fun cancel() {
         // 点停止 = 用户的中断意图：排队中的文字一并清空，不能接着发下一条
         // （排空只发生在自然结束的收尾，见 stream 末尾的 drainQueue）。
         state.update { it.copy(queued = emptyList()) }
+        val sessionId = repository.currentSessionId()
+        scope.launch { repository.cancelTurn(sessionId) }
         replyJob?.cancel()
     }
 
@@ -135,7 +145,10 @@ internal class ReplyStreamer(
                             is ChatStreamEvent.Error -> {
                                 failed = true
                                 errorUserId = event.userMessageId
-                                state.update { it.copy(error = event.message) }
+                                // data 层的 message 是协议级兜底（英文/中文写死在 data 层），
+                                // 带 code 的错误按当前语言取 ChatStrings——看门狗和 409
+                                // 这两句是用户决定下一步的依据，不能是硬编码中文。
+                                state.update { it.copy(error = errorTextFor(event)) }
                             }
                         }
                     }
@@ -220,6 +233,20 @@ internal class ReplyStreamer(
                 stream(next, userMessageId = user.id, persistUser = true)
             }
         }
+    }
+
+    /**
+     * 事件流错误 → 用户看到的这句话。
+     *
+     * data 层的 [ChatStreamEvent.Error.message] 是协议级兜底（写死在 data 层，不随系统语言变）；
+     * 带机读 [ChatStreamEvent.Error.code] 的两类错误（看门狗、取消后仍 409）由这里按
+     * [ChatStrings] 端口重新取文案。没有 code 的（服务端 error 帧、重连耗尽）保持原样——
+     * 那些话 data 层已经翻译过，且带服务端给的具体原因，不能在这里覆盖掉。
+     */
+    private fun errorTextFor(event: ChatStreamEvent.Error): String = when (event.code) {
+        ChatStreamEvent.Error.CODE_TURN_TIMEOUT -> strings.turnTimeout()
+        ChatStreamEvent.Error.CODE_PREVIOUS_TURN_RUNNING -> strings.previousTurnRunning()
+        else -> event.message
     }
 
     /** 返回是否保留了助手内容（false = 一个字都没收到，占位气泡已撤掉）。 */
