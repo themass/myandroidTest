@@ -40,7 +40,7 @@
 
 | Worker / 主题 | 目标与开发计划 | 当前进展 | 遗留事项 |
 |---|---|---|---|
-| `text-sound-screening` | 将 text/sound 从旧 Activity 路由迁入 Screening Compose，并梳理 scheme 分发。 | text 与 sound Compose 页面已在主线；`FeedPager` 仅用户下拉时重取，详情返回不自动重扫；未接住的外来 scheme 回原路由。播放正文改为 `#FFFDF8` 浅底深字，已进 `5e17a2f5`。Worker 会话仍运行，已请求更新报告。 | 还需确认 image/movie 及其他 scheme 的覆盖边界；真机 A/B/C（阅读、返回不重取、下拉重取）需记录逐项结果。当前 screening worktree 正在运行，未擅自快进。 |
+| `text-sound-screening` | 将 text/sound 从旧 Activity 路由迁入 Screening Compose，并梳理 scheme 分发。 | `8f863cee`（并入 `ddf13a21`）令各 FeedPager 仅在用户下拉时刷新，覆盖文字馆、声音馆、图集和视频内页；`5e17a2f5` 为正文提供 `#FFFDF8` 浅纸面、`#1A1A1A` 字色及 viewport/图片自适应，并补取数失败分类日志。worker 回报 A/B/C 真机验收全部 PASS：正文可读；返回目录不重取（text/items.json 仍 1 次）；慢下拉后请求 +1 并重填第一页，视频内页 video/channel.json 也 +1。V2279A 安装包为 1.1.0.72 / tip `5e17a2f5`。 | 未覆盖事项：图集 Lightbox item/page.json 尾部续取、sound 与 PlayService 功能差距、首页 ChannelsScreen 旧二级页、markdown 内联图本地优先。服务端坏行 id=2352605 不在当前列表且不影响本链。worker 报告任务结束，但 session 元数据检查仍显示运行中；worktree 尚未改动，待 idle 后同步。 |
 | `optimistic-pike` / Screening 子频道 | 将 `qvod_user` 用户片单和 `video_item_user` 视频子频道接入新页面；把未知 scheme 安全回退。 | `03c542ea`、`630639e8`、`4b758dea`、`a16a6f0c` 等在本机主线历史；已完成用户片单接口族、video_item_user 白名单和 scheme fallback 的代码路径。 | 本轮无法联网刷新远端；不能据日志宣称所有历史/余 scheme 都已完成。需跑剩余 scheme 清单及真机页面验收。该分支 worktree diverged，保留原样。 |
 | 放映场 UI（协调合入） | 新频道 Hub、feed 列表/详情与内容可读性。 | 放映场正文浅色底、深色字和下拉刷新已在安装包代码 tip。 | 只装机并不代表人工验收已完成；A/B/C 项需单独记录。 |
 
@@ -82,20 +82,20 @@
 - **通话字幕**：SIMPLE 引擎舞台截图确认两行字幕实际显示；修复为 Compose modifier 先让出底部空间、再限制最大高度，并有源码护栏测试。
 - **camera-fx 模块图**：lottie-fx 报告 ModuleGraphTest 4/4、companion 编译通过；camera-sticker-follow 报告 7 个状态机测试与 compile/test 通过。
 - **SSE harness**：worker 报告 feature-chat 222/222，指定重连测试连跑三次通过。
+- **Screening**：worker 报告 feature-video 139 tests / 0 failures，`assembleChatDebug` exit 0；V2279A A/B/C 真机验收全部 PASS。取数证据来自现有 myTag HTTP 日志；10:49:55 应用被 vivo 应用商店 force-stop（`am_kill`，非崩溃），worker 已停止商店进程。该时点后 PID 变化不是回归；uiautomator dump 偶发抢占 UiAutomation 失败并留下旧 XML，不能用 stale dump 作证。
 - **PhotoEditor 逻辑**：设计文档记录模型/坐标/编辑逻辑 JVM 单测通过；这不覆盖真实 Canvas、导出像素与手势体验。
 - **F16**：报告有两次设备首能量帧延迟数据及一次长故事完整播放；另有空回复与慢首帧失败样本，故整体链路仍开放。
 
 ### 尚待完成的人工设备检查
 
-1. 放映场 A/B/C：正文可读；详情返回不自动重取；下拉刷新重取第一页。
-2. PhotoEditor S2：涂鸦、文字、马赛克、调整面板开关、标注选择删除、导出回草稿和存储行为。现有结果表仍为空。
-3. PhotoSolve PS1–PS5，尤其屏幕里的题目是否进入四角微调并显示预期提示。
-4. Camera Lab：正脸线框、手/姿态 HUD、头顶 Lottie 随动三项。
-5. Camera sticker-follow：实际跟脸观感、漏检不闪与重新锚定。
-6. Chat：选图/拍照编辑回草稿、MediaStack 展示、图片打开/长按操作、弱网重试和用户头像完整交互。
-7. 视频/位置消息播放、定位和 `geo:` 跳转。
-8. LiveKit：一次 attempt 完整具备 hello、上麦、ASR final、TTS outbound audio、实际听到并可打断；随后单独复测首帧慢和服务端空回复。
-9. 数字人：设备模型资源存在性、Simple/Live2D/Duix/VRM 加载与切换、GL 恢复和素材换装。
+1. PhotoEditor S2：涂鸦、文字、马赛克、调整面板开关、标注选择删除、导出回草稿和存储行为。现有结果表仍为空。
+2. PhotoSolve PS1–PS5，尤其屏幕里的题目是否进入四角微调并显示预期提示。
+3. Camera Lab：正脸线框、手/姿态 HUD、头顶 Lottie 随动三项。
+4. Camera sticker-follow：实际跟脸观感、漏检不闪与重新锚定。
+5. Chat：选图/拍照编辑回草稿、MediaStack 展示、图片打开/长按操作、弱网重试和用户头像完整交互。
+6. 视频/位置消息播放、定位和 `geo:` 跳转。
+7. LiveKit：一次 attempt 完整具备 hello、上麦、ASR final、TTS outbound audio、实际听到并可打断；随后单独复测首帧慢和服务端空回复。
+8. 数字人：设备模型资源存在性、Simple/Live2D/Duix/VRM 加载与切换、GL 恢复和素材换装。
 
 ## 9. Worktree 同步与分支归属
 
@@ -115,7 +115,7 @@
 
 ## 10. 下一步执行顺序
 
-1. 等仍运行的 text-sound-screening 回报；确认其工作区/提交后，再快进其干净 worktree 到 `6d16f201`。
+1. 等 text-sound-screening session 元数据转为 idle；worker 已报告任务完成且 worktree 干净（HEAD `5e17a2f5`），届时再将其快进到集成 tip。
 2. 对齐相机与 PSD2Live 两个独立/脏 worktree 的差异，先保存未提交工作，再决定是否合入；camera-demo 文档需要单独集成。
 3. 逐项完成上面的真机验收表并回填 P/F/阻塞，不以“已装机”代替验收。
 4. 对独立 testserverV 分支保留“未 push，等待用户决定”的状态；不代替用户推送。
