@@ -45,6 +45,8 @@ fun EffectsLabScreen(
     var gestureId by remember { mutableStateOf<String?>(null) }
     var gestureSeq by remember { mutableStateOf(0L) }
     var teachIndex by remember { mutableStateOf(0) }
+    // 唯一的 cue 触发印章：手动按钮与教学模式共用，不存在第二条触发路径。
+    val cueTick = remember { CueTick() }
 
     val assetReady = when (engine) {
         FxEngineId.RIVE -> false // Task 6 supplies the debug-only sample fixtures.
@@ -59,6 +61,11 @@ fun EffectsLabScreen(
     )
     val state = LabUiState(scene, engine, gestureId, gestureSeq, teachIndex, gate)
     androidx.compose.runtime.SideEffect { onStateChange(state) }
+    // cueTick → LabUiState 槽位：手动按钮与教学按钮都走这里，唯一触发路径。
+    fun syncCue() {
+        gestureId = cueTick.gestureId
+        gestureSeq = cueTick.seq
+    }
 
     Surface(color = MaterialTheme.colorScheme.background) {
         Column(
@@ -104,19 +111,28 @@ fun EffectsLabScreen(
                     modifier = Modifier.fillMaxSize().padding(16.dp),
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Text("${sceneLabel(scene)} · ${FxEngineCatalog.meta.getValue(engine).label}")
-                    Text("渲染场景将在后续任务接入")
-                    if (scene == FxScene.CAMERA_PIP) cameraPipContent?.invoke(Modifier)
+                    when (scene) {
+                        FxScene.DH_INTERACT, FxScene.DH_TEACH ->
+                            BundledStageScene(
+                                state = state,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        FxScene.CAMERA_PIP -> {
+                            Text("摄像头小窗场景将在后续任务接入")
+                            cameraPipContent?.invoke(Modifier)
+                        }
+                        FxScene.CAMERA_FULL -> Text("摄像头全屏场景将在后续任务接入")
+                    }
                 }
             }
 
             Text("${labStatusLine(FxEngineCatalog.meta.getValue(engine), gate, scene)}")
             if (scene == FxScene.DH_INTERACT || scene == FxScene.CAMERA_FULL || scene == FxScene.CAMERA_PIP) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { gestureId = "pat_head"; gestureSeq++ }) { Text("摸头") }
-                    Button(onClick = { gestureId = "wave"; gestureSeq++ }) { Text("挥手") }
-                    Button(onClick = { gestureId = "connected"; gestureSeq++ }) { Text("接通") }
-                    OutlinedButton(onClick = { gestureId = null; gestureSeq++ }) { Text("停") }
+                    Button(onClick = { cueTick.fire("pat_head"); syncCue() }) { Text("摸头") }
+                    Button(onClick = { cueTick.fire("wave"); syncCue() }) { Text("挥手") }
+                    Button(onClick = { cueTick.fire("connected"); syncCue() }) { Text("接通") }
+                    OutlinedButton(onClick = { cueTick.stop(); syncCue() }) { Text("停") }
                 }
             }
             if (scene == FxScene.DH_TEACH) {
@@ -131,8 +147,8 @@ fun EffectsLabScreen(
                         modifier = Modifier.testTag("fx_teach_next"),
                         onClick = {
                             teachIndex = FxTeachingScript.next(teachIndex)
-                            gestureId = FxTeachingScript.steps[teachIndex].cue
-                            gestureSeq++
+                            cueTick.fire(FxTeachingScript.steps[teachIndex].cue)
+                            syncCue()
                         },
                     ) { Text("下一步") }
                 }
