@@ -50,4 +50,28 @@ class ScreeningSoundPlaybackTest {
         assertEquals(SoundPlaybackMode.LIST, soundPlaybackMode(null))
         assertEquals(SoundPlaybackMode.LIST, soundPlaybackMode("removed_mode"))
     }
+
+    @Test
+    fun `手动下一首按模式选择并在已加载队列末尾留给分页`() {
+        assertEquals(2, manualNextSoundTrackIndex(SoundPlaybackMode.SINGLE, 1, 4))
+        assertEquals(0, manualNextSoundTrackIndex(SoundPlaybackMode.LIST, 3, 4))
+        assertNull(manualNextSoundTrackIndex(SoundPlaybackMode.SEQUENTIAL, 3, 4))
+    }
+
+    @Test
+    fun `手动随机下一首排除当前曲目`() {
+        var candidates: List<Int>? = null
+        val selected = manualNextSoundTrackIndex(SoundPlaybackMode.SHUFFLE, 2, 4) { choices ->
+            candidates = choices
+            choices.first()
+        }
+        assertEquals(listOf(0, 1, 3), candidates)
+        assertEquals(0, selected)
+    }
+
+    @Test
+    fun `手动上一首沿同一队列退一首并在队首停止`() {
+        assertEquals(1, previousSoundTrackIndex(currentIndex = 2, trackCount = 4))
+        assertNull(previousSoundTrackIndex(currentIndex = 0, trackCount = 4))
+    }
 }

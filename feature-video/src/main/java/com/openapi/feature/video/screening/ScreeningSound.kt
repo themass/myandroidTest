@@ -148,6 +148,29 @@ internal enum class SoundPlaybackMode(val label: String) {
 internal fun soundPlaybackMode(savedName: String?): SoundPlaybackMode =
     SoundPlaybackMode.entries.firstOrNull { it.name == savedName } ?: SoundPlaybackMode.LIST
 
+internal fun manualNextSoundTrackIndex(
+    mode: SoundPlaybackMode,
+    currentIndex: Int,
+    trackCount: Int,
+    chooseRandom: (List<Int>) -> Int = { it.random() },
+): Int? {
+    if (trackCount <= 0) return null
+    val currentIsValid = currentIndex in 0 until trackCount
+    if (!currentIsValid) return 0
+    return when (mode) {
+        SoundPlaybackMode.SINGLE, SoundPlaybackMode.SEQUENTIAL ->
+            (currentIndex + 1).takeIf { it < trackCount }
+        SoundPlaybackMode.LIST -> (currentIndex + 1) % trackCount
+        SoundPlaybackMode.SHUFFLE -> {
+            if (trackCount == 1) currentIndex
+            else chooseRandom((0 until trackCount).filter { it != currentIndex })
+        }
+    }
+}
+
+internal fun previousSoundTrackIndex(currentIndex: Int, trackCount: Int): Int? =
+    if (currentIndex in 1 until trackCount) currentIndex - 1 else null
+
 internal fun nextSoundTrackIndex(
     mode: SoundPlaybackMode,
     currentIndex: Int,
@@ -246,13 +269,27 @@ private fun SoundTrackHub(
     onBack: () -> Unit,
 ) {
     var playbackEnded by remember(player) { mutableStateOf(false) }
+    var pendingManualNextFromCount by remember(player) { mutableIntStateOf(-1) }
     fun playAt(index: Int) {
         val track = tracks.getOrNull(index) ?: return
         playbackEnded = false
+        pendingManualNextFromCount = -1
         onSelect(index)
         player.setMediaItem(MediaItem.fromUri(Uri.parse(track.fileUrl)))
         player.prepare()
         player.play()
+    }
+    fun playNextManually() {
+        playbackEnded = false
+        if (currentIndex == tracks.lastIndex && pager.hasMore) {
+            pendingManualNextFromCount = tracks.size
+            if (!pager.loading) pager.loadMore()
+            return
+        }
+        manualNextSoundTrackIndex(playbackMode, currentIndex, tracks.size)?.let(::playAt)
+    }
+    fun playPreviousManually() {
+        previousSoundTrackIndex(currentIndex, tracks.size)?.let(::playAt)
     }
     val latestPlayAt by rememberUpdatedState<(Int) -> Unit>({ index -> playAt(index) })
     DisposableEffect(player) {
@@ -264,7 +301,20 @@ private fun SoundTrackHub(
         player.addListener(listener)
         onDispose { player.removeListener(listener) }
     }
-    LaunchedEffect(playbackEnded, tracks, currentIndex, playbackMode, pager.hasMore, pager.loading) {
+    LaunchedEffect(playbackEnded, pendingManualNextFromCount, tracks, currentIndex, playbackMode, pager.hasMore, pager.loading) {
+        if (pendingManualNextFromCount >= 0) {
+            if (pager.loading) return@LaunchedEffect
+            if (tracks.size > pendingManualNextFromCount) {
+                val nextIndex = manualNextSoundTrackIndex(playbackMode, currentIndex, tracks.size)
+                pendingManualNextFromCount = -1
+                if (nextIndex != null) latestPlayAt(nextIndex)
+            } else if (pager.hasMore) {
+                pager.loadMore()
+            } else {
+                pendingManualNextFromCount = -1
+            }
+            return@LaunchedEffect
+        }
         if (!playbackEnded) return@LaunchedEffect
         if (playbackMode != SoundPlaybackMode.SINGLE && currentIndex == tracks.lastIndex && pager.hasMore) {
             if (!pager.loading) pager.loadMore()
@@ -341,17 +391,15 @@ private fun SoundTrackHub(
                     TextButton(onClick = { onPlaybackModeChange(playbackMode.nextMode()) }) {
                         Text(playbackMode.label, color = Mint, fontSize = 12.sp)
                     }
-                    IconButton(onClick = {
-                        if (tracks.isEmpty()) return@IconButton
-                        playAt((currentIndex - 1).coerceAtLeast(0))
-                    }) { Icon(Icons.Default.SkipPrevious, "上一首", tint = White) }
+                    IconButton(onClick = { playPreviousManually() }) {
+                        Icon(Icons.Default.SkipPrevious, "上一首", tint = White)
+                    }
                     IconButton(onClick = { if (player.isPlaying) player.pause() else player.play() }) {
                         Icon(if (playing) Icons.Default.Pause else Icons.Default.PlayArrow, "播放", tint = Mint, modifier = Modifier.size(36.dp))
                     }
-                    IconButton(onClick = {
-                        if (tracks.isEmpty()) return@IconButton
-                        playAt((currentIndex + 1).coerceAtMost(tracks.lastIndex))
-                    }) { Icon(Icons.Default.SkipNext, "下一首", tint = White) }
+                    IconButton(onClick = { playNextManually() }) {
+                        Icon(Icons.Default.SkipNext, "下一首", tint = White)
+                    }
                 }
             }
         }
