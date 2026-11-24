@@ -219,13 +219,13 @@
 - **现象**：声音馆「戴上耳机，\n慢慢来。」32sp 硬换行、图集「一册一个地方，\n翻到最后一张为止。」37sp 顶到边、文字馆 32sp；且声音馆 0 个频道时空页还挂「继续下滑加载更多」。用户：去掉或换诗意短句，不许折行。
 - **根因**：文案硬编码在 `ScreeningSound/Text/Gallery.kt` 各一处，`\n` 写死折行、字号 32-37sp 无 maxLines；`FeedEndRow`（`ScreeningFeedUi.kt`）列表为空也画「继续下滑加载更多」。
 - **修复**：三处改单行短文案（声音馆「戴上耳机，世界慢下来。」/文字馆「一屏一故事，换一盏灯。」/图集「一册一地方，翻到末页。」），24sp + `maxLines=1`；空列表不画页脚行。
-- **状态**：**已修，随并线提交中**（三处文案已换成 24sp 单行 `maxLines=1 softWrap=false`；页脚空态守卫收进纯函数 `feedFooterShown`，`FeedFooterA29Test` 钉 5 条；观感需真机确认，不满意可直接指定换哪句）。
+- **状态**：**已修合线（`854aed13`）**（三处文案已换成 24sp 单行 `maxLines=1 softWrap=false`；页脚空态守卫收进纯函数 `feedFooterShown`，`FeedFooterA29Test` 钉 5 条）。真机取证进度：tip APK 已装 ADY-AL00 并启动无崩溃，三馆页页面级走查因设备 USB 掉线未完成——观感（24sp 单行不折行）待下次接入补拍，不满意可直接指定换哪句。
 
 ## A30 · 上线标准核查：测试残留 + 字幕 mock 数据下落（用户 20261125）
 
 - **问题①：频道测试功能去掉了么？** 核查结论：随包样例兜底已删（`ScreeningFeedStore.kt` 注释两处自述「不再拿随包样例填空」）、debug 启动图标已删（`ScreeningActivity.kt:76` 注释自述）；**残留两处**：侧边栏分组标题仍叫「测试」（`values-zh/strings_home.xml:13`，里面装的是收藏/本地音乐/频道等真实入口——纯命名问题）；origin 线新增「实验室」分组（`drawer_group_lab` + 摄像头 Demo 入口）需确认是否 debug-only（fxlab 主体在 `app/src/debug`，release 不含；入口行要钉 gate）。
 - **问题②：服务端字幕 mock 数据怎么没发现？** 核查结论（证据链）：①testserverV 仓库 `origin/testjava_springboot` 全分支 **零条 INSERT**——字幕只有建表 DDL（`sql/2026112400_sound_subtitle.sql` 0 条 INSERT），**没有任何 mock 数据提交过**；②接口代码已部署：104 上运行中的 jar（2026-11-24 14:22 构建）内含 `SoundSubtitleController.class`，`/api/sound/subtitle/items.json` 在线可用；③生产库在内容底座 47.82.163.162:6666（104 本机无 MySQL）；④声音馆服务端线自述纪律=「不写生产库」。**20261125 声音馆线回证（只读探针）**：`sound_subtitle` 表在生产库**已存在、0 行**（`items.json?soundItemId=2148` ×6 全部 errno 0、total:0）；唯一起草过的测试 INSERT（2148「剑雨狼花8」）只存在于共享笔记，从未执行。另查明一层混跑：`api.ok123find.top` 网关后面轮询多台后端，新代码只在 1–2 台命中，**其余实例还是旧 jar，没有 /subtitle handler → errno 10000**——客户端即使接口路径全对，多数请求也会拿到错误。**所以放映场每片都报「这个视频服务端没有字幕」是符合现状的——mock 数据从未存在过，不是丢了。** 待声音馆会话回证后补一行确认；要真机看到字幕，需要（用户授权后）在生产库建表 + 插一条真数据（备份+回滚口径）。
-- **状态**：①「测试」分组已改名「更多」（`drawer_group_more`；`HomeDrawer.kt`/`HomeScreen.kt` 判定同步，死字符串 `drawer_group_test` 两份 values 已删、全仓零引用）随并线提交；实验室 gate origin 线已有 `CameraFxLabGate.isEnabled` 判定，无需再钉；②待用户决定是否授权在生产库建表+插一条样数据（备份+回滚口径），否则放映场字幕在真机上永远显示「服务端没有字幕」；且顺序应为 全部实例重部署 → 授权补那条 INSERT → 真机复验（声音馆线 20261125 结论，客户端单独改无法绕开）。
+- **状态**：①「测试」分组已改名「更多」（`drawer_group_more`；`HomeDrawer.kt`/`HomeScreen.kt` 判定同步，死字符串 `drawer_group_test` 两份 values 已删、全仓零引用）已合线（`854aed13`）；**真机取证（20261125 ADY-AL00，tip APK）**：侧边栏截图 `/tmp/a30-drawer2.png` 分组标题渲染为「常用/工具/更多」，全站无「测试」字样；实验室入口仅 debug 包出现（`CameraFxLabGate.isEnabled`），release 不含；②待用户决定是否授权在生产库建表+插一条样数据（备份+回滚口径），否则放映场字幕在真机上永远显示「服务端没有字幕」；且顺序应为 全部实例重部署 → 授权补那条 INSERT → 真机复验（声音馆线 20261125 结论，客户端单独改无法绕开）。
 
 ## A26 · 页面「右滑」误开右侧抽屉；用户明确：整个频道所有页面都不需要这个抽屉
 
