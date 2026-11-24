@@ -54,7 +54,12 @@ def detect(bgr):
     rgb = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
     chw = (rgb.astype(np.float32) / 255.0).transpose(2, 0, 1)[None]
     sess = ort.InferenceSession(MODEL, providers=["CPUExecutionProvider"])
-    hm = sess.run(["corner_heatmaps"], {sess.get_inputs()[0].name: chw})[0][0]  # 4x64x64
+    outs = sess.run(None, {sess.get_inputs()[0].name: chw})
+    names = [o.name for o in sess.get_outputs()]
+    # 注意切片层数：corner_heatmaps 是 (1,4,64,64)，去 batch 一层就是 (4,64,64)；
+    # mask_logits 是 (1,1,64,64)，去两层到 (64,64)。这里多切一层会把四角只剩通道 0。
+    hm = outs[names.index("corner_heatmaps")][0]  # 4x64x64
+    mask = outs[names.index("mask_logits")][0][0] if "mask_logits" in names else None
     h, w = bgr.shape[:2]
     corners, sigs = [], []
     for ch in range(4):
@@ -66,7 +71,25 @@ def detect(bgr):
         oxp = min(max((cx - ox) / scale, 0.0), float(w)) / w
         oyp = min(max((cy - oy) / scale, 0.0), float(h)) / h
         corners.append((oxp, oyp))
-    return sigs, corners
+    return sigs, corners, mask
+
+
+def mask_quad(mask, ox, oy, scale, w, h):
+    """与 MaskQuadDecoder 一致：sigmoid>=0.5 前景，取四对角极值格。"""
+    fg = mask >= 0.0
+    ys, xs = np.nonzero(fg)
+    if len(xs) == 0:
+        return None, None
+    ext = {"TL": np.argmin(xs + ys), "TR": np.argmax(xs - ys),
+           "BR": np.argmax(xs + ys), "BL": np.argmin(xs - ys)}
+    cell = INPUT_SIZE / HS
+    pts = []
+    for k in ("TL", "TR", "BR", "BL"):
+        cx, cy = (xs[ext[k]] + 0.5) * cell, (ys[ext[k]] + 0.5) * cell
+        pts.append((float(min(max((cx - ox) / scale, 0) / w, 1)),
+                    float(min(max((cy - oy) / scale, 0) / h, 1))))
+    o = order(pts)
+    return o, area(o)
 
 
 def order(pts):
@@ -196,16 +219,27 @@ def main():
         img = cv2.imread(path, cv2.IMREAD_COLOR)
         h, w = img.shape[:2]
         print(f"尺寸(转正后): {w}x{h}")
-        sigs, corners = detect(img)
+        sigs, corners, mask = detect(img)
         passed = sum(1 for s in sigs if s >= MIN_CONF)
         o = order(corners)
         a = area(o)
         print(f"四角 sigmoid: {[f'{s:.3f}' for s in sigs]}  过 0.5: {passed}/4")
         accepted = passed == 4 and MIN_AREA <= a <= MAX_AREA and convex(o)
-        print(f"ordered 面积: {a:.3f}  凸: {convex(o)}  → 采纳: {accepted}")
+        print(f"ordered 面积: {a:.3f}  凸: {convex(o)}  → 四角采纳: {accepted}")
+        source = "检测(四角)" if accepted else None
+        if not accepted and mask is not None:
+            canvas, ox, oy, scale = letterbox(img)
+            mo, ma = mask_quad(mask, ox, oy, scale, w, h)
+            if mo is None:
+                print("掩码兜底: 空掩码 → null")
+            else:
+                ok = MIN_AREA <= ma <= MAX_AREA and convex(mo)
+                print(f"掩码兜底: 面积={ma:.3f} 凸={convex(mo)} → {'采纳' if ok else '判负(null)'}")
+                if ok:
+                    accepted, source, o = True, "检测(掩码兜底)", mo
         quad = o if accepted else [(0.10, 0.15), (0.90, 0.15), (0.90, 0.85), (0.10, 0.85)]
         quad = order(quad)
-        print(f"使用框: {'检测' if accepted else 'defaultQuad'} {[(round(p[0],3), round(p[1],3)) for p in quad]}")
+        print(f"使用框: {source or 'defaultQuad'} {[(round(p[0],3), round(p[1],3)) for p in quad]}")
         warped = warp(img, quad)
         print(f"warp(2048): {warped.shape[1]}x{warped.shape[0]} mean={warped.mean():.1f}")
         print(f"质量闸门: {quality(warped)}")
