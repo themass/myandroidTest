@@ -49,15 +49,22 @@ object PhotoRenderer {
      * @param edits 操作列表
      * @param maxLongEdge 输出长边上限，默认 [MAX_OUTPUT_LONG_EDGE]；编辑时传屏幕尺寸减少开销
      * @param lutProvider 按滤镜 id 取表；返回 null 表示这张表取不到（资产缺失 / 文件坏了），
-     *   该滤镜被静默跳过，图停在 Adjust 之后的状态。默认永不提供表，所以不传它的调用点行为不变。
+     *   该滤镜被跳过，图停在 Adjust 之后的状态——**不静默**：走一次 [onFilterUnavailable] + Log.w。
+     *   默认永不提供表，所以不传它的调用点行为不变。
+     * @param onFilterUnavailable 可观测信号：每次渲染里「ops 有 Filter 但表取不到」就带着那个 id
+     *   回调一次（同一次渲染最多一次）。调用方据此提示「这次编辑的滤镜没生效」，数据模型不变。
+     *   **刻意排在 [lutProvider] 之前**：仓里大量调用点是 `render(source, edits) { lut }` 这种尾随 lambda，
+     *   尾随 lambda 绑的是**最后一个**形参——新参数若追加在最后，这些旧写法会静默改绑到提示回调上
+     *   （滤镜反而被当成取不到），比编译错误更难查。
      * @return 渲染后的新位图；失败返回 [source] 引用
      */
     fun render(
         source: Bitmap,
         edits: PhotoEdits,
         maxLongEdge: Int = MAX_OUTPUT_LONG_EDGE,
+        onFilterUnavailable: (String) -> Unit = {},
         lutProvider: (String) -> Lut3D? = { null },
-    ): Bitmap = renderStrict(source, edits, maxLongEdge, lutProvider) ?: source
+    ): Bitmap = renderStrict(source, edits, maxLongEdge, onFilterUnavailable, lutProvider) ?: source
 
     /**
      * 全仓**唯一**一处「把渲染的失败吞掉」的机器：OOM / RuntimeException 都在这里变成 null。
@@ -91,18 +98,20 @@ object PhotoRenderer {
      * 「失败」= 管线内部抛 OOM / RuntimeException；不是「输出恰好等于原图」那种引用比较——
      * 没编辑过（[PhotoEdits.ops] 为空）本来就该原样返回 [source]，那是成功。
      *
-     * @param lutProvider 语义同 [render]
+     * @param lutProvider 语义同 [render]；[onFilterUnavailable] 语义同 [render]（导出路径同样该接：
+     *   表取不到时落盘的图没有滤镜，宿主必须能提示，而不是让用户以为套上了）。参数顺序的理由见 [render]。
      * @return 渲染后的新位图；什么都没改时是 [source]；失败返回 null
      */
     internal fun renderStrict(
         source: Bitmap,
         edits: PhotoEdits,
         maxLongEdge: Int = MAX_OUTPUT_LONG_EDGE,
+        onFilterUnavailable: (String) -> Unit = {},
         lutProvider: (String) -> Lut3D? = { null },
     ): Bitmap? {
         // 旋转/镜像也要渲染：它们在预览里同样要可见
         if (edits.ops.isEmpty()) return source
-        return guardRender(TAG) { drawOps(renderBase(source, edits, maxLongEdge, lutProvider), edits) }
+        return guardRender(TAG) { drawOps(renderBase(source, edits, maxLongEdge, onFilterUnavailable, lutProvider), edits) }
     }
 
     /**
@@ -119,12 +128,13 @@ object PhotoRenderer {
      * [guardRender]（预览）或 [renderStrict]（导出），
      * 免得缓存命中路径和未命中路径给出两种不同的降级行为。
      *
-     * @param lutProvider 语义同 [render]
+     * @param lutProvider 语义同 [render]；[onFilterUnavailable] 语义同 [render]。参数顺序的理由见 [render]。
      */
     fun renderBase(
         source: Bitmap,
         edits: PhotoEdits,
         maxLongEdge: Int = MAX_OUTPUT_LONG_EDGE,
+        onFilterUnavailable: (String) -> Unit = {},
         lutProvider: (String) -> Lut3D? = { null },
     ): Bitmap {
         val rotated = rotate(source, edits.quarterTurns)
@@ -134,7 +144,7 @@ object PhotoRenderer {
         // 出界的标注由 [EditCoords.toDisplayNorm] 给出 0..1 之外的值、被画布边界自然截断。
         val cropped = applyCrop(mirrored, edits)
         val adjusted = applyAdjust(cropped, edits.adjust)
-        val filtered = applyFilter(adjusted, source, edits.filter, lutProvider)
+        val filtered = applyFilter(adjusted, source, edits.filter, lutProvider, onFilterUnavailable)
         return downscaleIfNeeded(filtered, maxLongEdge)
     }
 
@@ -253,7 +263,8 @@ object PhotoRenderer {
     // ---- 滤镜 ----
 
     /**
-     * 按 [edit] 取表并套表。取不到表（provider 返回 null）就静默跳过，图停在 Adjust 之后。
+     * 按 [edit] 取表并套表。取不到表（provider 返回 null）就跳过滤镜，图停在 Adjust 之后——
+     * **画面降级但不静默**：Log.w 一次 + 走 [onFilterUnavailable]，让调用方知道「这次的滤镜没生效」。
      *
      * [LutApply.apply] 是**就地且不可叠加**的：同一个位图连跑两遍等于把表套两遍。
      * 而 [applyAdjust] 在 Adjust 是恒等式时返回的 [source] 就是调用方的原图（甚至不可变），
@@ -265,9 +276,15 @@ object PhotoRenderer {
         source: Bitmap,
         edit: EditOp.Filter?,
         lutProvider: (String) -> Lut3D?,
+        onFilterUnavailable: (String) -> Unit,
     ): Bitmap {
         if (edit == null) return sourceBitmap
-        val lut = lutProvider(edit.id) ?: return sourceBitmap
+        val lut = lutProvider(edit.id)
+        if (lut == null) {
+            Log.w(TAG, "滤镜 ${edit.id} 的表取不到，本次渲染跳过滤镜（画面 = 调整之后的状态）")
+            onFilterUnavailable(edit.id)
+            return sourceBitmap
+        }
         val target = if (sourceBitmap !== source && sourceBitmap.isMutable) sourceBitmap
         else sourceBitmap.copy(Bitmap.Config.ARGB_8888, true)
         return LutApply.apply(target, lut, edit.intensity)

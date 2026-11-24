@@ -24,17 +24,17 @@ class Live2dModelGateChoiceTest {
     }
 
     @Test
-    fun `暂存目录过不了版本闸时闸给原因`() {
+    fun `暂存目录过不了版本闸时闸给原因（r7 超 Core 5r5 上限）`() {
         val root = createTempDir()
-        model(File(root, "OriginalDemo"), "OriginalDemo", 5)
+        model(File(root, "OriginalDemo"), "OriginalDemo", 7)
         val reason = Live2dModelGate.rejectReasonInDir(File(root, "OriginalDemo"))
         assertNotNull(reason)
     }
 
     @Test
-    fun `r4 暂存目录放行`() {
+    fun `r5 暂存目录放行（端侧 Core 5r5）`() {
         val root = createTempDir()
-        model(File(root, "OriginalDemo"), "OriginalDemo", 4)
+        model(File(root, "OriginalDemo"), "OriginalDemo", 5)
         assertNull(Live2dModelGate.rejectReasonInDir(File(root, "OriginalDemo")))
     }
 

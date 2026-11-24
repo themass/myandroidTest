@@ -23,8 +23,8 @@ livekit-performance 会话）、不做数字人/摄像头/特效视觉线（另�
 
 | # | 事项 | 状态 | 层级到哪 |
 | --- | --- | --- | --- |
-| C1 | cue 空壳被吞（`cues=0/0`）修复 | **PASS** | 已合线（agent-docs main `ee2e7969`）；未部署、未真机 |
-| C2 | F16 prewarm + 20s init budget 合并验证 | **BLOCKED**（部署窗口） | 已合线（两项都在 main，无需再合并）；收益未验证 |
+| C1 | cue 空壳被吞（`cues=0/0`）修复 | **PASS** | 已合线 + **已部署 104**（`ee2e7969`，11-24 16:41 UTC）；修复前症状有部署前活体复现；新 worker 段 `cues=x/y` 正向样本仍待有效对话 |
+| C2 | F16 prewarm + 20s init budget 合并验证 | **PARTIAL PASS** | 已合线 + 已部署；**③④ 新 worker 段实测通过（20s 预算实测救下 4 笔 >10s 的 spawn）**；②① 待新段跑通 TTS；⑤ 确认归 stage-6 |
 | C3 | `claude/dazzling-darwin-6c5ae3` P4/P5 决策 | **MERGE**（已决策并合线） | 已合线 `8685251b`；真机腿未跑 |
 | C4 | sound-subtitle-server 收口 | **PASS（代码）/BLOCKED（部署+真机）** | 已合线并已 push（`testjava_springboot`）|
 | C5 | testserverV 拍照解题 maxTokens 链 | **PASS** | 已合线且**已在 origin**（前提与 brief 不同，见内文）|
@@ -89,7 +89,40 @@ livekit-performance 会话）、不做数字人/摄像头/特效视觉线（另�
   `Decision.Now` + lateMs 路径支撑。
 
 **阻塞与目标内遗留**
-- 部署与真机复验：依赖协调人给的部署/装机窗口（与 C2 同一窗口最省）；解除条件 = 用户开窗口。
+- ~~部署与真机复验~~ → **2026-11-24 16:41 UTC 已部署**（见下 C2-部署取证）；剩真机 `cues=x/y` 复验，等设备窗口拨测（C6）。
+
+**部署证据（11-24 16:41 UTC，用户开窗口后本会话执行）**
+- 104：`/home/web/work/agent-docs`（已干净）ff 到 `ee2e7969` → `publish.sh --dry-run`
+  确认改动面=2 文件 → `publish.sh` → `process.sh restart voice`。
+- `.deploy-version`：`commit: ee2e7969 / published: 2026-11-24 16:41:06 +0000`。
+- 部署码三处签名都在：`agent.py` `last_declared`×4、`capacity.py`
+  `INITIALIZE_PROCESS_TIMEOUT_S`×3、`prewarm.py` volcengine×4。
+- 新 voice worker pid 1362844：`registered worker`（16:41:49）、重启后
+  `error initializing process` = **0**、无崩溃/退出。
+- 部署前确认无活跃通话（最后 voice 事件 15:54，间隔 46 分钟）。
+- 真机复验未做：V2279A 当时未连 adb（机上挂着 ADY-AL00）；`cues=x/y` 从服务端
+  voice.log 也能取，已挂监视器等下一通。
+
+**新 worker 段通话取证（部署后 16:41–17:21 UTC，5 通）**
+- **症状的活体样本（更精确的时间归属）**：`said='能听到，你说。…' cues=0/0` 的
+  精确时间戳是 **15:46–15:47 UTC**（turn `01M873…` first delta 15:46:44、tts first
+  15:47:01、voice reply 15:47:00，pid **1347532** = 旧 worker 的 job 进程，跑部署前
+  agent.py）。这是 cue 被吞在生产通话里的直接影像；不是对修复的反例。
+  （先前速记把它记成「17:12」，本次用 JSON 行时间戳改正。）
+- 新 worker（pid 1362844，16:41:23 起）承接 17:06/17:09/17:11/17:15/17:20/17:24 六通：
+  协议协商正常（`compat=v2` 多笔），进房正常、音频流正常
+  （`inbound user_state speaking` 17:11:44、17:15:52；`inbound audio summary
+  energy_seen=True peak_max 0.05–0.34`），**但均未形成对话回合**——16:41 之后
+  `voice reply` = **0 行**（当日最后一条 15:47，属旧 worker），且 `volc asr result`
+  同样 0 行（当日最后一批 15:46:23，旧 worker）。ASR 推流本身正常（push/summary
+  frames 一路涨，`opts_rate=16000` 与成功通话一致），EOU 签名（`eot …`）在新段
+  也一笔没有——回合检测从未触发，管线从未被喂进文本。
+  对照：15:45 那通**成功**通话（compat=v2，旧 worker 但代码已含 dced3cab 的
+  voice P1/P2/P3）有完整 result→turn→reply 链。所以这不是新部署的代码回归，
+  形态更像**麦克风侧没有可辨识语音进 ASR**（短促/音量低/静音）。
+  新 worker 的 `cues=x/y` 正向样本仍未取到：不是修复无效，是没有有效回合可计。
+- 监视器已重挂（30min 窗口，过滤 `voice reply`/`tts first`/`error initializing`，
+  只看 16:41 之后时间戳）。
 
 **独立后续（不改本任务状态）**
 - C1-附带（归 F16 owner，本次未修）：say 闭合引号与句末标点落在同一个 delta 时，标点
@@ -104,7 +137,40 @@ livekit-performance 会话）、不做数字人/摄像头/特效视觉线（另�
 - Owner / session：收口 worker（代码线）；收益验证 owner 仍是 F16 侧线 `local_e2a702b2-de82-4ba3-98f6-0de8b11707b9`
 - 目标分支 / commit：agent-docs `main`（`2a098aa4` prewarm 清单补火山插件本体；
   `316f53f8` 钉住 20s 预算挂进真实 WorkerOptions）
-- 状态：**BLOCKED（真实收益验证）／已合线**
+- 状态：**PARTIAL PASS（②③④ 已取证）／已合线 + 已部署 104**
+
+**部署取证更新（2026-11-24 16:41 UTC，用户开窗口后本会话执行）**
+- 现场比 brief 假设更进一步：另一会话 14:22 已发过 `dced3cab`，其中**已含** `2a098aa4`
+  （prewarm）与 `316f53f8`（20s 预算）——线上当时就在跑 `prewarm done modules=27
+  vad=loaded cost_ms=7673/9178/9437`，且该 worker 段 `error initializing process` = 0。
+  所以 C2 的 **③④ 当场即满足**（历史 10870 笔超时全在旧 worker 段、最新一笔 05:26）。
+- 本会话补发 `ee2e7969`（只多 cue 修复）后重启 voice：新 worker pid 1362844
+  `registered worker` 16:41:49，重启后 spawn 超时 **0**、无崩溃。
+- ②（`importing livekit.plugins.volcengine*` blocked）新 worker 段 **0 笔**——但新段
+  还没跑过通话，该签名要等拨测才算最终确认。
+- ①（`first_frame_ms` 对照基线）与 ⑤（`received job → joined room`）等下一通拨测取数。
+
+**新 worker 段实测（部署后 16:41–17:21 UTC，5 通）**
+| 项 | 实测值 |
+| --- | --- |
+| spawn `received job → prewarm done` | 13.18 / 12.35 / 10.45 / 13.40 / 11.45 s（prewarm cost_ms 8.4–11.7s）|
+| ④ `error initializing process`（16:41 之后）| **0 笔**（旧 worker 段历史 10870 笔）|
+| ③ `prewarm done modules=` | **27**（每一笔）|
+| ⑤ `received job → companion joined` | 14.05 / 13.32 / 12.18 / 13.87 / 12.80 s |
+| ② volcengine blocked 行（16:41 之后）| 0 笔（但新段尚无 TTS 调用，见下）|
+| ① `first_frame_ms` | 新段无样（新段至今 0 个对话回合，见 C1 取证）|
+
+- **20s 预算从「理论必要」升级为「实测必要」**：livekit-agents 默认
+  `initialize_process_timeout = 10.0`（`worker.py:219` 现场实读），而现网
+  `prewarm done cost_ms` 已 8.4–11.7s —— **11.7 > 10**。上面 5 笔 spawn 中 4 笔全程
+  >10s 却零超时，只有 `capacity.py:26 INITIALIZE_PROCESS_TIMEOUT_S = 20.0`（:52
+  无条件传入）能解释。**风险提醒**：prewarm 成本在漂移上行（旧段 7.7s → 新段
+  11.7s），再涨下去 20s 预算也会被挤；对策是 stage-6（catalog/platform 进程级
+  单例、`build_platform` 出事件循环），**不是**继续加 import 或加大预算。
+- ⑤ 确认未达 ~2s 且形态与 stage-5 相同 —— 与关键提醒一致：每房间同步
+  `build_platform` 仍在事件循环里。这不是 prewarm 回归，是 stage-6 的范围。
+- ②① 的最终确认需要新 worker 段跑出一个**完整对话回合（含 TTS）**；当前 5 通只有
+  进房/音频流（`inbound user_state speaking`）没有回合，见 C1 取证段。
 
 **先纠正 brief 的前提（本次取证）**
 - `2a098aa4`（prewarm）**已在 `origin/main`**：`git merge-base --is-ancestor` 返回真。

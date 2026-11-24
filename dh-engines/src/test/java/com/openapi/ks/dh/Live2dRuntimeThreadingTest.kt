@@ -91,7 +91,7 @@ class Live2dRuntimeThreadingTest {
             cacheRoot = File("."),
             started = true,
             jniDispatcher = d,
-            modelGateReject = "模型版本过新：moc3 r5 > 端侧 Cubism Core r4",
+            modelGateReject = "模型版本过新：moc3 r7 > 端侧 Cubism Core r6",
         )
         rt.changeModel("OriginalDemo", "OriginalDemo.model3.json")
         assertEquals(0, d.posted.size)

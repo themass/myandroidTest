@@ -62,7 +62,7 @@ cd scripts/fx-lab/three-scene && npm install --no-audit --no-fund && node build.
 | Lottie | 通过（基线贴纸/爱心弧正常） |
 | Rive | 首验失败后修复通过：app 里 Rive 的 androidx.startup 自动初始化被 `tools:node="remove"` 摘掉，JNI 报 `No implementation found for FileAssetLoader.constructor()`；`RiveRuntimeGate.ensure` 手动一次性 `Rive.init(context)` 后 loopy 正常渲染，「停」清除画面 |
 | GLES3 粒子 | 通过（互动/教学场景漂浮点与爆发正常） |
-| AGSL | 按设计诚实不可用：状态行显示「需要 API 33+，本机 API 31」，不出画面（互动+摄像头两场景都确认） |
+| AGSL | 按设计诚实不可用：状态行显示「需要 API 33+，本机 API 31」，不出画面（互动+摄像头两场景都确认；正向光环需 API 33+ 设备） |
 | Three.js | 首验失败后修复通过，两处：① bundle 必须在 `<body>` 内加载（否则 `document.body` 为 null，页内脚本崩）；② hwschromium 里整层 canvas/普通流全尺寸 img 不参与合成——合成路径改为 WebGL 离屏 → 2D canvas `drawImage` → `toDataURL` → `position:fixed` 的 `<img>`，圆环+光扫正常上屏 |
 
 未验的一格：摄像头场景的贴纸落脸（设备镜头前无人，`脸 0`，贴纸按设计需脸>0；adb 无法摆出真人脸，

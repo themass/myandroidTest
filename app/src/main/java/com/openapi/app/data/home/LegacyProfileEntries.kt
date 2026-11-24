@@ -42,6 +42,8 @@ class LegacyProfileEntries(app: Context) : ProfileEntries {
             }
             add(ProfileEntry(ProfileAction.Settings, R.drawable.ic_menu_setting, R.string.menu_btn_setting))
             if (user != null) {
+                // 头像生成入口只给已登录用户（未登录点它只会得到「请先登录」，不如不给）。
+                add(ProfileEntry(ProfileAction.Avatar, com.openapi.feature.user.R.drawable.ic_menu_avatar, com.openapi.feature.user.R.string.menu_btn_avatar))
                 add(ProfileEntry(ProfileAction.Logout, R.drawable.ic_menu_delete, R.string.menu_btn_logout))
             }
         }
@@ -53,6 +55,8 @@ class LegacyProfileEntries(app: Context) : ProfileEntries {
                 avatarRes = if (Constants.SEX_M == user.sex) R.drawable.ic_default_nan else R.drawable.ic_default_nv,
                 levelRes = levelIcon(user.level),
                 entries = entries,
+                // 用户生成过的头像（本地文件）；没有就保持默认图。见 UserAvatarStore。
+                avatarFilePath = com.openapi.feature.user.avatar.UserAvatarStore.avatarFilePath(context),
             )
         } else {
             ProfileInfo(
@@ -78,6 +82,7 @@ class LegacyProfileEntries(app: Context) : ProfileEntries {
             ProfileAction.AppRecommend -> AppListFragment.startFragment(context)
             ProfileAction.Donation -> DonationListFragment.startFragment(context)
             ProfileAction.Settings -> startActivityFrom(context, SettingActivity::class.java)
+            ProfileAction.Avatar -> com.openapi.feature.user.avatar.AvatarStudioActivity.start(context)
             ProfileAction.Logout -> logout(context)
         }
         MobAgent.onEventMenu(context, action.analyticsName())
@@ -115,6 +120,7 @@ class LegacyProfileEntries(app: Context) : ProfileEntries {
         ProfileAction.AppRecommend -> "应用推荐"
         ProfileAction.Donation -> "捐赠"
         ProfileAction.Settings -> "设置"
+        ProfileAction.Avatar -> "二次元头像"
         ProfileAction.Logout -> "登出"
     }
 }

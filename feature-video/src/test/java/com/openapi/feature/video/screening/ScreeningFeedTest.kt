@@ -332,6 +332,27 @@ class ScreeningFeedTest {
     }
 
     @Test
+    fun `声音馆频道行没有 actionUrl 也必须留下（真机 0045「0 个频道」）`() {
+        // sound/channel.json 的实测行（探针 2026-11-25）没有 actionUrl 字段——服务端 VO 里就没有；
+        // 旧 SoundItemsMusicFragment 直接拿 vo.param 当 items.json 的 channel。
+        // 走 remoteEntry 的「空地址行丢掉」规则会把 30 行全丢光，声音馆就显示「0 个频道」。
+        val hub = soundHubEntry(id = 4262L, index = 0, title = "欲望都市", description = null,
+            imageUrl = "https://mmslt1.com/a.png", rate = 1.1f, param = "/yousheng/list-欲望都市.html")!!
+        assertEquals("srv:4262", hub.key)
+        assertEquals("欲望都市", hub.title)
+        // 点进去的下钻 key = param 整体（soundListKey），items.json 拿它当 channel=
+        assertEquals("/yousheng/list-欲望都市.html", hub.soundListKey())
+        // param 是 hub 行的命门：没有它这条行点开也没意义，照丢
+        assertNull(soundHubEntry(id = 1L, index = 0, title = "缺key", description = null,
+            imageUrl = null, rate = 0f, param = null))
+        assertNull(soundHubEntry(id = 1L, index = 0, title = "缺key", description = null,
+            imageUrl = null, rate = 0f, param = "  "))
+        // 普通推荐位的空 actionUrl 规则不变（上一条测试钉着），只有 hub 层豁免
+        assertNull(remoteEntry(id = 1L, index = 0, title = "有名字", description = null, imageUrl = null,
+            rate = 0f, actionUrl = null, needsLazyUrl = false, dataType = 0))
+    }
+
+    @Test
     fun `sound 和 text 交回原分发，不进视频内页`() {
         // sound:// 仍交回 SoundChannleActivity；text:// 已进 FeedRoute.TEXT（ScreeningText）。
         assertFalse(isLegacyOnlyAction("sound://config?channel=nvyou"))

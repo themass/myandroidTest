@@ -47,6 +47,7 @@ object FxAssets {
     const val PAT_HEAD = "fx_pat_head"
     const val WAVE = "fx_wave"
     const val CONNECTED = "fx_connected"
+    const val SWIPE = "fx_swipe"
 
     data class Spec(val assetId: String, val category: FxCategory)
 
@@ -55,6 +56,8 @@ object FxAssets {
         // 光弧是对「挥手」这个动作的反馈，不是持续氛围——归事件响应类。
         Spec(WAVE, FxCategory.EVENT_RESPONSE),
         Spec(CONNECTED, FxCategory.AMBIENCE),
+        // 流光是对「手指滑动」cue（CameraSwipeCue）的反馈——事件响应类。
+        Spec(SWIPE, FxCategory.EVENT_RESPONSE),
     )
 
     val all: List<Spec> get() = registered
