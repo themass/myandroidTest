@@ -109,11 +109,18 @@ livekit-performance 会话）、不做数字人/摄像头/特效视觉线（另�
   15:47:01、voice reply 15:47:00，pid **1347532** = 旧 worker 的 job 进程，跑部署前
   agent.py）。这是 cue 被吞在生产通话里的直接影像；不是对修复的反例。
   （先前速记把它记成「17:12」，本次用 JSON 行时间戳改正。）
-- 新 worker（pid 1362844，16:41:23 起）承接 17:06/17:09/17:11/17:15/17:20 五通：
+- 新 worker（pid 1362844，16:41:23 起）承接 17:06/17:09/17:11/17:15/17:20/17:24 六通：
   协议协商正常（`compat=v2` 多笔），进房正常、音频流正常
-  （`inbound user_state speaking` 17:11:44、17:15:52），**但均未形成对话回合**——
-  16:41 之后 `voice reply` = **0 行**（当日最后一条 15:47，属旧 worker）。所以新
-  worker 的 `cues=x/y` 正向样本仍未取到：不是修复无效，是没有有效回合可计。
+  （`inbound user_state speaking` 17:11:44、17:15:52；`inbound audio summary
+  energy_seen=True peak_max 0.05–0.34`），**但均未形成对话回合**——16:41 之后
+  `voice reply` = **0 行**（当日最后一条 15:47，属旧 worker），且 `volc asr result`
+  同样 0 行（当日最后一批 15:46:23，旧 worker）。ASR 推流本身正常（push/summary
+  frames 一路涨，`opts_rate=16000` 与成功通话一致），EOU 签名（`eot …`）在新段
+  也一笔没有——回合检测从未触发，管线从未被喂进文本。
+  对照：15:45 那通**成功**通话（compat=v2，旧 worker 但代码已含 dced3cab 的
+  voice P1/P2/P3）有完整 result→turn→reply 链。所以这不是新部署的代码回归，
+  形态更像**麦克风侧没有可辨识语音进 ASR**（短促/音量低/静音）。
+  新 worker 的 `cues=x/y` 正向样本仍未取到：不是修复无效，是没有有效回合可计。
 - 监视器已重挂（30min 窗口，过滤 `voice reply`/`tts first`/`error initializing`，
   只看 16:41 之后时间戳）。
 
