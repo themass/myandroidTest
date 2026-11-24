@@ -257,7 +257,9 @@ private fun SoundTrackHub(
             item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore) }
         }
         if (current != null) {
-            Column(Modifier.fillMaxWidth().background(Lift).padding(14.dp)) {
+            // 播放条在壳之外（壳的安全区够不到它）：自己垫导航条，同旧写法——
+            // 以前整页 Column 带 safeDrawingPadding，撤掉包装时这份底部安全区不能丢。
+            Column(Modifier.fillMaxWidth().safeDrawingPadding().background(Lift).padding(14.dp)) {
                 Text(current.title, color = White, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Slider(
                     value = (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f),
