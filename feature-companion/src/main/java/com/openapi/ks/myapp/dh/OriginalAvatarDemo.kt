@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.openapi.ks.dh.AssetStore
 import com.openapi.ks.dh.EngineAssets
+import com.openapi.ks.dh.Live2dModelGate
 import java.io.File
 import java.io.IOException
 
@@ -57,6 +58,11 @@ object OriginalAvatarDemo {
                 }
             }
             File(staging, VERSION_FILE).writeText(ASSET_VERSION)
+            // 版本闸：暂存目录里的 moc3 过不了端侧 Core 就不装——装了也是白装
+            // （availability 会拒绝加载），toast 直接说清原因（真机 SIGSEGV 2026-11-24）。
+            Live2dModelGate.rejectReasonInDir(staging, "OriginalDemo.model3.json")?.let { reason ->
+                throw IOException(reason)
+            }
             if (target.exists() && !target.deleteRecursively()) {
                 throw IOException("Cannot replace existing Live2D demo")
             }

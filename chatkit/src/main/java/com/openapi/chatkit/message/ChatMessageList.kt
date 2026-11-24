@@ -52,6 +52,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Text
@@ -159,10 +160,24 @@ fun ChatMessageList(
     // 贴底逻辑全停。必须等用户真的拖过一次再评估。
     var following by remember { mutableStateOf(true) }
     var userDragged by remember { mutableStateOf(false) }
+    val keyboard = LocalSoftwareKeyboardController.current
+    // 上面三个 LaunchedEffect 也会让 isScrollInProgress 变 true（程序化滚动：新消息、
+    // 流式增长、键盘高度）。必须把它们和「用户真的拖动」区分开：
+    // 1) 键盘收起：只允许用户拖动收键盘——键盘高度那个效果一触发就去 hide，会把用户
+    //    刚弹出的键盘当场收掉；
+    // 2) following：程序滚动不能把 userDragged 置真，否则每来一条消息都会重新评估
+    //    following，把「刚被程序滚到底」误判成用户翻动过。
+    // 三处程序化滚动进入前置 true、结束后清 false（finally：失败也要清，不然粘住 true
+    // 会把之后的用户拖动全部吞掉）。
+    var programmaticScroll by remember { mutableStateOf(false) }
     LaunchedEffect(state) {
         snapshotFlow { state.isScrollInProgress }.collect { scrolling ->
             if (scrolling) {
-                userDragged = true
+                if (!programmaticScroll) {
+                    // 用户开始拖动列表：收起软键盘（微信式），不再让键盘挡住阅读
+                    userDragged = true
+                    keyboard?.hide()
+                }
             } else if (userDragged) {
                 following = !state.canScrollForward
             }
@@ -173,24 +188,41 @@ fun ChatMessageList(
     LaunchedEffect(last?.key) {
         if (last != null && (last.sender == Sender.User || following)) {
             following = true
-            scrollLock.withLock {
-                state.scrollToItem(items.lastIndex)
-                state.scrollBy(BOTTOM_SCROLL)
+            programmaticScroll = true
+            try {
+                scrollLock.withLock {
+                    state.scrollToItem(items.lastIndex)
+                    state.scrollBy(BOTTOM_SCROLL)
+                }
+            } finally {
+                programmaticScroll = false
             }
         }
     }
     // 流式增长、以及回复结束时 footer 出现：跟随时无动画贴底，保证最后一条完整显示
     LaunchedEffect(last?.plainText?.length, last?.thinking, last?.streaming) {
-        if (following && last != null) scrollLock.withLock { state.scrollBy(BOTTOM_SCROLL) }
+        if (following && last != null) {
+            programmaticScroll = true
+            try {
+                scrollLock.withLock { state.scrollBy(BOTTOM_SCROLL) }
+            } finally {
+                programmaticScroll = false
+            }
+        }
     }
     // 键盘弹出或收起：列表高度变了，如果原来在底部就保持贴底，否则最后几条会被键盘和输入栏盖住
     // 用键盘高度本身作为 key：键盘动画的每一帧都会重新贴底，等布局稳定后也不会留下被盖住的尾部
     val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
     LaunchedEffect(imeBottom) {
         if (following && last != null) {
-            scrollLock.withLock {
-                state.scrollToItem(items.lastIndex)
-                state.scrollBy(BOTTOM_SCROLL)
+            programmaticScroll = true
+            try {
+                scrollLock.withLock {
+                    state.scrollToItem(items.lastIndex)
+                    state.scrollBy(BOTTOM_SCROLL)
+                }
+            } finally {
+                programmaticScroll = false
             }
         }
     }

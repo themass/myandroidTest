@@ -54,8 +54,19 @@ data class ChatUiState(
     val hasMoreHistory: Boolean = false,
     /** 正在加载更早的一页历史。 */
     val loadingOlder: Boolean = false,
+    /**
+     * 生成中按发送排队的纯文字（FIFO，按 Enter 顺序）。语义照搬
+     * `app/.../agent/AgentChatState.kt` 的 `QueuedInput`：回合自然结束后由
+     * [ReplyStreamer] 取队首续发；用户点停止则清空（中断意图明确）。
+     * 只有纯文字走这里——附件/编辑/位置在生成中仍被现有的闸挡住。
+     */
+    val queued: List<String> = emptyList(),
 ) {
-    val canSend: Boolean get() = (input.isNotBlank() || drafts.isNotEmpty() || locationDraft != null) && !sending
+    /**
+     * 文字/附件有内容就能按：生成中不再禁发送键——纯文字走 [queued] 排队，
+     * 附件与位置由各自路径上的 `sending` 闸挡住（不会在生成中直接发）。
+     */
+    val canSend: Boolean get() = input.isNotBlank() || drafts.isNotEmpty() || locationDraft != null
 
     val selectedCharacter: ChatCharacterOption?
         get() = characters.firstOrNull { it.id == selectedCharacterId }

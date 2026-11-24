@@ -4,15 +4,23 @@
   重生成 bundle：cd scripts/fx-lab/three-scene && npm install --no-audit --no-fund && node build.mjs
   WebView 以伪源 https://fx-lab.local 加载本页；除 three.html / three.bundle.js
   外的任何请求都被 ThreeWebViewOverlay 阻断，页面自身也不发网络请求。
+  bundle 必须在 <body> 内加载：它在顶层对 document.body 做 appendChild，
+  放在 <head>（或裸文档）里 body 为 null，FxLab 永远不会定义（真机 WebView 踩过）。
 -->
+<html>
+<head>
 <meta charset="utf-8">
 <style>
   html, body { margin: 0; padding: 0; background: transparent; height: 100%; overflow: hidden; }
   canvas { display: block; }
 </style>
+</head>
+<body>
 <script src="three.bundle.js"></script>
 <script>
   // 就绪握手：Kotlin 侧只在 onReady 之后下发 cue，未到就绪的命令被丢弃而非无限排队。
   AndroidFxLab && AndroidFxLab.onReady();
   FxLab.start();
 </script>
+</body>
+</html>

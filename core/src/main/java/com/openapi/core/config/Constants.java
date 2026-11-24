@@ -116,7 +116,7 @@ public class Constants {
     public static final String SEX_F = "F";
 
     public static final String USERIP = "USERIP";
-    public static final String helpUrl = "https://file.ok123find.top/vip.html";
+    public static final String helpUrl = "https://file.ok123find.top/uher_help.html";
     // 有新版本时，是否打开app就提醒升级
     //用户反馈
     public static final String DEFAULT_FEEDBACK_APPKEY = "23575056";

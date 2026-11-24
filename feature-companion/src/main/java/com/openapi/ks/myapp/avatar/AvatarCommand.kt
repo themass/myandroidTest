@@ -30,7 +30,12 @@ sealed interface AvatarCommand {
     data class Gesture(val id: String) : AvatarCommand
 }
 
-enum class AvatarState { IDLE, LISTENING, THINKING, SPEAKING }
+/**
+ * P1 契约（docs/design/2026-11-24-state-cancel-contract-v2.md §1）的五个规范状态。
+ * `INTERRUPTED` 由端侧在 barge-in 触发瞬间**乐观写入**（不等服务端往返）：打断的
+ * 视觉反馈必须在本地那一帧就发生。渲染器没有对应素材时按 IDLE 表现 + 立即闭嘴。
+ */
+enum class AvatarState { IDLE, LISTENING, THINKING, SPEAKING, INTERRUPTED }
 
 /**
  * 渲染器声明自己支持哪些能力，上层据此决定发不发某类指令。不支持的指令渲染器

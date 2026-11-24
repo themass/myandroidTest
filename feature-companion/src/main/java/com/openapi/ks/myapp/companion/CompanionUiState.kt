@@ -74,6 +74,11 @@ data class CompanionMessage(
      * 留着它才有「重试换源」的可能——签名 URL 只活几百秒，过期后唯一能重新换取的凭据就是这个 id。
      */
     val attachmentIds: List<String> = emptyList(),
+    /**
+     * 这条回复被用户打断（P2 契约）。文本已按「实际说出口的前缀」截断，
+     * 界面据此把这条区分成「说到一半被打断」而不是完整回复。
+     */
+    val interrupted: Boolean = false,
 )
 
 data class CompanionUiState(
