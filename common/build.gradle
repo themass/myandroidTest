@@ -41,6 +41,8 @@ dependencies {
     implementation libs.androidx.compose.ui
     implementation libs.androidx.compose.ui.graphics
     implementation libs.androidx.compose.material3
+    // ads/ui/AdsBannerSlot：Compose 列表内嵌 banner 槽要宿主 Activity（LocalActivity）
+    implementation libs.androidx.activity.compose
     // 分享卡片的二维码
     implementation 'com.google.zxing:core:3.5.3'
 

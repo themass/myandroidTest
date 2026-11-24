@@ -16,8 +16,18 @@ object AdsGate {
     @Volatile
     var debugBuild: Boolean = false
 
+    /**
+     * debug 侧显式 opt-in（台账 §6 D1）：默认仍关闭——保留 `28b2226e` 对验收环境的保护；
+     * 需要验证广告链路时由启动 Intent 带 `--ez ads_on 1`（LaunchActivity）或 adb 广播打开，
+     * 只影响这一个进程。
+     */
+    @JvmStatic
+    @Volatile
+    var debugOptIn: Boolean = false
+
     /** true = 允许加载与展示广告。@JvmOverloads：AdsManager 是 Java，要用无参重载。 */
     @JvmStatic
     @JvmOverloads
-    fun enabled(isDebugBuild: Boolean = debugBuild): Boolean = !isDebugBuild
+    fun enabled(isDebugBuild: Boolean = debugBuild, optIn: Boolean = debugOptIn): Boolean =
+        !isDebugBuild || optIn
 }

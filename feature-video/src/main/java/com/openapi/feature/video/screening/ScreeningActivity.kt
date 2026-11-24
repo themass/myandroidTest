@@ -225,6 +225,9 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
         else FeedPager(feedScope, fetch = fetch)
         libraryPager = page to pager
         channelPage = page
+        // 旧 MovieChannleActivity.java:50 等进频道页弹插屏；放映场对应这一步。
+        // 时机闸门（静默期+最小间隔）在 tryInterstitialOnDrill 里，主干从来没有那道闸。
+        tryInterstitialOnDrill(activity)
     }
     /** http(s) 地址交回原路由（`ConfigActionJump` 按 scheme 分流 WebView）。 */
     val openUrl: (String, String) -> Unit = { url, title ->
@@ -236,16 +239,20 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
         forward = true
         galleryChannel = entry?.galleryChannelParam()
         gallery = true
+        // 旧 ImgChannleActivity 进页弹插屏；放映场对应「开图集」。闸门见 ScreeningAds。
+        tryInterstitialOnDrill(activity)
     }
     val openText: (RemoteEntry) -> Unit = { entry ->
         forward = true
         textChannel = entry.channelParam
         textHub = true
+        tryInterstitialOnDrill(activity)
     }
     val openSound: (RemoteEntry) -> Unit = { entry ->
         forward = true
         soundChannel = entry.channelParam
         soundHub = true
+        tryInterstitialOnDrill(activity)
     }
     /**
      * 按 routeOf 派发一张卡的点击：内页里的行和首页网格走同一套判定，
@@ -791,16 +798,23 @@ private fun Library(
         }
         if (poster) items(shown.chunked(3)) { row ->
             // 海报视图与首页网格同一档：三列，一屏多装一半
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEachIndexed { column, entry ->
-                    EntryCard(entry, progress[entry.key] ?: 0L, true,
-                        Modifier.weight(1f).enterFeedItem(seen, entry.key, column), openEntry)
+            Column {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    row.forEachIndexed { column, entry ->
+                        EntryCard(entry, progress[entry.key] ?: 0L, true,
+                            Modifier.weight(1f).enterFeedItem(seen, entry.key, column), openEntry)
+                    }
+                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                 }
-                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+                // AD3：banner 按旧位置表插在整行下方（见 ScreeningAds 的注释）
+                FeedGridAdSlot(shown.indexOf(row.last()))
             }
         } else items(shown, key = { it.key }) { entry ->
-            EntryCard(entry, progress[entry.key] ?: 0L, false,
-                Modifier.fillMaxWidth().enterFeedItem(seen, entry.key, pager.items.indexOf(entry)), openEntry)
+            Column {
+                EntryCard(entry, progress[entry.key] ?: 0L, false,
+                    Modifier.fillMaxWidth().enterFeedItem(seen, entry.key, pager.items.indexOf(entry)), openEntry)
+                FeedRowAdSlot(pager.items.indexOf(entry))
+            }
         }
         item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore, pager.loading && pager.items.isEmpty()) }
     }

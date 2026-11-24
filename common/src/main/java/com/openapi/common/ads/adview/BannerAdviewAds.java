@@ -1,9 +1,8 @@
 package com.openapi.common.ads.adview;
 
+import android.app.Activity;
 import android.os.Handler;
 import android.view.ViewGroup;
-
-import androidx.fragment.app.FragmentActivity;
 
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.ads.base.AdsContext;
@@ -21,7 +20,7 @@ public class BannerAdviewAds extends BannerInter {
     }
 
     @Override
-    public void bannerAds(final FragmentActivity context, final ViewGroup group, final String key, final Handler handler) {
+    public void bannerAds(final Activity context, final ViewGroup group, final String key, final Handler handler) {
 //        final View view = AdViewBannerManager.getInstance(context).getAdViewLayout(context, key);
 //        if (view != null) {
 //            ViewGroup parent = (ViewGroup) view.getParent();
@@ -76,7 +75,7 @@ public class BannerAdviewAds extends BannerInter {
     }
 
     @Override
-    public void bannerExit(FragmentActivity context, ViewGroup group, final String key) {
+    public void bannerExit(Activity context, ViewGroup group, final String key) {
         LogUtil.i("bannerExit:" + key);
         group.removeView(group.findViewWithTag(key));
     }

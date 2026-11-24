@@ -23,7 +23,9 @@ import java.util.Set;
  */
 
 public class AdsContext {
-    private static int showCount = 0;
+    /** 插屏配额窗口（取代旧的终身 {@code showCount}）。 */
+    private static final RateBudget BUDGET = new RateBudget();
+
     public static Set<String> adsClick = new HashSet<>();
 
     static {
@@ -135,13 +137,22 @@ public class AdsContext {
         adsMsgThread.start();
     }
 
-    // 3/5
+    /**
+     * 插屏限流 + 概率。
+     * <p>
+     * 旧实现是 {@code if (showCount++ > 8) return false;}，而 {@code showCount} 是
+     * 没有任何复位点的 static：进程启动后第 9 次调用起，<b>整个进程生命周期内所有插屏
+     * 永久返回 false</b>。用户报「广告原先有、现在全不见了」，这是其中唯一在 release 包
+     * 同样发生的一条（台账 docs/design/20261125-admob-ads-ledger.md §0.2）。
+     * 现在限流按窗口滚动（{@link RateBudget}），概率口径不变
+     * （{@code getRandom(maxRate) <= PROBABILITY}，见 {@link AdsShowPolicy#hitProbability}）。
+     */
     public static boolean rateShow() {
-        if (showCount++ > 8) {
+        if (!BUDGET.take()) {
             return false;
         }
         int i = Md5.getRandom(AdsIds.maxRate);
-        return i <= AdsIds.PROBABILITY;
+        return AdsShowPolicy.hitProbability(i, AdsIds.PROBABILITY);
 
     }
 

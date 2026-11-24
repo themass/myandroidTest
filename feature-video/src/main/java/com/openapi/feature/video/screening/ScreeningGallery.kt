@@ -245,7 +245,8 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
         }
         if (!pager.loading && shots.isEmpty()) item { Text("这一册还没有图片，返回换一册。", Modifier.padding(14.dp), color = Muted) }
         items(shots.chunked(3)) { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Column {
+                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 row.forEachIndexed { column, shot ->
                     val index = shots.indexOf(shot)
                     Box(
@@ -266,6 +267,9 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
                     }
                 }
                 repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+                // AD3：图集正文列表此前无槽（旧 native 通路早已注释停用，台账 §4.2）。
+                FeedGridAdSlot(shots.indexOf(row.last()))
             }
             Spacer(Modifier.height(5.dp))
         }
