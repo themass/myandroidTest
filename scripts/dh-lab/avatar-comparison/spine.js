@@ -30,8 +30,9 @@ async function load() {
   // 相机:正交;zoom>1 拉远。骨架数据 bounds x:-188.6 y:-7.9 w:418 h:686 → 中心约 (21,335)
   renderer.resize(ResizeMode.Expand);
   renderer.camera.position.set(21, 335, 0);
-  const fit = () => { renderer.camera.zoom = 860 / canvas.height; };
+  const fit = () => { if (canvas.height) renderer.camera.zoom = 860 / canvas.height; }; // 首帧尺寸为 0 时跳过,等 Expand/下帧再算
   fit();
+  new ResizeObserver(fit).observe(canvas);
 
   const anims = skeletonData.animations.map(a => a.name);
   const nav = document.getElementById('anims');

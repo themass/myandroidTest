@@ -8,23 +8,45 @@ window.PIXI = PIXI; // pixi-live2d-display/cubism4 运行时引用全局 PIXI
 import { Live2DModel } from 'pixi-live2d-display/cubism4';
 
 const statusEl = document.getElementById('status');
-const app = new Application({ view: document.getElementById('stage'), backgroundAlpha: 0, antialias: true, autoDensity: true });
+const stageEl = document.getElementById('stage');
+// 关键坑:不给 width/height 时,Pixi 6 把 canvas 属性与内联样式都定死为默认 800x600,
+// CSS 的 width:100% 被内联压过 —— 真机视口只有 390 多 CSS px,800px 画布溢出容器,
+// 角色在画布正中,屏幕露出的恰好是它右半边(「贴右被裁」的根因)。resizeTo 在华为
+// WebView 上实测未生效,所以尺寸完全手动管:渲染器缓冲 = 容器 CSS px × dpr,内联样式压死为 100%。
+const dpr = window.devicePixelRatio || 1;
+const app = new Application({ view: stageEl, backgroundAlpha: 0, antialias: true, autoDensity: true, resolution: dpr });
 
 async function load() {
   statusEl.textContent = '加载 Hiyori 模型…';
   const model = await Live2DModel.from('./Hiyori/Hiyori.model3.json', { autoInteract: false });
   model.motion('Idle'); // 官方待机动作组(9 条 motion3 随机取一)
-  const fit = () => {
-    const scale = Math.min(app.screen.width / model.width, app.screen.height / model.height) * 0.95;
-    model.scale.set(scale);
-    model.x = (app.screen.width - model.width) / 2;
-    model.y = (app.screen.height - model.height) / 2;
+  window.__fitDiag = () => {
+    const v = app.view, m = model;
+    return 'view=' + v.clientWidth + 'x' + v.clientHeight + ' canvasPx=' + v.width + 'x' + v.height +
+      ' scale=' + m.scale.x.toFixed(3) + ' xy=' + Math.round(m.x) + ',' + Math.round(m.y);
   };
+  const fit = () => {
+    // 量父容器而不是 canvas 自身:Pixi 把 canvas 内联样式写成逻辑尺寸,
+    // canvas.clientWidth 会读回自己(曾恒为默认 800x600,角色在超宽画布正中,
+    // 屏幕只露左段 —— 正是「贴右被裁」的根因)。
+    const box = stageEl.parentElement;
+    const w = box.clientWidth, h = box.clientHeight;
+    if (!w || !h) return; // WebView 首帧前尺寸为 0,等 ResizeObserver 再定位
+    app.renderer.resize(w, h); // autoDensity:缓冲 = w×dpr,内联样式 = w/h CSS px
+    // 用内容包围盒(局部坐标)居中 —— 不猜 Live2DModel 的原点在哪
+    // (其绘制原点并非包围盒中心,anchor.set 对它无效)。
+    const lb = model.getLocalBounds();
+    if (!lb.width || !lb.height) return;
+    const s = Math.min(w / lb.width, h / lb.height) * 0.95;
+    model.scale.set(s);
+    model.x = w / 2 - (lb.x + lb.width / 2) * s;
+    model.y = h / 2 - (lb.y + lb.height / 2) * s;
+  };
+  new ResizeObserver(fit).observe(stageEl.parentElement);
   fit();
   app.stage.addChild(model);
 
   // 视线跟随触点(陪伴页同款交互的最小版)
-  const stageEl = document.getElementById('stage');
   stageEl.addEventListener('pointermove', e => {
     const r = stageEl.getBoundingClientRect();
     model.focus(e.clientX - r.left, e.clientY - r.top);
