@@ -70,7 +70,7 @@ V2279A（serial `10CE7P1G56004B7`）曾出现幽灵版本 1001000070（worker �
 | P2 | 图片编辑 S2+ 实现 | design-3-tasks | delivered |
 | P2 | P2-13 位置/视频消息 | p2-13 | delivered |
 | ~~P2~~ | ~~P1-12 流式单槽~~ | p1-12-markdown | ✅ **PASS**（08cd430a/3a4ea771 已在主线祖先链；tip 上实现均在） |
-| P2 | SSE 集成测试挂死 `AgentSseReconnectIntegrationTest.sseFrameIdsAndEventFieldsSurviveRealParsing`（runTest 60s 超时；:feature-chat 215 例唯一失败，基线问题） | 新任务卡 | 立项待启动 |
+| ~~P2~~ | ~~SSE 集成测试挂死 `AgentSseReconnectIntegrationTest.sseFrameIdsAndEventFieldsSurviveRealParsing`（runTest 60s 超时；:feature-chat 215 例唯一失败，基线问题）~~ | zealous-franklin | ✅ **PASS** `a40ac702`：测试 harness 三处缺陷（终止块被再包一层 chunked → OkHttp 必报 unexpected end of stream 引发意外重连；`setSoLinger(true,0)` 发 RST 丢帧 → 断点头变 null；harness 一请求一应答 → 意外连接 `readTimeout=0` 永挂 → 60s `UncompletedCoroutinesError`）。**未改生产 SSE 代码**；feature-chat 222 例 0 失败，该类 `--rerun-tasks` 连跑 3 次全绿 |
 | P2 | TTS 25–32s 慢启动 RCA | tts-25-32s-f16 | delivered |
 | ✅ | P1-10 图片失败重试 | gallant | 已闭环（weifu `4d380f89` + 基线修 `0464c151`） |
 | ✅ | testserverV 拍题 maxTokens | testserverV | 链 `f0de0021`→`a48e2425`→`cbc260d9`，41 测 0 失败；**push 等用户本人** |
