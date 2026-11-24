@@ -37,7 +37,7 @@
 ### 1.2 为什么不用现成 ATRI/Amadeus/Yuuka，也不现在上原创 Live2D
 
 - **现成三形象**：正是 C2 记录点名排除的「授权未清」第三方角色（ChatWaifu 上游模型），不用。
-- **原创 Live2D `OriginalDemo`**：素材完全原创（Pillow 自绘 + PSD2Live 3.8.4 导出，见 [ORIGINAL-AVATAR-DEMO.md](../../../scripts/dh-lab/psd2live-eval/ORIGINAL-AVATAR-DEMO.md)），**但它今天真机加载不了**——`feature-companion/src/debug/assets/live2d/original-demo/OriginalDemo.moc3` 文件头是 `MOC3` + revision **5**，而 vendored `libLive2DCubismCore.so`（Cubism Core 4.2.1）只读到 r4；[Live2dModelGate](../../../dh-engines/src/main/java/com/openapi/ks/dh/Live2dModelGate.kt) 的 `CORE_MAX_MOC3_REVISION = 4` 会 fail-closed 拒绝它（真机 SIGSEGV 取证，commit `1b3131a4`）。根治要升级 Cubism Core 二进制（专有许可，下载线在另一会话进行）。所以把它留在「切换入口后面」，不默认上。
+- **原创 Live2D `OriginalDemo`**：素材完全原创（Pillow 自绘 + PSD2Live 3.8.4 导出，见 [ORIGINAL-AVATAR-DEMO.md](../../../scripts/dh-lab/psd2live-eval/ORIGINAL-AVATAR-DEMO.md)）。写本设计时它**被版本闸拒载**：moc3 文件头 revision **5**，而当时的 vendored Core 4.2.1 只读到 r4，[Live2dModelGate](../../../dh-engines/src/main/java/com/openapi/ks/dh/Live2dModelGate.kt) `CORE_MAX_MOC3_REVISION = 4` fail-closed（真机 SIGSEGV 取证，commit `1b3131a4`）。**本分支合入后已翻案**：上游 `7773ce61` 把 Cubism Core 升到官方 5-r.5（重编 `.so` 已入库），闸常量抬到 **r6**，r5 模型通过闸门。所以它留在「切换入口后面」不默认上——**闸放行 ≠ 真机渲染已验收**（旧 Core 下曾 SIGSEGV，新 Core 的真机绘制属装机复核项）。
 
 ### 1.3 「老师做表情」怎么实现（唯一需要动到形象主线代码的点）
 
@@ -108,7 +108,7 @@
 
 - 老师形象只用 **`demo-avatar-v1`（自研分层立绘）**。它是主线通话页已用的自有素材，**不是** C2 旧记录要防的第三方角色。
 - **仍排除**：ATRI / Amadeus / Yuuka（ChatWaifu 上游角色，授权未清）、Duix、Tao、Hiyori（官方样例，「不得改角色设计」限制）。这些在 demo 里不默认出现；引擎切换菜单若选到 Live2D，菜单行直接显示 `Live2dModelGate` / 缺素材的拒绝原因，不假装能渲染。
-- **原创 Live2D `OriginalDemo`**：素材原创，但 moc3 r5 > 端侧 Core r4，被 `Live2dModelGate` fail-closed 拒载（commit `1b3131a4` 已并入 `weifu-refactor`）。今天真机不可加载；保留在切换入口后面，Core 升级或导出 r4 后才验收。README 必须写死这条，不得写成「已可用」。
+- **原创 Live2D `OriginalDemo`**：素材原创。写设计时被版本闸拒载（moc3 r5 > 当时端侧 Core r4，`1b3131a4`）；本分支合入上游 `7773ce61` 后端侧 Core 已升 5-r.5、闸抬到 r6，**闸门放行**。但真机渲染从未在新 Core 上验证过（旧 Core 下 r5 曾 SIGSEGV），所以仍不默认上，只在切换入口后面提供；README 不得写成「已可用」，真机绘制属装机复核项。
 - Lottie 特效只用 `fx_pat_head / fx_wave / fx_connected` 三个仓库自制素材（[assets/fx/README](../../../feature-companion/src/main/assets/fx/README.md)：无第三方、商用无限制）。
 
 ---
@@ -162,7 +162,7 @@ app/src/debug/java/com/openapi/app/teaching/
 1. **延迟维度重定义**：本地固定脚本 + 导演脚本，「首 token 延迟」不再是模型指标。改为记 **演出响应**（步骤切换/表情/特效上屏时延），并**明确标注**：模型延迟分只在将来接线上 agent 时适用，本地 demo 不计模型延迟分（避免把本地脚本的「秒回」当成模型快）。
 2. **新增观测（表演与边界）**：摄像头帧不存储/不上传（检查 logcat + 无落盘）、表扬不诱导依赖或要求用户回赠、sticker 特效在 `reducedMotion` 下正确 SKIP、引擎切到 Live2D 时菜单显示 `Live2dModelGate` 拒绝原因而非假装渲染。
 3. **硬性失败新增**：摄像头画面被落盘/上传；把舞台演出或 TTS 播报当成「线上模型能力」；表扬在退出场景变成挽留/情感施压（与 C1-X 冲突）；`reducedMotion` 开仍播动效；任何真实人脸/个人信息进入样例或记录。
-4. **复核步骤重写**：按导演脚本「单步 / 重置 / 自由输入」逐路走，加摄像头授权流、人脸贴纸跟随、表扬贴纸切换、引擎切换（含 OriginalDemo 被闸拒绝）四条新观测点。
+4. **复核步骤重写**：按导演脚本「单步 / 重置 / 自由输入」逐路走，加摄像头授权流、人脸贴纸跟随、表扬贴纸切换、引擎切换（含 OriginalDemo 在新 Core 上的真机渲染验收）四条新观测点。
 5. demo-record.md 的复核表同步重写，并**诚实标注**：哪些是本次能自动验证的（纯函数单测、构建绿、APK 含素材），哪些**必须真机**（立绘渲染、唇形随 TTS 动、摄像头人脸贴纸、引擎切换）——后者仍待协调会话装机复核。
 
 ---

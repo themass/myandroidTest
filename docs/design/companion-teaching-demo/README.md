@@ -41,7 +41,7 @@ Activity 壳住在 `:app` debug 源集是架构要求：Activity 不能接收 la
 7. 首次进入学生画面会先弹本机说明，同意后才申请相机权限；拒绝可在页面重试。学生画面 = 前置摄像头实时预览 + 本机人脸贴纸（默认摸头爱心，表扬步换光弧）。
 8. 「自由输入」走同一段本地脚本（`scriptedReply` 原文），文字与 TTS 照常。点「示范工具确认」（正常路第 5 步）分别检查「取消」和「确认」；确认只改变页面上的本地演示状态，不创建真实提醒。
 9. 检查每条角色回复附近的「AI 生成 · 林澄」标识、顶部「本地脚本」「不上传」「不申请麦克风」说明。选退出场景播到 END 后，输入框隐藏并说明不会安排主动联系；右上角退出可随时关闭页面。
-10. 「引擎」菜单可切 SIMPLE/LIVE2D/DUIX/TAO/VRM 看可用性原因；选「原创 Live2D」会安装模型后被 `Live2dModelGate` 拒绝（moc3 r5 > 端侧 Core r4），菜单行显示拒绝原因——这是**预期行为**，不是 bug。
+10. 「引擎」菜单可切 SIMPLE/LIVE2D/DUIX/TAO/VRM 看可用性原因；选「原创 Live2D」会安装 `OriginalDemo`（moc3 r5）——端侧 Core 已升 5-r.5、闸抬到 r6，**闸门放行**；能否真机渲染属装机复核项（旧 Core 下曾 SIGSEGV，从未在新 Core 上验证过），菜单行如实显示状态，不假装已可用。
 
 ## 运行边界
 
@@ -50,7 +50,7 @@ Activity 壳住在 `:app` debug 源集是架构要求：Activity 不能接收 la
 - 未接入真实记忆、外部工具、通知、账号、网络或线上 agent；UI 中的记忆更新和确认均为本地演示状态。
 - **不向设备申请麦克风权限。** 语音只由系统 TTS 播报脚本回复；唇形由合成 WAV 的本机包络驱动。
 - **新增摄像头边界**：只申请 `CAMERA`；预览帧只在本机经 MediaPipe 做人脸检测，**不落盘、不上传、不录音视频**；退出页面即释放 CameraX；不存储任何人脸/画面数据。进入学生画面前有本机处理说明的同意步骤。
-- 老师形象只用自研分层立绘 `demo-avatar-v1`（自有素材）。授权未清的 ATRI/Amadeus/Yuuka、Duix、Tao、Hiyori 形象不默认出现；原创 Live2D `OriginalDemo` 素材原创但被版本闸拒绝（见上）。
+- 老师形象只用自研分层立绘 `demo-avatar-v1`（自有素材）。授权未清的 ATRI/Amadeus/Yuuka、Duix、Tao、Hiyori 形象不默认出现；原创 Live2D `OriginalDemo` 素材原创，端侧 Core 升 5-r.5 后闸门放行，但真机渲染未验收（见上）。
 - 特效只用仓库自制三个 Lottie（`fx_pat_head` / `fx_wave` / `fx_connected`）；`reduce-motion` 开时氛围类不播，舞台放大时锚定特效不播。
 - 关闭页面不会影响账号、会话或生产数据。
 
