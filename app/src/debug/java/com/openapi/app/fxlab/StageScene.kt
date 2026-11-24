@@ -13,7 +13,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.openapi.feature.companion.fx.LottieFxLayer
 import com.openapi.ks.myapp.avatar.AvatarPackStore
 import com.openapi.ks.myapp.avatar.BundledAvatars
 import com.openapi.ks.myapp.avatar.LayeredAvatar
@@ -44,16 +43,8 @@ fun StageScene(
                 modifier = Modifier.fillMaxSize(),
             )
         }
-        if (state.engine == FxEngineId.LOTTIE) {
-            LottieFxLayer(
-                gestureId = state.gestureId,
-                gestureSeq = state.gestureSeq,
-                reducedMotion = false,
-                particles = true,
-                stageZoomed = false,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
+        // 引擎选择集中在 LabEffectLayer：Unavailable 只显示状态文本，绝不借用别的引擎的画面。
+        LabEffectLayer(state = state, modifier = Modifier.fillMaxSize())
     }
 }
 

@@ -30,6 +30,7 @@ data class LabUiState(
     val engine: FxEngineId,
     val gestureId: String?,
     val gestureSeq: Long,
+    val stopSeq: Long,
     val teachIndex: Int,
     val gate: GateOutcome,
 )
@@ -44,6 +45,7 @@ fun EffectsLabScreen(
     var engine by remember { mutableStateOf(FxEngineId.LOTTIE) }
     var gestureId by remember { mutableStateOf<String?>(null) }
     var gestureSeq by remember { mutableStateOf(0L) }
+    var stopSeq by remember { mutableStateOf(0L) }
     var teachIndex by remember { mutableStateOf(0) }
     // 唯一的 cue 触发印章：手动按钮与教学模式共用，不存在第二条触发路径。
     val cueTick = remember { CueTick() }
@@ -59,7 +61,7 @@ fun EffectsLabScreen(
         assetReady = assetReady,
         reasonWhenMissing = if (engine == FxEngineId.RIVE) "缺 .riv 资产" else "",
     )
-    val state = LabUiState(scene, engine, gestureId, gestureSeq, teachIndex, gate)
+    val state = LabUiState(scene, engine, gestureId, gestureSeq, stopSeq, teachIndex, gate)
     androidx.compose.runtime.SideEffect { onStateChange(state) }
     // cueTick → LabUiState 槽位：手动按钮与教学按钮都走这里，唯一触发路径。
     fun syncCue() {
@@ -120,7 +122,8 @@ fun EffectsLabScreen(
                         FxScene.CAMERA_PIP, FxScene.CAMERA_FULL ->
                             CameraScene(
                                 state = state,
-                                renderer = null,
+                                // 不可用时传 null（模块自己的 Lottie 基线），原因由状态行说明。
+                                renderer = if (gate == GateOutcome.Enabled) cameraRendererFor(engine) else null,
                                 modifier = Modifier.fillMaxSize(),
                             )
                     }
@@ -133,7 +136,10 @@ fun EffectsLabScreen(
                     Button(onClick = { cueTick.fire("pat_head"); syncCue() }) { Text("摸头") }
                     Button(onClick = { cueTick.fire("wave"); syncCue() }) { Text("挥手") }
                     Button(onClick = { cueTick.fire("connected"); syncCue() }) { Text("接通") }
-                    OutlinedButton(onClick = { cueTick.stop(); syncCue() }) { Text("停") }
+                    // 停：清 cue 且 bump stopSeq —— 停过再触发同一 cue 也必须重播。
+                    OutlinedButton(onClick = {
+                        cueTick.stop(); syncCue(); stopSeq += 1
+                    }) { Text("停") }
                 }
             }
             if (scene == FxScene.DH_TEACH) {

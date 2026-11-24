@@ -1,5 +1,6 @@
 package com.openapi.app.fxlab
 
+import android.view.View
 import androidx.compose.foundation.border
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -28,18 +29,19 @@ fun RiveStageRenderer(resId: Int, modifier: Modifier) {
         AndroidView(
             modifier = modifier,
             factory = { context ->
-                RiveAnimationView(context).apply {
-                    isOpaque = false
-                    // Decorative overlay: never claim avatar/camera touch events.
-                    setOnTouchListener { _, _ -> false }
-                    try {
+                // runCatching: the SDK loads a native library at construction. If that ever
+                // fails (or a fixture is corrupt), the Lab shows the reason instead of a blank.
+                runCatching {
+                    RiveAnimationView(context).apply {
+                        isOpaque = false
+                        // Decorative overlay: never claim avatar/camera touch events.
+                        setOnTouchListener { _, _ -> false }
                         setRiveResource(resId, autoplay = true, fit = Fit.CONTAIN, loop = Loop.LOOP)
-                    } catch (e: Exception) {
-                        failure = e.message ?: e.javaClass.simpleName
                     }
-                }
+                }.onFailure { failure = it.message ?: it.javaClass.simpleName }
+                    .getOrNull() ?: View(context)
             },
-            onRelease = { it.stop() },
+            onRelease = { (it as? RiveAnimationView)?.stop() },
         )
     }
 }

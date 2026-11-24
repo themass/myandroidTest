@@ -42,10 +42,13 @@ class EffectsLabScreenTest {
         }
         compose.waitForIdle()
         val before = requireNotNull(observed)
-        compose.onNodeWithTag("fx_engine_RIVE").performClick()
+        // 切到 RIVE 会真的挂起 RiveAnimationView——它的渲染循环在共享 JVM 测试里
+        // 会让 Compose idle 永不收敛（全套跑时 AppNotIdleException，单跑有时侥幸过）。
+        // 引擎切换本身用 AGSL 验证；Rive 渲染路径由 RiveAssetTest + 装机验收覆盖。
+        compose.onNodeWithTag("fx_engine_AGSL_SHADER").performClick()
         compose.waitForIdle()
         val after = requireNotNull(observed)
-        assertEquals(FxEngineId.RIVE, after.engine)
+        assertEquals(FxEngineId.AGSL_SHADER, after.engine)
         assertEquals(before.scene, after.scene)
     }
 
