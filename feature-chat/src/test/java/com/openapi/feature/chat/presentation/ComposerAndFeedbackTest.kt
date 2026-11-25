@@ -160,6 +160,33 @@ class ComposerAndFeedbackTest {
         assertEquals(cap, state.value.drafts.size)
     }
 
+    /** A36①：徽标撤回排队文字——回到输入框；输入框有内容时按行拼接不覆盖。 */
+    @Test
+    fun withdrawQueuedReturnsTextToInput() {
+        val state = MutableStateFlow(ChatUiState(queued = listOf("第一条", "第二条")))
+        ComposerActions(state).withdrawQueued(0)
+        assertEquals(listOf("第二条"), state.value.queued)
+        assertEquals("第一条", state.value.input)
+    }
+
+    @Test
+    fun withdrawQueuedAppendsWhenInputNotEmpty() {
+        val state = MutableStateFlow(
+            ChatUiState(input = "刚敲的", queued = listOf("排队甲", "排队乙")),
+        )
+        ComposerActions(state).withdrawQueued(1)
+        assertEquals(listOf("排队甲"), state.value.queued)
+        assertEquals("刚敲的\n排队乙", state.value.input)
+    }
+
+    @Test
+    fun withdrawQueuedIgnoresOutOfRangeIndex() {
+        val state = MutableStateFlow(ChatUiState(input = "保持", queued = listOf("只有这一条")))
+        ComposerActions(state).withdrawQueued(7)
+        assertEquals(listOf("只有这一条"), state.value.queued)
+        assertEquals("保持", state.value.input)
+    }
+
     @Test
     fun likeAndDislikeAreMutuallyExclusive() {
         val state = MutableStateFlow(ChatUiState())

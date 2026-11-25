@@ -296,8 +296,12 @@
 
 - **现象**：发一条消息后发送键变成取消/停止键，必须等 AI 回完才能再发。
 - **重要背景**：A2 修复（`cc77dfad`）已实现「生成中发送键保留 + 纯文字入队 + 回合结束自动续发 + 输入栏上方『N 条排队中』」；用户看到的仍是旧行为——大概率是旧包（V2279A 从未装机新版本；ADY-AL00 前一版装机在 A2 修复推送之前也可能滞后）。但用户明确说「这里还需要你设计一下」——排队语义本身也要重新设计，不能只靠「装新包」结案。
-- **设计提案（待用户拍板）**：①**发送键常驻**：任何时候有文字就能点发送，生成中点发送=入队（现有 A2 语义），排队徽标显示「N 条待发」，可点击展开看队列/撤销；②**停止键移位**：不再占用发送键位置，改为生成中消息气泡上的「停止生成」小按钮（点气泡内即可中断，业界主流形态）；③**发送即新回合**（激进方案）：允许并发多回合，服务端 409 已有 `TurnConflictRecovery` 兜底——不推荐，破坏回合叙事。
-- **状态**：**待用户选方案**（①+② 是推荐组合；选定后 mediaview/chatkit 一条派工）。
+- **设计提案（用户 20261125 拍板：①+②）**：①**发送键常驻**：任何时候有文字就能点发送，生成中点发送=入队（现有 A2 语义），排队徽标显示「N 条排队中」，可点击展开看队列/撤回；②**停止键移位**：不再占用发送键位置，改为生成中消息气泡上的「停止生成」小按钮（点它即可中断，业界主流形态）；③**发送即新回合**（激进方案）：允许并发多回合，服务端 409 已有 `TurnConflictRecovery` 兜底——不推荐，破坏回合叙事（未采纳）。
+- **实现（20261125，本会话）**：
+  - chatkit：`ComposerState.queuedCount:Int` → `queued:List<String>` + `sendVisible`（纯文字生成中仍画发送键；纯草稿生成中不画——发送闸会把纯附件消息挡到回合结束，画了点了没结果更像坏了）；`ChatComposer` 移除生成中停止键位与 `onStop` 参数，`QueuedBadge` 徽标可展开、逐条「撤回」（testTag `queued-withdraw-i`）；`ChatMessageItem`/`ChatMessageList` 新增 `onStopGenerating`，`StopGeneratingChip`（testTag `stop-generating`）只挂在正在生成（thinking/streaming）的最后一条助手气泡下方；陪伴页等不传该参数的调用方逐像素不变。
+  - feature-chat：`ComposerActions.withdrawQueued(index)`（撤回回输入框，已有内容按行拼接不覆盖，越界静默忽略）；`ChatViewModel.onWithdrawQueued`；`ChatRoute` 接线。停止语义不变（`ReplyStreamer.cancel`：本地 Job + 服务端 cancelTurn + 清队列）。
+  - 测试：`ComposerSendVisibilityTest` 5 项（chatkit）；`ComposerAndFeedbackTest` +3 项（withdrawQueued）；`A36SendKeyAndStopRenderTest` 4 项渲染回归（:app Robolectric：生成中发送键在、停止芯片在气泡上且点击回调、无生成不显示、徽标展开撤回按 index 回调）。app ui 全包 35 项 0 失败。
+- **状态**：**已修合线（20261125）**——待装机复验（ADY-AL00 从 tip 重装后确认「生成中可继续发送 + 气泡上停止」）。
 
 ## A37 · 拍照解题 UI：字体太大太难看、历史页按钮换行（用户 20261125）
 

@@ -64,4 +64,10 @@
     <string name="chatkit_location">位置</string>
     <string name="chatkit_location_accuracy">精度 ±%1$d 米</string>
     <string name="chatkit_open_in_map">在地图打开</string>
+    <!-- A36①：排队徽标的展开/收起与撤回 -->
+    <string name="chatkit_queue_expand">展开</string>
+    <string name="chatkit_queue_collapse">收起</string>
+    <string name="chatkit_queue_withdraw">撤回</string>
+    <!-- A36②：停止生成入口从发送键位移到生成中的气泡 -->
+    <string name="chatkit_stop_generating">停止生成</string>
 </resources>

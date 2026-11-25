@@ -87,8 +87,11 @@ fun ChatScreen(
     onVoiceStyleChange: (VoiceStyle) -> Unit,
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
+    /** A36②：停止生成——入口挂在生成中的气泡上（ChatMessageList），不再占用输入栏发送键位。 */
     onStop: () -> Unit,
     onRemoveDraft: (String) -> Unit,
+    /** A36①：从「N 条排队中」徽标里撤回第 index 条（回到输入框）。 */
+    onRemoveQueued: (Int) -> Unit = {},
     /** 长按草稿托盘里的图片再编辑（S3）。不传 = 该页不提供编辑。 */
     onEditDraftImage: (String) -> Unit = {},
     onCancelEdit: () -> Unit = {},
@@ -170,8 +173,8 @@ fun ChatScreen(
             recording = state.recording,
             transcribing = state.transcribing,
             liveTranscript = state.partialText,
-            // followup 队列的可见反馈：输入栏上方「N 条排队中」
-            queuedCount = state.queued.size,
+            // followup 队列的可见反馈：输入栏上方「N 条排队中」徽标（可展开撤回）
+            queued = state.queued,
         )
     }
     val voiceLevel by com.openapi.speech.audio.VoiceRecorder.level.collectAsState()
@@ -247,6 +250,8 @@ fun ChatScreen(
                         else -> onMessageAction(message, action)
                     }
                 },
+                // A36②：停止生成挂在正在生成的气泡下方，发送键位让给发送（不再一进生成中就变取消键）
+                onStopGenerating = onStop,
                 emptyContent = {
                     // 读失败不能画成空会话：那和「历史被清空」没有区别。
                     when (val empty = emptyStateFor(state)) {
@@ -281,8 +286,8 @@ fun ChatScreen(
                 onVoiceStyleChange = onVoiceStyleChange,
                 onTextChange = onInputChange,
                 onSend = onSend,
-                onStop = onStop,
                 onRemoveDraft = onRemoveDraft,
+                onRemoveQueued = onRemoveQueued,
                 onEditDraftImage = onEditDraftImage,
                 onVoiceStart = onVoiceRecordStart,
                 onVoiceStop = onVoiceRecordStop,

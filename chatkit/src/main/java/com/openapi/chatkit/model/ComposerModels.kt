@@ -57,14 +57,25 @@ data class ComposerState(
     /** 当前录音音量 0..1，供声波动画使用。 */
     val voiceLevel: Float = 0f,
     /**
-     * 生成中排队的纯文字条数（followup 队列）。>0 时输入栏上方显示「N 条排队中」；
-     * 队列本身由调用方持有（feature-chat 的 ChatUiState.queued），chatkit 只管显示。
+     * 生成中排队的纯文字（followup 队列，按发送顺序）。非空时输入栏上方显示
+     * 「N 条排队中」徽标，点开可逐条撤回；队列本体由调用方持有
+     * （feature-chat 的 ChatUiState.queued），chatkit 只管显示与回调。
      */
-    val queuedCount: Int = 0,
+    val queued: List<String> = emptyList(),
 ) {
     /**
      * 有内容就能按：生成中不再禁发送键（纯文字走排队续发，
      * 与 feature-chat 的 ChatUiState.canSend 同一语义）。
      */
     val canSend: Boolean get() = text.isNotBlank() || drafts.isNotEmpty()
+
+    /** 排队条数（徽标文案用）。 */
+    val queuedCount: Int get() = queued.size
+
+    /**
+     * 发送键是否常驻可见（A36①）。纯文字生成中也能按（入队）；纯草稿/附件在
+     * 生成中仍被发送闸挡住（feature-chat 的 ChatTurnGate），所以那时不画出发送键，
+     * 免得点下去没反应像坏了一样——保持 `canSend` 与点击结果一致。
+     */
+    val sendVisible: Boolean get() = text.isNotBlank() || (drafts.isNotEmpty() && !generating)
 }
