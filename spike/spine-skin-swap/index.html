@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Spine skin-swap spike — spine-webgl 4.2.120</title>
+<style>
+  html,body { margin:0; padding:0; background:#14181d; color:#e8edf2;
+    font:13px/1.5 ui-monospace, "SF Mono", Menlo, monospace; }
+  #stage { position:fixed; inset:0; }
+  #canvas { position:absolute; inset:0; width:100%; height:100%; }
+  /* HUD lives in the DOM (not the GL buffer) so evidence shots are self-documenting. */
+  #hud { position:absolute; left:12px; top:12px; right:12px; display:flex;
+    justify-content:space-between; align-items:flex-start; gap:16px;
+    pointer-events:none; }
+  #hud .panel { background:rgba(10,13,16,.82); border:1px solid #2b343d;
+    border-radius:6px; padding:8px 11px; max-width:60%; }
+  #caption { font-size:15px; font-weight:600; letter-spacing:.2px; }
+  #detail { color:#9fb0bf; margin-top:3px; white-space:pre-wrap; }
+  #meta { text-align:right; color:#7f8fa0; }
+  #meta b { color:#cfe3f5; font-weight:600; }
+  #status { position:absolute; left:12px; bottom:12px;
+    background:rgba(10,13,16,.82); border:1px solid #2b343d; border-radius:6px;
+    padding:6px 10px; color:#9fb0bf; pointer-events:none; }
+  #status.err { color:#ff8f8f; border-color:#5a2626; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="canvas"></canvas>
+  <div id="hud">
+    <div class="panel">
+      <div id="caption">loading…</div>
+      <div id="detail"></div>
+    </div>
+    <div class="panel" id="meta"></div>
+  </div>
+  <div id="status">boot</div>
+</div>
+
+<!-- Self-contained official runtime bundle: @esotericsoftware/spine-webgl@4.2.120 (iife).
+     Verified to embed spine-core (160 exports incl. SkeletonJson, Skin, SkeletonRenderer),
+     so exactly one script tag is needed. -->
+<script src="lib/spine-webgl.js"></script>
+<script>
+"use strict";
+
+/* ---------- asset table: official free sample skeletons from
+   github.com/EsotericSoftware/spine-runtimes (branch 4.2), examples/ ---------- */
+const ASSETS = {
+  "mix-and-match": {
+    atlas: "mix-and-match-pma.atlas",
+    json:  "mix-and-match-pro.json",
+    // The 4 full outfit skins shipped with the sample.
+    fulls: ["full-skins/boy", "full-skins/girl", "full-skins/girl-blue-cape",
+            "full-skins/girl-spring-dress"],
+    idle:  "idle",
+  },
+  "goblins": { atlas: "goblins-pma.atlas", json: "goblins-pro.json",
+               fulls: ["default", "goblin", "goblingirl"], idle: "walk" },
+};
+
+/* Outfit combos built by compositing per-category part skins at runtime —
+   this is the mix-and-match claim the product doc relies on. */
+const COMBOS = {
+  A: { label: "A · hoodie+jeans+bag+hat",
+       parts: ["skin-base","nose/short","eyelids/girly","eyes/violet","hair/brown",
+               "clothes/hoodie-orange","legs/pants-jeans","accessories/bag",
+               "accessories/hat-red-yellow"] },
+  B: { label: "B · dress+boots+blue cape",
+       parts: ["skin-base","nose/long","eyelids/semiclosed","eyes/green","hair/pink",
+               "clothes/dress-blue","legs/boots-red","accessories/cape-blue"] },
+  C: { label: "C · hoodie+scarf+backpack",
+       parts: ["skin-base","nose/short","eyelids/girly","eyes/yellow","hair/blue",
+               "clothes/hoodie-blue-and-scarf","legs/pants-green",
+               "accessories/backpack"] },
+};
+
+class SpikeApp {
+  constructor() {
+    this.t = 0;            // animation clock (seconds)
+    this.paused = false;
+    this.combo = null;     // last applied skin description, for the HUD
+  }
+
+  loadAssets(canvas) {
+    const a = ASSETS[SPIKE.asset];
+    canvas.assetManager.loadTextureAtlas(a.atlas);
+    canvas.assetManager.loadJson(a.json);
+  }
+
+  initialize(canvas) {
+    this.canvas = canvas;          // set here, not in render(), so frame() can run pre-first-paint
+    const a = ASSETS[SPIKE.asset];
+    const am = canvas.assetManager;
+    this.atlas = am.require(a.atlas);
+    const loader = new spine.AtlasAttachmentLoader(this.atlas);
+    const json = new spine.SkeletonJson(loader);
+    json.scale = 1;
+    this.data = json.readSkeletonData(am.require(a.json));
+    this.skeleton = new spine.Skeleton(this.data);
+
+    const asd = new spine.AnimationStateData(this.data);
+    asd.defaultMix = 0.25;               // crossfade between animations
+    this.state = new spine.AnimationState(asd);
+
+    // version bump lets the Playwright driver wait for a specific op to be live
+    SPIKE.rev++;
+    setStatus(`ready · ${this.data.skins.length} skins · ` +
+              `${Object.keys(this.data.animations).length} anims`);
+    renderMeta();
+    this.caption("loaded", `${this.data.skins.length} skins available`);
+  }
+
+  error(canvas, errors) {
+    setStatus("asset load FAILED: " + JSON.stringify(errors), true);
+    SPIKE.failed = true;
+  }
+
+  /* ---- the skin pipeline under test: composite part skins into one Skin ---- */
+  applyCombo(name) {
+    const c = COMBOS[name];
+    const skin = new spine.Skin("combo:" + name);
+    const missing = [];
+    for (const p of c.parts) {
+      const s = this.data.findSkin(p);
+      if (!s) { missing.push(p); continue; }
+      skin.addSkin(s);                       // <-- runtime skin composition
+    }
+    this.skeleton.setSkin(skin);             // <-- swap onto the live skeleton
+    this.skeleton.setToSetupPose();
+    this.combo = `${c.label}\nparts: ${c.parts.join(", ")}` +
+                 (missing.length ? `\nMISSING: ${missing.join(",")}` : "");
+    this.frame();
+    return this.combo;
+  }
+
+  applyFullSkin(skinName) {
+    const s = this.data.findSkin(skinName);
+    if (!s) { this.combo = `NOT FOUND: ${skinName}`; return this.combo; }
+    this.skeleton.setSkin(s);
+    this.skeleton.setToSetupPose();
+    this.combo = `full skin: ${skinName}`;
+    this.frame();
+    return this.combo;
+  }
+
+  /* single-category swap on top of a combo: the "change one garment" claim */
+  applyComboWith(name, overridePart) {
+    const c = COMBOS[name];
+    const parts = c.parts.slice();
+    const cat = overridePart.split("/")[0];
+    for (let i = 0; i < parts.length; i++)
+      if (parts[i].split("/")[0] === cat) parts[i] = overridePart;
+    const skin = new spine.Skin("combo:" + name + "+" + overridePart);
+    for (const p of parts) { const s = this.data.findSkin(p); if (s) skin.addSkin(s); }
+    this.skeleton.setSkin(skin);
+    this.skeleton.setToSetupPose();
+    this.combo = `${c.label} → override ${overridePart}\nparts: ${parts.join(", ")}`;
+    this.frame();
+    return this.combo;
+  }
+
+  /* ---- lip-sync anchor: swap the attachment on the `mouth` slot by name ---- */
+  setMouth(attName) {
+    const before = this.slotAtt("mouth");
+    this.skeleton.setAttachment("mouth", attName);   // name-based attachment swap
+    SPIKE.lastMouth = { before, after: this.slotAtt("mouth"), requested: attName };
+    this.frame();
+    return SPIKE.lastMouth;
+  }
+
+  slotAtt(slotName) {
+    const slot = this.skeleton.findSlot(slotName);
+    if (!slot) return null;
+    const a = slot.getAttachment();
+    return a ? a.name : null;
+  }
+
+  /* deterministic pose: re-run the animation to exactly `t`, then hold.
+     Lets every screenshot share one pose so skin is the only variable. */
+  frame() {
+    const anim = SPIKE.anim;
+    this.state.setAnimation(0, anim, true, 0);
+    this.state.update(Math.max(0, SPIKE.poseT));
+    this.state.apply(this.skeleton);
+    this.skeleton.updateWorldTransform(spine.Physics.update);
+    this.paused = true;
+    this.snapCamera();
+  }
+
+  play(anim) {
+    SPIKE.anim = anim || SPIKE.anim;
+    this.paused = false;
+    this.state.setAnimation(0, SPIKE.anim, true, 0);
+  }
+
+  snapCamera() {
+    // Bounds are computed from the CURRENT posed skeleton (frame() already applied
+    // the animation to SPIKE.poseT) — must not reset to setup pose here, or every
+    // screenshot would silently show the setup pose instead of the stated t.
+    const o = new spine.Vector2(), s = new spine.Vector2();
+    this.skeleton.getBounds(o, s);
+    const cam = this.canvas.renderer.camera;
+    cam.position.x = o.x + s.x * 0.5;
+    cam.position.y = o.y + s.y * 0.5;
+    const aspect = this.canvas.htmlCanvas.width / this.canvas.htmlCanvas.height;
+    const vh = s.y * 1.35, vw = Math.max(vh * aspect, s.x * 1.18);
+    cam.viewportWidth = vw; cam.viewportHeight = vh;
+  }
+
+  update(canvas, delta) {
+    if (this.paused) return;                    // hold the deterministic pose
+    this.t += delta;
+    this.state.update(delta);
+    this.state.apply(this.skeleton);
+    this.skeleton.updateWorldTransform(spine.Physics.update);
+  }
+
+  render(canvas) {
+    this.canvas = canvas;
+    const r = canvas.renderer;
+    r.resize(spine.ResizeMode.Fit);
+    canvas.clear(0.078, 0.094, 0.113, 1);
+    r.begin();
+    r.drawSkeleton(this.skeleton, true);
+    r.end();
+    SPIKE.frames++;
+  }
+
+  caption(main, sub) {
+    document.getElementById("caption").textContent = main;
+    document.getElementById("detail").textContent = sub || "";
+  }
+}
+
+/* ---------- driver surface the Playwright capture script drives ---------- */
+const params = new URLSearchParams(location.search);
+const SPIKE = {
+  asset:  params.get("asset") || "mix-and-match",
+  anim:   params.get("anim") || "idle",
+  poseT:  params.get("poseT") === null ? 0.45 : parseFloat(params.get("poseT")),
+  rev: 0, frames: 0, failed: false, lastMouth: null,
+  app: null,
+};
+/* spine.VERSION is not exported by the 4.2.120 iife bundle; the authoritative
+   number is SkeletonData.version (the editor version that exported the asset). */
+const RUNTIME_PKG = "@esotericsoftware/spine-webgl@4.2.120 (npm, iife bundle)";
+function renderMeta() {
+  const dataVer = SPIKE.app && SPIKE.app.data ? SPIKE.app.data.version : "?";
+  document.getElementById("meta").innerHTML =
+    `<b>runtime</b> ${RUNTIME_PKG}<br>` +
+    `<b>asset spine ver</b> ${dataVer}<br>` +
+    `<b>asset</b> ${SPIKE.asset} · <b>anim</b> ${SPIKE.anim} @ t=${SPIKE.poseT}s`;
+}
+function setStatus(msg, err) {
+  const el = document.getElementById("status");
+  el.textContent = msg;
+  el.className = err ? "err" : "";
+}
+
+/* expose imperative API for the driver */
+function installDriver(app) {
+  SPIKE.app = app;
+  window.__spike = {
+    ready: () => !!SPIKE.app.data,
+    failed: () => !!SPIKE.failed,
+    frames: () => SPIKE.frames,
+    rev: () => SPIKE.rev,
+    info: () => ({
+      spineVersion: SPIKE.app.data.version,
+      runtimePackage: RUNTIME_PKG,
+      asset: SPIKE.asset,
+      skins: SPIKE.app.data.skins.map(s => s.name),
+      // In spine-core 4.2 `animations` and `skins` are arrays, not name-keyed maps.
+      animations: SPIKE.app.data.animations.map(a => a.name),
+      slots: SPIKE.app.data.slots.map(s => s.name),
+    }),
+    // Skin.attachments is StringMap<Attachment>[] indexed by slot index.
+    skinsForSlot: (slotName) => {
+      const out = [];
+      const app = SPIKE.app;
+      app.data.skins.forEach((s) => {
+        app.data.slots.forEach((slot, slotIndex) => {
+          if (slot.name !== slotName) return;
+          const map = s.attachments[slotIndex];
+          if (!map) return;
+          Object.keys(map).forEach((attName) => out.push(`${s.name} → ${attName}`));
+        });
+      });
+      return out;
+    },
+    combo: (name) => { const r = SPIKE.app.applyCombo(name); bump("combo " + name); return r; },
+    fullSkin: (n) => { const r = SPIKE.app.applyFullSkin(n); bump("fullSkin " + n); return r; },
+    comboWith: (a, b) => { const r = SPIKE.app.applyComboWith(a, b); bump(`combo ${a}+${b}`); return r; },
+    mouth: (att) => { const r = SPIKE.app.setMouth(att); bump("mouth=" + att); return r; },
+    // live state probe for machine verification (attachment identity, not pixels)
+    state: () => {
+      const slot = SPIKE.app.skeleton.findSlot("mouth");
+      const a = slot && slot.getAttachment();
+      return { skin: SPIKE.app.skeleton.skin ? SPIKE.app.skeleton.skin.name : null,
+               mouthAtt: a ? a.name : null,
+               frames: SPIKE.frames, rev: SPIKE.rev };
+    },
+    // world→canvas-px bbox of the mouth attachment, for diff localization
+    mouthBBox: () => {
+      const sk = SPIKE.app.skeleton, slot = sk.findSlot("mouth");
+      const att = slot.getAttachment();
+      // RegionAttachment.computeWorldVertices(slot, out, offset, stride) — fixed 8 verts.
+      // Mesh/VertexAttachment needs (slot, start, count, out, offset, stride).
+      const isMesh = typeof att.getWorldVerticesLength === "function";
+      const len = isMesh ? att.getWorldVerticesLength() : 16;
+      const v = new Float32Array(len);
+      if (isMesh) att.computeWorldVertices(slot, 0, len, v, 0, 2);
+      else att.computeWorldVertices(slot, v, 0, 2);
+      let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+      for (let i = 0; i < len; i += 2) {
+        minx = Math.min(minx, v[i]); maxx = Math.max(maxx, v[i]);
+        miny = Math.min(miny, v[i + 1]); maxy = Math.max(maxy, v[i + 1]);
+      }
+      const cam = SPIKE.app.canvas.renderer.camera;
+      const cw = SPIKE.app.canvas.htmlCanvas.clientWidth, ch = SPIKE.app.canvas.htmlCanvas.clientHeight;
+      const dpr = SPIKE.app.canvas.htmlCanvas.width / cw;
+      const px = (wx) => ((wx - cam.position.x) / cam.viewportWidth * cw + cw / 2) * dpr;
+      const py = (wy) => (ch / 2 - (wy - cam.position.y) / cam.viewportHeight * ch) * dpr;
+      return { world: [minx, miny, maxx, maxy], devicePx: [px(minx), py(maxy), px(maxx), py(miny)], dpr };
+    },
+    setHud: (visible) => {
+      for (const id of ["hud", "status"])
+        document.getElementById(id).style.display = visible ? "" : "none";
+    },
+    pose: (t, anim) => {
+      if (anim) SPIKE.anim = anim;
+      SPIKE.poseT = t;
+      SPIKE.app.frame();
+      bump(`pose ${SPIKE.anim}@${t}s`);
+    },
+    play: (anim) => { SPIKE.app.play(anim); bump("play " + (anim || SPIKE.anim)); },
+    pause: () => { SPIKE.app.paused = true; bump("paused"); },
+    caption: (main, sub) => SPIKE.app.caption(main, sub),
+    waitFrames: (n) => new Promise(res => {
+      const start = SPIKE.frames;
+      const tick = () => (SPIKE.frames - start >= n) ? res(SPIKE.frames) : requestAnimationFrame(tick);
+      tick();
+    }),
+  };
+  function bump(label) { SPIKE.rev++; setStatus(`${label} · rev ${SPIKE.rev}`); }
+}
+
+/* boot */
+const app = new SpikeApp();
+const origInit = app.initialize.bind(app);
+app.initialize = function (canvas) {
+  origInit(canvas);
+  installDriver(app);
+  window.__spike.combo("A");
+};
+new spine.SpineCanvas(document.getElementById("canvas"), {
+  app,
+  pathPrefix: "assets/",
+  webglConfig: { preserveDrawingBuffer: true, antialias: true },
+});
+</script>
+</body>
+</html>
