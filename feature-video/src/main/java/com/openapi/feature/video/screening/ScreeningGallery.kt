@@ -183,7 +183,7 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
     ) {
         item {
             // 同声音馆：单句限一行，不硬折行（台账 A29）。
-            Text("一册一地方，翻到末页。", color = White, fontSize = 24.sp, lineHeight = 32.sp,
+            Text("一册一地方，翻到末页。", color = White, fontSize = ScreeningTypography.hero, lineHeight = ScreeningTypography.heroLineHeight,
                 fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
             FeedError(pager.error, pager::reload)
             Spacer(Modifier.height(12.dp))
@@ -216,7 +216,7 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
                                         )
                                     }
                                     Column(Modifier.align(Alignment.BottomStart).padding(9.dp)) {
-                                        Text(book.title, color = White, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                        Text(book.title, color = White, fontSize = ScreeningTypography.item, fontWeight = FontWeight.ExtraBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                     }
                                 }
                             }
@@ -254,7 +254,7 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
                 EntryCover(book, Modifier.matchParentSize())
                 Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink))))
                 Column(Modifier.align(Alignment.BottomStart).padding(19.dp)) {
-                    Text(book.title, color = White, fontSize = 34.sp, lineHeight = 40.sp, fontWeight = FontWeight.Black,
+                    Text(book.title, color = White, fontSize = ScreeningTypography.featureTitle, lineHeight = ScreeningTypography.featureTitleLineHeight, fontWeight = FontWeight.Black,
                         maxLines = 2, overflow = TextOverflow.Ellipsis)
                     if (book.description.isNotBlank()) Text(book.description, color = Muted, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }

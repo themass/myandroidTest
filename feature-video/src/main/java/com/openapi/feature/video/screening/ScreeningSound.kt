@@ -355,7 +355,7 @@ private fun SoundHubPicker(
     ) {
         item {
             // 用户 20261125：首行大字不许硬折行、不许没用的文字。单句、限一行（台账 A29）。
-            Text("戴上耳机，世界慢下来。", color = White, fontSize = 24.sp, lineHeight = 32.sp,
+            Text("戴上耳机，世界慢下来。", color = White, fontSize = ScreeningTypography.hero, lineHeight = ScreeningTypography.heroLineHeight,
                 fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
             FeedError(pager.error, pager::reload)
             if (seedChannel == null) {
@@ -375,7 +375,7 @@ private fun SoundHubPicker(
             ) {
                 Icon(Icons.Default.GraphicEq, null, tint = Peach, modifier = Modifier.padding(horizontal = 12.dp))
                 Column(Modifier.weight(1f).padding(vertical = 14.dp)) {
-                    Text(entry.title, color = White, fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                    Text(entry.title, color = White, fontSize = ScreeningTypography.item, fontWeight = FontWeight.Bold,
                         maxLines = 2, overflow = TextOverflow.Ellipsis)
                     if (entry.description.isNotBlank()) {
                         Text(entry.description, color = Muted, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
