@@ -8,6 +8,7 @@ import android.os.Message
 import android.view.KeyEvent
 import android.view.View
 import com.openapi.common.ads.base.AdsContext
+import com.openapi.common.ads.base.AdsGate
 import com.openapi.common.ads.base.AdsManager
 import com.openapi.common.ads.config.AdsEvents
 import com.openapi.common.ads.analytics.MobAgent
@@ -23,6 +24,11 @@ import com.openapi.core.legacyui.app.LogActivity
 
 /** 启动页：展示开屏广告，倒计时结束或点跳过后进入主页。 */
 class LaunchActivity : LogActivity() {
+
+    companion object {
+        /** debug 包验证广告链路的开关 extra（见 [optInAdsForTesting]）。 */
+        const val EXTRA_ADS_ON = "ads_on"
+    }
 
     private lateinit var launchBinding: MainLaunchBinding
     private val max = Constants.STARTUP_SHOW_TIME_6000 + 1000
@@ -47,6 +53,7 @@ class LaunchActivity : LogActivity() {
         launchBinding = MainLaunchBinding.inflate(layoutInflater)
         setContentView(launchBinding.root)
         launchBinding.skipView.setOnClickListener { skip(it) }
+        optInAdsForTesting()
         MobAgent.init(this)
         LoginTask.start(this)
         // 剧本房 adb 验收带 script_case：跳过开屏倒计时/广告，立刻进主页，避免 hello 门禁超时。
@@ -57,6 +64,21 @@ class LaunchActivity : LogActivity() {
         countdownHandler.postDelayed(startMainRunnable, max.toLong())
         observeAdEvents()
         showAdview()
+    }
+
+    /**
+     * debug 包默认不加载广告（`28b2226e` 保护真机验收不被全屏广告干扰），
+     * 但那样验收就永远看不到广告链路。台账 §6 D1 的口子：启动 Intent 带
+     * `--ez ads_on 1` 时只在这一个进程内打开闸，并补一次 SDK 初始化
+     * （MyApplication.onCreate 跑的时候闸还关着）。release 不受影响。
+     *
+     * `adb shell am start -n <pkg>/com.openapi.app.LaunchActivity --ez ads_on 1`
+     */
+    private fun optInAdsForTesting() {
+        if (!intent.getBooleanExtra(EXTRA_ADS_ON, false)) return
+        AdsGate.debugOptIn = true
+        AdsManager.getInstans().initIfNeeded(applicationContext)
+        LogUtil.i("ads opt-in via launch intent")
     }
 
     private fun skip(view: View) {
