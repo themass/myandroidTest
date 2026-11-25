@@ -124,7 +124,12 @@
 4. **hot pool：已落地并验证**（见 §2 e）——补池 prewarm 9323–9971ms → **839ms**，
    通话中冷 spawn 风暴消除；真实 Wi-Fi 通话的复验案例待下一通（验收判据已换为
    pid 族谱，journal INFO 级无 launched_warm 字段）。
-5. 机器仍是 1vCPU/2GB——C9 容量红线（升配/拆机）仍需用户拍板，本次只做到了「榨干现有配额」。
+5. 机器仍是 1vCPU/2GB——C9 容量红线（升配/拆机）**用户已拍板（2026-11-25）：
+   先不迁邻居、先不升配，按现状凑合测试**。口径：单通已验证稳定（24m49s 干净
+   通话）；测试期若出现第二路并发、或 `free -m` available 跌破 ~150MB / swap
+   继续爬（现 1.5GB）/ livekit 再现 `high cpu load ≥0.9`，红线议题重开。
+   （当日实测：语音栈 ~1.4GB、邻居 testserverV 267 + next-server 111 +
+   job-come 58 ≈ 440MB，available 272MB。）
 
 ## 4. 复核命令（104）
 
