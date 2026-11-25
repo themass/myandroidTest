@@ -77,9 +77,13 @@ interface ChatRepository {
     suspend fun editMessage(sessionId: Long, messageId: String, text: String): Boolean
 
     /**
-     * 删除一条消息。成功后再删除本地缓存。
-     * [messageId] 必须是服务端消息 id；失败返回 false，本地保留该消息。
+     * 删除一条消息（服务端 + 本地缓存）。
+     * [messageId] 必须是服务端消息 id；失败返回 false。
+     * 乐观删除时序下**本地已经先删掉**（见 [deleteLocalMessage]），这里的返回值只告诉
+     * 调用方服务端那一侧删没成——失败时调用方要把气泡放回原位。
      */
+    suspend fun deleteMessage(sessionId: Long, messageId: String): Boolean
+
     /** 只清本地缓存里该会话的消息（服务端已清空后调用）。 */
     suspend fun clearLocalMessages(sessionId: Long)
 
@@ -110,7 +114,28 @@ interface ChatRepository {
      */
     suspend fun cachedMessages(sessionId: Long): List<ChatMessage>
 
-    suspend fun deleteMessage(sessionId: Long, messageId: String): Boolean
+    /**
+     * 只删本地缓存里的这一条（**不**问服务端）。
+     *
+     * 与乐观删除（[com.openapi.feature.chat.presentation.MessageRemoval]）配套：界面立刻移除、
+     * 本地缓存同步删掉，服务端删除在后台补。如果缓存行留着，「缓存先顶上」的路径
+     * （切会话、兜底对齐）会把这条已经删掉的消息再画出来。
+     * 默认 no-op：旧后端链路没有独立的本地缓存语义，行为与旧版一致。
+     */
+    suspend fun deleteLocalMessage(messageId: String) = Unit
+
+    /**
+     * 请服务端**取消当前回合**（`/v1` 的 `POST /sessions/{id}/cancel`）。
+     *
+     * 为什么必须有：用户点「停止」以前只杀本机的流式任务，服务端那一轮**继续跑**；
+     * 用户接着发下一条就吃 409「上一轮回复还没结束」，于是一次点击换来的是
+     * 「怎么发都失败」。停止意图要让服务端也知道。
+     *
+     * 实现必须**失败即静默**（内部记日志，不外抛、不返回状态）：取消只是尽力而为，
+     * 它失败不能改变本地已经完成的收尾（停止就是停止）。
+     * 旧后端没有这个接口，实现给 no-op。
+     */
+    suspend fun cancelTurn(sessionId: Long)
 
     /** 当前会话 id，来自 SP（Constants.CHAT_SESSION）。0 表示还没有会话。 */
     fun currentSessionId(): Long

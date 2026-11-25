@@ -18,10 +18,32 @@ index 9e13e77..a0be52b 100644
 +    LAppDelegate::GetInstance()->SetBackgroundColor(r, g, b);
 +}
 diff --git a/Live2D/src/main/cpp/LAppDelegate.cpp b/Live2D/src/main/cpp/LAppDelegate.cpp
-index 1f81ab3..df7d3d9 100644
+index 1f81ab3..7285840 100644
 --- a/Live2D/src/main/cpp/LAppDelegate.cpp
 +++ b/Live2D/src/main/cpp/LAppDelegate.cpp
-@@ -86,7 +86,8 @@ void LAppDelegate::Run()
+@@ -46,8 +46,19 @@ void LAppDelegate::ReleaseInstance()
+ 
+ void LAppDelegate::OnStart()
+ {
+-    _textureManager = new LAppTextureManager();
+-    _view = new LAppView();
++    // [chatwaifu-fork] 幂等守卫：native 状态是进程级单例，第二个宿主实例再调 OnStart 时
++    // 上游会直接换掉正在被旧 GLThread 渲染的 _view（新 _view 的 _back 尚未 InitializeSprite），
++    // 下一帧 LAppView::Render 空指针 SIGSEGV（真机 ADY-AL00 2026-11-25 02:43:23，
++    // fault addr 0x14 = LAppSprite::_positionLocation，_back==NULL）。
++    // 已存在就复用，绝不替换正在渲染的对象。
++    if (_textureManager == NULL)
++    {
++        _textureManager = new LAppTextureManager();
++    }
++    if (_view == NULL)
++    {
++        _view = new LAppView();
++    }
+     LAppPal::UpdateTime();
+ }
+ 
+@@ -86,7 +97,8 @@ void LAppDelegate::Run()
      LAppPal::UpdateTime();
  
      // 画面の初期化
@@ -31,7 +53,7 @@ index 1f81ab3..df7d3d9 100644
      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
      glClearDepthf(1.0f);
  
-@@ -102,6 +103,13 @@ void LAppDelegate::Run()
+@@ -102,8 +114,22 @@ void LAppDelegate::Run()
      }
  }
  
@@ -44,7 +66,30 @@ index 1f81ab3..df7d3d9 100644
 +
  void LAppDelegate::OnSurfaceCreate()
  {
++    // [chatwaifu-fork] setRenderer 之后 GLThread 可能先于宿主的 nativeOnStart 走到这里，
++    // 上游直接 _view->InitializeShader() 就是空指针；没 view 就跳过（surface 事件顺序竞态）。
++    if (_view == NULL)
++    {
++        LAppPal::PrintLog("[APP]OnSurfaceCreate before OnStart — skip (no view yet)");
++        return;
++    }
      //テクスチャサンプリング設定
+     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+@@ -124,6 +150,13 @@ void LAppDelegate::OnSurfaceChanged(float width, float height)
+     _width = width;
+     _height = height;
+ 
++    // [chatwaifu-fork] 同 OnSurfaceCreate：view 还没建就来的尺寸事件只能跳过。
++    if (_view == NULL)
++    {
++        LAppPal::PrintLog("[APP]OnSurfaceChanged before OnStart — skip (no view yet)");
++        return;
++    }
++
+     //AppViewの初期化
+     _view->Initialize();
+     _view->InitializeSprite();
 diff --git a/Live2D/src/main/cpp/LAppDelegate.hpp b/Live2D/src/main/cpp/LAppDelegate.hpp
 index 373ccbf..050b4ec 100644
 --- a/Live2D/src/main/cpp/LAppDelegate.hpp
@@ -70,3 +115,131 @@ index 373ccbf..050b4ec 100644
 +    float _bgG = 0.0f;                           ///< [chatwaifu-fork] 背景色 G
 +    float _bgB = 0.0f;                           ///< [chatwaifu-fork] 背景色 B
  };
+diff --git a/Live2D/src/main/cpp/LAppLive2DManager.cpp b/Live2D/src/main/cpp/LAppLive2DManager.cpp
+index 112e34d..6f190e0 100644
+--- a/Live2D/src/main/cpp/LAppLive2DManager.cpp
++++ b/Live2D/src/main/cpp/LAppLive2DManager.cpp
+@@ -23,6 +23,12 @@ using namespace std;
+ namespace {
+     LAppLive2DManager* s_instance = NULL;
+ 
++    // [chatwaifu-fork] 「加载成功但屏幕上没有立绘」的定性取证通道：每 120 帧一行，
++    // 报模型数、LAppModel 指针、Core 模型对象是否活着、可绘件数、绘制后的 GL 错误。
++    // 完全没有 beat 行 = GLThread 根本没进 OnUpdate；beat 里 drawables=0/有值把
++    // 「模型没进来」和「进来了没画出来」分开（真机 2026-11-25 通话页只有清屏色）。
++    unsigned int s_beatFrame = 0;
++
+     void FinishedMotion(ACubismMotion* self)
+     {
+         LAppPal::PrintLog("Motion Finished: %x", self);
+@@ -159,6 +165,19 @@ void LAppLive2DManager::OnUpdate(LAppModelParameters parameters) const
+         // モデル1体描画後コール
+         LAppDelegate::GetInstance()->GetView()->PostModelDraw(*model);
+     }
++
++    // [chatwaifu-fork] 渲染心跳（诊断），见 s_beatFrame 注释。
++    if (++s_beatFrame % 120 == 0)
++    {
++        const LAppModel* m = (modelCount > 0) ? GetModel(0) : NULL;
++        LAppPal::PrintLog("[APP]L2D beat f=%u models=%u model=%p core=%p drawables=%d glErr=%d",
++                          s_beatFrame,
++                          modelCount,
++                          (void*)m,
++                          (m != NULL) ? (void*)m->GetModel() : NULL,
++                          (m != NULL && m->GetModel() != NULL) ? m->GetModel()->GetDrawableCount() : -1,
++                          glGetError());
++    }
+ }
+ 
+ void LAppLive2DManager::NextScene()
+@@ -241,9 +260,11 @@ void LAppLive2DManager::ChangeModelTo(std::string modelPath, std::string modelJs
+ 
+     LAppModel* newModel = new LAppModel();
+ 
+-    ReleaseAllModel();
++    // [chatwaifu-fork] 先载后拆：上游在 LoadAssets 之前 ReleaseAllModel，新模型加载失败时
++    // 旧场景已经没了——舞台直接空掉（切 r5 形象崩溃前画面先空白就是这么来的）。
++    // ReleaseAllModel() 移到下面的成功分支内。
+     if (newModel->LoadAssets(modelPath.c_str(), modelJsonFileName.c_str())) {
+-        // ReleaseAllModel();
++        ReleaseAllModel();
+         _models.PushBack(newModel);
+ 
+         /*
+diff --git a/Live2D/src/main/cpp/LAppModel.cpp b/Live2D/src/main/cpp/LAppModel.cpp
+index 1bc1baf..fb2efe2 100644
+--- a/Live2D/src/main/cpp/LAppModel.cpp
++++ b/Live2D/src/main/cpp/LAppModel.cpp
+@@ -155,6 +155,18 @@ bool LAppModel::SetupModel(ICubismModelSetting* setting)
+         {
+             LoadModel(buffer, size);
+             DeleteBuffer(buffer, path.GetRawString());
++            // [chatwaifu-fork] moc 读进来不等于读活了：Core 不支持的 moc3（rev 超上限）
++            // 打 `unsupport later than moc3 ver` 后 _model 仍为 NULL，上游照常往下走，
++            // 第一帧 Update/SaveParameters 空指针 SIGSEGV（真机 2026-11-24 23:44、
++            // 2026-11-25 02:47:42 fault addr 0xb8）。加载失败要如实返回 false。
++            if (_model == NULL)
++            {
++                LAppPal::PrintLog("[APP]moc revive failed (NULL model): %s", setting->GetModelFileName());
++                _modelSetting = modelSettingBakup;
++                _updating = false;
++                _initialized = true;
++                return false;
++            }
+         }
+         else
+         {
+@@ -426,6 +438,13 @@ void LAppModel::ReleaseExpressions()
+ 
+ void LAppModel::Update(LAppModelParameters parameters)
+ {
++    // [chatwaifu-fork] moc 复活失败的模型绝不该进逐帧更新（上游没有这道保险，
++    // 空 _model 直接 SIGSEGV）；与 Draw 的既有 NULL 守卫同款。
++    if (_model == NULL)
++    {
++        return;
++    }
++
+     const csmFloat32 deltaTimeSeconds = LAppPal::GetDeltaTime();
+     _userTimeSeconds += deltaTimeSeconds;
+ 
+diff --git a/Live2D/src/main/cpp/LAppView.cpp b/Live2D/src/main/cpp/LAppView.cpp
+index bf88b9d..5049182 100644
+--- a/Live2D/src/main/cpp/LAppView.cpp
++++ b/Live2D/src/main/cpp/LAppView.cpp
+@@ -125,13 +125,18 @@ void LAppView::InitializeSprite()
+     float fWidth = width;
+     float fHeight = height;
+ 
+-    if(_back == NULL)
++    // [chatwaifu-fork] 贴图缺失时 TextureInfo 为 NULL，上游直接解引用 backgroundTexture->id
++    // ——宁可不画背景，也不能在 OnSurfaceChanged 里崩。
++    if (backgroundTexture != NULL)
+     {
+-        _back = new LAppSprite(x, y, fWidth, fHeight, backgroundTexture->id, _programId);
+-    }
+-    else
+-    {
+-        _back->ReSize(x, y, fWidth, fHeight);
++        if(_back == NULL)
++        {
++            _back = new LAppSprite(x, y, fWidth, fHeight, backgroundTexture->id, _programId);
++        }
++        else
++        {
++            _back->ReSize(x, y, fWidth, fHeight);
++        }
+     }
+ 
+ 
+@@ -186,7 +191,9 @@ void LAppView::InitializeSprite()
+ void LAppView::Render()
+ {
+     //no need this time...
+-    if (_needRenderBack) {
++    // [chatwaifu-fork] 上游假设 _back 必然存在；InitializeSprite 没跑过（新 view / 贴图缺失）
++    // 时它是 NULL，解引用就是 SIGSEGV fault addr 0x14（真机 2026-11-25 02:43:23）。宁可少画背景。
++    if (_needRenderBack && _back != NULL) {
+         _back->Render();
+     }
+ //    _gear->Render();

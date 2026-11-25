@@ -23,8 +23,8 @@ livekit-performance 会话）、不做数字人/摄像头/特效视觉线（另�
 
 | # | 事项 | 状态 | 层级到哪 |
 | --- | --- | --- | --- |
-| C1 | cue 空壳被吞（`cues=0/0`）修复 | **PASS** | 已合线 + **已部署 104**（`ee2e7969`，11-24 16:41 UTC）；修复前症状有部署前活体复现；新 worker 段 `cues=x/y` 正向样本仍待有效对话 |
-| C2 | F16 prewarm + 20s init budget 合并验证 | **PARTIAL PASS** | 已合线 + 已部署；**③④ 新 worker 段实测通过（20s 预算实测救下 4 笔 >10s 的 spawn）**；②① 待新段跑通 TTS；⑤ 确认归 stage-6 |
+| C1 | cue 空壳被吞（`cues=0/0`）修复 | **PASS（全链闭合）** | 已合线 + 已部署 104 + **真实通话 `cues=2/2` 正向样本到手**（17:36 UTC，新 worker job pid 1373051）；端侧表情视觉归 C6/视觉线 |
+| C2 | F16 prewarm + 20s init budget 合并验证 | **PARTIAL PASS** | 已合线 + 已部署；**②③④ 全部最终确认（新段真实 TTS 已跑通、volcengine blocked 0、spawn 超时 0）**；① n=1 样本 12100ms 未低于旧段同量级 → 首帧收益仍未证（F16-B1 保持未关闭）；⑤ 归 stage-6 |
 | C3 | `claude/dazzling-darwin-6c5ae3` P4/P5 决策 | **MERGE**（已决策并合线） | 已合线 `8685251b`；真机腿未跑 |
 | C4 | sound-subtitle-server 收口 | **PASS（代码）/BLOCKED（部署+真机）** | 已合线并已 push（`testjava_springboot`）|
 | C5 | testserverV 拍照解题 maxTokens 链 | **PASS** | 已合线且**已在 origin**（前提与 brief 不同，见内文）|
@@ -109,13 +109,39 @@ livekit-performance 会话）、不做数字人/摄像头/特效视觉线（另�
   15:47:01、voice reply 15:47:00，pid **1347532** = 旧 worker 的 job 进程，跑部署前
   agent.py）。这是 cue 被吞在生产通话里的直接影像；不是对修复的反例。
   （先前速记把它记成「17:12」，本次用 JSON 行时间戳改正。）
-- 新 worker（pid 1362844，16:41:23 起）承接 17:06/17:09/17:11/17:15/17:20 五通：
+- 新 worker（pid 1362844，16:41:23 起）承接 17:06/17:09/17:11/17:15/17:20/17:24 六通：
   协议协商正常（`compat=v2` 多笔），进房正常、音频流正常
-  （`inbound user_state speaking` 17:11:44、17:15:52），**但均未形成对话回合**——
-  16:41 之后 `voice reply` = **0 行**（当日最后一条 15:47，属旧 worker）。所以新
-  worker 的 `cues=x/y` 正向样本仍未取到：不是修复无效，是没有有效回合可计。
+  （`inbound user_state speaking` 17:11:44、17:15:52；`inbound audio summary
+  energy_seen=True peak_max 0.05–0.34`），**但均未形成对话回合**——16:41 之后
+  `voice reply` = **0 行**（当日最后一条 15:47，属旧 worker），且 `volc asr result`
+  同样 0 行（当日最后一批 15:46:23，旧 worker）。ASR 推流本身正常（push/summary
+  frames 一路涨，`opts_rate=16000` 与成功通话一致），EOU 签名（`eot …`）在新段
+  也一笔没有——回合检测从未触发，管线从未被喂进文本。
+  对照：15:45 那通**成功**通话（compat=v2，旧 worker 但代码已含 dced3cab 的
+  voice P1/P2/P3）有完整 result→turn→reply 链。所以这不是新部署的代码回归，
+  形态更像**麦克风侧没有可辨识语音进 ASR**（短促/音量低/静音）。
+  新 worker 的 `cues=x/y` 正向样本仍未取到：不是修复无效，是没有有效回合可计。
 - 监视器已重挂（30min 窗口，过滤 `voice reply`/`tts first`/`error initializing`，
   只看 16:41 之后时间戳）。
+
+**C1 服务端正向闭合（17:36:11 UTC，room `companion-lT69nF64Sa4PZYLw0L2uhw`）**
+- 新 worker job pid **1373051**（17:35:34 spawn）跑出一个完整对话回合：
+  `voice turn user=1 … said='摸了摸她的头'`（17:35:41，麦克侧语音）→
+  `voice reply … first_ms=19688 total_ms=30433 interrupted=False cues=2/2
+  said='又摸了摸她的头。她今天安静多了。'`
+- **`cues=2/2` 就是修复的目标形态**：两条 cue 都发出（旧代码此处恒为 0/0）。
+  实发明细：`cue sent t=presentation.gaze speech=sp_01M87A1Z46M97GAM5GYC0W1B6E seg=0`
+  （17:36:01）+ `cue sent t=presentation.emotion … seg=1`（17:36:06）——cue 挂在
+  各自声明的段上，§13 不变量 1 在真实通话里成立。
+- 修复身份三重钉死：`code.line.number=233`（修复后 `voice reply` 的行号；旧码是
+  185/211/215）、pid 1373051 是新 worker 谱系（1362844 spawn）、时间戳在部署后。
+- 端侧表情是否渲染出画：本次 logcat 无 cue 痕迹可取（通话结束太早、未留 buffer），
+  视觉腿仍归 C6/视觉线，不影响服务端闭合。
+- **发起方澄清**：这通（17:24 joined，17:36 cues=2/2）不是 ADY-AL00 拨的——本会话
+  17:35 给 ADY-AL00 装完包后仅启动到 HomeActivity，logcat 无任何通话记录；通话来自
+  另一台客户端（user=1/linche 与 ADY-AL00 会话历史同账号同角色）。本会话在发现
+  通话活跃后点了「挂断」结束它。C1 服务端闭合不依赖发起设备；但 C6 各行的
+  **ADY-AL00/V2279A 真机验收仍未做**。
 
 **独立后续（不改本任务状态）**
 - C1-附带（归 F16 owner，本次未修）：say 闭合引号与句末标点落在同一个 delta 时，标点
@@ -164,6 +190,22 @@ livekit-performance 会话）、不做数字人/摄像头/特效视觉线（另�
   `build_platform` 仍在事件循环里。这不是 prewarm 回归，是 stage-6 的范围。
 - ②① 的最终确认需要新 worker 段跑出一个**完整对话回合（含 TTS）**；当前 5 通只有
   进房/音频流（`inbound user_state speaking`）没有回合，见 C1 取证段。
+
+**新 worker 真实 TTS 已跑通（17:36 UTC，接 C1 正向闭合段）**
+- ② **最终确认**：pid 1373051 的回合真实调用了火山 TTS
+  （`tts start/first/done` 全链），而 16:41 之后 `importing livekit.plugins.volcengine*`
+  blocked = **0 笔** —— 根因签名在新 worker 段彻底消失，prewarm 清单里那三条
+  （volcengine tts 本体等）生效，这是最终证据不再是「还没跑过通话」。
+- ① **仍未证收益**（诚实记账）：新段首个 `tts first first_frame_ms=12100`（17:36:13）。
+  对照旧段历史基线 ③ 冷轮 P50=7515 / P95=12601 —— 12100 在旧分布范围内，
+  远未接近 bench 的 ~1s 量级。n=1 不足以判回归，但也**不能声称首帧改善**；
+  F16-B1 收益验证保持未关闭（记忆口径 `f16-b1-prewarm-verification-blocked`）。
+  首帧的大头不在 import：该回合 `first_ms=19688` 里 LLM 链路
+  （brain first graph chunk 3025ms + llm ttft 2465ms + 断句等待）占了前半，
+  TTS 首帧 12100ms 是 tts start→引擎首帧 —— 下一步该看 TTS 连接/合成侧，
+  已超出本任务（prewarm+20s）范围。
+- 又一笔 20s 预算实测：该 job `received job 17:35:19.7 → prewarm done 17:35:34`
+  ≈ **14.2s**，又 >10s 默认值而未被杀 —— 累计 5 笔全程 >10s 的 spawn 全部存活。
 
 **先纠正 brief 的前提（本次取证）**
 - `2a098aa4`（prewarm）**已在 `origin/main`**：`git merge-base --is-ancestor` 返回真。
@@ -421,6 +463,13 @@ adb -s 10CE7P1G56004B7 shell dumpsys package com.openapi.ks.chat \
 **证据**
 - 各检查表在主线（已核对存在）；本清单本身即交付物（本文件 C6 段）。
 - 局限：本 worker 未接触设备，所有状态列只是「交接时的历史状态」，不是本次验收。
+- **11-25 部分进展（用户令本会话执行装机）**：ADY-AL00（2MH0224B20002068）已装
+  tip 现编包（`cebddd28` assemble，exit 0；装机成功 01:35:45 本地，同版本号
+  1.1.0.72 属预期——versionCode 未 bump 且旧装本就是 16:43 UTC 的 72）。启动到
+  HomeActivity→点「语音通话」→**进房成功**（服务端 17:39:04 received job、客户端
+  取得 VOICE_COMMUNICATION 音频焦点 01:39:05）——**新 tip 包的通话链路端到端通**。
+  但房内无人出声，未形成对话回合（服务端 `voice reply` 0 行），上表 7 项**均未验收**。
+  V2279A（10CE7P1G56004B7）全程未连 adb。
 
 ---
 

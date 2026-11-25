@@ -68,5 +68,18 @@ async function load() {
   }
   requestAnimationFrame(frame);
   statusEl.textContent = 'spineboy 加载完成 · 点按切换官方动作';
+
+  // 生产 Lab 桥（feature-companion SpineDigitalHumanEngine）：JSON 线格式与
+  // AvatarSceneBridge.encode 一字不差；未知动画名只报状态、不瞎演（不回落 idle——
+  // Kotlin 侧 SpineSceneBridge 只发词表内的名字，走到这里说明两边没同步）。
+  window.dhCommand = (payload) => {
+    try {
+      const c = JSON.parse(payload);
+      if (c.type !== 'animation') return; // spineboy 没有表情/口型通道
+      if (anims.includes(c.name)) play(c.name);
+      else statusEl.textContent = '未知动作:' + c.name;
+    } catch (e) { statusEl.textContent = 'dhCommand 解析失败:' + e.message; }
+  };
+  if (window.DhSceneNative) DhSceneNative.onReady();
 }
 load().catch(err => { statusEl.textContent = '加载失败:' + err.message; });

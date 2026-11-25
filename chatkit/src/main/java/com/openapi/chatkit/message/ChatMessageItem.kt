@@ -40,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.material3.Surface
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.Icons
@@ -58,14 +59,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Text
 import androidx.compose.ui.res.stringResource
 import com.openapi.chatkit.R
+import com.openapi.chatkit.message.parts.AttachmentTextLayout
 import com.openapi.chatkit.message.parts.DefaultMessageText
 import com.openapi.chatkit.message.parts.FileCard
 import com.openapi.chatkit.message.parts.ImageGrid
+import com.openapi.chatkit.message.parts.LocalMessageImageEditHandler
 import com.openapi.chatkit.message.parts.LocationBubble
 import com.openapi.chatkit.message.parts.TextBubble
 import com.openapi.chatkit.message.parts.ThinkingIndicator
 import com.openapi.chatkit.message.parts.VideoCard
 import com.openapi.chatkit.message.parts.VoiceBubble
+import com.openapi.chatkit.message.parts.attachmentTextLayout
 import com.openapi.chatkit.model.AttachmentActionKind
 import com.openapi.chatkit.model.AttachmentPathInfo
 import com.openapi.chatkit.model.AttachmentTarget
@@ -265,6 +269,14 @@ internal fun MessageContent(
     val texts = item.parts.filterIsInstance<MessagePart.Text>().filter { it.text.isNotEmpty() }
     val hasContent = images.isNotEmpty() || files.isNotEmpty() || videos.isNotEmpty() ||
         locations.isNotEmpty() || voices.isNotEmpty() || texts.isNotEmpty()
+    // 「附件 + 文字 = 一条消息」的判定（决策在 attachmentTextLayout，有单测）。
+    // Merged = 附件和文字共用一个气泡（202611 用户反馈：之前看图+文字像两条消息）。
+    val merged = attachmentTextLayout(
+        hasAttachments = images.isNotEmpty() || files.isNotEmpty() || videos.isNotEmpty(),
+        hasText = texts.isNotEmpty(),
+    ) == AttachmentTextLayout.Merged
+    // 消息大图的「编辑」由宿主经 CompositionLocal 提供；null 时查看器与从前完全一致。
+    val onEditImage = LocalMessageImageEditHandler.current
 
     Column(
         horizontalAlignment = if (sender == Sender.User) Alignment.End else Alignment.Start,
@@ -274,31 +286,76 @@ internal fun MessageContent(
             TextBubble(sender = sender, onLongPress = onLongPress) { ThinkingIndicator() }
             return@Column
         }
-        images.forEach { part ->
-            ImageGrid(
-                sources = part.sources,
-                maxWidth = maxWidth,
-                onLongPress = { source -> onAttachmentLongPress(AttachmentTarget.Image(source)) },
-                layout = part.layout,
-                // 失败图片上的点击：组件已做本地重载，这里把「换源」的活儿交给调用方（P1-10）
-                onRetryImage = { index -> onAction(MessageAction.RetryImage(index)) },
-            )
-        }
-        files.forEach { file ->
-            FileCard(
-                file = file,
-                onClick = { onAction(MessageAction.OpenFile(file)) },
-                onLongPress = { onAttachmentLongPress(AttachmentTarget.File(file)) },
+        if (merged) {
+            // 单气泡：附件在上、一条分隔线、文字在下——同底色同圆角，读起来是一件事。
+            // 附件与文字之间的内部间距（8dp）刻意小于消息间距（14dp）：气泡之间的空 > 气泡内的空。
+            // footer 仍挂在文字之后（与 Separate 分支同一语义）；读屏动作挂在这个唯一的气泡上。
+            TextBubble(
+                sender = sender,
+                onLongPress = onLongPress,
                 modifier = Modifier.widthIn(max = maxWidth),
-            )
-        }
-        videos.forEach { video ->
-            VideoCard(
-                video = video,
-                onClick = { onAction(MessageAction.OpenVideo(video)) },
-                onLongPress = { onAttachmentLongPress(AttachmentTarget.File(MessagePart.File(video.path, video.name, 0))) },
-                modifier = Modifier.widthIn(max = maxWidth),
-            )
+                footer = footer,
+                screenReaderActions = screenReaderActions,
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    images.forEach { part ->
+                        ImageGrid(
+                            sources = part.sources,
+                            maxWidth = maxWidth,
+                            onLongPress = { source -> onAttachmentLongPress(AttachmentTarget.Image(source)) },
+                            layout = part.layout,
+                            onRetryImage = { index -> onAction(MessageAction.RetryImage(index)) },
+                            onEdit = onEditImage,
+                        )
+                    }
+                    files.forEach { file ->
+                        FileCard(
+                            file = file,
+                            onClick = { onAction(MessageAction.OpenFile(file)) },
+                            onLongPress = { onAttachmentLongPress(AttachmentTarget.File(file)) },
+                            modifier = Modifier.widthIn(max = maxWidth),
+                        )
+                    }
+                    videos.forEach { video ->
+                        VideoCard(
+                            video = video,
+                            onClick = { onAction(MessageAction.OpenVideo(video)) },
+                            onLongPress = { onAttachmentLongPress(AttachmentTarget.File(MessagePart.File(video.path, video.name, 0))) },
+                            modifier = Modifier.widthIn(max = maxWidth),
+                        )
+                    }
+                    HorizontalDivider(color = ChatKit.colors.divider)
+                    texts.forEach { part -> text(item, part.text) }
+                }
+            }
+        } else {
+            images.forEach { part ->
+                ImageGrid(
+                    sources = part.sources,
+                    maxWidth = maxWidth,
+                    onLongPress = { source -> onAttachmentLongPress(AttachmentTarget.Image(source)) },
+                    layout = part.layout,
+                    // 失败图片上的点击：组件已做本地重载，这里把「换源」的活儿交给调用方（P1-10）
+                    onRetryImage = { index -> onAction(MessageAction.RetryImage(index)) },
+                    onEdit = onEditImage,
+                )
+            }
+            files.forEach { file ->
+                FileCard(
+                    file = file,
+                    onClick = { onAction(MessageAction.OpenFile(file)) },
+                    onLongPress = { onAttachmentLongPress(AttachmentTarget.File(file)) },
+                    modifier = Modifier.widthIn(max = maxWidth),
+                )
+            }
+            videos.forEach { video ->
+                VideoCard(
+                    video = video,
+                    onClick = { onAction(MessageAction.OpenVideo(video)) },
+                    onLongPress = { onAttachmentLongPress(AttachmentTarget.File(MessagePart.File(video.path, video.name, 0))) },
+                    modifier = Modifier.widthIn(max = maxWidth),
+                )
+            }
         }
         locations.forEach { location ->
             LocationBubble(
@@ -320,15 +377,17 @@ internal fun MessageContent(
                 modifier = Modifier.widthIn(max = maxWidth),
             )
         }
-        texts.forEachIndexed { index, part ->
-            TextBubble(
-                sender = sender,
-                onLongPress = onLongPress,
-                modifier = Modifier.widthIn(max = maxWidth),
-                footer = if (index == texts.lastIndex) footer else null,
-                screenReaderActions = screenReaderActions,
-            ) {
-                text(item, part.text)
+        if (!merged) {
+            texts.forEachIndexed { index, part ->
+                TextBubble(
+                    sender = sender,
+                    onLongPress = onLongPress,
+                    modifier = Modifier.widthIn(max = maxWidth),
+                    footer = if (index == texts.lastIndex) footer else null,
+                    screenReaderActions = screenReaderActions,
+                ) {
+                    text(item, part.text)
+                }
             }
         }
     }

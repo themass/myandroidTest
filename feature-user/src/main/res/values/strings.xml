@@ -27,4 +27,26 @@
     <string name="storage_manage_hint">查看和清理 App 产生的文件</string>
     <string name="storage_cleared_toast">已清理「%1$s」</string>
     <string name="ui_close">关闭</string>
+
+    <!-- 二次元头像（AvatarStudio，见 docs/design/2026-11-24-anime-avatar-mvp.md） -->
+    <string name="menu_btn_avatar">二次元头像</string>
+    <string name="avatar_title">生成我的二次元头像</string>
+    <string name="avatar_privacy">选一张或拍一张照片，照片会上传到服务器用来生成头像，不会用于其他用途。生成前会先给你预览，确认后才替换旧头像。</string>
+    <string name="avatar_pick">从相册选择</string>
+    <string name="avatar_take">拍照</string>
+    <string name="avatar_uploading">正在上传照片…</string>
+    <string name="avatar_generating">正在生成二次元风格，通常需要十几秒…</string>
+    <string name="avatar_applying">正在应用头像…</string>
+    <string name="avatar_preview_hint">看看这张满意吗？确认后才会替换现有头像。</string>
+    <string name="avatar_use">使用这张</string>
+    <string name="avatar_retake">换一张照片</string>
+    <string name="avatar_retry">重试</string>
+    <string name="avatar_saved">头像已更新</string>
+    <string name="avatar_done">完成</string>
+    <string name="avatar_err_not_logged_in">请先登录后再生成头像</string>
+    <string name="avatar_err_bad_image">这张照片不合适（太大或读不出），换一张再试</string>
+    <string name="avatar_err_quota">今天生成次数用完了，明天再试</string>
+    <string name="avatar_err_service">头像服务暂时不可用，稍后再试</string>
+    <string name="avatar_err_network">网络不好，检查一下连接再重试</string>
+    <string name="avatar_err_unknown">生成失败了，稍后再试</string>
 </resources>

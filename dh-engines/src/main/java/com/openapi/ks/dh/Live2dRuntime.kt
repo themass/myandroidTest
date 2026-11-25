@@ -35,7 +35,7 @@ class Live2dRuntime internal constructor(
     private val modelDirName: String,
     private val modelJsonName: String,
     private val viewBuilder: ViewBuilder? = null,
-) {
+) : Live2dNativeOwnership.Evictable {
 
     /** Everything [Live2dRuntime] needs from the outside world; tests inject a fake. */
     internal interface Env {
@@ -152,6 +152,9 @@ class Live2dRuntime internal constructor(
             })
             renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
         }
+        // [ownership] 先登记归属再 OnStart：native 场景是进程级单例，归属登记决定
+        // 谁有权拆它（见 Live2dNativeOwnership；fork v2 的 OnStart 已改幂等）。
+        nativeOwnership.claim(this)
         JniBridgeJava.nativeOnStart()
         // view 还没挂上就允许 setExpression 等调用（先建 view 后触发的顺序在通话页成立），
         // 此刻起所有场景变更走 GL 队列；queueEvent 在 surface 未创建时也会排队给 GL 线程。
@@ -255,6 +258,21 @@ class Live2dRuntime internal constructor(
         }
     }
 
+    /**
+     * 被后来者接管 native 场景时回调（[Live2dNativeOwnership.claim] 内，主线程）。
+     *
+     * 关键：**当场停掉自己的 GL 线程**。native 场景是进程级单例，旧实例的 GLThread 若继续
+     * 逐帧 nativeOnDrawFrame，就是第二个 EGL 上下文在喂同一个 LAppDelegate/LAppLive2DManager
+     * ——真机上既可能崩（fork v2 的 C++ 空守卫只是兜底），也让新形象「加载成功但画不出人」。
+     * 只把 native 拆除让给新人格是不够的（那是 release 侧的守卫）。
+     */
+    override fun onEvictedFromNativeScene() {
+        if (released) return
+        Log.i(TAG, "evicted from native scene — pausing own GL thread")
+        runCatching { surface?.onPause() }
+        started = false
+    }
+
     fun release() {
         if (released) return
         released = true
@@ -263,8 +281,12 @@ class Live2dRuntime internal constructor(
         // libchatwaifu-live2d.so 里 null 解引用。GLSurfaceView.onPause() 会阻塞到 GL 线程退出
         // 渲染循环并释放 EGL surface —— 任何 native 拆除之前必须先执行它。
         runCatching { surface?.onPause() }
+        // [ownership] native 场景是进程级单例：只有当前主人能拆它。被后来者逐出的旧实例
+        // 在这里照常 nativeOnStop/OnDestroy，会 CubismFramework::Dispose 掉新主人正在显示
+        // 的场景（加载成功但画不出人），并与新主人的渲染抢同一单例（真机 2026-11-25）。
+        val ownedHere = nativeOwnership.release(this)
         runCatching {
-            if (started) {
+            if (started && ownedHere) {
                 JniBridgeJava.nativeOnStop()
                 JniBridgeJava.nativeOnDestroy()
             }
@@ -310,6 +332,14 @@ class Live2dRuntime internal constructor(
     }
 
     companion object {
+        /**
+         * 进程级 native 场景归属（`libchatwaifu-live2d.so` 的 LAppDelegate /
+         * LAppLive2DManager 是进程全局单例，堆上却可以活着多个 Live2dRuntime）。
+         * 真机 ADY-AL00 2026-11-25 两类 SIGSEGV 的 Kotlin 侧根因：旧实例 release 时拆掉
+         * 新实例正在渲染的共享场景。claim/release 均在主线程（buildGlView / release）。
+         */
+        private val nativeOwnership = Live2dNativeOwnership()
+
         const val DEFAULT_MODEL_DIR = "ATRI"
         const val REASON_NOT_DOWNLOADED = "未下载"
         const val REASON_NATIVE_MISSING = "native 库缺失"

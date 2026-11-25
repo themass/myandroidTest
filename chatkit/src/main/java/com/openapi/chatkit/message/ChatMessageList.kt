@@ -41,10 +41,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
@@ -91,6 +94,28 @@ internal fun shouldOpenAttachmentMenu(selectionActive: Boolean, actions: List<At
     !selectionActive && actions.isNotEmpty()
 
 /**
+ * 「列表滚到顶 → 自动加载更早的一页」的判定（任务 4：删掉常驻的「加载更早」按钮）。
+ *
+ * 判据：还有更早的历史、当前没在加载、视口已经停在列表最顶
+ * （`firstVisibleItemIndex == 0` 且不能再往上滚）。
+ * 为什么两个条件都要：`firstVisibleItemIndex == 0` 只说明第一条**在组合范围内**，
+ * 第一条被顶出视口上方时它仍然是 0（LazyList 的 index 相对 items，不是相对视口），
+ * `canScrollBackward` 才是「真的到顶」。
+ *
+ * 防重触发由三层拼出来，这里只钉可纯函数验证的那层（loadingOlder 在加载中直接否掉）：
+ * 调用点（[ChatMessageList]）还要求「用户真的拖动过列表」且「不是程序化滚动经过顶部」——
+ * 那两个状态在组合里，见 `userDragged` / `programmaticScroll`。
+ * 与 [shouldOpenAttachmentMenu] 同一个提取理由：判断坐在组合里就观察不到。
+ */
+internal fun shouldLoadOlderAtTop(
+    firstVisibleItemIndex: Int,
+    canScrollBackward: Boolean,
+    loadingOlder: Boolean,
+    hasMoreHistory: Boolean,
+): Boolean =
+    hasMoreHistory && !loadingOlder && firstVisibleItemIndex == 0 && !canScrollBackward
+
+/**
  * 消息列表：新消息或流式增量到达时自动滚到底部。长按消息弹出操作菜单（见 [MessageMenu]）。
  *
  * @param avatar 头像插槽，可选；App 不再传（消息不显示头像）
@@ -129,6 +154,15 @@ fun ChatMessageList(
      * 陪伴页传入「我」字标，让右侧气泡也有头像锚点。
      */
     userAvatar: (@Composable (ChatItem) -> Unit)? = null,
+    /**
+     * 还有更早的历史可加载（列表滚到顶时自动调 [onLoadOlder]）。默认 false：
+     * 不传时列表行为与以前逐像素一致（陪伴页这类没有分页的调用方不受影响）。
+     */
+    hasMoreHistory: Boolean = false,
+    /** 正在加载更早的一页：顶部的细进度条 + 防重复触发。 */
+    loadingOlder: Boolean = false,
+    /** 滚到顶时自动加载更早的一页。 */
+    onLoadOlder: () -> Unit = {},
 ) {
     val latestAssistantId = items.lastOrNull { it.sender == Sender.Assistant && !it.thinking }?.id
     val latestUserId = items.lastOrNull { it.sender == Sender.User }?.id
@@ -227,6 +261,36 @@ fun ChatMessageList(
         }
     }
 
+    // 滚到顶 → 自动加载更早的一页（取代常驻的「加载更早」按钮，任务 4）。
+    // rememberUpdatedState：效果本身不随参数重启，避免「加载完成 → 效果重启 →
+    // snapshotFlow 重放当前值 → 又触发一次加载」的循环；触发只认快照值的**变化沿**
+    // （snapshotFlow 只在值变时发），加载完再想加载，要么再往上滚一下（到顶状态重新成立），
+    // 要么 hasMoreHistory 真的变了。
+    // 三道协调闸门，缺一都会误触发：
+    // 1. `userDragged`：首帧 LazyColumn 就停在 index 0（canScrollBackward=false），
+    //    不要求「用户真的拖过一次」的话，打开会话的瞬间就会自动拉一页——那不是用户意图；
+    // 2. `programmaticScroll`：程序滚动（新消息贴底、键盘高度）经过顶部不算数
+    //    （与上面收键盘/following 同一个协调点）；
+    // 3. `loadingOlder`：加载中不再起第二页（判据本体见 [shouldLoadOlderAtTop]）。
+    val latestHasMore by rememberUpdatedState(hasMoreHistory)
+    val latestLoadingOlder by rememberUpdatedState(loadingOlder)
+    val latestOnLoadOlder by rememberUpdatedState(onLoadOlder)
+    LaunchedEffect(state) {
+        var wasAtTop = false
+        snapshotFlow {
+            Triple(state.firstVisibleItemIndex to state.canScrollBackward, programmaticScroll, userDragged)
+        }.collect { (topPair, scrolling, dragged) ->
+            val atTop = dragged && !scrolling && shouldLoadOlderAtTop(
+                firstVisibleItemIndex = topPair.first,
+                canScrollBackward = topPair.second,
+                loadingOlder = latestLoadingOlder,
+                hasMoreHistory = latestHasMore,
+            )
+            if (atTop && !wasAtTop) latestOnLoadOlder()
+            wasAtTop = atTop
+        }
+    }
+
     Box(modifier) {
         LazyColumn(
             state = state,
@@ -282,6 +346,18 @@ fun ChatMessageList(
             }
         }
         if (items.isEmpty()) emptyContent()
+        // 「正在加载更早的一页」：列表顶部一条细进度指示（任务 4 用它取代常驻按钮）。
+        // 不是按钮：加载由「滚到顶」自动触发，这里只报告正在进行；按内容高度居中在顶部。
+        if (loadingOlder) {
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+                    .height(2.dp),
+                color = ChatKit.colors.accent,
+            )
+        }
         menu?.let { target ->
             val onSelect: (MessageAction) -> Unit = { action ->
                 menu = null

@@ -8,8 +8,8 @@ const assets = path.join(root, 'demos/avatar-lab/app/src/main/assets');
 
 // 五个离线场景:VRM 三模式主页 + 四个官方示例页(Live2D / Spine / VRMA / TalkingHead)。
 // 全部 esbuild IIFE 打包,资产整树拷入 APK assets —— 设备上零联网可跑。
-async function bundle(entry, out, format = 'iife') {
-  await build({ entryPoints: [path.join(here, entry)], bundle: true, format, platform: 'browser', target: 'chrome90', outfile: path.join(assets, out), minify: true, legalComments: 'eof' });
+async function bundle(entry, out, format = 'iife', dest = assets) {
+  await build({ entryPoints: [path.join(here, entry)], bundle: true, format, platform: 'browser', target: 'chrome90', outfile: path.join(dest, out), minify: true, legalComments: 'eof' });
 }
 
 // 1) 本地 VRM 三模式场景(陪伴/讲课/全身)
@@ -45,3 +45,26 @@ await copyFile(path.join(here, 'samples/talkinghead/mpfb.glb'), path.join(assets
 await copyFile(path.join(here, 'samples/talkinghead/TALKINGHEAD-LICENSE'), path.join(assets, 'talkinghead/samples/talkinghead/TALKINGHEAD-LICENSE'));
 
 console.log('5 offline scenes packaged into ' + assets);
+
+// —— 生产 Lab（feature-companion assets）——
+// Spine / TalkingHead 引擎随 APK assets 走（DhEngineId.assets()==null，不走下载包）：
+// 引擎伪源白名单只放行下面这几个文件，多拷一个都进不了页面。
+const prod = path.join(root, 'feature-companion/src/main/assets');
+await mkdir(path.join(prod, 'dh-spine'), { recursive: true });
+await mkdir(path.join(prod, 'dh-talkinghead'), { recursive: true });
+
+// dh-spine：与 demo 同一 bundle/html/素材；页面里的 window.dhCommand 桥只在生产 WebView 里生效。
+await bundle('spine.js', 'dh-spine/spine.bundle.js', 'iife', prod);
+await copyFile(path.join(here, 'spine.html'), path.join(prod, 'dh-spine/index.html'));
+for (const f of ['spineboy-pro.json', 'spineboy-pma.atlas', 'spineboy-pma.png'])
+  await copyFile(path.join(here, 'samples/spine', f), path.join(prod, 'dh-spine', f));
+
+// dh-talkinghead：esm bundle（import.meta.url 定位 worklet）+ mpfb.glb + 根级 playback-worklet.js
+// （引擎白名单按 dh-talkinghead/playback-worklet.js 放行）。296K vendored 源码打进 bundle。
+await bundle('talkinghead.js', 'dh-talkinghead/talkinghead.bundle.js', 'esm', prod);
+await copyFile(path.join(here, 'talkinghead.html'), path.join(prod, 'dh-talkinghead/index.html'));
+await copyFile(path.join(here, 'samples/talkinghead/mpfb.glb'), path.join(prod, 'dh-talkinghead/mpfb.glb'));
+await copyFile(path.join(here, 'samples/talkinghead/modules/playback-worklet.js'), path.join(prod, 'dh-talkinghead/playback-worklet.js'));
+await copyFile(path.join(here, 'samples/talkinghead/TALKINGHEAD-LICENSE'), path.join(prod, 'dh-talkinghead/TALKINGHEAD-LICENSE'));
+
+console.log('dh-spine + dh-talkinghead packaged into ' + prod);

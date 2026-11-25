@@ -18,9 +18,13 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
+import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.clickable
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.key
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -53,7 +57,11 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.openapi.common.ui.permission.PermissionGateway
+import com.openapi.common.ui.permission.PermissionOutcome
+import com.openapi.common.ui.permission.Permissions
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
 
@@ -96,6 +104,57 @@ fun CameraFxGrantedContent(
         }
     }
 
+    // 相机权限生命周期（通话页小窗路径此前没有这一段：无权限时绑定会失败，
+    // 只剩一条错误文本）。请求走全应用唯一入口 PermissionGateway；解释文案带隐私口径。
+    val activity = LocalActivity.current
+    val scope = rememberCoroutineScope()
+    var cameraGranted by remember {
+        mutableStateOf(PermissionGateway.isGranted(context, Permissions.CAMERA))
+    }
+    var permissionRequested by remember { mutableStateOf(false) }
+
+    fun requestCamera() {
+        val host = activity
+        if (host == null) {
+            // 拿不到宿主 Activity（非 ComponentActivity 宿主）：不猜权限，让用户自己开。
+            fatalFlow.value = context.getString(R.string.camerafx_camera_denied)
+            return
+        }
+        scope.launch {
+            when (
+                PermissionGateway.of(host).request(
+                    Permissions.camera(context.getString(R.string.camerafx_camera_rationale)),
+                )
+            ) {
+                PermissionOutcome.Granted -> {
+                    cameraGranted = true
+                    permissionRequested = false
+                }
+                is PermissionOutcome.Denied -> {
+                    permissionRequested = true
+                    fatalFlow.value = context.getString(R.string.camerafx_camera_denied)
+                }
+                is PermissionOutcome.PermanentlyDenied -> {
+                    permissionRequested = true
+                    PermissionGateway.goToSettings(host)
+                }
+            }
+        }
+    }
+
+    // 用户把小窗开关拨到开（通话页菜单）才进到这里——产品同意已发生；
+    // 运行时权限缺失时请求一次（lab 路径已先请求过，cameraGranted=true 不会重复弹）。
+    LaunchedEffect(Unit) {
+        if (!cameraGranted) requestCamera()
+    }
+    // 从系统设置页回来时重读权限（Activity 不一定重建；goToSettings 后能直接生效）。
+    LifecycleResumeEffect(Unit) {
+        if (!cameraGranted) {
+            cameraGranted = PermissionGateway.isGranted(context, Permissions.CAMERA)
+        }
+        onPauseOrDispose { }
+    }
+
     var provider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
     var viewSize by remember { mutableStateOf(0 to 0) }
@@ -118,10 +177,11 @@ fun CameraFxGrantedContent(
         }
     }
 
-    LaunchedEffect(provider, previewView, lifecycleOwner, viewSize) {
+    LaunchedEffect(provider, previewView, lifecycleOwner, viewSize, cameraGranted) {
         val p = provider ?: return@LaunchedEffect
         val view = previewView ?: return@LaunchedEffect
         if (viewSize.first == 0 || viewSize.second == 0) return@LaunchedEffect
+        if (!cameraGranted) return@LaunchedEffect
         try {
             p.unbindAll()
             val selector = ResolutionSelector.Builder()
@@ -167,12 +227,20 @@ fun CameraFxGrantedContent(
     // 手势 → 舞台 cue：边沿检测在纯函数层（JVM 钉死），这里只喂帧 + 转发。
     // 选「主手」= 第一个非 NONE 手势的手，都没有则第一只手。
     val gestureEdge = remember { StageGestureEdge() }
+    // 滑动 → 舞台 cue（`swipe`，见 [CameraSwipeCue]）：跟踪器同样是纯函数层，
+    // HUD 要显示最近方向，所以不管有没有舞台联动都喂帧。
+    val swipeTracker = remember { FingerSwipeTracker() }
+    var lastSwipe by remember { mutableStateOf(SwipeDirection.NONE) }
     LaunchedEffect(frame?.seq) {
         val f = frame ?: return@LaunchedEffect
-        if (onStageGesture == null) return@LaunchedEffect
         val primary = f.hands.firstOrNull { it.gesture != HandGestureKind.NONE } ?: f.hands.firstOrNull()
         val cue = gestureEdge.update(primary?.gesture ?: HandGestureKind.NONE)
-        if (cue != null) onStageGesture.invoke(cue)
+        if (cue != null) onStageGesture?.invoke(cue)
+        val dir = swipeTracker.update(f.hands, f.imgW, f.imgH)
+        if (dir != SwipeDirection.NONE) {
+            lastSwipe = dir
+            CameraSwipeCue.stageGestureId(dir)?.let { onStageGesture?.invoke(it) }
+        }
     }
 
     Box(
@@ -197,6 +265,28 @@ fun CameraFxGrantedContent(
             },
             modifier = Modifier.fillMaxSize(),
         )
+
+        // 无权限（被拒/永久拒绝后）：黑屏上给一次性可点的提示（小窗尺寸也读得下），
+        // 点了重新走 PermissionGateway；永久拒绝时网关会直接带去系统设置页。
+        if (!cameraGranted) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color(0xCC000000))
+                    .clickable { requestCamera() },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    if (permissionRequested) {
+                        context.getString(R.string.camerafx_camera_retry)
+                    } else {
+                        context.getString(R.string.camerafx_camera_denied)
+                    },
+                    color = Color.White,
+                    fontSize = 12.sp,
+                )
+            }
+        }
 
         val fx = frame
         if (fx != null && drawWireframe) {
@@ -326,6 +416,7 @@ fun CameraFxGrantedContent(
                     "fx ${f?.fps?.let { "%.1f fps".format(it) } ?: "--"} · 脸 $faceN · 姿态 $poseN · 手 $handN" +
                         (if (gestures.isNotEmpty()) " · 手势 $gestures" else "") +
                         (if (tilt != null) " · 倾角 %.1f°".format(tilt) else "") +
+                        (if (lastSwipe != SwipeDirection.NONE) " · 滑动 ${lastSwipe.hudLabel()}" else "") +
                         (f?.let { " · ${it.imgW}x${it.imgH}" } ?: ""),
                     color = Color.White,
                     fontSize = 13.sp,

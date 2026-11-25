@@ -17,6 +17,9 @@
             android:name="com.openapi.feature.user.profile.AddCustomeInfoActivity"
         />
         <activity
+            android:name="com.openapi.feature.user.avatar.AvatarStudioActivity"
+        />
+        <activity
             android:name="com.openapi.feature.user.feedback.FeedbackActivity"
             android:exported="false"
             android:screenOrientation="portrait"

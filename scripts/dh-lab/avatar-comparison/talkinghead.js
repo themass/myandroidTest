@@ -82,6 +82,23 @@ const status = document.querySelector('#status');
     e.currentTarget.textContent = '镜头:' + views[vi];
   };
 
+  // 生产 Lab 桥(feature-companion TalkingHeadDigitalHumanEngine):JSON 线格式与
+  // AvatarSceneBridge.encode 一字不差。情绪→内置 mood 词表;口型→jawOpen 固定值通道;
+  // 注视→eyesRotate 聚合通道(x 右正 = eyesRotateY 正;y 上正 = eyesRotateX 负,官方
+  // 词表 eyesRotateX 正方向是向下看)。Kotlin 侧词表外的指令不会发到这里。
+  window.dhCommand = (payload) => {
+    try {
+      const c = JSON.parse(payload);
+      if (c.type === 'expression') th.setMood(c.name);
+      else if (c.type === 'mouth') th.setFixedValue('jawOpen', Math.min(1, Math.max(0, c.openness)));
+      else if (c.type === 'look') {
+        th.setFixedValue('eyesRotateY', c.x);
+        th.setFixedValue('eyesRotateX', -c.y);
+      }
+    } catch (e) { status.textContent = 'dhCommand 解析失败:' + e.message; }
+  };
+  if (window.DhSceneNative) DhSceneNative.onReady();
+
   // 帧率观察 + 本页口型时间轴(vendored animate 内部自跑 rAF 管表情/眨眼/头部)
   let frames = 0, since = performance.now();
   (function tick() {

@@ -51,4 +51,16 @@ interface ChatStrings {
      * 那时附件会一路加到草稿里、上传花完钱再被服务端的 422 打回来。
      */
     fun attachmentLimitReached(max: Int): String
+    /**
+     * 帧间看门狗判定「这一轮再等下去也不会有内容」时的那句话（任务：SSE 无帧挂死）。
+     *
+     * data 层（TurnEventCollector）只能给出协议级的兜底中文串，用户真正看到的这句话
+     * 必须按系统语言取——所以看门狗在事件里带的是 code，文案在这里。
+     */
+    fun turnTimeout(): String
+    /**
+     * 点停止之后服务端那一轮还没结束、取消并重试仍然吃 409 时的那句话。
+     * 用户需要知道「不是我没发出去，是上一轮还占着」，以及下一步该做什么。
+     */
+    fun previousTurnRunning(): String
 }

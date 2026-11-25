@@ -125,9 +125,9 @@ internal class ScreeningFeedStore(context: Context) {
     suspend fun albums(channelParam: String, start: Int = 0): Page<RemoteEntry> =
         page(Constants.getUrlWithParam(Constants.API_IMG_CHANNLE_URL, start, channelParam))
 
-    /** 图集内的图片。 */
-    suspend fun albumImages(channelParam: String, start: Int = 0): Page<RemoteEntry> =
-        page(Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, channelParam, ""))
+    /** 图集内的图片（img/items/img.json 带 keyword，对齐 ImgChannelImgListFragment）。 */
+    suspend fun albumImages(channelParam: String, start: Int = 0, keyword: String = ""): Page<RemoteEntry> =
+        page(Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, channelParam, keyword))
 
     /** Lightbox 翻到尾部续取：旧 ImgItemFragment 以当前图片行的 actionUrl 作为 itemUrl。 */
     suspend fun imageItemPage(itemUrl: String, start: Int = 0): Page<RemoteEntry> =
@@ -171,12 +171,15 @@ internal class ScreeningFeedStore(context: Context) {
                 param = vo.param,
             )
         }
-        // 排查「频道点进去取不到数」用：每张卡的原始字段和路由判定都打出来，
-        // 免得再靠猜。只在这个 debug 源码集里，release 包不会有。
-        items.forEach { e ->
-            android.util.Log.i(NET_TAG, "card url=$url title=${e.title} param=${e.param} " +
-                "channelParam=${e.channelParam} img=${e.isImageCard} " +
-                "route=${routeOf(e)} actionUrl=${e.actionUrl}")
+        // 排查「频道点进去取不到数」用：每张卡的原始字段和路由判定都打出来。
+        // 上线口径：默认零输出，只在本机 setprop log.tag.screening_feed DEBUG 后显形
+        // （和 ScreeningPlayback 的 ScreeningDbg 同一套路），release 装了也不刷屏。
+        if (android.util.Log.isLoggable(NET_TAG, android.util.Log.DEBUG)) {
+            items.forEach { e ->
+                android.util.Log.d(NET_TAG, "card url=$url title=${e.title} param=${e.param} " +
+                    "channelParam=${e.channelParam} img=${e.isImageCard} " +
+                    "route=${routeOf(e)} actionUrl=${e.actionUrl}")
+            }
         }
         val more = raw?.hasMore == true
         return Page(items, nextStart = if (more) raw!!.pageNum else null, hasMore = more)
@@ -197,8 +200,10 @@ internal class ScreeningFeedStore(context: Context) {
                 param = vo.param,
             )
         }
-        items.forEach { e ->
-            android.util.Log.i(NET_TAG, "hub-row url=$url title=${e.title} param=${e.param} key=${e.key}")
+        if (android.util.Log.isLoggable(NET_TAG, android.util.Log.DEBUG)) {
+            items.forEach { e ->
+                android.util.Log.d(NET_TAG, "hub-row url=$url title=${e.title} param=${e.param} key=${e.key}")
+            }
         }
         val more = raw?.hasMore == true
         return Page(items, nextStart = if (more) raw!!.pageNum else null, hasMore = more)

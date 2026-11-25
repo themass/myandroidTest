@@ -67,7 +67,9 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
             .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        ProfileCard(info) { entries.perform(context, ProfileAction.Login) }
+        ProfileCard(info, onLoginClick = { entries.perform(context, ProfileAction.Login) }) {
+            entries.perform(context, ProfileAction.Avatar)
+        }
 
         if (quick.isNotEmpty()) {
             Column(
@@ -117,7 +119,7 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-internal fun ProfileCard(info: ProfileInfo, onLoginClick: () -> Unit) {
+internal fun ProfileCard(info: ProfileInfo, onLoginClick: () -> Unit, onAvatarClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,7 +129,13 @@ internal fun ProfileCard(info: ProfileInfo, onLoginClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Image(painterResource(info.avatarRes), contentDescription = null, modifier = Modifier.size(56.dp))
+        // 头像本体：登录后点开「二次元头像」生成页（入口只属于「我」，不进陪伴角色选择器）。
+        // 内外两个 clickable 的 enabled 条件互斥（登录/未登录），不会互相吞点击。
+        UserAvatarImage(info, modifier = Modifier
+            .size(56.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .clickable(enabled = info.loggedIn, onClick = onAvatarClick),
+        )
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -140,6 +148,26 @@ internal fun ProfileCard(info: ProfileInfo, onLoginClick: () -> Unit) {
             Spacer(Modifier.size(2.dp))
             Text(info.hint, color = AppColors.TextSecondary, fontSize = 13.sp)
         }
+    }
+}
+
+/**
+ * 头像渲染的唯一出口：用户生成过头像就读本地文件（Coil），否则回落默认 drawable。
+ *
+ * 读 [ProfileInfo.avatarFilePath]（本地文件）而不是签名 URL——URL 只有几百秒寿命，
+ * 缓存它等于给用户留坏图（同 `MediaUploader` 的纪律）。
+ */
+@Composable
+internal fun UserAvatarImage(info: ProfileInfo, modifier: Modifier = Modifier) {
+    val path = info.avatarFilePath
+    if (path != null) {
+        coil.compose.AsyncImage(
+            model = java.io.File(path),
+            contentDescription = stringResource(com.openapi.feature.user.R.string.avatar_title),
+            modifier = modifier,
+        )
+    } else {
+        Image(painterResource(info.avatarRes), contentDescription = null, modifier = modifier)
     }
 }
 
@@ -191,7 +219,7 @@ fun ProfileHeader(info: ProfileInfo, onLoginClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Image(painterResource(info.avatarRes), contentDescription = null, modifier = Modifier.size(56.dp))
+        UserAvatarImage(info, modifier = Modifier.size(56.dp))
         Spacer(Modifier.width(8.dp))
         if (info.levelRes != 0) {
             Image(painterResource(info.levelRes), contentDescription = null)

@@ -150,15 +150,28 @@ fun HomeScreen() {
     }
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-    // 陪伴页的全屏通话覆盖层挂起时也要关抽屉滑动：通话里 VRM WebView 的单指拖动
-    // 会被父级抽屉在 touch slop 处抢走（实测页面只收到 down + 1 个 move 就 CANCEL）。
-    var companionCallActive by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val openDrawer: () -> Unit = {
         profile = entries.profile(context)
         scope.launch { drawerState.open() }
     }
-    BackHandler(enabled = drawerState.isOpen) { scope.launch { drawerState.close() } }
+    // 根层返回键统一出口（判定纯函数 homeBackStep，钉桩 HomeBackStepTest）：
+    // 抽屉 > 「我的」覆盖页 > 非对话标签回对话 > 交回系统退出。
+    // 放映场内部各层的返回由 ScreeningActivity 自己的总闸接（组合在更内层、优先消费），
+    // 这里只兜根——原来根上没人接，「频道」首页按返回直接退 app（用户点名）。
+    val backStep = homeBackStep(
+        drawerOpen = drawerState.isOpen,
+        profilePageOpen = profilePageOpen,
+        currentTab = current,
+    )
+    BackHandler(enabled = backStep != HomeBackStep.NONE) {
+        when (backStep) {
+            HomeBackStep.DRAWER -> scope.launch { drawerState.close() }
+            HomeBackStep.PROFILE_PAGE -> profilePageOpen = false
+            HomeBackStep.TAB_TO_CHAT -> selected = HomeTab.Chat.ordinal
+            HomeBackStep.NONE -> Unit
+        }
+    }
 
     // 对话标签的顶栏是品牌色，状态栏图标用浅色；频道标签内嵌的放映场是深色底，图标同样要浅色；
     // 其余标签、以及侧边栏打开时（浅色面板）用深色图标
@@ -173,13 +186,9 @@ fun HomeScreen() {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        // 对话页的按住录音、上滑取消是手势操作，边缘滑动会和它抢手势：对话标签里只用菜单按钮打开，
-        // 其余标签可以从左边缘滑出来；已经打开时任何标签都可以滑动关闭
-        gesturesEnabled = drawerSwipeEnabled(
-            currentIsChat = current == HomeTab.Chat,
-            drawerOpen = drawerState.isOpen,
-            callVisible = companionCallActive,
-        ),
+        // 首页所有层级（频道/放映场/图集…）都被这个抽屉包住，用户明确不需要「右滑出抽屉」：
+        // 抽屉关闭时任何标签都不开手势，打开只用顶栏菜单按钮；已打开时仍可右滑关闭。
+        gesturesEnabled = drawerSwipeEnabled(drawerOpen = drawerState.isOpen),
         drawerContent = {
             ModalDrawerSheet(
                 modifier = Modifier
@@ -222,7 +231,7 @@ fun HomeScreen() {
                     // 工具 / 测试 / 账户：真实入口（同「我的」页的入口）；未登录时没有「登出」
                     DrawerGroups.forEach { group ->
                         val items = group.actions.mapNotNull { action -> profile.entries.find { it.action == action } }
-                        val showChannels = group.titleRes == R.string.drawer_group_test
+                        val showChannels = group.titleRes == R.string.drawer_group_more
                         if (items.isNotEmpty() || showChannels) {
                             DrawerSectionTitle(group.titleRes)
                             if (showChannels) {
@@ -285,7 +294,7 @@ fun HomeScreen() {
                                 scope.launch { drawerState.close() }
                                 context.startActivity(Intent().setClassName(
                                     context,
-                                    "com.openapi.ks.myapp.companion.teaching.TeachingDemoActivity",
+                                    "com.openapi.app.teaching.TeachingDemoActivity",
                                 ))
                             },
                             colors = DrawerItemColors,
@@ -354,7 +363,6 @@ fun HomeScreen() {
                             scriptCaseId = scriptCaseId,
                             launchCallOnOpen = callLaunchPending,
                             onLaunchCallHandled = { callLaunchPending = false },
-                            onCallActiveChanged = { companionCallActive = it },
                             onLoginRequired = {
                                 context.startActivity(
                                     Intent(context, com.openapi.feature.user.login.LoginActivity::class.java)

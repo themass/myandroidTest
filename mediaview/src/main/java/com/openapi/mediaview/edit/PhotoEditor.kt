@@ -17,10 +17,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.Check
@@ -48,6 +54,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -161,8 +168,19 @@ fun PhotoEditor(
     }
     // 拖动滑杆时降档：滤镜是整图三线性插值，1280 那一档在拖动手势里最容易被肉眼看成掉帧
     val previewLongEdge = if (sliderActive) PREVIEW_SLIDER_LONG_EDGE else PREVIEW_LONG_EDGE
+    // 「这一帧渲染因为有 Filter 但表取不到而跳过了滤镜」的会话级信号（实机抱怨「滤镜点了没反应」
+    // ——降级必须看得见）。渲染跑在 remember 里，组合期不许直接回写 Compose state，所以渲染侧
+    // 只写这个普通持有槽，由下面的 LaunchedEffect 落到界面状态。
+    // 跳过滤镜的降级帧**不进底图缓存**（见 renderPreview）：表恢复可用（LutAssets 不再缓存失败）
+    // 后下一次渲染就能真的套上表，不会把「跳过滤镜」的帧在缓存里钉一辈子。
+    val filterSkippedId = remember(bitmap) { arrayOfNulls<String>(1) }
+    val filterNotice = remember(bitmap) { mutableStateOf<String?>(null) }
     val rendered = remember(previewSource, baseOps, previewLongEdge, lutProvider) {
-        renderPreview(previewSource, baseOps, previewLongEdge, baseCache, lutProvider)
+        filterSkippedId[0] = null
+        renderPreview(previewSource, baseOps, previewLongEdge, baseCache, lutProvider, filterSkippedId)
+    }
+    LaunchedEffect(rendered) {
+        filterNotice.value = filterSkippedId[0]
     }
 
     Surface(modifier = modifier.fillMaxSize(), color = Color.Black) {
@@ -333,113 +351,143 @@ fun PhotoEditor(
             // 选中了标注 → 编辑那条；否则按当前工具给默认样式。
             val index = selectedIndex
             val op = selectedOp
-            when {
-                cropping -> {
-                    CropControls(
-                        selection = cropSelection,
-                        viewport = cropViewport,
-                        aspect = cropAspect,
-                        onAspectChange = { cropAspect = it },
-                        onConfirm = { sel ->
-                            // 已有 Crop 时视口就是那个窗口，选框要先合成回全幅显示空间，
-                            // setCrop 才有「替换旧裁剪」的语义（见 CropGeometry.composedCrop）。
-                            edits = edits.setCrop(CropGeometry.composedCrop(EditCoords.cropWindow(edits), sel))
-                            tool = EditorTool.None
-                            cropSelection = Rect.Zero
-                        },
-                        onCancel = {
-                            tool = EditorTool.None
-                            // 选框 hoist 到宿主之后，「下次进裁剪模式要重新铺一屏」这件事
-                            // 不能只靠 LaunchedEffect(viewport, aspect)：取消不改 edits，
-                            // 视口和比例都没变，就不会重铺，上次的框会莫名其妙留着。
-                            // 确认路径也一样清：视口**通常**会因裁剪而变（从而自己重铺），
-                            // 但那只是巧合（正方形画面裁掉一半，fit 可能一模一样），不该依赖巧合。
-                            cropSelection = Rect.Zero
-                        },
-                    )
-                }
-                op != null -> SelectionPanel(
-                    op = op,
-                    onDelete = { edits = edits.removeAt(index); selected = null },
-                    onDeselect = { selected = null },
-                    onEditText = { t -> textDialog = TextDialog(index, t.value, Offset(t.x, t.y)) },
-                    onColor = { c -> edits = edits.replaceAt(index, op.withColor(c.toArgb().toLong())) },
-                    onBold = { edits = edits.replaceAt(index, (op as EditOp.Text).let { it.copy(bold = !it.bold) }) },
-                    onSlider = { v ->
-                        // 拖动过程中只改预览（不记历史），松手一次提交
-                        val base = liveBase ?: edits.also { liveBase = it }
-                        edits = base.withOpsUnrecorded(base.ops.toMutableList().also { it[index] = op.withSize(v) })
-                    },
-                    onSliderDone = {
-                        liveBase?.let { base -> edits = base.withOps(edits.ops) }
-                        liveBase = null
-                    },
+
+            // 「滤镜没生效」的如实提示（渲染层上报，见上面 filterNotice 的接线）：表取不到时
+            // 画面停在 Adjust 之后，这里必须说出来，而不是让用户对着「点了没反应」的画面猜。
+            filterNotice.value?.let { brokenId ->
+                Text(
+                    filterSkippedNotice(brokenId),
+                    color = EditPalette.Accent,
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(EditPalette.PanelBg)
+                        .padding(horizontal = 16.dp, vertical = 6.dp),
                 )
-                tool == EditorTool.Adjust -> AdjustPanel(
-                    adjust = edits.adjust,
-                    onChange = { adj ->
-                        val base = liveBase ?: edits.also { liveBase = it }
-                        // 调整参数在预处理指纹里，每一步都会让底图缓存 miss 并重跑预处理，
-                        // 所以它和滤镜滑杆一样要降档（见 PREVIEW_SLIDER_LONG_EDGE）
-                        sliderActive = true
-                        val next = base.ops.filterNot { it is EditOp.Adjust } + (if (adj.isIdentity) emptyList() else listOf(adj))
-                        edits = base.withOpsUnrecorded(next)
-                    },
-                    onFinished = {
-                        liveBase?.let { base -> edits = base.withOps(edits.ops) }
-                        liveBase = null
-                        sliderActive = false
-                    },
-                    onClose = { tool = EditorTool.None },
-                )
-                tool == EditorTool.Filter -> FilterPanel(
-                    filter = edits.filter,
-                    source = previewSource,
-                    lutProvider = lutProvider,
-                    onPickPreset = { id ->
-                        // 再点已选中的那一格 = 移除（回到无滤镜）；换一格 = 替换（面板互斥，全列表至多一条）
-                        edits = if (edits.filter?.id == id) edits.setFilter(null)
-                        else edits.setFilter(id, FILTER_PRESET_INTENSITY)
-                    },
-                    onIntensityChange = { v ->
-                        // 拖动过程中只改预览（不记历史），并降档到底图 640
-                        val base = liveBase ?: edits.also { liveBase = it }
-                        sliderActive = true
-                        val i = base.ops.indexOfLast { it is EditOp.Filter }
-                        val current = base.ops.getOrNull(i) as? EditOp.Filter
-                        if (current != null) {
-                            edits = base.withOpsUnrecorded(base.ops.toMutableList().also { it[i] = current.copy(intensity = v) })
+            }
+
+            // 面板槽在工具条**上方**（原本就在），但它必须**封顶 + 内部可滚动**：
+            // 16 色色板 + 自定义行把面板垫高之后，原先无界的面板会顶到屏幕底边
+            // （实机截图里面板标签被切一半、工具条被挤出去）。封顶 + 滚动保证
+            // 任何面板内容都完整可见，工具条永远贴底。
+            val hasPanel = cropping || op != null || tool != EditorTool.None
+            if (hasPanel) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = PANEL_MAX_HEIGHT)
+                        .background(EditPalette.PanelBg)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    when {
+                        cropping -> {
+                            CropControls(
+                                selection = cropSelection,
+                                viewport = cropViewport,
+                                aspect = cropAspect,
+                                onAspectChange = { cropAspect = it },
+                                onConfirm = { sel ->
+                                    // 已有 Crop 时视口就是那个窗口，选框要先合成回全幅显示空间，
+                                    // setCrop 才有「替换旧裁剪」的语义（见 CropGeometry.composedCrop）。
+                                    edits = edits.setCrop(CropGeometry.composedCrop(EditCoords.cropWindow(edits), sel))
+                                    tool = EditorTool.None
+                                    cropSelection = Rect.Zero
+                                },
+                                onCancel = {
+                                    tool = EditorTool.None
+                                    // 选框 hoist 到宿主之后，「下次进裁剪模式要重新铺一屏」这件事
+                                    // 不能只靠 LaunchedEffect(viewport, aspect)：取消不改 edits，
+                                    // 视口和比例都没变，就不会重铺，上次的框会莫名其妙留着。
+                                    // 确认路径也一样清：视口**通常**会因裁剪而变（从而自己重铺），
+                                    // 但那只是巧合（正方形画面裁掉一半，fit 可能一模一样），不该依赖巧合。
+                                    cropSelection = Rect.Zero
+                                },
+                            )
                         }
-                    },
-                    onIntensityDone = {
-                        // 以拖动前的快照为底一次提交：恰一步撤销，回到拖动之前的强度
-                        liveBase?.let { base -> edits = base.withOps(edits.ops) }
-                        liveBase = null
-                        sliderActive = false
-                    },
-                    // 按住=临时把滤镜从预览底图里摘掉（只影响 baseOps，不进 ops、不进历史）
-                    onCompare = { down -> comparing = down },
-                    onClose = { tool = EditorTool.None },
-                )
-                tool == EditorTool.Draw -> StylePanel(
-                    hint = stringResource(R.string.mediaview_edit_hint_draw),
-                    color = brushColor, onColor = { brushColor = it },
-                    sliderLabel = stringResource(R.string.mediaview_edit_thickness),
-                    slider = brushWidth, range = BRUSH_RANGE, onSlider = { brushWidth = it },
-                )
-                tool == EditorTool.Text -> StylePanel(
-                    hint = stringResource(R.string.mediaview_edit_hint_text),
-                    color = textColor, onColor = { textColor = it },
-                    sliderLabel = stringResource(R.string.mediaview_edit_size),
-                    slider = textSize, range = TEXT_RANGE, onSlider = { textSize = it },
-                    bold = textBold, onBold = { textBold = !textBold },
-                )
-                tool == EditorTool.Mosaic -> StylePanel(
-                    hint = stringResource(R.string.mediaview_edit_hint_mosaic),
-                    color = null, onColor = {},
-                    sliderLabel = stringResource(R.string.mediaview_edit_brush),
-                    slider = mosaicWidth, range = MOSAIC_RANGE, onSlider = { mosaicWidth = it },
-                )
+                        op != null -> SelectionPanel(
+                            op = op,
+                            onDelete = { edits = edits.removeAt(index); selected = null },
+                            onDeselect = { selected = null },
+                            onEditText = { t -> textDialog = TextDialog(index, t.value, Offset(t.x, t.y)) },
+                            onColor = { c -> edits = edits.replaceAt(index, op.withColor(c.toArgb().toLong())) },
+                            onBold = { edits = edits.replaceAt(index, (op as EditOp.Text).let { it.copy(bold = !it.bold) }) },
+                            onSlider = { v ->
+                                // 拖动过程中只改预览（不记历史），松手一次提交
+                                val base = liveBase ?: edits.also { liveBase = it }
+                                edits = base.withOpsUnrecorded(base.ops.toMutableList().also { it[index] = op.withSize(v) })
+                            },
+                            onSliderDone = {
+                                liveBase?.let { base -> edits = base.withOps(edits.ops) }
+                                liveBase = null
+                            },
+                        )
+                        tool == EditorTool.Adjust -> AdjustPanel(
+                            adjust = edits.adjust,
+                            onChange = { adj ->
+                                val base = liveBase ?: edits.also { liveBase = it }
+                                // 调整参数在预处理指纹里，每一步都会让底图缓存 miss 并重跑预处理，
+                                // 所以它和滤镜滑杆一样要降档（见 PREVIEW_SLIDER_LONG_EDGE）
+                                sliderActive = true
+                                val next = base.ops.filterNot { it is EditOp.Adjust } + (if (adj.isIdentity) emptyList() else listOf(adj))
+                                edits = base.withOpsUnrecorded(next)
+                            },
+                            onFinished = {
+                                liveBase?.let { base -> edits = base.withOps(edits.ops) }
+                                liveBase = null
+                                sliderActive = false
+                            },
+                            onClose = { tool = EditorTool.None },
+                        )
+                        tool == EditorTool.Filter -> FilterPanel(
+                            filter = edits.filter,
+                            source = previewSource,
+                            lutProvider = lutProvider,
+                            onPickPreset = { id ->
+                                // 再点已选中的那一格 = 移除（回到无滤镜）；换一格 = 替换（面板互斥，全列表至多一条）
+                                edits = if (edits.filter?.id == id) edits.setFilter(null)
+                                else edits.setFilter(id, FILTER_PRESET_INTENSITY)
+                            },
+                            onIntensityChange = { v ->
+                                // 拖动过程中只改预览（不记历史），并降档到底图 640
+                                val base = liveBase ?: edits.also { liveBase = it }
+                                sliderActive = true
+                                val i = base.ops.indexOfLast { it is EditOp.Filter }
+                                val current = base.ops.getOrNull(i) as? EditOp.Filter
+                                if (current != null) {
+                                    edits = base.withOpsUnrecorded(base.ops.toMutableList().also { it[i] = current.copy(intensity = v) })
+                                }
+                            },
+                            onIntensityDone = {
+                                // 以拖动前的快照为底一次提交：恰一步撤销，回到拖动之前的强度
+                                liveBase?.let { base -> edits = base.withOps(edits.ops) }
+                                liveBase = null
+                                sliderActive = false
+                            },
+                            // 按住=临时把滤镜从预览底图里摘掉（只影响 baseOps，不进 ops、不进历史）
+                            onCompare = { down -> comparing = down },
+                            onClose = { tool = EditorTool.None },
+                        )
+                        tool == EditorTool.Draw -> StylePanel(
+                            hint = stringResource(R.string.mediaview_edit_hint_draw),
+                            color = brushColor, onColor = { brushColor = it },
+                            sliderLabel = stringResource(R.string.mediaview_edit_thickness),
+                            slider = brushWidth, range = BRUSH_RANGE, onSlider = { brushWidth = it },
+                        )
+                        tool == EditorTool.Text -> StylePanel(
+                            hint = stringResource(R.string.mediaview_edit_hint_text),
+                            color = textColor, onColor = { textColor = it },
+                            sliderLabel = stringResource(R.string.mediaview_edit_size),
+                            slider = textSize, range = TEXT_RANGE, onSlider = { textSize = it },
+                            bold = textBold, onBold = { textBold = !textBold },
+                        )
+                        tool == EditorTool.Mosaic -> StylePanel(
+                            hint = stringResource(R.string.mediaview_edit_hint_mosaic),
+                            color = null, onColor = {},
+                            sliderLabel = stringResource(R.string.mediaview_edit_brush),
+                            slider = mosaicWidth, range = MOSAIC_RANGE, onSlider = { mosaicWidth = it },
+                        )
+                    }
+                }
             }
 
             ToolBar(
@@ -493,10 +541,40 @@ private data class Moving(val index: Int, val original: EditOp, val start: Offse
 
 private data class TextDialog(val index: Int?, val value: String, val at: Offset)
 
-private val PALETTE = listOf(
-    Color(0xFFFF3B30), Color(0xFFFFCC00), Color(0xFF34C759),
-    Color(0xFF0A84FF), Color.White, Color.Black,
-)
+/**
+ * 16 档墨色（实机抱怨「颜色只有 6 个色块」→ 按设计稿扩到 16 色，见
+ * `protos/photosolve-ui/src/EditorScreen.tsx` 的 SWATCHES）。
+ *
+ * 色值取 Astryx neutral 主题色阶的档位（设计稿的 16 色按语义就近映射到主题里存在的色阶：
+ * lime≈green-80、sky≈cyan-70、indigo≈blue-30、violet≈purple-50、fuchsia≈pink-50、棕≈orange-30），
+ * **只在这里出现一次**——面板/UI 代码只引用名字，不散写 hex。
+ */
+internal object EditSwatches {
+    val Red = Color(0xFFED5753)      // red-60
+    val Orange = Color(0xFFD97000)   // orange-60
+    val Amber = Color(0xFFC29900)    // yellow-65
+    val Yellow = Color(0xFFEEC448)   // yellow-80
+    val Lime = Color(0xFFA4D6A3)     // green-80
+    val Green = Color(0xFF3C8A3F)    // green-50
+    val Teal = Color(0xFF009986)     // teal-55
+    val Sky = Color(0xFF45BDD7)      // cyan-70
+    val Blue = Color(0xFF1E81F0)     // blue-55
+    val Indigo = Color(0xFF00458C)   // blue-30
+    val Violet = Color(0xFF9F3CB5)   // purple-50
+    val Fuchsia = Color(0xFFC5387C)  // pink-50
+    val Pink = Color(0xFFFFA9CA)     // pink-80
+    val Brown = Color(0xFF733100)    // orange-30
+    val Gray = Color(0xFF848484)     // neutral-55
+    val White = Color(0xFFFFFFFF)    // neutral-100
+
+    /** 展示顺序与设计稿一致（每行 8 个由 Swatches 的 chunked(8) 保证）。 */
+    val All = listOf(
+        Red, Orange, Amber, Yellow, Lime, Green, Teal, Sky,
+        Blue, Indigo, Violet, Fuchsia, Pink, Brown, Gray, White,
+    )
+}
+
+private val PALETTE = EditSwatches.All
 
 /**
  * 编辑器 UI 的**令牌**：mediaview 不依赖 :common，所以「一处定义、多处引用」就落在本文件的
@@ -524,6 +602,27 @@ private const val DEFAULT_TEXT = 0.05f
 private val BRUSH_RANGE = 0.003f..0.03f
 private val MOSAIC_RANGE = 0.02f..0.15f
 private val TEXT_RANGE = 0.025f..0.12f
+
+/**
+ * 面板槽的封顶高度：任何面板超过这个高度就在槽内滚动（见 PhotoEditor 的面板槽注释）。
+ * 没有封顶时，16 色色板 + 自定义行会把面板垫到屏幕底边——实机截图里面板标签被切一半、
+ * 工具条被顶出去，就是这个无界增长的结果。
+ */
+private val PANEL_MAX_HEIGHT = 240.dp
+
+/** 16 色色板每行的格数（设计稿的 swatch grid 规范：每行 8）。 */
+private const val SWATCHES_PER_ROW = 8
+
+private const val CUSTOM_COLOR_LABEL = "自定义"
+private const val CUSTOM_COLOR_TITLE = "自定义颜色"
+private const val CUSTOM_COLOR_USE = "使用这个颜色"
+private const val HUE_LABEL = "色相"
+private const val SAT_LABEL = "饱和度"
+private const val LIGHT_LABEL = "明度"
+
+/** 预览侧「这次滤镜没生效」的如实提示（渲染层把取不到的表上报到这里，界面不许沉默）。 */
+internal fun filterSkippedNotice(filterId: String): String =
+    "滤镜 $filterId 的表取不到，这次预览没有套上滤镜；重装应用或稍后再试"
 
 /** 编辑时用的预览图长边。够清晰、渲染快（马赛克/调整每次都要重放）。 */
 private const val PREVIEW_LONG_EDGE = 1280
@@ -561,6 +660,7 @@ private fun renderPreview(
     maxLongEdge: Int,
     cache: RenderBaseCache,
     lutProvider: (String) -> Lut3D?,
+    filterSkippedId: Array<String?>,
 ): Bitmap {
     // 完全没编辑时直接返回源图：和 PhotoRenderer.render 的旧快捷路径一致。
     // 少了这一句，空白编辑会话的每帧预览都会白白拷一次整幅位图（drawOps 恒复制）。
@@ -569,9 +669,22 @@ private fun renderPreview(
         // 只为拿一个「不带标注」的会话算指纹；PhotoEdits 是 data class，构造很便宜
         // （probe 刻意留在罩住的范围**里面**：兜底半径要罩住整条链路，一个字都不该缩）
         val probe = PhotoEdits.of(source.width, source.height).withOpsUnrecorded(ops)
-        val base = cache.get(source, probe, maxLongEdge)
-            ?: PhotoRenderer.renderBase(source, probe, maxLongEdge, lutProvider)
-                .also { cache.put(source, probe, maxLongEdge, it) }
+        val cached = cache.get(source, probe, maxLongEdge)
+        if (cached != null) {
+            // 命中帧必然不是「跳过滤镜」的降级帧：下面刻意不把降级帧写进缓存，所以这里无需复查。
+            return@guardRender PhotoRenderer.drawOps(cached, probe)
+        }
+        val base = PhotoRenderer.renderBase(
+            source, probe, maxLongEdge,
+            onFilterUnavailable = { id ->
+                // 渲染跳过了滤镜（表取不到）：写普通持有槽，由宿主的 LaunchedEffect 落到界面提示。
+                filterSkippedId[0] = id
+            },
+            lutProvider = lutProvider,
+        )
+        // 「跳过滤镜」的降级帧**不进缓存**：LutAssets 不再缓存失败，表恢复可用后下一次渲染
+        // 要能真的套上表，而不是把降级帧在缓存里钉到会话结束。
+        if (filterSkippedId[0] == null) cache.put(source, probe, maxLongEdge, base)
         PhotoRenderer.drawOps(base, probe)
     } ?: source
 }
@@ -942,36 +1055,180 @@ private fun SelectionPanel(
 
 @Composable
 private fun Swatches(selected: Color, onPick: (Color) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = EditPalette.SwatchGap),
-        horizontalArrangement = Arrangement.spacedBy(EditPalette.SwatchGap),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        PALETTE.forEach { c ->
-            val on = c.toArgb() == selected.toArgb()
-            // 选中：2dp 白描边 + 中央 ✓（用现成的 Icon，不引新库）。
-            // ✓ 的着色按色块明度取反：PALETTE 里有白块，白勾压白块就看不见了。
-            // 未选中：24dp 细灰环；选中 28dp。行高由 CenterVertically 兜住。
+    var customOpen by remember { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth().padding(vertical = EditPalette.SwatchGap)) {
+        // 16 色每行 8 个（设计稿的 swatch grid 规范）。色块语义与原 6 色版一致：
+        // 选中 = 描边 + ✓（勾色按块面明度取反），未选中 = 细灰环。
+        EditSwatches.All.chunked(SWATCHES_PER_ROW).forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(EditPalette.SwatchGap),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                row.forEach { c ->
+                    val on = c.toArgb() == selected.toArgb()
+                    Box(
+                        Modifier
+                            .size(if (on) 28.dp else 24.dp)
+                            .clip(CircleShape)
+                            .background(c)
+                            .border(if (on) 2.dp else 1.dp, if (on) EditPalette.SwatchRing else EditPalette.SwatchIdleRing, CircleShape)
+                            .clickable { onPick(c) },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (on) {
+                            Icon(
+                                Icons.Filled.Check,
+                                null,
+                                tint = checkTintOn(c),
+                                modifier = Modifier.size(14.dp),
+                            )
+                        }
+                    }
+                }
+                // 末行不满 8 格时补位，保证每格等宽（16 = 2×8 正好满；防御性保留）
+                repeat(SWATCHES_PER_ROW - row.size) { Box(Modifier.size(24.dp)) }
+            }
+        }
+        // 「自定义」：当前色不在 16 档里 = 它是自定义色（选中的值记在宿主 state 里，会话内保留），
+        // 点圆点或文字开 HSL 三滑杆 Dialog。
+        val isCustom = EditSwatches.All.none { it.toArgb() == selected.toArgb() }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(EditPalette.SwatchGap),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Box(
                 Modifier
-                    .size(if (on) 28.dp else 24.dp)
+                    .size(if (isCustom) 28.dp else 24.dp)
                     .clip(CircleShape)
-                    .background(c)
-                    .border(if (on) 2.dp else 1.dp, if (on) EditPalette.SwatchRing else EditPalette.SwatchIdleRing, CircleShape)
-                    .clickable { onPick(c) },
+                    .background(selected)
+                    .border(
+                        if (isCustom) 2.dp else 1.dp,
+                        if (isCustom) EditPalette.Accent else EditPalette.SwatchIdleRing,
+                        CircleShape,
+                    )
+                    .clickable { customOpen = true },
                 contentAlignment = Alignment.Center,
             ) {
-                if (on) {
-                    Icon(
-                        Icons.Filled.Check,
-                        null,
-                        tint = checkTintOn(c),
-                        modifier = Modifier.size(14.dp),
-                    )
+                if (!isCustom) {
+                    Icon(Icons.Filled.Add, null, tint = checkTintOn(selected), modifier = Modifier.size(14.dp))
                 }
+            }
+            TextButton(onClick = { customOpen = true }) {
+                Text(
+                    CUSTOM_COLOR_LABEL,
+                    color = if (isCustom) EditPalette.Accent else EditPalette.TextPrimary,
+                    style = MaterialTheme.typography.labelLarge,
+                )
             }
         }
     }
+    if (customOpen) {
+        ColorPickerDialog(
+            initial = selected,
+            onConfirm = { c -> onPick(c); customOpen = false },
+            onDismiss = { customOpen = false },
+        )
+    }
+}
+
+/**
+ * 自定义取色 Dialog（设计稿交互）：实时预览块 + 色相/饱和度/明度三滑杆 + 「使用这个颜色」。
+ * 打开时滑杆停在当前色（自定义色在会话内的值因此被记住：再开对话框从这里接着调）。
+ */
+@Composable
+private fun ColorPickerDialog(initial: Color, onConfirm: (Color) -> Unit, onDismiss: () -> Unit) {
+    val seed = remember(initial) { rgbToHsl(initial) }
+    var hue by remember(initial) { mutableFloatStateOf(seed.hue) }
+    var sat by remember(initial) { mutableFloatStateOf(seed.sat) }
+    var light by remember(initial) { mutableFloatStateOf(seed.light) }
+    val preview = hslToColor(hue, sat, light)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(CUSTOM_COLOR_TITLE) },
+        text = {
+            Column {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(preview)
+                        .border(1.dp, EditPalette.SwatchIdleRing, RoundedCornerShape(8.dp)),
+                )
+                HslSliderRow(HUE_LABEL, hue, 0f..360f) { hue = it }
+                HslSliderRow(SAT_LABEL, sat, 0f..100f) { sat = it }
+                HslSliderRow(LIGHT_LABEL, light, 0f..100f) { light = it }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(preview) }) { Text(CUSTOM_COLOR_USE) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.mediaview_edit_cancel)) }
+        },
+    )
+}
+
+@Composable
+private fun HslSliderRow(label: String, value: Float, range: ClosedFloatingPointRange<Float>, onChange: (Float) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(label, color = EditPalette.TextPrimary, modifier = Modifier.width(56.dp))
+        Slider(value = value, onValueChange = onChange, valueRange = range, modifier = Modifier.weight(1f))
+        Text("${value.roundToInt()}", color = EditPalette.TextPrimary, modifier = Modifier.width(36.dp))
+    }
+}
+
+/** HSL 三元组：[hue] 0..360，[sat]/[light] 0..100（界面上滑杆就是这个口径）。 */
+internal data class Hsl(val hue: Float, val sat: Float, val light: Float)
+
+/**
+ * RGB → HSL（自定义取色对话框打开时滑杆停在当前色）。纯函数、可单测。
+ * 灰度色（max == min）没有色相，取 0——设计上「灰色从 0 度开始调」是常规做法。
+ */
+internal fun rgbToHsl(c: Color): Hsl {
+    val r = c.red; val g = c.green; val b = c.blue
+    val max = maxOf(r, g, b); val min = minOf(r, g, b)
+    val l = (max + min) / 2f
+    if (max == min) return Hsl(0f, 0f, l * 100f)
+    val d = max - min
+    val s = if (l > 0.5f) d / (2f - max - min) else d / (max + min)
+    val hDeg = when (max) {
+        r -> ((g - b) / d + if (g < b) 6f else 0f) * 60f
+        g -> ((b - r) / d + 2f) * 60f
+        else -> ((r - g) / d + 4f) * 60f
+    }
+    return Hsl(hDeg, s * 100f, l * 100f)
+}
+
+/**
+ * HSL → RGB。选完的颜色走回和色板完全同一条 [Swatches] onPick → toArgb().toLong() 的路，
+ * 数据模型不为此多任何字段。
+ */
+internal fun hslToColor(hue: Float, sat: Float, light: Float): Color {
+    val h = ((hue % 360f) + 360f) % 360f / 360f
+    val s = (sat / 100f).coerceIn(0f, 1f)
+    val l = (light / 100f).coerceIn(0f, 1f)
+    if (s == 0f) return Color(l, l, l)
+    fun hue2rgb(p: Float, q: Float, t: Float): Float {
+        var tt = t
+        if (tt < 0f) tt += 1f
+        if (tt > 1f) tt -= 1f
+        return when {
+            tt < 1f / 6f -> p + (q - p) * 6f * tt
+            tt < 1f / 2f -> q
+            tt < 2f / 3f -> p + (q - p) * (2f / 3f - tt) * 6f
+            else -> p
+        }
+    }
+    val q = if (l < 0.5f) l * (1f + s) else l + s - l * s
+    val p = 2f * l - q
+    return Color(
+        hue2rgb(p, q, h + 1f / 3f),
+        hue2rgb(p, q, h),
+        hue2rgb(p, q, h - 1f / 3f),
+    )
 }
 
 /** 亮度/对比度/饱和度。右上角「完成调整」收起面板（之前一旦打开就关不掉）。 */
