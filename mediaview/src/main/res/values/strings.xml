@@ -34,7 +34,7 @@
     <string name="mediaview_edit_hint_text">点图片添加文字；点已有文字可选中，拖动可移动</string>
     <string name="mediaview_edit_hint_mosaic">在要打码的地方滑动，手指划过的地方会被马赛克</string>
     <string name="mediaview_edit_crop">裁剪</string>
-    <string name="mediaview_edit_crop_hint">拖动四个角调整裁剪框</string>
+    <string name="mediaview_edit_crop_hint">拖动四角调大小，按住框内拖动移动位置</string>
     <string name="mediaview_edit_crop_done">完成裁剪</string>
     <string name="mediaview_edit_crop_free">自由</string>
     <string name="mediaview_edit_crop_square">方形</string>

@@ -189,15 +189,15 @@ object CropGeometry {
 }
 
 /**
- * 把手命中测试：[touch] 落在某个角的 [slopPx] 方块内，**或**到角点的欧氏距离 ≤ [slopPx]，
+ * 角把手命中测试：[touch] 落在某个角的 [slopPx] 方块内，**或**到角点的欧氏距离 ≤ [slopPx]，
  * 就算抓住它（方形与圆形取并集，见 [CROP_HANDLE_SLOP_DP] 为什么放大到 32dp）。
  *
  * 热区**不夹在框内**：贴边的角（初始 Free 框 = 铺满 fit 矩形）热区照样向框外延伸，
  * 而框内侧同样是有效命中区——手指粗、角标只有 [CROP_HANDLE_ARM] 那么短，贴边时
  * 「往框里按一点」是最自然的落点，必须抓住。
  *
- * 两个角都命中时取更近的（极小的框里会重叠），返回 null 表示抓的是框内/框外空白——
- * 本任务不做「拖动整框」，所以那种情况下选框不动。
+ * 两个角都命中时取更近的（极小的框里会重叠），返回 null 表示抓的不是角——
+ * 是框内、边带还是框外空白，由 [hitCropGesture] 进一步判定。
  */
 fun hitHandle(rect: Rect, touch: Offset, slopPx: Float): CropHandle? {
     val corners = arrayOf(
@@ -231,8 +231,54 @@ enum class CropAspect(val ratio: Float?, val labelRes: Int) {
     SixteenNine(16f / 9f, R.string.mediaview_edit_crop_sixteen_nine),
 }
 
-/** 四个角把手。只做角把手，边中点与整框平移不做（把手只有一类，手势层才可推理）。 */
+/** 四个角把手。调大小只有角这一类把手；平移整框是另一种手势，见 [CropGesture]。 */
 enum class CropHandle { TopLeft, TopRight, BottomLeft, BottomRight }
+
+/**
+ * 按在裁剪层上的一点落在哪个语义区：调某个角、平移整框、还是不动。
+ *
+ * **优先级只有一个**：角 > 框内平移 > 空白。
+ * 这不是随便排的——初始 Free 框铺满视口时四个角全在画幅边上，而框内又几乎全是「贴角」
+ * 的范围；先判角，才能保证「按角调大小」永远压得住「按框内移动」，反过来则调不动角。
+ */
+enum class CropGesture { Corner, Move, None }
+
+/**
+ * 按下点的语义判定：先问角（[hitHandle] 原样复用，A3 修好的热区一个字不动），
+ * 抓住角就是 [CropGesture.Corner]；否则只要落在选框**内部**（含贴边）就是
+ * [CropGesture.Move]——「框内拖动 = 移动整框、大小不变」是裁剪框的业界标准语义，
+ * 不要求长按门槛；落在框外（黑边/遮罩）是 [CropGesture.None]，什么都不动。
+ */
+fun hitCropGesture(rect: Rect, touch: Offset, slopPx: Float): CropGesture = when {
+    hitHandle(rect, touch, slopPx) != null -> CropGesture.Corner
+    insideInclusive(rect, touch) -> CropGesture.Move
+    else -> CropGesture.None
+}
+
+/**
+ * **四边都算数**的框内判定：Compose 的 `Rect.contains` 把右边和下边排除在外
+ * （`x < right`），而选框的四条线正是画在 right/bottom 上的——用户按在那条线上想挪框，
+ * 用 contains 就会掉进 None、框不动。所以这里自己判闭区间。
+ */
+private fun insideInclusive(rect: Rect, touch: Offset): Boolean =
+    touch.x >= rect.left && touch.x <= rect.right && touch.y >= rect.top && touch.y <= rect.bottom
+
+/**
+ * 平移整框：[rect] 沿手指位移 [dx]/[dy]，**尺寸一分不变**，整体夹在 [frame] 内。
+ *
+ * 夹取只做平移（先加位移、再把四条边一起夹回画幅），不碰最小框——尺寸没变，
+ * [minCropSide] 的约束原样成立，这里再夹一次只会把「跟手」变成「卡住」。
+ * 框比画幅大不该由这里兜（不可能出现：选框始终在画幅里产生），退化输入原样返回。
+ */
+fun moveSelection(rect: Rect, dx: Float, dy: Float, frame: Rect): Rect {
+    val w = rect.width
+    val h = rect.height
+    if (w <= 0f || h <= 0f || frame.width < w || frame.height < h) return rect
+    // 左上角的合法区间 = [frame.left, frame.right - w]：整个框跟着走，尺寸自然保持。
+    val l = (rect.left + dx).coerceIn(frame.left, frame.right - w)
+    val t = (rect.top + dy).coerceIn(frame.top, frame.bottom - h)
+    return Rect(l, t, l + w, t + h)
+}
 
 // ---------------------------------------------------------------------------
 // Compose 叠加层
@@ -249,7 +295,8 @@ private const val CROP_HANDLE_SLOP_DP = 32
 
 /**
  * 裁剪模式的**舞台层**：外遮罩（四块半透明）、当前画幅轮廓、三分线、四角把手，
- * 以及四角把手的拖拽手势。铺满整块预览区，这一层上面不放任何别的控件。
+ * 以及拖拽手势——按角调大小、按框内平移整框（判定见 [hitCropGesture]）。
+ * 铺满整块预览区，这一层上面不放任何别的控件。
  *
  * 它盖在预览之上，自己**不改 edits**：选框以视口像素交给宿主，宿主确认时经
  * [CropGeometry.composedCrop] 合成成 [EditOp.Crop]。
@@ -299,25 +346,39 @@ fun CropMode(
             .fillMaxSize()
             .background(Color(0xB3000000))
             .pointerInput(viewport, minSide, slopPx, aspect) {
+                // 按下那一刻定一次语义：调哪个角 / 平移整框 / 不动。
+                // 中途不再重新判定——否则拖过边带就会从 Move 跳成调角，框会跟着手抖。
                 var grabbed: CropHandle? = null
+                var moving = false
                 detectDragGestures(
-                    onDragStart = { p -> grabbed = hitHandle(currentSelection, p, slopPx) },
-                    onDrag = { change, _ ->
-                        val h = grabbed ?: return@detectDragGestures
-                        change.consume()
-                        onSelectionChange(
-                            CropGeometry.resizeForHandle(
-                                rect = currentSelection,
-                                handle = h,
-                                touch = change.position,
-                                frame = viewport,
-                                minSide = minSide,
-                                aspect = aspect,
-                            ),
-                        )
+                    onDragStart = { p ->
+                        when (hitCropGesture(currentSelection, p, slopPx)) {
+                            CropGesture.Corner -> grabbed = hitHandle(currentSelection, p, slopPx)
+                            CropGesture.Move -> moving = true
+                            CropGesture.None -> Unit
+                        }
                     },
-                    onDragEnd = { grabbed = null },
-                    onDragCancel = { grabbed = null },
+                    onDrag = { change, dragAmount ->
+                        val h = grabbed
+                        if (!moving && h == null) return@detectDragGestures
+                        change.consume()
+                        if (moving) {
+                            onSelectionChange(moveSelection(currentSelection, dragAmount.x, dragAmount.y, viewport))
+                        } else {
+                            onSelectionChange(
+                                CropGeometry.resizeForHandle(
+                                    rect = currentSelection,
+                                    handle = h!!,
+                                    touch = change.position,
+                                    frame = viewport,
+                                    minSide = minSide,
+                                    aspect = aspect,
+                                ),
+                            )
+                        }
+                    },
+                    onDragEnd = { grabbed = null; moving = false },
+                    onDragCancel = { grabbed = null; moving = false },
                 )
             },
     ) {
