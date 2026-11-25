@@ -316,7 +316,23 @@
 - **根因（架构级）**：全仓没有统一的字号阶梯/单行约束规范——每页各自手写 fontSize（A29 三馆 32-37sp 是同一病灶的一个切片，改掉三处不等于改掉病灶），按钮文字无 maxLines/autosize 约束，长文案直接换行撑破布局。
 - **修复方向**：**先审计后规范**——①全站扫描（grep fontSize/fontSize.sp + 按钮文案），产出「字号超规清单」（基准：正文 14-16sp、标题 18-20sp、按钮 14sp、微标 ≤11sp；title 默认 maxLines=1）；②落一份 Typography 常量表（feature 级共用），超规项逐条收敛；③列改动清单分批派工，photosolve（A37）与三馆已改项作为首批参照。
 - **抽象点（表内补行）**：**字号与换行是规范问题不是每页的品味问题——单一字号阶梯表 + title/按钮默认单行**。
-- **状态**：**审计完成待分批修（20261125 只读审计已落库 `docs/design/20261125-a38-font-wrap-audit.md`）**——根因①`AppMaterialTheme` 从未 override Typography（titleLarge 实际 22sp），一次 pin（titleLarge=20/titleMedium=16/labelLarge=14）收掉全部调用点；根因②feature-video/screening 模块脱离 token（≥17sp 的 51 处占 25 处）。清单逐条含 file:line→建议值，下一步按清单分批派修（第 1 批=主题层 pin + screening token）。
+- **状态**：**第1批已修合线（20261125，merge `cbb6ba32`，远端 tip 已验）**——根因①`AppMaterialTheme` 从未 override Typography（titleLarge 实际 22sp），一次 pin（titleLarge=20/titleMedium=16/labelLarge=14）收掉全部调用点；根因②feature-video/screening 模块脱离 token（≥17sp 的 51 处占 25 处），立 `ScreeningTypography` token 逐条替换（热映卡 22→18、频道页 21→18、FeedShell 顶栏 20→18、Heading 19→16、图集精选卡 34→22、设置面板 20→16）。测试：`AppMaterialTypographyTest`（pin 值）+ `ScreeningTypographyTest` 4 项（层级/上限/行高），协调会话并线前复跑 XML 实钉 0 失败。审计清单见 `docs/design/20261125-a38-font-wrap-audit.md`；第2批（昵称/角色名 maxLines、chatkit 输入框、companion 顶栏）待派。
+
+## A39 · 「agent 感觉一直不结束，一直在生成」（用户 20261125）
+
+- **现象**：发一条消息后「正在生成」的状态永不落地；用户点名「agent」——既可能指主线聊天，也可能指「角色对话（新）」（HomeTab.AgentChat）页。
+- **取证链（20261125，真机+服务端两头）**：
+  - 真机 ADY-AL00（1.1.0.72，21:09 装机）logcat：`22:05:12 W ChatStream: stream error: 等不到新的内容，回复可能已经中断` —— 主线 `TurnEventCollector` 的 45s 帧间看门狗**在真机上确实开火**（紧跟 22:05:11 华为后台冻结恢复的 trimMemory 风暴：app 被冻结期间没有帧，恢复后首个窗口判死），主线文字路径不是本次元凶、但用户感知到的「一直生成」窗口 ≈ 冻结期+45s。
+  - 服务端 104：会话 33 的 `ca:sess:33:events` 两条回合都及时 `message.done`（13:25:37/13:32:01 UTC）；`/metrics` in_flight=0 —— 服务端没有卡回合。
+  - **但** Redis 存在三个孤儿回合键 `ca:sess:{23,24,27}:turn`：`phase=pre_output`、无 TTL、事件流已过期（xlen=0）——回合 runner 死在首 token 之前时 `clear_turn` 没跑，turn 键永挂 → 这些会话后续 submit 全被 409（服务端侧缺陷，记入未闭环，见下）。
+- **根因（两条无看门狗路径，与 A14/A17 同族）**：
+  1. **legacy「角色对话（新）」**（`app/.../agent/`）：`AgentEventSource` readTimeout 60s **大于** 服务端 15s 心跳 →「连接活着、模型不出字」时既不超时也不抛异常，重连（只由异常触发）永不触发；`AgentChatState.active` 只被 done/cancelled/failed 清除，重连耗尽发 `Connection(OFFLINE)` 时 `reduce` 只改连接字段——`active` 气泡永久挂「正在生成」，正是用户描述的形状（`agent_turns_total{role="linche"}` 证明有这条路径的流量）。
+  2. **附件路径** `AttachmentApi.awaitTurnText`：手搓 collect、无看门狗无退避重连，同形状永挂 `attachmentJob` → `streaming=attachmentActive()` 永真。
+- **修复**：
+  - legacy：`AgentEventReconnector` 重写为注入 `open` 的泵+通道结构，补 45s 帧间看门狗——**只在回合进行中武装**（协议自跟踪：snapshot/started 起、done/cancelled/failed 落；空闲会话静默是常态不掐线），触发按一次失败走既有退避重连；`AgentChatState.onStreamOffline()`：收到 OFFLINE 时把半截 `active` 落回气泡列表并清掉、给可行动提示（重复续传帧由 `lastAppliedEventId` 挡住）。
+  - 附件：`awaitTurnText` 整体委托 `TurnEventCollector`（与主线同一台机器：看门狗+退避重连+snapshot 补尾去重白拿），并加 `eventSource` 注入缝供 JVM 测试。
+- **测试**：`AttachmentTurnWatchdogTest` 3 项（XML 3/0）+ `AgentReconnectorWatchdogTest` 4 项（XML 4/0：看门狗退避、空闲不掐线、OFFLINE 收尾半截、OFFLINE 无回合不误报）；并线前复跑 legacy agent 全套 5 个类 37 项 + feature-chat remote 全套 12 个类 61 项，XML 实钉 0 失败。
+- **残留（不算本条已解决）**：①服务端 turn 键无 TTL/无孤儿回收（runner 崩在 pre_output 就把会话 409 锁死）——agent-docs 集成线跟进；②主线看门狗在「app 被 ROM 冻结」场景的 45s 感知窗口——若用户嫌久可降到 30s（两个心跳周期），待装机复验后再定；③metrics `agent_turns_created` 时间戳早于当日回合（serve/worker 双进程双 registry 嫌疑），未追。
 
 ---
 
@@ -343,6 +359,7 @@
 | 17 | 占位/错误图靠每次重写人想起来（A28，与 A5 同族） | 图片加载默认配置必含 placeholder+error（Glide/Coil 两条链都是） | `ScreeningFeedUi.RemoteCover` |
 | 18 | 空数据仍渲染空壳占位（A21） | 区块渲染守卫 = `数据非空 || loading`，空态不占版面 | `ChannelsFeed` hero/逛频道 |
 | 19 | 共享列表规则按单一协议的字段假设行事（A31，与 A12 上限混淆同族） | 每协议族自带身份映射（`*HubEntry`/`*ListKey`），通用过滤器只兜底不裁决 | `soundHubEntry` / `imageListKey` / `textListKey` |
+| 20 | 看门狗只装在一条路径上，别的等待远端事件的流照样永挂（A39，与 #1 同病灶） | 回合等待不手搓 collect——统一走 `TurnEventCollector`；协议层自带回合状态时看门狗按其武装（空闲不掐线）；连接判死必须同时收尾界面 `active` | legacy `AgentEventReconnector` / `AttachmentApi.awaitTurnText` / `AgentChatState.onStreamOffline` |
 
 ## 未闭环项（明确列出，不当作已解决）
 
