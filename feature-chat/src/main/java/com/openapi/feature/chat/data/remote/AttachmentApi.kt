@@ -1,20 +1,26 @@
 package com.openapi.feature.chat.data.remote
 
 import com.openapi.common.util.log.LogUtil
+import com.openapi.feature.chat.domain.model.ChatStreamEvent
 import com.openapi.feature.chat.domain.model.VideoRules
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import java.io.File
-import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * 图片上传与附件回合（整改清单 P3-17：从 AgentBackedChatRepository 拆出）。
  *
  * 「上传」是独立职责：直传/降级的编排、Content-Type 判定、等整轮文字收尾都只依赖
  * [AgentChatRemote]，不碰仓库类的会话/历史状态。纯移动，行为与拆分前逐行一致。
+ *
+ * [eventSource] 是事件流的注入缝（默认就是 `remote::events`）：让 [awaitTurnText]
+ * 的看门狗行为可以在 JVM 测试里喂帧验证，不必起真连接。
  */
-internal class AttachmentApi(private val remote: AgentChatRemote) {
+internal class AttachmentApi(
+    private val remote: AgentChatRemote,
+    private val eventSource: (sessionId: Long, lastEventId: String?) -> Flow<AgentSseFrame> = remote::events,
+) {
 
     /**
      * 上传图片拿 upload_id，不产生回复。图片附件走这条，文字与它合成一个回合（见 ChatRepository.uploadImage）。
@@ -76,44 +82,40 @@ internal class AttachmentApi(private val remote: AgentChatRemote) {
         else -> "image/jpeg"
     }
 
-    /** 收一轮的完整文字（附件路径用：界面只关心最终那段回复，不需要逐字）。 */
+    /**
+     * 收一轮的完整文字（附件路径用：界面只关心最终那段回复，不需要逐字）。
+     *
+     * A39：折叠逻辑全部交给 [TurnEventCollector]（与主线 `collectTurn` 同一台机器）。
+     * 旧实现在这里手搓 collect：`remote.events` 的 readTimeout 是 0、心跳注释不产生帧，
+     * 「连接活着、模型不出字」时这条 `collect` 永远挂着——附件回合的 `attachmentJob`
+     * 不结束，`streaming=attachmentActive()` 就一直为真，界面「正在生成」永不落地，
+     * 用户看到的就是「agent 一直不结束、一直在生成」。委托之后白拿三样东西：
+     * 帧间看门狗（45s 无帧 → 收尾）、掉线退避重连 + Last-Event-ID 续传、snapshot 补尾去重。
+     */
     suspend fun awaitTurnText(sessionId: Long, expectedTurnId: String?): String {
         val acc = StringBuilder()
-        var matchedTurn = expectedTurnId
-        try {
-            remote.events(sessionId, null).collect { frame ->
-                val obj = runCatching { JSONObject(frame.data) }.getOrNull()
-                if (obj != null) {
-                    val turn = obj.optString("turn_id", "")
-                    if (turn.isNotEmpty() && matchedTurn == null) matchedTurn = turn
-                    val ours = turn.isNotEmpty() && turn == matchedTurn
-                    when (frame.event) {
-                        "turn.snapshot" -> if (ours) {
-                            val text = obj.optString("text", "")
-                            if (text.length > acc.length && text.startsWith(acc.toString())) {
-                                acc.setLength(0)
-                                acc.append(text)
-                            }
-                        }
-                        "message.delta" -> if (ours) acc.append(obj.optString("delta", ""))
-                        "message.done", "turn.cancelled" -> if (ours) throw TurnFinished
-                        "error" -> if (ours) throw TurnFinished
+        TurnEventCollector(
+            open = { lastEventId -> eventSource(sessionId, lastEventId) },
+            parse = ::parseAgentEvent,
+        ).collect(
+                emit = { ev ->
+                    when (ev) {
+                        is ChatStreamEvent.Delta -> acc.append(ev.text)
+                        // 看门狗/服务端错误：acc 里是已收到的半截（或空），照常交出去，
+                        // 上层按空回复/半截显示——绝不永远挂着。
+                        is ChatStreamEvent.Error -> LogUtil.w("附件回合以错误收尾: ${ev.message}")
+                        is ChatStreamEvent.Done -> Unit
                     }
-                }
-            }
-        } catch (_: TurnFinished) {
-            // 正常收尾：这一轮已经结束，不需要继续读事件流。
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            LogUtil.w("AttachmentApi 附件回合读取失败: ${e.message}")
-        }
+                },
+                expectedTurnId = expectedTurnId,
+                assistantLocalId = "attachment-turn",
+                userMessageId = null,
+                persist = { fullText ->
+                    // 权威全文：Done 收尾时用它对齐（snapshot 补尾与 delta 拼接都已折叠好）。
+                    acc.setLength(0)
+                    acc.append(fullText)
+                },
+            )
         return acc.toString()
-    }
-
-    /** 事件流里读到本轮结束的信号：用它退出 `collect`，比 `transformWhile` 的类型推断更可靠。 */
-    private object TurnFinished : Exception() {
-        private fun readResolve(): Any = TurnFinished
-        override fun fillInStackTrace(): Throwable = this
     }
 }

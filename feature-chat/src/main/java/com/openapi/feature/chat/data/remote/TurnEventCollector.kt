@@ -100,7 +100,7 @@ internal class TurnEventCollector(
     private val frameTimeoutMs: Long = DEFAULT_FRAME_TIMEOUT_MS,
 ) {
 
-    private companion object {
+    companion object {
         /**
          * 服务端每 15 秒一次心跳；连续三个心跳周期（45 秒）都没有任何回合帧，
          * 就不可能是「模型想得久一点」——判本轮死掉。
