@@ -17,8 +17,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,14 +36,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.openapi.common.ui.theme.AppColors
 import com.openapi.feature.photosolve.R
 import com.openapi.feature.photosolve.history.SolveDetailViewModel
 import com.openapi.feature.photosolve.history.SolveRecord
-import com.openapi.feature.photosolve.markdown.MathText
 import com.openapi.feature.photosolve.presentation.PhotoSolveResult
 
 /**
@@ -82,6 +77,7 @@ fun SolveHistoryDetailScreen(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f),
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
 
@@ -163,7 +159,9 @@ private fun DetailBody(
             Spacer(Modifier.height(16.dp))
         }
 
-        // 复用结果页的展示结构：把记录转成 PhotoSolveResult，避免两套渲染逻辑各改各的
+        // 复用结果页的展示结构：把记录转成 PhotoSolveResult，走同一个 SolveResultSections，
+        // 字号只在那一处定义。之前这里自己写了一份（题目/答案 20sp、步骤 16sp），
+        // 结果页排版改小后详情页没跟上，从历史进来的用户看到的还是旧的大字号。
         val result = PhotoSolveResult(
             recognizedQuestion = record.question,
             steps = record.steps,
@@ -173,58 +171,7 @@ private fun DetailBody(
             requestId = record.requestId,
         )
 
-        Text(
-            stringResource(R.string.result_question_label),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Spacer(Modifier.height(6.dp))
-        MathText(result.recognizedQuestion, fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurface)
-
-        if (result.thinking.isNotBlank()) {
-            Spacer(Modifier.height(20.dp))
-            ThinkingSection(result.thinking)
-        }
-
-        if (result.steps.isNotEmpty()) {
-            Spacer(Modifier.height(20.dp))
-            Text(
-                stringResource(R.string.result_steps_label),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(Modifier.height(6.dp))
-            result.steps.forEachIndexed { index, step ->
-                Row(Modifier.padding(vertical = 6.dp)) {
-                    Text(
-                        "${index + 1}.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    MathText(step, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
-                }
-            }
-        }
-
-        if (result.finalAnswer.isNotBlank()) {
-            Spacer(Modifier.height(20.dp))
-            Card(
-                colors = CardDefaults.cardColors(containerColor = AppColors.SuccessContainer),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(
-                        stringResource(R.string.result_answer_label),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = AppColors.Success,
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    MathText(result.finalAnswer, fontSize = 20.sp, color = AppColors.Success)
-                }
-            }
-        }
+        SolveResultSections(result)
 
         Spacer(Modifier.height(16.dp))
         Text(

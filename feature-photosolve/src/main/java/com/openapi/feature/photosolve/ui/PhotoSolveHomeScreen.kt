@@ -80,7 +80,9 @@ fun PhotoSolveHomeScreen(
                 tint = MaterialTheme.colorScheme.primary,
             )
             Spacer(Modifier.height(24.dp))
-            Text(stringResource(R.string.home_title), style = MaterialTheme.typography.headlineMedium)
+            // 标题 titleLarge（22sp）而不是 headlineMedium（28sp）：这是应用内页，
+            // 不是营销落地页，28sp 的「拍照解题」在手机上显得突兀（用户反馈「title 太大」）。
+            Text(stringResource(R.string.home_title), style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(8.dp))
             Text(
                 stringResource(R.string.home_subtitle),
