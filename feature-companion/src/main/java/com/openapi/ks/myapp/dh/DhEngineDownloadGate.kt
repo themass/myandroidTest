@@ -34,6 +34,11 @@ fun DhEngineId.assets(): EngineAssets? = when (this) {
     DhEngineId.LIVE2D -> EngineAssets.LIVE2D
     DhEngineId.TAO_AVATAR -> EngineAssets.TAO
     DhEngineId.VRM -> EngineAssets.VRM
+    // Spine 样例素材与 TalkingHead 的 MIT 源码+CC0 模型都随 APK assets 走，不需要下载包。
+    DhEngineId.SPINE -> null
+    DhEngineId.TALKING_HEAD -> null
+    // Rive 引擎在 debug 源集 + debug 资源，release 不编入；同样没有下载包。
+    DhEngineId.RIVE -> null
 }
 
 /**

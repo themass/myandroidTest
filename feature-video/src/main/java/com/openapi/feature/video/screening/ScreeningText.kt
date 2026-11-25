@@ -73,11 +73,11 @@ internal fun ScreeningText(
 
     // 两层列表的 pager 都建在这一层：AnimatedContent 换层拆的是展示组件，不是取数状态。
     val hubs = remember(hubChannel) {
-        FeedPager(scope) { start -> store.textChannelHub(hubChannel ?: "", start) }
+        FeedPager(scope) { start, _ -> store.textChannelHub(hubChannel ?: "", start) }
     }
     val hubParam = hub
     val articles = remember(hubParam) {
-        FeedPager(scope) { start -> store.textArticles(hubParam ?: "", start) }
+        FeedPager(scope) { start, keyword -> store.textArticles(hubParam ?: "", start, keyword) }
     }
     val hubState = rememberLazyListState()
     val articlesState = rememberLazyListState()
@@ -221,6 +221,8 @@ private fun TextArticleList(
         title = "目录",
         onBack = onBack,
         detail = feedToolbarDetail(pager.loading, rows.size, "篇"),
+        // 搜索（用户点名）：对齐旧 TextChannelListFragment——keyword 直传，服务端 text mapper 按 name like。
+        searchable = true,
         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp),
     ) {
         item {

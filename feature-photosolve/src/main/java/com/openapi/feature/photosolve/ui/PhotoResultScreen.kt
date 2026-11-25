@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +29,8 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -146,66 +149,7 @@ fun PhotoResultScreen(
                 Spacer(Modifier.height(16.dp))
             }
 
-            SectionLabel(stringResource(R.string.result_question_label))
-            MathText(
-                markdown = result.recognizedQuestion,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 17.sp,
-            )
-
-            if (result.thinking.isNotBlank()) {
-                Spacer(Modifier.height(20.dp))
-                ThinkingSection(result.thinking)
-            }
-
-            if (result.steps.isNotEmpty()) {
-                Spacer(Modifier.height(20.dp))
-                SectionLabel(stringResource(R.string.result_steps_label))
-                result.steps.forEachIndexed { index, step ->
-                    Row(
-                        modifier = Modifier.padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.Top,
-                    ) {
-                        // 编号：accent 色 + 等宽数字，和正文拉开层次（样稿里的 01/02 编号样式）
-                        Text(
-                            String.format("%02d", index + 1),
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontFeatureSettings = "tnum",
-                            ),
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        MathText(
-                            markdown = step,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 15.sp,
-                        )
-                    }
-                }
-            }
-
-            if (result.finalAnswer.isNotBlank()) {
-                Spacer(Modifier.height(20.dp))
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = AppColors.SuccessContainer),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(
-                            stringResource(R.string.result_answer_label),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = AppColors.Success,
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        MathText(
-                            markdown = result.finalAnswer,
-                            color = AppColors.Success,
-                            fontSize = 18.sp,
-                        )
-                    }
-                }
-            }
+            SolveResultSections(result)
 
             Spacer(Modifier.height(32.dp))
             Button(onClick = onRetake, modifier = Modifier.fillMaxWidth().height(52.dp)) {
@@ -218,6 +162,79 @@ fun PhotoResultScreen(
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.result_exit))
+            }
+        }
+    }
+}
+
+/**
+ * 结果正文：题目 → 思考过程（折叠）→ 步骤 → 答案卡。
+ *
+ * **结果页和历史详情页共用这一份**（历史上两处各写各的，结果页把字号从 20/16/20sp 收到
+ * 17/15/18sp，详情页没跟着改，用户从历史进去看到的还是旧的大字号）。
+ * 字号只在下面这一处定义：题目 17sp、步骤 15sp、思考 14sp、答案 18sp。
+ */
+@Composable
+fun SolveResultSections(result: PhotoSolveResult, modifier: Modifier = Modifier) {
+    Column(modifier) {
+        SectionLabel(stringResource(R.string.result_question_label))
+        MathText(
+            markdown = result.recognizedQuestion,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 17.sp,
+        )
+
+        if (result.thinking.isNotBlank()) {
+            Spacer(Modifier.height(20.dp))
+            ThinkingSection(result.thinking)
+        }
+
+        if (result.steps.isNotEmpty()) {
+            Spacer(Modifier.height(20.dp))
+            SectionLabel(stringResource(R.string.result_steps_label))
+            result.steps.forEachIndexed { index, step ->
+                Row(
+                    modifier = Modifier.padding(vertical = 6.dp),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    // 编号：accent 色 + 等宽数字，和正文拉开层次（样稿里的 01/02 编号样式）
+                    Text(
+                        String.format("%02d", index + 1),
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontFeatureSettings = "tnum",
+                        ),
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    MathText(
+                        markdown = step,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 15.sp,
+                    )
+                }
+            }
+        }
+
+        if (result.finalAnswer.isNotBlank()) {
+            Spacer(Modifier.height(20.dp))
+            Card(
+                colors = CardDefaults.cardColors(containerColor = AppColors.SuccessContainer),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(
+                        stringResource(R.string.result_answer_label),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = AppColors.Success,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    MathText(
+                        markdown = result.finalAnswer,
+                        color = AppColors.Success,
+                        fontSize = 18.sp,
+                    )
+                }
             }
         }
     }
@@ -314,7 +331,15 @@ fun ResultPlaceholder(text: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** 历史详情底部的一排操作。 */
+/**
+ * 历史详情底部的一排操作。
+ *
+ * 排版：收藏用纯图标（切换态靠实心/空心星标，不占文字宽度），剩下三项是文字按钮，
+ * 每个都 `maxLines = 1 + softWrap = false`，「再拍一题」吃掉剩余宽度。
+ *
+ * 之前是四个等宽 OutlinedButton 塞一行：4 字标签（取消收藏）在 360dp 宽屏上
+ * 每个按钮的文字区只剩 ~40dp，标签必然折成两行，整排按钮高低不齐。
+ */
 @Composable
 fun HistoryDetailActions(
     favorite: Boolean,
@@ -329,17 +354,50 @@ fun HistoryDetailActions(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        OutlinedButton(onClick = onFavorite, modifier = Modifier.weight(1f)) {
-            Text(stringResource(if (favorite) R.string.history_unfavorite else R.string.history_favorite))
+        OutlinedButton(
+            onClick = onFavorite,
+            contentPadding = PaddingValues(horizontal = 10.dp),
+        ) {
+            Icon(
+                if (favorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                contentDescription = stringResource(
+                    if (favorite) R.string.history_unfavorite else R.string.history_favorite,
+                ),
+                tint = if (favorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
-        OutlinedButton(onClick = onRename, modifier = Modifier.weight(1f)) {
-            Text(stringResource(R.string.ui_rename))
+        OutlinedButton(
+            onClick = onRename,
+            contentPadding = PaddingValues(horizontal = 12.dp),
+        ) {
+            Text(
+                stringResource(R.string.ui_rename),
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                softWrap = false,
+            )
         }
-        OutlinedButton(onClick = onDelete, modifier = Modifier.weight(1f)) {
-            Text(stringResource(R.string.ui_delete), color = MaterialTheme.colorScheme.error)
+        OutlinedButton(
+            onClick = onDelete,
+            contentPadding = PaddingValues(horizontal = 12.dp),
+        ) {
+            Text(
+                stringResource(R.string.ui_delete),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.error,
+                maxLines = 1,
+                softWrap = false,
+            )
         }
         Button(onClick = onRetake, modifier = Modifier.weight(1f)) {
-            Text(stringResource(R.string.history_retake))
+            Icon(Icons.Filled.CameraAlt, contentDescription = null)
+            Spacer(Modifier.width(6.dp))
+            Text(
+                stringResource(R.string.history_retake),
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                softWrap = false,
+            )
         }
     }
 }

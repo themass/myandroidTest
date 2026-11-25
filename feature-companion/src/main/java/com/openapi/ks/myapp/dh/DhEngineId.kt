@@ -9,6 +9,19 @@ enum class DhEngineId {
 
     /** WebView + three.js + VRM 实验田（lab only，不进生产）。 */
     VRM,
+
+    /** WebView + spine-webgl 官方运行时 + spineboy 官方样例（lab only，内部评估）。 */
+    SPINE,
+
+    /** WebView + TalkingHead（MIT vendored）+ CC0 mpfb 头部（lab only）。 */
+    TALKING_HEAD,
+
+    /**
+     * Rive 官方 Android 运行时（app.rive:rive-android）。引擎类在 debug 源集，
+     * release 变体里类不存在 → 注册表里「未编入」；样本 .riv 按许可结论只进 debug
+     * （见 app/src/debug/raw-notes/README-fxlab-rive.md）。
+     */
+    RIVE,
 }
 
 data class DhEngineAvailability(

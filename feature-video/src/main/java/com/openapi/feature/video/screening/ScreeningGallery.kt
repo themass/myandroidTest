@@ -73,14 +73,16 @@ internal fun ScreeningGallery(
 
     val pagerScope = rememberCoroutineScope()
     val covers = remember(channelParam) {
-        FeedPager(pagerScope, fetch = { start -> store.albums(channelParam ?: "", start) })
+        // 图集列表级不带搜索：旧 ImgChannleBodyFragment 的 URL 就没有 keyword 槽位，
+        // 服务端这个接口也从没按 keyword 查过——搜索只接在真正支持的四个列表页上。
+        FeedPager(pagerScope, fetch = { start, _ -> store.albums(channelParam ?: "", start) })
     }
     val selected = album
     var tailItemUrl by remember(selected) { mutableStateOf<String?>(null) }
     val shots = remember(selected) {
-        FeedPager(pagerScope, fetch = { start ->
+        FeedPager(pagerScope, fetch = { start, keyword ->
             val itemUrl = tailItemUrl
-            if (itemUrl == null) store.albumImages(selected?.imageListKey() ?: "", start)
+            if (itemUrl == null) store.albumImages(selected?.imageListKey() ?: "", start, keyword)
             else store.imageItemPage(itemUrl, start)
         })
     }
@@ -243,6 +245,8 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
         title = book.title,
         onBack = onBack,
         detail = feedToolbarDetail(pager.loading, shots.size, "张"),
+        // 搜索（用户点名）：对齐旧 ImgChannelImgListFragment——img/items/img.json 带 keyword。
+        searchable = true,
         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 9.dp),
     ) {
         item {

@@ -155,7 +155,23 @@ fun HomeScreen() {
         profile = entries.profile(context)
         scope.launch { drawerState.open() }
     }
-    BackHandler(enabled = drawerState.isOpen) { scope.launch { drawerState.close() } }
+    // 根层返回键统一出口（判定纯函数 homeBackStep，钉桩 HomeBackStepTest）：
+    // 抽屉 > 「我的」覆盖页 > 非对话标签回对话 > 交回系统退出。
+    // 放映场内部各层的返回由 ScreeningActivity 自己的总闸接（组合在更内层、优先消费），
+    // 这里只兜根——原来根上没人接，「频道」首页按返回直接退 app（用户点名）。
+    val backStep = homeBackStep(
+        drawerOpen = drawerState.isOpen,
+        profilePageOpen = profilePageOpen,
+        currentTab = current,
+    )
+    BackHandler(enabled = backStep != HomeBackStep.NONE) {
+        when (backStep) {
+            HomeBackStep.DRAWER -> scope.launch { drawerState.close() }
+            HomeBackStep.PROFILE_PAGE -> profilePageOpen = false
+            HomeBackStep.TAB_TO_CHAT -> selected = HomeTab.Chat.ordinal
+            HomeBackStep.NONE -> Unit
+        }
+    }
 
     // 对话标签的顶栏是品牌色，状态栏图标用浅色；频道标签内嵌的放映场是深色底，图标同样要浅色；
     // 其余标签、以及侧边栏打开时（浅色面板）用深色图标

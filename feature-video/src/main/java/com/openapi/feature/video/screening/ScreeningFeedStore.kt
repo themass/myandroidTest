@@ -125,9 +125,9 @@ internal class ScreeningFeedStore(context: Context) {
     suspend fun albums(channelParam: String, start: Int = 0): Page<RemoteEntry> =
         page(Constants.getUrlWithParam(Constants.API_IMG_CHANNLE_URL, start, channelParam))
 
-    /** 图集内的图片。 */
-    suspend fun albumImages(channelParam: String, start: Int = 0): Page<RemoteEntry> =
-        page(Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, channelParam, ""))
+    /** 图集内的图片（img/items/img.json 带 keyword，对齐 ImgChannelImgListFragment）。 */
+    suspend fun albumImages(channelParam: String, start: Int = 0, keyword: String = ""): Page<RemoteEntry> =
+        page(Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, channelParam, keyword))
 
     /** Lightbox 翻到尾部续取：旧 ImgItemFragment 以当前图片行的 actionUrl 作为 itemUrl。 */
     suspend fun imageItemPage(itemUrl: String, start: Int = 0): Page<RemoteEntry> =

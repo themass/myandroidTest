@@ -29,11 +29,14 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,7 +45,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,11 +93,21 @@ internal fun FeedListShell(
     modifier: Modifier = Modifier,
     /** 工具条右侧计数文案（[feedToolbarDetail]）。 */
     detail: String = "",
+    /**
+     * 列表页搜索（用户点名 2026-11-25：「图片，视频，文章，音频 列表页的搜索功能不见了」）。
+     * 旧列表基类（BasePullLoadbleFragment）每个列表页工具条都挂 SearchView：提交存 keyword、
+     * setRefresh(true) 重取首屏、翻页继续带词。这里把这条行为收进壳里，四个馆只差开关。
+     */
+    searchable: Boolean = false,
     contentPadding: PaddingValues = PaddingValues(start = 18.dp, end = 18.dp, bottom = 26.dp),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     listContent: LazyListScope.() -> Unit,
 ) {
     val scrollScope = rememberCoroutineScope()
+    var searchOpen by rememberSaveable { mutableStateOf(false) }
+    // 搜索框草稿：回车/提交才进 pager.search()（旧 SearchView 同款——onQueryTextSubmit 才刷，
+    // 边打字边打接口是旧页面都没做过的行为）。back 退出时列表页销毁，草稿自然丢弃。
+    var draft by remember { mutableStateOf(pager.keyword) }
     // 外层 Box：回顶按钮直接压在列表区之上（BottomEnd），跟 ScreeningGallery 的 lightbox
     // 同一形状。Column 套 Box 里再放 AnimatedVisibility 会撞 BoxScope/ColumnScope 的接收者解析。
     Box(modifier.fillMaxSize().safeDrawingPadding()) {
@@ -105,6 +120,29 @@ internal fun FeedListShell(
                 Text(title, Modifier.weight(1f), fontSize = 20.sp, fontWeight = FontWeight.Black,
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
                 if (detail.isNotEmpty()) Text(detail, color = Muted, fontSize = 12.sp)
+                if (searchable) IconButton(onClick = { searchOpen = !searchOpen }) {
+                    Icon(
+                        if (searchOpen) Icons.Default.Close else Icons.Default.Search,
+                        if (searchOpen) "收起搜索" else "搜索",
+                        tint = if (searchOpen || pager.keyword.isNotEmpty()) Mint else Muted,
+                    )
+                }
+            }
+            if (searchOpen || pager.keyword.isNotEmpty()) {
+                SearchRow(
+                    draft = draft,
+                    onDraftChange = { draft = it },
+                    activeKeyword = pager.keyword,
+                    onSubmit = {
+                        val q = it.trim()
+                        if (q != pager.keyword) pager.search(q)
+                        if (q.isEmpty()) scrollScope.launch { state.animateScrollToItem(0) }
+                    },
+                    onClear = {
+                        draft = ""
+                        if (pager.keyword.isNotEmpty()) pager.search("")
+                    },
+                )
             }
             // 一条比底稍亮的分界线：列表滚到工具条底下时能看清「被吸顶挡住」的边界。
             Box(Modifier.fillMaxWidth().height(1.dp).background(Lift))
@@ -138,6 +176,57 @@ internal fun FeedListShell(
 }
 
 /**
+ * 工具条下方的搜索行：输入 + 提交（键盘「搜索」键 / 回车）+ 清除。
+ *
+ * 行为对齐旧 SearchView：打字不打接口，提交才刷（`onQueryTextSubmit`）；
+ * 搜索生效期间这行常驻（即使把输入面板收起来），并显示当前生效的词——
+ * 用户必须能看出「现在屏上是搜索结果」而不是全量列表（旧页面缺这一点，
+ * 搜完过一会儿就忘了自己在搜索态）。
+ */
+@Composable
+private fun SearchRow(
+    draft: String,
+    onDraftChange: (String) -> Unit,
+    activeKeyword: String,
+    onSubmit: (String) -> Unit,
+    onClear: () -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().background(Ink).padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        OutlinedTextField(
+            value = draft,
+            onValueChange = onDraftChange,
+            modifier = Modifier.weight(1f),
+            placeholder = { Text("搜标题", color = Muted, fontSize = 13.sp) },
+            textStyle = androidx.compose.ui.text.TextStyle(color = White, fontSize = 14.sp),
+            singleLine = true,
+            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Mint, unfocusedBorderColor = Lift,
+                cursorColor = Mint,
+                focusedTextColor = White, unfocusedTextColor = White,
+            ),
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                imeAction = androidx.compose.ui.text.input.ImeAction.Search,
+            ),
+            keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                onSearch = { onSubmit(draft) },
+            ),
+        )
+        if (activeKeyword.isNotEmpty()) {
+            Text("「$activeKeyword」", color = Mint, fontSize = 12.sp,
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(start = 8.dp))
+        }
+        TextButton(onClick = { onSubmit(draft) }) { Text("搜索", color = Mint, fontSize = 13.sp) }
+        if (activeKeyword.isNotEmpty() || draft.isNotEmpty()) {
+            TextButton(onClick = onClear) { Text("清除", color = Muted, fontSize = 13.sp) }
+        }
+    }
+}
+
+/**
  * 一页可分页的服务端列表状态：首屏、翻页、失败重试。
  *
  * 频道列表、频道里的片单、图集列表、图集内的图片都用这一个形状，页面只认它。
@@ -149,8 +238,12 @@ internal fun FeedListShell(
  */
 internal class FeedPager(
     private val scope: CoroutineScope,
-    /** 取一页；返回的 [ScreeningFeedStore.Page.nextStart] 决定还能不能继续翻。 */
-    private val fetch: suspend (Int) -> ScreeningFeedStore.Page<RemoteEntry>,
+    /**
+     * 取一页（起始行 + 当前搜索词）；返回的 [ScreeningFeedStore.Page.nextStart] 决定还能不能继续翻。
+     * keyword 由 [search] 维护、每次取数都带上——对齐旧列表基类（`LoadableFragment.keyword`：
+     * 提交后存下来，翻页取数继续用它，直到清空）。
+     */
+    private val fetch: suspend (Int, String) -> ScreeningFeedStore.Page<RemoteEntry>,
 ) {
     val items = mutableStateListOf<RemoteEntry>()
     var loading by mutableStateOf(false)
@@ -162,6 +255,9 @@ internal class FeedPager(
         private set
     /** 上次取数失败的原因；null = 没失败过。页面据此显示错误 + 重试，而不是假数据。 */
     var error by mutableStateOf<String?>(null)
+        private set
+    /** 当前搜索词；空串 = 未搜索。列表页的搜索框/关键词提示都读它。 */
+    var keyword by mutableStateOf("")
         private set
 
     private var nextStart: Int? = 0
@@ -179,6 +275,17 @@ internal class FeedPager(
         nextStart = 0
         requested = true
         request(0, append = false)
+    }
+
+    /**
+     * 搜索：记住关键词、立刻从第一页重取（旧列表基类 `onQueryTextSubmit` 就是这个行为——
+     * 存 keyword、`setRefresh(true)` 刷回首屏；清空后翻页取数也仍带着该词直到再次清空）。
+     * 传空串 = 取消搜索，回到普通列表。搜索词不 URL 编码——和旧页面同一拼法，
+     * 服务端（含中文参数）本来就按原样收。
+     */
+    fun search(newKeyword: String) {
+        keyword = newKeyword.trim()
+        reload()
     }
 
     /** 翻下一页；滚到底时调用。 */
@@ -215,18 +322,21 @@ internal class FeedPager(
         keepOnFail: Boolean = append,
     ) {
         loading = true
+        // 取数那一刻的关键词快照：搜索框在请求路上又改了词，这一枪仍按发起时的词回，
+        // 回词后的那一枪由 search() 自己发——不这样，路上两枪会拿不同关键词往同一个列表里拼。
+        val at = keyword
         scope.launch(Dispatchers.Main) {
             // 目视验证钩子：`adb shell setprop log.tag.FeedPagerDbg DEBUG` 后每次取数慢 5 秒，
             // 让加载骨架/扫光动画停在屏上可截图。默认关闭，对正常构建零影响。
             if (Log.isLoggable(TAG_DBG, Log.DEBUG)) delay(SLOW_FETCH_MS)
-            val page = runCatching { fetch(start) }.recoverCatching { cause ->
+            val page = runCatching { fetch(start, at) }.recoverCatching { cause ->
                 // 首屏失败自动补一次（短退避）：一次网络抖动不该逼用户去找「重试」按钮；
                 // 只补这一次，再失败就落到 error，不会无限打服务端。
                 // 翻页失败不补——屏上已有列表，保留它、说清失败就够了。
                 if (!retryOnFail) throw cause
                 Log.i(TAG, "首屏取数失败，${RETRY_BACKOFF_MS}ms 后自动重试: ${cause.message}")
                 delay(RETRY_BACKOFF_MS)
-                fetch(start)
+                fetch(start, at)
             }
             loading = false
             refreshing = false
