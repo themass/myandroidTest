@@ -41,7 +41,7 @@ class CropModeTest {
     @Test
     fun hitHandleReturnsNullInsideTheFrameAndBeyondSlop() {
         val rect = Rect(50f, 30f, 350f, 180f)
-        // 框内中心、框边中点（那是「移动整框」区，本任务不做）都不是把手
+        // 框内中心、框边中点都不是**角**（它们是「移动整框」区，判定见 hitCropGesture 那组测试）
         assertNull(hitHandle(rect, Offset(rect.center.x, rect.center.y), slop))
         assertNull(hitHandle(rect, Offset(rect.center.x, rect.top), slop))
         assertNull(hitHandle(rect, Offset(rect.left, rect.center.y), slop))
@@ -93,7 +93,7 @@ class CropModeTest {
         assertNull(hitHandle(rect, Offset(rect.left, rect.top - slopPx - 1f), slopPx))
     }
 
-    /** 热区再大也不是哪儿都抓：框边中点、框中心、斜向越出 slop 都不算把手（不做整框平移）。 */
+    /** 热区再大也不是哪儿都抓：框边中点、框中心、斜向越出 slop 都不算**角**。 */
     @Test
     fun missesFarFromAnyCornerEvenWithTheWiderSlop() {
         val rect = Rect(0f, 0f, 400f, 200f)
@@ -103,6 +103,89 @@ class CropModeTest {
         assertNull(hitHandle(rect, Offset(200f, 100f), slopPx)) // 框中心
         // 斜向越出：方形（dx=33>32）和圆（距离 ≈46.7>32）都落空
         assertNull(hitHandle(rect, Offset(-33f, -33f), slopPx))
+    }
+
+    // ---- 按下点的语义判定（A35：框内拖动 = 移动整框）----
+
+    /** 角优先：抓住角就是调大小，哪怕该点同时也在框内——这是唯一的优先级。 */
+    @Test
+    fun cornerBeatsMoveWhenTheTouchIsOnACorner() {
+        val rect = Rect(50f, 30f, 350f, 180f)
+        // 正好压在角上（框内一侧也算 Corner，不能因为 contains() 为真就掉进 Move）
+        assertEquals(CropGesture.Corner, hitCropGesture(rect, Offset(rect.left, rect.top), slop))
+        assertEquals(CropGesture.Corner, hitCropGesture(rect, Offset(rect.left + slop / 2f, rect.bottom - slop / 2f), slop))
+    }
+
+    /** 没抓住角、又落在框内（含贴边的线本身）→ Move；框外黑边 → None。 */
+    @Test
+    fun insideTheFrameIsMoveAndOutsideIsNone() {
+        val rect = Rect(50f, 30f, 350f, 180f)
+        assertEquals(CropGesture.Move, hitCropGesture(rect, Offset(rect.center.x, rect.center.y), slop))
+        // 边中点：用户按边想挪框，也应该 Move（A3 时这里谁都不接，框不动）
+        assertEquals(CropGesture.Move, hitCropGesture(rect, Offset(rect.center.x, rect.top), slop))
+        assertEquals(CropGesture.Move, hitCropGesture(rect, Offset(rect.left, rect.center.y), slop))
+        // 贴边的线（contains 含边界）
+        assertEquals(CropGesture.Move, hitCropGesture(rect, Offset(rect.right, rect.center.y), slop))
+        // 黑边/遮罩：框外一律不动
+        assertEquals(CropGesture.None, hitCropGesture(rect, Offset(0f, 0f), slop))
+        assertEquals(CropGesture.None, hitCropGesture(rect, Offset(rect.center.x, rect.top - slop - 1f), slop))
+    }
+
+    /** 贴满画幅的 Free 初始框：按画面正中 = Move，这正是用户点名要的手势。 */
+    @Test
+    fun freeFrameFillingTheViewportMovesFromItsCenter() {
+        val rect = Rect(0f, 0f, 400f, 200f)
+        assertEquals(CropGesture.Move, hitCropGesture(rect, Offset(200f, 100f), 32f))
+        // 而四角仍然是调大小，不被 Move 吃掉
+        assertEquals(CropGesture.Corner, hitCropGesture(rect, Offset(28f, 8f), 32f))
+    }
+
+    // ---- 平移整框（A35）----
+
+    /** 跟手：位移原样加到四条边上，尺寸一分不变。 */
+    @Test
+    fun moveKeepsTheSizeAndFollowsTheFinger() {
+        val frame = Rect(0f, 0f, 400f, 200f)
+        val r = moveSelection(Rect(100f, 50f, 300f, 150f), 20f, -10f, frame)
+        assertRect(Rect(120f, 40f, 320f, 140f), r, 1e-3f)
+        assertEquals(200f, r.width, 1e-3f)
+        assertEquals(100f, r.height, 1e-3f)
+    }
+
+    /** 夹在画幅内：拖过界就停在边上，尺寸仍然不变（框永远不越出照片）。 */
+    @Test
+    fun moveStaysInsideTheFrameWithoutChangingSize() {
+        val frame = Rect(0f, 0f, 400f, 200f)
+        val rect = Rect(100f, 50f, 300f, 150f)
+        for (d in listOf(Offset(-5000f, -5000f), Offset(5000f, 5000f), Offset(5000f, -5000f), Offset(-5000f, 5000f))) {
+            val r = moveSelection(rect, d.x, d.y, frame)
+            assertEquals("dx=${d.x} dy=${d.y} 宽度不能变", 200f, r.width, 1e-3f)
+            assertEquals("dx=${d.x} dy=${d.y} 高度不能变", 100f, r.height, 1e-3f)
+            assertTrue("dx=${d.x} dy=${d.y} 越界 $r", r.left >= -1e-3f && r.top >= -1e-3f && r.right <= 400f + 1e-3f && r.bottom <= 200f + 1e-3f)
+        }
+        // 贴左上再往左上拖：原地不动
+        assertRect(Rect(0f, 0f, 200f, 100f), moveSelection(Rect(0f, 0f, 200f, 100f), -50f, -50f, frame), 1e-3f)
+    }
+
+    /** 视口带内缩（Fit 黑边）时，夹取相对的是视口而不是整块预览区——与角拖拽同一个 frame。 */
+    @Test
+    fun moveClampsToAnInsetViewportNotTheWholePreview() {
+        val viewport = Rect(60f, 0f, 340f, 200f) // 竖图：左右黑边
+        val r = moveSelection(Rect(60f, 50f, 340f, 150f), 500f, 0f, viewport)
+        // 框宽 = 视口宽：横向根本没有余量，必须停在视口原位
+        assertRect(Rect(60f, 50f, 340f, 150f), r, 1e-3f)
+        val r2 = moveSelection(Rect(100f, 20f, 300f, 180f), 90f, 90f, viewport)
+        assertEquals(340f, r2.right, 1e-3f)
+        assertEquals(200f, r2.bottom, 1e-3f)
+    }
+
+    /** 连拖多步 = 一步总位移：每步都从最新框算（currentSelection 是宿主 state），不漂移。 */
+    @Test
+    fun successiveSmallMovesAccumulateToTheTotalDrag() {
+        val frame = Rect(0f, 0f, 400f, 200f)
+        var rect = Rect(100f, 50f, 300f, 150f)
+        repeat(10) { rect = moveSelection(rect, 5f, -2f, frame) }
+        assertRect(Rect(150f, 30f, 350f, 130f), rect, 1e-3f)
     }
 
     // ---- 比例预设 ----

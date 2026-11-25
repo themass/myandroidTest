@@ -26,7 +26,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.Check
@@ -55,6 +54,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -69,6 +69,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -409,7 +410,19 @@ fun PhotoEditor(
                             onDelete = { edits = edits.removeAt(index); selected = null },
                             onDeselect = { selected = null },
                             onEditText = { t -> textDialog = TextDialog(index, t.value, Offset(t.x, t.y)) },
-                            onColor = { c -> edits = edits.replaceAt(index, op.withColor(c.toArgb().toLong())) },
+                            // 改色**和滑杆同一条 liveBase 路**：常驻取色器（A33）每拖一格就吐一个颜色，
+                            // 直接 replaceAt 会把「扫一遍色相」变成几十步撤销。拖动中只改预览
+                            // （withOpsUnrecorded），松手一次提交（withOps）——恰一步撤销，
+                            // 和粗细/字号滑杆完全一致（见 PhotoEditsTest）。点预制格只吐一次，
+                            // 走同一条路结果也一样：base 快照 + 一次提交。
+                            onColor = { c ->
+                                val base = liveBase ?: edits.also { liveBase = it }
+                                edits = base.withOpsUnrecorded(base.ops.toMutableList().also { it[index] = op.withColor(c.toArgb().toLong()) })
+                            },
+                            onColorDone = {
+                                liveBase?.let { base -> edits = base.withOps(edits.ops) }
+                                liveBase = null
+                            },
                             onBold = { edits = edits.replaceAt(index, (op as EditOp.Text).let { it.copy(bold = !it.bold) }) },
                             onSlider = { v ->
                                 // 拖动过程中只改预览（不记历史），松手一次提交
@@ -471,12 +484,14 @@ fun PhotoEditor(
                             hint = stringResource(R.string.mediaview_edit_hint_draw),
                             color = brushColor, onColor = { brushColor = it },
                             sliderLabel = stringResource(R.string.mediaview_edit_thickness),
+                            track = TrackPreview.Thickness,
                             slider = brushWidth, range = BRUSH_RANGE, onSlider = { brushWidth = it },
                         )
                         tool == EditorTool.Text -> StylePanel(
                             hint = stringResource(R.string.mediaview_edit_hint_text),
                             color = textColor, onColor = { textColor = it },
                             sliderLabel = stringResource(R.string.mediaview_edit_size),
+                            track = TrackPreview.FontSize,
                             slider = textSize, range = TEXT_RANGE, onSlider = { textSize = it },
                             bold = textBold, onBold = { textBold = !textBold },
                         )
@@ -484,6 +499,7 @@ fun PhotoEditor(
                             hint = stringResource(R.string.mediaview_edit_hint_mosaic),
                             color = null, onColor = {},
                             sliderLabel = stringResource(R.string.mediaview_edit_brush),
+                            track = TrackPreview.MosaicBlock,
                             slider = mosaicWidth, range = MOSAIC_RANGE, onSlider = { mosaicWidth = it },
                         )
                     }
@@ -572,6 +588,16 @@ internal object EditSwatches {
         Red, Orange, Amber, Yellow, Lime, Green, Teal, Sky,
         Blue, Indigo, Violet, Fuchsia, Pink, Brown, Gray, White,
     )
+
+    /**
+     * 「自定义色」判定：不在预制 16 档里 = 取色器调出来的颜色（A33），界面上用强调色描边
+     * 区分它。判定只认 argb 精确相等——取色器滑出来的颜色和预制档几乎不会撞值，
+     * 撞上了也无妨：那本来就是同一个颜色。
+     */
+    fun isCustom(c: Color): Boolean = All.none { it.toArgb() == c.toArgb() }
+
+    /** 色相光谱条：拇指落点 fraction（0..1）→ 色相 0..360。两端都是红（0°≡360°），首尾相接。 */
+    fun hueAt(fraction: Float): Float = fraction.coerceIn(0f, 1f) * 360f
 }
 
 private val PALETTE = EditSwatches.All
@@ -613,12 +639,11 @@ private val PANEL_MAX_HEIGHT = 240.dp
 /** 16 色色板每行的格数（设计稿的 swatch grid 规范：每行 8）。 */
 private const val SWATCHES_PER_ROW = 8
 
-private const val CUSTOM_COLOR_LABEL = "自定义"
-private const val CUSTOM_COLOR_TITLE = "自定义颜色"
-private const val CUSTOM_COLOR_USE = "使用这个颜色"
-private const val HUE_LABEL = "色相"
 private const val SAT_LABEL = "饱和度"
 private const val LIGHT_LABEL = "明度"
+
+/** 色相光谱条的高度（拇指圆按它的一半画，见 [HueSpectrumBar]）。 */
+private val HUE_BAR_HEIGHT = 20.dp
 
 /** 预览侧「这次滤镜没生效」的如实提示（渲染层把取不到的表上报到这里，界面不许沉默）。 */
 internal fun filterSkippedNotice(filterId: String): String =
@@ -923,8 +948,10 @@ private fun ToolItem(
 /**
  * 没有选中标注时：当前工具的默认样式（颜色、粗细/字号/笔刷、粗体）。
  *
- * 滑杆**离散成 5 档**（`steps = 4`，range 与 label 语义都不变）：连续的 0.003–0.03 这种
+ * 滑杆**离散成 5 档**（`steps = SLIDER_STEPS`，range 与 label 语义都不变）：连续的 0.003–0.03 这种
  * 小数区间在手机上根本停不准，档位化之后「粗细 N」的当前值文本才有意义。
+ * 轨道换成 [PreviewSlider]（A34）：轨道本身就是粗细/字号的渐变预览，数值画在拇指上方，
+ * 所以这里**不再**单独放一个档位数字。
  * 注意这三根滑杆只写 brushWidth/textSize/mosaicWidth 的默认样式，**不经过** liveBase
  * 那条「松手一步撤销」的路（那是 SelectionPanel/Adjust/Filter 的事，见 PhotoEditsTest），
  * 所以档位化不碰撤销语义。
@@ -935,6 +962,7 @@ private fun StylePanel(
     color: Color?,
     onColor: (Color) -> Unit,
     sliderLabel: String,
+    track: TrackPreview,
     slider: Float,
     range: ClosedFloatingPointRange<Float>,
     onSlider: (Float) -> Unit,
@@ -946,17 +974,11 @@ private fun StylePanel(
         if (color != null) Swatches(color, onColor)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(sliderLabel, color = EditPalette.TextPrimary, modifier = Modifier.width(48.dp))
-            // 当前档位（1..5）：放在滑杆前，拖动时一眼知道停在哪一档
-            Text(
-                "${sliderStep(slider, range)}",
-                color = EditPalette.Accent,
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.width(20.dp),
-            )
-            Slider(
+            PreviewSlider(
                 value = slider,
+                range = range,
+                preview = track,
                 onValueChange = onSlider,
-                valueRange = range,
                 steps = SLIDER_STEPS,
                 modifier = Modifier.weight(1f),
             )
@@ -971,14 +993,6 @@ private fun StylePanel(
 
 /** 滑杆档数：`steps = SLIDER_STEPS` → 含端点共 5 档。 */
 private const val SLIDER_STEPS = 4
-
-/** 连续值 → 当前档位（1..5），用于滑杆前的「粗细 N」文本。 */
-private fun sliderStep(value: Float, range: ClosedFloatingPointRange<Float>): Int {
-    val span = range.endInclusive - range.start
-    if (span <= 0f) return 1
-    val t = ((value - range.start) / span * SLIDER_STEPS).roundToInt().coerceIn(0, SLIDER_STEPS)
-    return t + 1
-}
 
 /**
  * 色块上 ✓ 的着色：按色块的感知亮度取反（亮块配黑勾、暗块配白勾）。
@@ -998,6 +1012,7 @@ private fun SelectionPanel(
     onDeselect: () -> Unit,
     onEditText: (EditOp.Text) -> Unit,
     onColor: (Color) -> Unit,
+    onColorDone: () -> Unit,
     onBold: () -> Unit,
     onSlider: (Float) -> Unit,
     onSliderDone: () -> Unit,
@@ -1034,14 +1049,21 @@ private fun SelectionPanel(
                 Text(stringResource(R.string.mediaview_edit_deselect), color = EditPalette.TextPrimary)
             }
         }
-        if (currentColor != null) Swatches(currentColor, onColor)
+        if (currentColor != null) Swatches(currentColor, onColor, onPickDone = onColorDone)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(sliderLabel), color = EditPalette.TextPrimary, modifier = Modifier.width(48.dp))
-            Slider(
+            // 连续模式（steps=0）：保持原有「拖动实时预览、松手一步撤销」的语义，
+            // 轨道同样是该参数的渐变预览（A34）。
+            PreviewSlider(
                 value = op.sizeValue().coerceIn(range.start, range.endInclusive),
+                range = range,
+                preview = when (op) {
+                    is EditOp.Text -> TrackPreview.FontSize
+                    is EditOp.Mosaic -> TrackPreview.MosaicBlock
+                    else -> TrackPreview.Thickness
+                },
                 onValueChange = onSlider,
                 onValueChangeFinished = onSliderDone,
-                valueRange = range,
                 modifier = Modifier.weight(1f),
             )
             if (op is EditOp.Text) {
@@ -1053,9 +1075,18 @@ private fun SelectionPanel(
     }
 }
 
+/**
+ * 色板 = 16 档预制墨色 **+ 常驻取色器**（A33：用户原话「应该有个色板选择器，在上面选择任何一种颜色」）。
+ *
+ * 取色器不是「第二层弹窗里的隐藏入口」：色相光谱条和饱和度/明度滑杆就在色板下方，
+ * 面板打开即可用（见 [InlineColorPicker]）。预制 16 格保留——一键取常用色仍然比拖光谱快，
+ * 两者共用同一个 [onPick]，下游数据模型不变（任意 `Color` → `toArgb().toLong()`）。
+ *
+ * [onPickDone] 是「这次选色结束了」：选中一条标注时宿主用它把连续吐色的取色器收成一步撤销
+ * （见 PhotoEditor 里 onColor/onColorDone）；默认样式面板（StylePanel）不记历史，留空。
+ */
 @Composable
-private fun Swatches(selected: Color, onPick: (Color) -> Unit) {
-    var customOpen by remember { mutableStateOf(false) }
+private fun Swatches(selected: Color, onPick: (Color) -> Unit, onPickDone: () -> Unit = {}) {
     Column(Modifier.fillMaxWidth().padding(vertical = EditPalette.SwatchGap)) {
         // 16 色每行 8 个（设计稿的 swatch grid 规范）。色块语义与原 6 色版一致：
         // 选中 = 描边 + ✓（勾色按块面明度取反），未选中 = 细灰环。
@@ -1073,7 +1104,7 @@ private fun Swatches(selected: Color, onPick: (Color) -> Unit) {
                             .clip(CircleShape)
                             .background(c)
                             .border(if (on) 2.dp else 1.dp, if (on) EditPalette.SwatchRing else EditPalette.SwatchIdleRing, CircleShape)
-                            .clickable { onPick(c) },
+                            .clickable { onPick(c); onPickDone() },
                         contentAlignment = Alignment.Center,
                     ) {
                         if (on) {
@@ -1090,92 +1121,107 @@ private fun Swatches(selected: Color, onPick: (Color) -> Unit) {
                 repeat(SWATCHES_PER_ROW - row.size) { Box(Modifier.size(24.dp)) }
             }
         }
-        // 「自定义」：当前色不在 16 档里 = 它是自定义色（选中的值记在宿主 state 里，会话内保留），
-        // 点圆点或文字开 HSL 三滑杆 Dialog。
-        val isCustom = EditSwatches.All.none { it.toArgb() == selected.toArgb() }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(EditPalette.SwatchGap),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                Modifier
-                    .size(if (isCustom) 28.dp else 24.dp)
-                    .clip(CircleShape)
-                    .background(selected)
-                    .border(
-                        if (isCustom) 2.dp else 1.dp,
-                        if (isCustom) EditPalette.Accent else EditPalette.SwatchIdleRing,
-                        CircleShape,
-                    )
-                    .clickable { customOpen = true },
-                contentAlignment = Alignment.Center,
-            ) {
-                if (!isCustom) {
-                    Icon(Icons.Filled.Add, null, tint = checkTintOn(selected), modifier = Modifier.size(14.dp))
-                }
-            }
-            TextButton(onClick = { customOpen = true }) {
-                Text(
-                    CUSTOM_COLOR_LABEL,
-                    color = if (isCustom) EditPalette.Accent else EditPalette.TextPrimary,
-                    style = MaterialTheme.typography.labelLarge,
-                )
-            }
-        }
-    }
-    if (customOpen) {
-        ColorPickerDialog(
-            initial = selected,
-            onConfirm = { c -> onPick(c); customOpen = false },
-            onDismiss = { customOpen = false },
-        )
+        // 常驻取色器：色相光谱条 + 饱和度/明度滑杆 + 当前色预览。
+        // 当前色不在 16 档里 = 它是取色器调出来的自定义色，预览块描强调边。
+        InlineColorPicker(selected, onPick, onPickDone)
     }
 }
 
 /**
- * 自定义取色 Dialog（设计稿交互）：实时预览块 + 色相/饱和度/明度三滑杆 + 「使用这个颜色」。
- * 打开时滑杆停在当前色（自定义色在会话内的值因此被记住：再开对话框从这里接着调）。
+ * 面板内常驻取色器（A33）：把「选择任何一种颜色」做成**就在色板下面**的控件，
+ * 而不是「自定义」按钮后面的 Dialog——用户要的是色板本身就是选择器。
+ *
+ * 形态（沿用设计稿 HSL 口径，只是把 Dialog 摊平进面板）：
+ * - **色相光谱条**：整条彩虹就是轨道，拇指落在哪就是哪个色相——「任何一种颜色」的入口；
+ * - **饱和度 / 明度**两根滑杆，右侧实时数值；
+ * - 左侧预览块显示合成出来的当前色（不在 16 档里就描强调边）。
+ *
+ * 滑动即选：每次拖动直接 [onPick]（和点预制格同一条路，下游只认任意 `Color`）；
+ * 手势结束（松手/取消）调 [onPickDone]，宿主用它把连续吐色收成一步撤销。
+ *
+ * **滑杆位置不从 selected 逐帧反推**（那是个坑）：灰调（sat=0）下 [rgbToHsl] 的色相恒为 0，
+ * 用户把饱和度拉到 0 再去拖色相，拇指会被反推弹回左端。所以三个滑杆值是组件自有状态，
+ * 只有**外部改色**（点预制格、选中另一条标注）才重新播种——判定就是 `selected` 与
+ * `emitted`（我们自己上一次吐出去的颜色）是否相等。
  */
 @Composable
-private fun ColorPickerDialog(initial: Color, onConfirm: (Color) -> Unit, onDismiss: () -> Unit) {
-    val seed = remember(initial) { rgbToHsl(initial) }
-    var hue by remember(initial) { mutableFloatStateOf(seed.hue) }
-    var sat by remember(initial) { mutableFloatStateOf(seed.sat) }
-    var light by remember(initial) { mutableFloatStateOf(seed.light) }
+private fun InlineColorPicker(selected: Color, onPick: (Color) -> Unit, onPickDone: () -> Unit) {
+    var hue by remember { mutableFloatStateOf(0f) }
+    var sat by remember { mutableFloatStateOf(100f) }
+    var light by remember { mutableFloatStateOf(50f) }
+    // 我们自己上一次吐给宿主的 argb；Int.MIN_VALUE = 还没吐过（首次必然播种）
+    var emitted by remember { mutableIntStateOf(Int.MIN_VALUE) }
+    if (selected.toArgb() != emitted) {
+        val seed = rgbToHsl(selected)
+        hue = seed.hue; sat = seed.sat; light = seed.light
+        emitted = selected.toArgb()
+    }
+    fun pick(h: Float, s: Float, l: Float) {
+        hue = h; sat = s; light = l
+        val c = hslToColor(h, s, l)
+        emitted = c.toArgb()
+        onPick(c)
+    }
     val preview = hslToColor(hue, sat, light)
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(CUSTOM_COLOR_TITLE) },
-        text = {
-            Column {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(preview)
-                        .border(1.dp, EditPalette.SwatchIdleRing, RoundedCornerShape(8.dp)),
-                )
-                HslSliderRow(HUE_LABEL, hue, 0f..360f) { hue = it }
-                HslSliderRow(SAT_LABEL, sat, 0f..100f) { sat = it }
-                HslSliderRow(LIGHT_LABEL, light, 0f..100f) { light = it }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(preview) }) { Text(CUSTOM_COLOR_USE) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.mediaview_edit_cancel)) }
-        },
-    )
+
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(EditPalette.SwatchGap),
+    ) {
+        // 当前色块：取色器调出来的颜色要看得见它落进了哪里（16 格里没有它）。
+        val isCustom = EditSwatches.isCustom(selected)
+        Box(
+            Modifier
+                .size(28.dp)
+                .clip(CircleShape)
+                .background(preview)
+                .border(if (isCustom) 2.dp else 1.dp, if (isCustom) EditPalette.Accent else EditPalette.SwatchIdleRing, CircleShape),
+        )
+        HueSpectrumBar(hue, Modifier.weight(1f), onDone = onPickDone) { h -> pick(h, sat, light) }
+    }
+    HslSliderRow(SAT_LABEL, sat, 0f..100f, onFinished = onPickDone) { s -> pick(hue, s, light) }
+    HslSliderRow(LIGHT_LABEL, light, 0f..100f, onFinished = onPickDone) { l -> pick(hue, sat, l) }
+}
+
+/**
+ * 色相光谱条：整条彩虹就是轨道，拇指落在哪一段就是哪个色相（0..360）。
+ * 「轨道就是该参数的预览」——和 A34 的粗细渐变滑杆同一个原则。
+ */
+@Composable
+private fun HueSpectrumBar(hue: Float, modifier: Modifier = Modifier, onDone: () -> Unit = {}, onChange: (Float) -> Unit) {
+    val spectrum = remember {
+        // Compose 没有现成的 rainbow Brush：按等距色相拼 13 档全饱和中间明度——
+        // 端点重合（0° 与 360° 同为红），首尾相接，视觉上连续。
+        Brush.linearGradient(List(13) { i -> hslToColor(i * 360f / 12f, 100f, 50f) })
+    }
+    BoxWithConstraints(
+        modifier
+            .fillMaxWidth()
+            .height(HUE_BAR_HEIGHT)
+            .clip(RoundedCornerShape(HUE_BAR_HEIGHT / 2))
+            .onHorizontalScrub(
+                onValue = { x, w -> onChange(EditSwatches.hueAt(x / w)) },
+                onFinished = onDone,
+            ),
+    ) {
+        val barWidth = maxWidth
+        Canvas(Modifier.fillMaxSize()) {
+            drawRect(spectrum)
+            // 拇指：白色小圆停在当前色相上
+            val r = HUE_BAR_HEIGHT.toPx() / 2f
+            val cx = (hue / 360f).coerceIn(0f, 1f) * barWidth.toPx()
+            drawCircle(Color.White, radius = r - 1.5f, center = Offset(cx, r))
+            drawCircle(Color.Black.copy(alpha = 0.35f), radius = r - 1.5f, center = Offset(cx, r), style = Stroke(width = 1.5f))
+        }
+    }
 }
 
 @Composable
-private fun HslSliderRow(label: String, value: Float, range: ClosedFloatingPointRange<Float>, onChange: (Float) -> Unit) {
+private fun HslSliderRow(label: String, value: Float, range: ClosedFloatingPointRange<Float>, onFinished: () -> Unit = {}, onChange: (Float) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(label, color = EditPalette.TextPrimary, modifier = Modifier.width(56.dp))
-        Slider(value = value, onValueChange = onChange, valueRange = range, modifier = Modifier.weight(1f))
+        Slider(value = value, onValueChange = onChange, onValueChangeFinished = onFinished, valueRange = range, modifier = Modifier.weight(1f))
         Text("${value.roundToInt()}", color = EditPalette.TextPrimary, modifier = Modifier.width(36.dp))
     }
 }
