@@ -607,7 +607,7 @@ private fun ChannelsFeed(
                                 Text(if (entry.isGroupEntry) "频道推荐" else "正在热映", Modifier.background(Peach, RoundedCornerShape(5.dp))
                                     .padding(horizontal = 7.dp, vertical = 3.dp), color = Ink, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 Spacer(Modifier.height(6.dp))
-                                Text(entry.title, color = White, fontSize = 22.sp, lineHeight = 26.sp, fontWeight = FontWeight.Black,
+                                Text(entry.title, color = White, fontSize = ScreeningTypography.page, lineHeight = ScreeningTypography.pageLineHeight, fontWeight = FontWeight.Black,
                                     maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 if (entry.description.isNotBlank()) {
                                     Spacer(Modifier.height(3.dp))
@@ -808,7 +808,7 @@ private fun Library(
                 Column(Modifier.align(Alignment.BottomStart).padding(13.dp)) {
                     // 这里原来印 Constants.BASE_IP（接口域名）——调试信息，不是给用户看的（用户点过名）
                     Text("放映场", color = Peach, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    Text(page.title, color = White, fontWeight = FontWeight.Black, fontSize = 21.sp, lineHeight = 25.sp,
+                    Text(page.title, color = White, fontWeight = FontWeight.Black, fontSize = ScreeningTypography.page, lineHeight = ScreeningTypography.pageLineHeight,
                         maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(if (pager.loading) "正在取数据…" else "${pager.items.size} 条", color = Muted, fontSize = 11.sp)
                 }
@@ -834,7 +834,7 @@ private fun Library(
                         ScreeningPageKind.VIDEO_USER_ITEMS -> "Ta 的视频"
                         else -> "全部视频"
                     },
-                    Modifier.weight(1f), fontSize = 19.sp, fontWeight = FontWeight.Black,
+                    Modifier.weight(1f), fontSize = ScreeningTypography.section, fontWeight = FontWeight.Black,
                 )
                 IconButton(onClick = { poster = !poster }) { Icon(if (poster) Icons.Default.ViewList else Icons.Default.GridView, if (poster) "切换列表视图" else "切换海报视图") }
             }
@@ -920,7 +920,7 @@ private fun EntryCard(entry: RemoteEntry, position: Long, poster: Boolean, modif
 @Composable
 internal fun Heading(title: String, detail: String = "") {
     Row(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, Modifier.weight(1f), color = White, fontSize = 19.sp, fontWeight = FontWeight.Black)
+        Text(title, Modifier.weight(1f), color = White, fontSize = ScreeningTypography.section, fontWeight = FontWeight.Black)
         if (detail.isNotEmpty()) Text(detail, color = Muted, fontSize = 12.sp)
     }
 }

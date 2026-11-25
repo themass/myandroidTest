@@ -523,7 +523,7 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
         }
     }
     val panelBody: @Composable (String) -> Unit = { current ->
-        Text(current, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text(current, fontSize = ScreeningTypography.section, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(6.dp))
         when (current) {
             "字幕" -> {
@@ -701,7 +701,7 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
                 Text(
                     source.title,
                     Modifier.weight(1f).padding(start = 10.dp),
-                    color = White, fontSize = 17.sp, lineHeight = 22.sp,
+                    color = White, fontSize = ScreeningTypography.item, lineHeight = ScreeningTypography.itemLineHeight,
                     fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
                 ScreenIcon(Icons.Default.Fullscreen, "全屏", { setFull(true) })
@@ -801,7 +801,7 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
                         .padding(horizontal = 18.dp, vertical = 12.dp),
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text((if (delta > 0) "+" else "") + "${delta}s", color = White, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                        Text((if (delta > 0) "+" else "") + "${delta}s", color = White, fontSize = ScreeningTypography.overlay, fontWeight = FontWeight.Black)
                         Text(time(position), color = Muted, fontSize = 12.sp)
                     }
                 }
@@ -897,7 +897,7 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
                 Text(channel.ifEmpty { "本周放映" }, color = Mint, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 // 片名 35→22sp（用户点名「字体太大」）：详情页不是海报，片名一行认出就够，
                 // 高度留给下面的工具区和未来的简介/分析区。
-                Text(source.title, color = White, fontSize = 22.sp, lineHeight = 27.sp,
+                Text(source.title, color = White, fontSize = ScreeningTypography.featureTitle, lineHeight = ScreeningTypography.featureTitleLineHeight,
                     fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 2.dp))
                 // 设计稿：简介和工具台之间一条分隔线，下半页分成「讲什么」和「能干什么」两段

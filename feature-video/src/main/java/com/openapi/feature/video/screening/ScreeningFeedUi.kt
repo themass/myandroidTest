@@ -117,7 +117,7 @@ internal fun FeedListShell(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") }
-                Text(title, Modifier.weight(1f), fontSize = 20.sp, fontWeight = FontWeight.Black,
+                Text(title, Modifier.weight(1f), fontSize = ScreeningTypography.page, fontWeight = FontWeight.Black,
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
                 if (detail.isNotEmpty()) Text(detail, color = Muted, fontSize = 12.sp)
                 if (searchable) IconButton(onClick = { searchOpen = !searchOpen }) {

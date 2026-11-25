@@ -168,7 +168,7 @@ private fun TextHubPicker(
     ) {
         item {
             // 同声音馆：单句限一行，不硬折行（台账 A29）。
-            Text("一屏一故事，换一盏灯。", color = White, fontSize = 24.sp, lineHeight = 32.sp,
+            Text("一屏一故事，换一盏灯。", color = White, fontSize = ScreeningTypography.hero, lineHeight = ScreeningTypography.heroLineHeight,
                 fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
             FeedError(pager.error, pager::reload)
             if (seedChannel == null) {
@@ -188,7 +188,7 @@ private fun TextHubPicker(
             ) {
                 Icon(Icons.Default.MenuBook, null, tint = Mint, modifier = Modifier.padding(horizontal = 12.dp))
                 Column(Modifier.weight(1f).padding(vertical = 14.dp)) {
-                    Text(entry.title, color = White, fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                    Text(entry.title, color = White, fontSize = ScreeningTypography.item, fontWeight = FontWeight.Bold,
                         maxLines = 2, overflow = TextOverflow.Ellipsis)
                     if (entry.description.isNotBlank()) {
                         Text(entry.description, color = Muted, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
