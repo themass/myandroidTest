@@ -42,12 +42,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,6 +72,7 @@ import com.google.android.material.imageview.ShapeableImageView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 /**
@@ -227,6 +230,45 @@ private fun SearchRow(
 }
 
 /**
+ * 触底续页的判定（用户 2026-11-26 点名：所有子页「上滑加载更多」失效）。
+ *
+ * 旧写法八个调用点各写一遍 `index >= pager.items.size - k`——拿 LazyColumn 的
+ * **item 下标**去比**数据条数**：网格页把 N 条 chunked 成 N/3 行、外面还有头卡
+ * 和页脚 item，下标永远够不到条数，loadMore() 一次都不发。正确的信号只有一个：
+ * 列表已经不能继续向前滚（到底）且服务端说还有下一页且不在取数中。
+ * 收成一个纯函数，八个调用点统一走 feedShouldLoadMore(state, pager)。
+ */
+internal fun feedShouldLoadMore(
+    lastVisibleIndex: Int,
+    totalItemsCount: Int,
+    canScrollForward: Boolean,
+    hasMore: Boolean,
+    loading: Boolean,
+): Boolean =
+    !canScrollForward && hasMore && !loading && lastVisibleIndex >= 0 && totalItemsCount > 0
+
+/**
+ * 触底续页的唯一触发器：把 (最后可见 item 下标, 总 item 数, 能否继续向前滚) 收成
+ * 一个 Triple，变化时才判 [feedShouldLoadMore]（用户 2026-11-26：所有翻页列表共用）。
+ * 注意判的是**列表还能不能滚**——不是数据条数算术，网格页 chunked 成行同样成立；
+ * 重复页空转由 [FeedPager.loadMore] 的 append 闸挡住。
+ */
+@Composable
+internal fun feedShouldLoadMore(state: LazyListState, pager: FeedPager) {
+    LaunchedEffect(state, pager) {
+        snapshotFlow {
+            Triple(
+                state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1,
+                state.layoutInfo.totalItemsCount,
+                state.canScrollForward,
+            )
+        }.distinctUntilChanged().collect { (last, total, canForward) ->
+            if (feedShouldLoadMore(last, total, canForward, pager.hasMore, pager.loading)) pager.loadMore()
+        }
+    }
+}
+
+/**
  * 一页可分页的服务端列表状态：首屏、翻页、失败重试。
  *
  * 频道列表、频道里的片单、图集列表、图集内的图片都用这一个形状，页面只认它。
@@ -262,11 +304,18 @@ internal class FeedPager(
 
     private var nextStart: Int? = 0
     private var requested = false
+    /**
+     * 防空转：上一次 append 取回后 [items] 条数没涨（服务端回重复页等），
+     * 「到底」判定会原地反复重发同一枪——标记置位后 [loadMore] 直接返回，
+     * 直到 [load]/[reload]/[search] 重新起头才清。
+     */
+    private var appendStalled = false
 
     /** 首屏。已经取过就不重复取，重组不该反复打接口。 */
     fun load() {
         if (requested) return
         requested = true
+        appendStalled = false
         request(nextStart ?: 0, append = false)
     }
 
@@ -274,6 +323,7 @@ internal class FeedPager(
     fun reload() {
         nextStart = 0
         requested = true
+        appendStalled = false
         request(0, append = false)
     }
 
@@ -287,8 +337,7 @@ internal class FeedPager(
         keyword = newKeyword.trim()
         reload()
     }
-
-    /** 翻下一页；滚到底时调用。 */
+    /** 翻下一页；列表滚到底时调用（判定见 [feedShouldLoadMore]）。 */
     fun loadMore() {
         val start = nextStart ?: return
         if (loading) return
@@ -296,6 +345,9 @@ internal class FeedPager(
         // 少了这道闸，失败 → 空列表 → 触底判定恒真 → 再取 → loading 转圈改变布局 → 又触发判定，
         // 会自己转起来无限拉。首屏只归 load()/reload() 管。
         if (items.isEmpty() && start == 0) return
+        // 上一枪 append 取回后条数没涨（服务端回重复页）：同一位置重发没有意义，
+        // 用户 2026-11-26 点名「加载更多」族问题的防空转闸；重新起头（load/reload/search）才放开。
+        if (appendStalled) return
         request(start, append = true)
     }
 
@@ -342,8 +394,12 @@ internal class FeedPager(
             refreshing = false
             page.fold(
                 onSuccess = { data ->
+                    val before = items.size
                     if (!append) items.clear()
                     items.addAll(data.items)
+                    // append 取回后条数没涨＝服务端回的是重复页：封住 loadMore，
+                    // 别再对同一位置空转（见 [appendStalled]）。真涨了就照常放行。
+                    appendStalled = append && items.size == before
                     nextStart = data.nextStart
                     hasMore = data.hasMore
                     error = null

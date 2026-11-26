@@ -153,11 +153,7 @@ private fun TextHubPicker(
     onExit: () -> Unit,
     onOpenHub: (String) -> Unit,
 ) {
-    LaunchedEffect(state, pager) {
-        snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged()
-            .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
-    }
+    feedShouldLoadMore(state, pager)
     val rows = pager.items
     FeedListShell(
         pager = pager,
@@ -209,11 +205,7 @@ private fun TextArticleList(
     onBack: () -> Unit,
     onOpenBody: (RemoteEntry) -> Unit,
 ) {
-    LaunchedEffect(state, pager) {
-        snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged()
-            .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
-    }
+    feedShouldLoadMore(state, pager)
     val rows = pager.items
     FeedListShell(
         pager = pager,

@@ -169,10 +169,7 @@ internal fun <T> albumCoverColumnItems(items: List<T>, column: Int): List<T> =
 private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteEntry) -> Unit, onExit: () -> Unit) {
     val listState = state
     val seen = remember { mutableSetOf<String>() }
-    LaunchedEffect(listState, pager) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
-    }
+    feedShouldLoadMore(listState, pager)
     val shown = pager.items
     FeedListShell(
         pager = pager,
@@ -234,10 +231,7 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
 private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Unit, onOpen: (Int) -> Unit) {
     val state = rememberLazyListState()
     val seen = remember { mutableSetOf<String>() }
-    LaunchedEffect(state, pager) {
-        snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 9) pager.loadMore() }
-    }
+    feedShouldLoadMore(state, pager)
     val shots = pager.items
     FeedListShell(
         pager = pager,

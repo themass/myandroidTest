@@ -563,10 +563,7 @@ private fun ChannelsFeed(
     }
     val listState = remember(category) { LazyListState() }
     LaunchedEffect(pager) { pager.load() }
-    LaunchedEffect(listState, pager) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 4) pager.loadMore() }
-    }
+    feedShouldLoadMore(listState, pager)
     val cards = pager.items.filter { routeOf(it) != FeedRoute.PLAY }
     // 疑点（台账外备注，PLAUSIBLE 未改）：这条过滤把 routeOf==PLAY 的卡挡在网格外，
     // 而 hero 取的是未过滤的 items——若服务端有数据但全是可播卡，就会出现
@@ -781,10 +778,7 @@ private fun Library(
             if (!progress.containsKey(entry.key)) progress[entry.key] = storedProgress(preferences, entry.key)
         }
     }
-    LaunchedEffect(listState, pager) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 4) pager.loadMore() }
-    }
+    feedShouldLoadMore(listState, pager)
     val shown = pager.items.filter { filter != "未观看" || (progress[it.key] ?: 0L) == 0L }
     val resume = pager.items.firstOrNull { (progress[it.key] ?: 0L) > 0L }
     val seen = remember(page) { mutableSetOf<String>() }

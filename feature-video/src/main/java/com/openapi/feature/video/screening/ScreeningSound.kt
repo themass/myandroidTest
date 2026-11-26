@@ -340,11 +340,7 @@ private fun SoundHubPicker(
     onExit: () -> Unit,
     onOpenHub: (String) -> Unit,
 ) {
-    LaunchedEffect(state, pager) {
-        snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged()
-            .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
-    }
+    feedShouldLoadMore(state, pager)
     val rows = pager.items
     FeedListShell(
         pager = pager,
@@ -624,11 +620,7 @@ private fun SoundTrackHub(
         val nextIndex = nextSoundTrackIndex(playbackMode, currentIndex, tracks.size)
         if (nextIndex == null) playbackEnded = false else latestPlayAt(nextIndex)
     }
-    LaunchedEffect(state, pager) {
-        snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged()
-            .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
-    }
+    feedShouldLoadMore(state, pager)
     var positionMs by remember { mutableLongStateOf(0L) }
     var durationMs by remember { mutableLongStateOf(1L) }
     val playing = player?.isPlaying == true
