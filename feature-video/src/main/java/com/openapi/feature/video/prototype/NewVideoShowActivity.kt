@@ -1,5 +1,6 @@
 package com.openapi.feature.video.prototype
 
+import android.app.PictureInPictureParams
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
@@ -9,7 +10,9 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.provider.OpenableColumns
+import android.util.Rational
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.mutableStateOf
@@ -23,15 +26,19 @@ import com.openapi.cast.JavaCaster
 import com.openapi.common.ui.dialog.AppDialogHost
 import com.openapi.common.util.log.LogUtil
 import com.openapi.core.config.Constants
+import com.openapi.core.config.Routes
 import com.openapi.core.favorite.FavoriteUtil
 import com.openapi.core.db.FavoriteVo
 import com.openapi.core.model.RecommendVo
 import com.openapi.feature.video.R
 import com.openapi.feature.video.data.VideoUtil
+import com.openapi.feature.video.local.LocalVideo
+import com.openapi.feature.video.local.shareVideo
 import com.openapi.feature.video.subtitle.local.LocalSubtitleStore
 import com.openapi.feature.video.subtitle.realtime.RealtimeSubtitleBindings
 import com.openapi.speech.subtitle.realtime.VideoRealtimeSubtitleSession
 import com.shuyu.gsyvideoplayer.GSYVideoManager
+import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView
 import java.io.File
 import java.io.FileOutputStream
@@ -73,6 +80,8 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
     private var controlsVisible = true
     private var locked = false
     private var danmakuOn = false
+    /** setupPlayer() 算一次存下来：本地文件没有弹幕源，控件与 handler 都按它走。 */
+    private var local = false
     private var running = false
     private var lastSubtitle = ""
 
@@ -100,6 +109,7 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
         setupPlayer()
         setupControls()
         setupCast()
+        installBackCallback()
         applyOrientation(resources.configuration)
         player.startPlayLogic()
         schedulePauseIfWasPaused(playbackSavedState)
@@ -126,10 +136,12 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
 
     private fun setupPlayer() {
         val local = VideoUtil.isLocalPlayUrl(url)
+        this.local = local
         // content:// 不能走 ProxyCache，也不要带 Referer / UA
         val cache = !local
         val headers = if (local) null else VideoUtil.headersForRecommend(vo)
         player.setUp(url, cache, null, headers, vo?.title)
+        installCompletionWatcher()
         if (local) autoLoadSidecarSubtitle()
         prepareSeekRestore(playbackSavedState)
         player.setSpeed(speed, true)
@@ -143,13 +155,9 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
     }
 
     private val actions = PlayerControlsActions(
-        onBack = { onBackPressedDispatcher.onBackPressed() },
+        onBack = { handleBack() },
         onTogglePlay = {
-            if (player.currentState == GSYVideoView.CURRENT_STATE_PLAYING) {
-                player.onVideoPause()
-            } else {
-                player.onVideoResume()
-            }
+            togglePlay()
             controlsVisible = true
             publishState()
         },
@@ -171,17 +179,22 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
             publishState()
         },
         onSubtitles = { showSubtitlePanel() },
-        onSpeed = { showSpeedPanel() },
+        // 单击倍速 chip = 循环切档（文案即当前态），长按开面板精确选
+        onSpeed = { cycleSpeed() },
+        onSpeedPanel = { showSpeedPanel() },
         onDanmaku = {
-            danmakuOn = !danmakuOn
-            Toast.makeText(
-                this,
-                if (danmakuOn) R.string.np_danmaku_on else R.string.np_danmaku_off,
-                Toast.LENGTH_SHORT,
-            ).show()
-            publishState()
+            // 本地文件没有弹幕源：chip 已经按 local 隐藏，这里再 no-op 兜底
+            if (ControlsVisibility.danmakuToggleApplies(local = local, currentlyOn = danmakuOn)) {
+                danmakuOn = !danmakuOn
+                Toast.makeText(
+                    this,
+                    if (danmakuOn) R.string.np_danmaku_on else R.string.np_danmaku_off,
+                    Toast.LENGTH_SHORT,
+                ).show()
+                publishState()
+            }
         },
-        onMore = { Toast.makeText(this, R.string.np_more_local, Toast.LENGTH_SHORT).show() },
+        onMore = { showMorePanel() },
         onFavorite = { toggleFavorite() },
         onCast = { showDlnaDevices() },
     )
@@ -207,6 +220,7 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
             speed = speed,
             danmakuOn = danmakuOn,
             speedLabel = speedLabel(),
+            local = local,
         )
     }
 
@@ -214,6 +228,47 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
         val position = player.currentPositionWhenPlaying
         lastSubtitle = subtitles.textAt(position)
         controlsState.value = createState()
+    }
+
+    /**
+     * 播放/暂停键。判定在 [PlayPolicy]：播完（GSY state 6）时纹理视图已被移除，
+     * `onVideoResume()` 只认 PAUSE(5)，点了就是没反应——必须全量重挂。
+     */
+    private fun togglePlay() {
+        when (PlayPolicy.decide(state = player.currentState, userWantsPlay = !PlayPolicy.isPlaying(player.currentState))) {
+            PlayIntent.Pause -> player.onVideoPause()
+            PlayIntent.Resume -> player.onVideoResume()
+            PlayIntent.Restart -> replayFromStart()
+        }
+    }
+
+    /** 播完再播：release + setUp + startPlayLogic，不走 onVideoResume。 */
+    private fun replayFromStart() {
+        val playUrl = url ?: return
+        player.release()
+        player.setSpeed(speed, false)
+        player.setUp(
+            playUrl,
+            !local,
+            null,
+            if (local) null else VideoUtil.headersForRecommend(vo),
+            vo?.title,
+        )
+        player.startPlayLogic()
+    }
+
+    /**
+     * GSY 自动播完的感知：`onAutoComplete` 里把状态标掉，让下一次点按走重挂。
+     * 单靠状态轮询不够稳（tick 在 onPause 停摆），所以两条路都留。
+     */
+    private fun installCompletionWatcher() {
+        player.setVideoAllCallBack(object : GSYSampleCallBack() {
+            override fun onAutoComplete(url: String?, vararg objects: Any?) {
+                if (isFinishing || isDestroyed) return
+                controlsVisible = true
+                publishState()
+            }
+        })
     }
 
     private fun seekBy(deltaMs: Long) {
@@ -351,11 +406,71 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
     }
 
     private fun showSpeedPanel() {
-        PlayerPanels.showSpeeds(this, SPEEDS, speed) { chosen ->
-            speed = chosen
-            player.setSpeed(chosen, true)
-            publishState()
+        PlayerPanels.showSpeeds(this, SpeedSteps.panelSteps, speed) { chosen ->
+            applySpeed(chosen)
         }
+    }
+
+    /** 单击倍速 chip：按 SpeedSteps 的循环切到下一档，文案即当前态。 */
+    private fun cycleSpeed() {
+        applySpeed(SpeedSteps.nextAfter(speed))
+    }
+
+    private fun applySpeed(chosen: Float) {
+        speed = chosen
+        player.setSpeed(chosen, true)
+        publishState()
+    }
+
+    // ---------------------------------------------------------------- 更多面板
+
+    /**
+     * 「更多」只放真件：清单判定在 [MoreMenuPolicy]（投屏/DLNA、解码器设置、画中画，
+     * 本地源再加分享）。没有清晰度的假按钮——仓库里没有清晰度档位；投屏走本页
+     * 已有的 DLNA 真实现，Google Cast 绑定旧播放器类型不接。
+     */
+    private fun showMorePanel() {
+        val items = MoreMenuPolicy.actions(local = local)
+        PlayerPanels.showMore(this, items) { action ->
+            when (action) {
+                MoreAction.Share -> shareCurrentVideo()
+                MoreAction.Cast -> showDlnaDevices()
+                MoreAction.DecoderSettings ->
+                    startActivity(Routes.setting(this))
+                MoreAction.Pip -> enterPictureInPictureMode(
+                    PictureInPictureParams.Builder()
+                        .setAspectRatio(Rational(16, 9))
+                        .build(),
+                )
+            }
+        }
+    }
+
+    /**
+     * 分享当前视频：走 local/ 里 shareVideo 的 content:// 方案，按参数注入调用——
+     * 不修改 LocalVideoActions（别的会话在动）。远程 url 没有可分享的本地件，
+     * MoreMenuPolicy 已经按 local 把它挡在菜单外，这里只兜底。
+     */
+    private fun shareCurrentVideo() {
+        val playUrl = url ?: return
+        runCatching {
+            shareVideo(this, localVideoForSharing(playUrl))
+        }.onFailure {
+            LogUtil.e(it)
+            Toast.makeText(this, R.string.np_share_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun localVideoForSharing(playUrl: String): LocalVideo {
+        val uri = Uri.parse(playUrl)
+        return LocalVideo(
+            id = -1L,
+            uri = uri,
+            name = vo?.title ?: uri.lastPathSegment ?: "video",
+            folder = "",
+            durationMs = runCatching { player.duration }.getOrDefault(0L),
+            sizeBytes = 0L,
+        )
     }
 
     // ---------------------------------------------------------------- 投屏 / 收藏
@@ -468,19 +583,27 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
         runCatching { GSYVideoManager.onPause() }.onFailure(LogUtil::e)
     }
 
-    @Deprecated("旧页面同样用 onBackPressed，保持行为一致")
-    override fun onBackPressed() {
-        if (locked) {
-            locked = false
-            publishState()
-            return
+    /**
+     * targetSdk 37 + androidx.activity 1.11 起系统只走 OnBackPressedDispatcher，
+     * `onBackPressed()` 的 override 会被完全绕过（predictive back）。返回逻辑抽到
+     * [handleBack]，由这里常驻的回调和顶栏返回按钮共用，顺序由 [BackPolicy] 钉死。
+     */
+    private fun installBackCallback() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() = handleBack()
+        })
+    }
+
+    private fun handleBack() {
+        when (BackPolicy.decide(locked = locked, fullscreen = isLandscape())) {
+            BackIntent.Unlock -> {
+                locked = false
+                publishState()
+            }
+            BackIntent.ExitFullscreen ->
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            BackIntent.ClosePage -> finish()
         }
-        if (isLandscape()) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-            return
-        }
-        @Suppress("DEPRECATION")
-        super.onBackPressed()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -531,7 +654,6 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
         const val EXTRA_DEBUG_TITLE = "np_title"
         const val KEY_POS_MS = "new_player_pos_ms"
         const val KEY_WAS_PLAYING = "new_player_was_playing"
-        val SPEEDS = floatArrayOf(0.5f, 1f, 1.25f, 1.5f, 2f)
     }
 }
 

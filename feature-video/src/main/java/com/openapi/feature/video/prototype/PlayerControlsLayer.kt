@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +26,19 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.Cast
+import androidx.compose.material.icons.outlined.Comment
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Fullscreen
+import androidx.compose.material.icons.outlined.FullscreenExit
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material.icons.outlined.Subtitles
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -68,6 +81,9 @@ internal object PlayerPalette {
     val TextSecondary = Color(0xFFAAB9B7)
 }
 
+/** 控件可见时字幕压在底部走带之上的距离（随两行新布局收窄）。 */
+private val SUBTITLE_ABOVE_CONTROLS = 96.dp
+
 internal data class PlayerControlsState(
     val title: String,
     val positionMs: Long,
@@ -84,6 +100,8 @@ internal data class PlayerControlsState(
     val speed: Float,
     val danmakuOn: Boolean,
     val speedLabel: String,
+    /** 本地文件（file:// / content:// / 裸路径）：没有弹幕源，弹幕控件隐藏。 */
+    val local: Boolean,
 )
 
 internal data class PlayerControlsActions(
@@ -97,7 +115,10 @@ internal data class PlayerControlsActions(
     val onToggleControls: () -> Unit,
     val onLockToggle: () -> Unit,
     val onSubtitles: () -> Unit,
+    /** 单击倍速 chip：循环切档。 */
     val onSpeed: () -> Unit,
+    /** 长按倍速 chip：打开精确选档面板。 */
+    val onSpeedPanel: () -> Unit,
     val onDanmaku: () -> Unit,
     val onMore: () -> Unit,
     val onFavorite: () -> Unit,
@@ -205,6 +226,7 @@ internal fun PlayerControlsLayer(
         }
 
         // 字幕占底部、弹幕避让字幕：字幕始终在控件条之上、底部安全区之下
+        // 底部两行（进度条 26 + 间距 2 + 图标走带 40 + 页边距 10）≈ 78dp，留 18dp 余量
         if (state.subtitleText.isNotEmpty()) {
             Text(
                 text = state.subtitleText,
@@ -218,7 +240,7 @@ internal fun PlayerControlsLayer(
                     .padding(
                         start = 24.dp + leftInset,
                         end = 24.dp + rightInset,
-                        bottom = bottomInset + if (showChrome) 176.dp else 48.dp,
+                        bottom = bottomInset + if (showChrome) SUBTITLE_ABOVE_CONTROLS else 48.dp,
                     ),
             )
         }
@@ -368,6 +390,14 @@ private fun TransportButton(label: String, description: String, onClick: () -> U
     }
 }
 
+/**
+ * 底部两行：
+ * 1. 进度条 + 两端时间；
+ * 2. 图标按钮走带（播放/暂停、字幕、倍速、弹幕按 [ControlsVisibility]、更多 ｜ 收藏、投屏、全屏）。
+ *
+ * 之前是四行文字芯片，占掉小半个屏，也把字幕挤得没处放。这里沿用原来的薄荷/暗色方向，
+ * 只是把文字芯片换成 Material 图标；上一集/下一集本页没有对应动作，不放假键。
+ */
 @Composable
 private fun BottomSection(
     state: PlayerControlsState,
@@ -379,79 +409,160 @@ private fun BottomSection(
     Column(
         Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp + leftInset, end = 16.dp + rightInset, bottom = bottomInset + 12.dp),
+            .padding(start = 12.dp + leftInset, end = 12.dp + rightInset, bottom = bottomInset + 10.dp),
     ) {
-        ProgressBar(
-            positionMs = state.positionMs,
-            durationMs = state.durationMs,
-            onSeek = actions.onSeek,
-            onSeekCommit = actions.onSeekCommit,
-        )
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "${formatTime(state.positionMs)} / ${formatTime(state.durationMs)}",
-                color = PlayerPalette.TextPrimary,
+                text = formatTime(state.positionMs),
+                color = PlayerPalette.TextSecondary,
                 fontSize = 11.sp,
             )
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.width(8.dp))
+            ProgressBar(
+                positionMs = state.positionMs,
+                durationMs = state.durationMs,
+                onSeek = actions.onSeek,
+                onSeekCommit = actions.onSeekCommit,
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.width(8.dp))
             Text(
-                text = stringResource(
-                    if (state.fullscreen) R.string.np_exit_fullscreen else R.string.np_fullscreen
-                ),
-                color = PlayerPalette.TextPrimary,
+                text = formatTime(state.durationMs),
+                color = PlayerPalette.TextSecondary,
                 fontSize = 11.sp,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable(onClick = actions.onToggleFullscreen)
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
             )
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(2.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ToolChip(
-                label = stringResource(R.string.np_subtitles),
+            PlayToggle(
+                playing = state.playing,
+                onClick = actions.onTogglePlay,
+            )
+            Spacer(Modifier.width(2.dp))
+            IconAction(
+                icon = Icons.Outlined.Subtitles,
+                description = stringResource(R.string.np_cd_subtitles),
                 active = state.subtitleEnabled,
                 onClick = actions.onSubtitles,
-                modifier = Modifier.weight(1f),
             )
-            ToolChip(
-                label = stringResource(R.string.np_speed, state.speedLabel),
-                active = false,
+            // 单击循环切档（文案即当前态），长按打开精确选档面板
+            IconAction(
+                icon = Icons.Outlined.Speed,
+                description = stringResource(R.string.np_cd_speed),
+                active = state.speed != 1f,
                 onClick = actions.onSpeed,
-                modifier = Modifier.weight(1f),
+                onLongClick = actions.onSpeedPanel,
+                trailing = state.speedLabel,
             )
-            ToolChip(
-                label = stringResource(R.string.np_danmaku),
-                active = state.danmakuOn,
-                onClick = actions.onDanmaku,
-                modifier = Modifier.weight(1f),
-            )
-            ToolChip(
-                label = stringResource(R.string.np_more),
+            // 本地文件没有弹幕源：按 local 隐藏，handler 另有 no-op 兜底
+            if (ControlsVisibility.danmakuChip(state)) {
+                IconAction(
+                    icon = Icons.Outlined.Comment,
+                    description = stringResource(R.string.np_cd_danmaku),
+                    active = state.danmakuOn,
+                    onClick = actions.onDanmaku,
+                )
+            }
+            IconAction(
+                icon = Icons.Outlined.MoreVert,
+                description = stringResource(R.string.np_cd_more),
                 active = false,
                 onClick = actions.onMore,
-                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.weight(1f))
+            IconAction(
+                icon = Icons.Outlined.FavoriteBorder,
+                description = stringResource(R.string.np_cd_favorite),
+                active = false,
+                onClick = actions.onFavorite,
+            )
+            IconAction(
+                icon = Icons.Outlined.Cast,
+                description = stringResource(R.string.np_cd_cast),
+                active = false,
+                onClick = actions.onCast,
+            )
+            IconAction(
+                icon = if (state.fullscreen) Icons.Outlined.FullscreenExit else Icons.Outlined.Fullscreen,
+                description = stringResource(
+                    if (state.fullscreen) R.string.np_cd_exit_fullscreen else R.string.np_cd_fullscreen
+                ),
+                active = false,
+                onClick = actions.onToggleFullscreen,
             )
         }
+    }
+}
 
-        Spacer(Modifier.height(10.dp))
+/** 走带左侧的播放/暂停：保留 44dp 的实心圆底，比周围图标大一档，保持「这里能停」的直觉。 */
+@Composable
+private fun PlayToggle(playing: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .background(PlayerPalette.Surface.copy(alpha = 0.82f))
+            .clickable(
+                onClickLabel = stringResource(if (playing) R.string.np_cd_pause else R.string.np_cd_play),
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = if (playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+            contentDescription = null,
+            tint = PlayerPalette.TextPrimary,
+            modifier = Modifier.size(26.dp),
+        )
+    }
+}
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            FavorChip(
-                favoriteLabel = stringResource(R.string.np_favorite),
-                castLabel = stringResource(R.string.np_cast),
-                onFavorite = actions.onFavorite,
-                onCast = actions.onCast,
+/** 走带上的图标按钮；active 用薄荷色，和字幕/弹幕开关联态一致。 */
+@Composable
+private fun IconAction(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    description: String,
+    active: Boolean,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
+    trailing: String? = null,
+) {
+    val shape = RoundedCornerShape(10.dp)
+    val base = Modifier
+        .height(40.dp)
+        .clip(shape)
+        .background(if (active) PlayerPalette.SurfaceActive else Color.Transparent)
+    val clickable = if (onLongClick != null) {
+        base.combinedClickable(onClickLabel = description, onClick = onClick, onLongClick = onLongClick)
+    } else {
+        base.clickable(onClickLabel = description, onClick = onClick)
+    }
+    Row(
+        modifier = clickable.padding(horizontal = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = if (active) PlayerPalette.Mint else PlayerPalette.TextPrimary,
+            modifier = Modifier.size(22.dp),
+        )
+        if (!trailing.isNullOrEmpty()) {
+            Spacer(Modifier.width(2.dp))
+            Text(
+                text = trailing,
+                color = if (active) PlayerPalette.Mint else PlayerPalette.TextPrimary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
             )
         }
     }
@@ -525,72 +636,6 @@ private fun ProgressBar(
                 .size(12.dp)
                 .clip(CircleShape)
                 .background(PlayerPalette.Mint)
-        )
-    }
-}
-
-@Composable
-private fun FavorChip(
-    favoriteLabel: String,
-    castLabel: String,
-    onFavorite: () -> Unit,
-    onCast: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(PlayerPalette.MintSoft)
-            .padding(horizontal = 4.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        FavorItem(label = favoriteLabel, onClick = onFavorite)
-        Box(
-            Modifier
-                .width(1.dp)
-                .height(20.dp)
-                .background(PlayerPalette.OnMint.copy(alpha = 0.18f))
-        )
-        FavorItem(label = castLabel, onClick = onCast)
-    }
-}
-
-@Composable
-private fun FavorItem(label: String, onClick: () -> Unit) {
-    Text(
-        text = label,
-        color = PlayerPalette.OnMint,
-        fontSize = 13.sp,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-    )
-}
-
-@Composable
-private fun ToolChip(
-    label: String,
-    active: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .height(38.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(if (active) PlayerPalette.SurfaceActive else PlayerPalette.Surface)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            color = if (active) PlayerPalette.Mint else PlayerPalette.TextPrimary,
-            fontSize = 12.sp,
-            fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
         )
     }
 }

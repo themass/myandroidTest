@@ -1,0 +1,62 @@
+package com.openapi.feature.video.prototype
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * 弹幕只对在线源开放：本地文件（file:// / content:// / 裸路径）一律不显示弹幕 chip，
+ * handler 对本地路径也要 no-op 兜底（防止旧 state 或键盘路径把它打开）。
+ */
+class LocalDanmakuPolicyTest {
+
+    @Test
+    fun `local sources never offer danmaku`() {
+        for (state in listOf(
+            danmakuState(local = true, on = false),
+            danmakuState(local = true, on = true),
+        )) {
+            assertFalse("local must hide danmaku", ControlsVisibility.danmakuChip(state))
+        }
+    }
+
+    @Test
+    fun `online sources offer danmaku`() {
+        assertTrue(ControlsVisibility.danmakuChip(danmakuState(local = false, on = false)))
+        assertTrue(ControlsVisibility.danmakuChip(danmakuState(local = false, on = true)))
+    }
+
+    @Test
+    fun `danmaku toggle is a no-op for local regardless of current flag`() {
+        assertFalse(ControlsVisibility.danmakuToggleApplies(local = true, currentlyOn = false))
+        assertFalse(ControlsVisibility.danmakuToggleApplies(local = true, currentlyOn = true))
+        assertTrue(ControlsVisibility.danmakuToggleApplies(local = false, currentlyOn = false))
+        assertTrue(ControlsVisibility.danmakuToggleApplies(local = false, currentlyOn = true))
+    }
+
+    @Test
+    fun `bottom bar composition - two rows, no fake episode keys`() {
+        // 在线源：完整走带
+        assertEquals(
+            listOf(
+                BottomBarItem.PlayToggle, BottomBarItem.Subtitles, BottomBarItem.Speed,
+                BottomBarItem.Danmaku, BottomBarItem.More, BottomBarItem.Favorite,
+                BottomBarItem.Cast, BottomBarItem.Fullscreen,
+            ),
+            ControlsVisibility.bottomBar(danmakuState(local = false, on = false)),
+        )
+        // 本地源：弹幕不出，其余不动；任何情况下都没有上一集/下一集（本页无对应动作）
+        val local = ControlsVisibility.bottomBar(danmakuState(local = true, on = false))
+        assertFalse(BottomBarItem.Danmaku in local)
+        assertEquals(7, local.size)
+    }
+
+    private fun danmakuState(local: Boolean, on: Boolean) =
+        PlayerControlsState(
+            title = "", positionMs = 0, durationMs = 0, playing = false, buffering = false,
+            controlsVisible = true, landscape = false, locked = false, fullscreen = false,
+            subtitleText = "", subtitleEnabled = false, subtitleDelayMs = 0,
+            speed = 1f, danmakuOn = on, speedLabel = "1×", local = local,
+        )
+}
