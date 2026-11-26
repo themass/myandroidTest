@@ -2,7 +2,6 @@ package com.openapi.common.ads
 
 import com.openapi.common.ads.base.AdsClock
 import com.openapi.common.ads.base.AdsContext
-import com.openapi.common.ads.base.AdsGate
 import com.openapi.common.ads.base.AdsShowPolicy
 import com.openapi.common.ads.base.InterstitialCadence
 import com.openapi.common.ads.base.RateBudget
@@ -15,8 +14,8 @@ import org.junit.Test
  * 广告展示门控的纯逻辑（台账 docs/design/20261125-admob-ads-ledger.md §0/§7）。
  *
  * 钉三件事：
- * 1. debug 闸的行为不能退化（`28b2226e` 是为了真机验收不被全屏广告干扰），
- *    但必须留一条显式 opt-in，否则装机验收永远看不到广告，恢复无从验证。
+ * 1. 总闸恒开（用户 20261125 亲令「一直开，忽略debug」，见 AdsGateTest 决定记录），
+ *    展示节奏全部由下面的时机/概率逻辑控制。
  * 2. `AdsContext.rateShow()` 的 `showCount++ > 8` 是全仓无复位的 static，
  *    第 9 次起整个进程所有插屏永久 false——这是「广告不见了」里唯一 release 也中招的缺陷。
  *    修成窗口化预算：窗口内仍然限流，窗口过期后重新放行。
@@ -25,21 +24,23 @@ import org.junit.Test
  */
 class AdsShowPolicyTest {
 
-    // ---- 1) 构建闸 ----
+    // ---- 1) 剧本静音 ----
 
     @Test
-    fun `debug build without opt-in shows no ads`() {
-        assertFalse(AdsGate.enabled(isDebugBuild = true, optIn = false))
-    }
-
-    @Test
-    fun `debug build with explicit opt-in shows ads`() {
-        assertTrue(AdsGate.enabled(isDebugBuild = true, optIn = true))
-    }
-
-    @Test
-    fun `release build needs no opt-in`() {
-        assertTrue(AdsGate.enabled(isDebugBuild = false, optIn = false))
+    fun `script quiet suppresses interstitials`() {
+        var t = 100_000L
+        InterstitialCadence.clock = AdsClock { t }
+        InterstitialCadence.scriptQuiet = false
+        InterstitialCadence.noteStartup()
+        t += 60_000
+        try {
+            InterstitialCadence.scriptQuiet = true
+            assertFalse("script_case 剧本验收不弹插屏", InterstitialCadence.allow())
+            InterstitialCadence.scriptQuiet = false
+            assertTrue(InterstitialCadence.allow())
+        } finally {
+            InterstitialCadence.scriptQuiet = false
+        }
     }
 
     // ---- 2) 概率 + 窗口预算 ----

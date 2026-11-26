@@ -55,7 +55,8 @@ public class MyApplication extends MultiDexApplication {
     public void onCreate() {
         super.onCreate();
         isDebug = SystemUtils.isApkDebugable(this);
-        // 广告总开关随构建类型就位：AdsManager 的所有入口按它放行（debug = 不加载不展示）。
+        // 广告总开关恒开（用户 20261125 亲令「一直开，忽略debug」，台账 §6 D1）；
+        // debugBuild 标记保留给日志/诊断，闸门不再读它。剧本验收靠 script_case 静音。
         com.openapi.common.ads.base.AdsGate.setDebugBuild(isDebug);
         // 插屏节律的启动锚点：进程起来就记一次，插屏在这之前不弹（AdMob「打开即插屏」）。
         com.openapi.common.ads.base.InterstitialCadence.noteStartup();
