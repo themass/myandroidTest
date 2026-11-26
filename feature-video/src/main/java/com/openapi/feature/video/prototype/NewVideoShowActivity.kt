@@ -33,6 +33,7 @@ import com.openapi.feature.video.subtitle.local.LocalSubtitleStore
 import com.openapi.feature.video.subtitle.realtime.RealtimeSubtitleBindings
 import com.openapi.speech.subtitle.realtime.VideoRealtimeSubtitleSession
 import com.shuyu.gsyvideoplayer.GSYVideoManager
+import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView
 import java.io.File
 import java.io.FileOutputStream
@@ -135,6 +136,7 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
         val cache = !local
         val headers = if (local) null else VideoUtil.headersForRecommend(vo)
         player.setUp(url, cache, null, headers, vo?.title)
+        installCompletionWatcher()
         if (local) autoLoadSidecarSubtitle()
         prepareSeekRestore(playbackSavedState)
         player.setSpeed(speed, true)
@@ -150,11 +152,7 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
     private val actions = PlayerControlsActions(
         onBack = { handleBack() },
         onTogglePlay = {
-            if (player.currentState == GSYVideoView.CURRENT_STATE_PLAYING) {
-                player.onVideoPause()
-            } else {
-                player.onVideoResume()
-            }
+            togglePlay()
             controlsVisible = true
             publishState()
         },
@@ -225,6 +223,47 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
         val position = player.currentPositionWhenPlaying
         lastSubtitle = subtitles.textAt(position)
         controlsState.value = createState()
+    }
+
+    /**
+     * 播放/暂停键。判定在 [PlayPolicy]：播完（GSY state 6）时纹理视图已被移除，
+     * `onVideoResume()` 只认 PAUSE(5)，点了就是没反应——必须全量重挂。
+     */
+    private fun togglePlay() {
+        when (PlayPolicy.decide(state = player.currentState, userWantsPlay = !PlayPolicy.isPlaying(player.currentState))) {
+            PlayIntent.Pause -> player.onVideoPause()
+            PlayIntent.Resume -> player.onVideoResume()
+            PlayIntent.Restart -> replayFromStart()
+        }
+    }
+
+    /** 播完再播：release + setUp + startPlayLogic，不走 onVideoResume。 */
+    private fun replayFromStart() {
+        val playUrl = url ?: return
+        player.release()
+        player.setSpeed(speed, false)
+        player.setUp(
+            playUrl,
+            !local,
+            null,
+            if (local) null else VideoUtil.headersForRecommend(vo),
+            vo?.title,
+        )
+        player.startPlayLogic()
+    }
+
+    /**
+     * GSY 自动播完的感知：`onAutoComplete` 里把状态标掉，让下一次点按走重挂。
+     * 单靠状态轮询不够稳（tick 在 onPause 停摆），所以两条路都留。
+     */
+    private fun installCompletionWatcher() {
+        player.setVideoAllCallBack(object : GSYSampleCallBack() {
+            override fun onAutoComplete(url: String?, vararg objects: Any?) {
+                if (isFinishing || isDestroyed) return
+                controlsVisible = true
+                publishState()
+            }
+        })
     }
 
     private fun seekBy(deltaMs: Long) {
