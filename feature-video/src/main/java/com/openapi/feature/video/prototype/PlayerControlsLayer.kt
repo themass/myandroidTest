@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -99,7 +100,10 @@ internal data class PlayerControlsActions(
     val onToggleControls: () -> Unit,
     val onLockToggle: () -> Unit,
     val onSubtitles: () -> Unit,
+    /** 单击倍速 chip：循环切档。 */
     val onSpeed: () -> Unit,
+    /** 长按倍速 chip：打开精确选档面板。 */
+    val onSpeedPanel: () -> Unit,
     val onDanmaku: () -> Unit,
     val onMore: () -> Unit,
     val onFavorite: () -> Unit,
@@ -426,10 +430,12 @@ private fun BottomSection(
                 onClick = actions.onSubtitles,
                 modifier = Modifier.weight(1f),
             )
+            // 单击循环切档（文案即当前态），长按打开精确选档面板
             ToolChip(
                 label = stringResource(R.string.np_speed, state.speedLabel),
                 active = false,
                 onClick = actions.onSpeed,
+                onLongClick = actions.onSpeedPanel,
                 modifier = Modifier.weight(1f),
             )
             // 本地文件没有弹幕源：按 local 隐藏，handler 另有 no-op 兜底
@@ -578,14 +584,24 @@ private fun ToolChip(
     label: String,
     active: Boolean,
     onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier = modifier
+    val interaction = if (onLongClick != null) {
+        modifier
             .height(38.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(if (active) PlayerPalette.SurfaceActive else PlayerPalette.Surface)
-            .clickable(onClick = onClick),
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+    } else {
+        modifier
+            .height(38.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(if (active) PlayerPalette.SurfaceActive else PlayerPalette.Surface)
+            .clickable(onClick = onClick)
+    }
+    Box(
+        modifier = interaction,
         contentAlignment = Alignment.Center,
     ) {
         Text(

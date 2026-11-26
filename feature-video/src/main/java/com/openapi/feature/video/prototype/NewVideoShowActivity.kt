@@ -176,7 +176,9 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
             publishState()
         },
         onSubtitles = { showSubtitlePanel() },
-        onSpeed = { showSpeedPanel() },
+        // 单击倍速 chip = 循环切档（文案即当前态），长按开面板精确选
+        onSpeed = { cycleSpeed() },
+        onSpeedPanel = { showSpeedPanel() },
         onDanmaku = {
             // 本地文件没有弹幕源：chip 已经按 local 隐藏，这里再 no-op 兜底
             if (ControlsVisibility.danmakuToggleApplies(local = local, currentlyOn = danmakuOn)) {
@@ -360,11 +362,20 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
     }
 
     private fun showSpeedPanel() {
-        PlayerPanels.showSpeeds(this, SPEEDS, speed) { chosen ->
-            speed = chosen
-            player.setSpeed(chosen, true)
-            publishState()
+        PlayerPanels.showSpeeds(this, SpeedSteps.panelSteps, speed) { chosen ->
+            applySpeed(chosen)
         }
+    }
+
+    /** 单击倍速 chip：按 SpeedSteps 的循环切到下一档，文案即当前态。 */
+    private fun cycleSpeed() {
+        applySpeed(SpeedSteps.nextAfter(speed))
+    }
+
+    private fun applySpeed(chosen: Float) {
+        speed = chosen
+        player.setSpeed(chosen, true)
+        publishState()
     }
 
     // ---------------------------------------------------------------- 投屏 / 收藏
@@ -548,7 +559,6 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
         const val EXTRA_DEBUG_TITLE = "np_title"
         const val KEY_POS_MS = "new_player_pos_ms"
         const val KEY_WAS_PLAYING = "new_player_was_playing"
-        val SPEEDS = floatArrayOf(0.5f, 1f, 1.25f, 1.5f, 2f)
     }
 }
 
