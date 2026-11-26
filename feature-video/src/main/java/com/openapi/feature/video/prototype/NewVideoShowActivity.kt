@@ -1,5 +1,6 @@
 package com.openapi.feature.video.prototype
 
+import android.app.PictureInPictureParams
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
@@ -9,6 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.provider.OpenableColumns
+import android.util.Rational
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,11 +26,14 @@ import com.openapi.cast.JavaCaster
 import com.openapi.common.ui.dialog.AppDialogHost
 import com.openapi.common.util.log.LogUtil
 import com.openapi.core.config.Constants
+import com.openapi.core.config.Routes
 import com.openapi.core.favorite.FavoriteUtil
 import com.openapi.core.db.FavoriteVo
 import com.openapi.core.model.RecommendVo
 import com.openapi.feature.video.R
 import com.openapi.feature.video.data.VideoUtil
+import com.openapi.feature.video.local.LocalVideo
+import com.openapi.feature.video.local.shareVideo
 import com.openapi.feature.video.subtitle.local.LocalSubtitleStore
 import com.openapi.feature.video.subtitle.realtime.RealtimeSubtitleBindings
 import com.openapi.speech.subtitle.realtime.VideoRealtimeSubtitleSession
@@ -189,7 +194,7 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
                 publishState()
             }
         },
-        onMore = { Toast.makeText(this, R.string.np_more_local, Toast.LENGTH_SHORT).show() },
+        onMore = { showMorePanel() },
         onFavorite = { toggleFavorite() },
         onCast = { showDlnaDevices() },
     )
@@ -415,6 +420,57 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
         speed = chosen
         player.setSpeed(chosen, true)
         publishState()
+    }
+
+    // ---------------------------------------------------------------- 更多面板
+
+    /**
+     * 「更多」只放真件：清单判定在 [MoreMenuPolicy]（投屏/DLNA、解码器设置、画中画，
+     * 本地源再加分享）。没有清晰度的假按钮——仓库里没有清晰度档位；投屏走本页
+     * 已有的 DLNA 真实现，Google Cast 绑定旧播放器类型不接。
+     */
+    private fun showMorePanel() {
+        val items = MoreMenuPolicy.actions(local = local)
+        PlayerPanels.showMore(this, items) { action ->
+            when (action) {
+                MoreAction.Share -> shareCurrentVideo()
+                MoreAction.Cast -> showDlnaDevices()
+                MoreAction.DecoderSettings ->
+                    startActivity(Routes.setting(this))
+                MoreAction.Pip -> enterPictureInPictureMode(
+                    PictureInPictureParams.Builder()
+                        .setAspectRatio(Rational(16, 9))
+                        .build(),
+                )
+            }
+        }
+    }
+
+    /**
+     * 分享当前视频：走 local/ 里 shareVideo 的 content:// 方案，按参数注入调用——
+     * 不修改 LocalVideoActions（别的会话在动）。远程 url 没有可分享的本地件，
+     * MoreMenuPolicy 已经按 local 把它挡在菜单外，这里只兜底。
+     */
+    private fun shareCurrentVideo() {
+        val playUrl = url ?: return
+        runCatching {
+            shareVideo(this, localVideoForSharing(playUrl))
+        }.onFailure {
+            LogUtil.e(it)
+            Toast.makeText(this, R.string.np_share_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun localVideoForSharing(playUrl: String): LocalVideo {
+        val uri = Uri.parse(playUrl)
+        return LocalVideo(
+            id = -1L,
+            uri = uri,
+            name = vo?.title ?: uri.lastPathSegment ?: "video",
+            folder = "",
+            durationMs = runCatching { player.duration }.getOrDefault(0L),
+            sizeBytes = 0L,
+        )
     }
 
     // ---------------------------------------------------------------- 投屏 / 收藏

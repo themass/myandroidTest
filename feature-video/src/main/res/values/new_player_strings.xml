@@ -35,5 +35,22 @@
     <string name="np_speed_panel_title">Playback speed</string>
     <string name="np_danmaku_on">Danmaku on · local demo</string>
     <string name="np_danmaku_off">Danmaku off</string>
-    <string name="np_more_local">Local file: source, decoder and picture-in-picture live here</string>
+
+    <string name="np_more_panel_title">More</string>
+    <string name="np_more_share">Share</string>
+    <string name="np_more_cast">Cast to TV</string>
+    <string name="np_more_decoder_settings">Decoder settings</string>
+    <string name="np_more_pip">Picture-in-picture</string>
+    <string name="np_share_failed">This source cannot be shared</string>
+
+    <string name="np_cd_play">Play</string>
+    <string name="np_cd_pause">Pause</string>
+    <string name="np_cd_speed">Speed</string>
+    <string name="np_cd_subtitles">Subtitles</string>
+    <string name="np_cd_danmaku">Danmaku</string>
+    <string name="np_cd_favorite">Favorite</string>
+    <string name="np_cd_cast">Cast to TV</string>
+    <string name="np_cd_fullscreen">Fullscreen</string>
+    <string name="np_cd_exit_fullscreen">Exit fullscreen</string>
+    <string name="np_cd_more">More</string>
 </resources>
