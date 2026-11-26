@@ -74,6 +74,8 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
     private var controlsVisible = true
     private var locked = false
     private var danmakuOn = false
+    /** setupPlayer() 算一次存下来：本地文件没有弹幕源，控件与 handler 都按它走。 */
+    private var local = false
     private var running = false
     private var lastSubtitle = ""
 
@@ -128,6 +130,7 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
 
     private fun setupPlayer() {
         val local = VideoUtil.isLocalPlayUrl(url)
+        this.local = local
         // content:// 不能走 ProxyCache，也不要带 Referer / UA
         val cache = !local
         val headers = if (local) null else VideoUtil.headersForRecommend(vo)
@@ -175,13 +178,16 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
         onSubtitles = { showSubtitlePanel() },
         onSpeed = { showSpeedPanel() },
         onDanmaku = {
-            danmakuOn = !danmakuOn
-            Toast.makeText(
-                this,
-                if (danmakuOn) R.string.np_danmaku_on else R.string.np_danmaku_off,
-                Toast.LENGTH_SHORT,
-            ).show()
-            publishState()
+            // 本地文件没有弹幕源：chip 已经按 local 隐藏，这里再 no-op 兜底
+            if (ControlsVisibility.danmakuToggleApplies(local = local, currentlyOn = danmakuOn)) {
+                danmakuOn = !danmakuOn
+                Toast.makeText(
+                    this,
+                    if (danmakuOn) R.string.np_danmaku_on else R.string.np_danmaku_off,
+                    Toast.LENGTH_SHORT,
+                ).show()
+                publishState()
+            }
         },
         onMore = { Toast.makeText(this, R.string.np_more_local, Toast.LENGTH_SHORT).show() },
         onFavorite = { toggleFavorite() },
@@ -209,6 +215,7 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
             speed = speed,
             danmakuOn = danmakuOn,
             speedLabel = speedLabel(),
+            local = local,
         )
     }
 

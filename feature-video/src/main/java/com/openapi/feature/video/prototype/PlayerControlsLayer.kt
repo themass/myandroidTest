@@ -84,6 +84,8 @@ internal data class PlayerControlsState(
     val speed: Float,
     val danmakuOn: Boolean,
     val speedLabel: String,
+    /** 本地文件（file:// / content:// / 裸路径）：没有弹幕源，弹幕控件隐藏。 */
+    val local: Boolean,
 )
 
 internal data class PlayerControlsActions(
@@ -430,12 +432,15 @@ private fun BottomSection(
                 onClick = actions.onSpeed,
                 modifier = Modifier.weight(1f),
             )
-            ToolChip(
-                label = stringResource(R.string.np_danmaku),
-                active = state.danmakuOn,
-                onClick = actions.onDanmaku,
-                modifier = Modifier.weight(1f),
-            )
+            // 本地文件没有弹幕源：按 local 隐藏，handler 另有 no-op 兜底
+            if (ControlsVisibility.danmakuChip(state)) {
+                ToolChip(
+                    label = stringResource(R.string.np_danmaku),
+                    active = state.danmakuOn,
+                    onClick = actions.onDanmaku,
+                    modifier = Modifier.weight(1f),
+                )
+            }
             ToolChip(
                 label = stringResource(R.string.np_more),
                 active = false,
