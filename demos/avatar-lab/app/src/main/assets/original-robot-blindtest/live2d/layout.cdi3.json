@@ -1,0 +1,323 @@
+{
+	"Version": 3,
+	"Parameters": [
+		{
+			"Id": "ParamAngleX",
+			"GroupId": "ParamGroupFace",
+			"Name": "角度 X"
+		},
+		{
+			"Id": "ParamAngleY",
+			"GroupId": "ParamGroupFace",
+			"Name": "角度 Y"
+		},
+		{
+			"Id": "ParamAngleZ",
+			"GroupId": "ParamGroupFace",
+			"Name": "角度 Z"
+		},
+		{
+			"Id": "ParamCheek",
+			"GroupId": "ParamGroupFace",
+			"Name": "脸红"
+		},
+		{
+			"Id": "ParamEyeLOpen",
+			"GroupId": "ParamGroupEyes",
+			"Name": "左眼开合"
+		},
+		{
+			"Id": "ParamEyeROpen",
+			"GroupId": "ParamGroupEyes",
+			"Name": "右眼开合"
+		},
+		{
+			"Id": "ParamEyeBallX",
+			"GroupId": "ParamGroupEyes",
+			"Name": "眼球 X"
+		},
+		{
+			"Id": "ParamEyeBallY",
+			"GroupId": "ParamGroupEyes",
+			"Name": "眼球 Y"
+		},
+		{
+			"Id": "ParamEyeBallForm",
+			"GroupId": "ParamGroupEyes",
+			"Name": "果冻眼"
+		},
+		{
+			"Id": "ParamBrowLY",
+			"GroupId": "ParamGroupBrows",
+			"Name": "左眉 Y"
+		},
+		{
+			"Id": "ParamBrowRY",
+			"GroupId": "ParamGroupBrows",
+			"Name": "右眉 Y"
+		},
+		{
+			"Id": "ParamMouthForm",
+			"GroupId": "ParamGroupMouth",
+			"Name": "嘴型"
+		},
+		{
+			"Id": "ParamMouthOpenY",
+			"GroupId": "ParamGroupMouth",
+			"Name": "嘴巴开合"
+		},
+		{
+			"Id": "ParamA",
+			"GroupId": "ParamGroupMouth",
+			"Name": "口型 A"
+		},
+		{
+			"Id": "ParamI",
+			"GroupId": "ParamGroupMouth",
+			"Name": "口型 I"
+		},
+		{
+			"Id": "ParamU",
+			"GroupId": "ParamGroupMouth",
+			"Name": "口型 U"
+		},
+		{
+			"Id": "ParamE",
+			"GroupId": "ParamGroupMouth",
+			"Name": "口型 E"
+		},
+		{
+			"Id": "ParamO",
+			"GroupId": "ParamGroupMouth",
+			"Name": "口型 O"
+		},
+		{
+			"Id": "ParamMouthX",
+			"GroupId": "ParamGroupMouth",
+			"Name": "嘴 左右"
+		},
+		{
+			"Id": "ParamMouthPuckerWiden",
+			"GroupId": "ParamGroupMouth",
+			"Name": "嘟嘴 / 咧嘴"
+		},
+		{
+			"Id": "ParamMouthShrug",
+			"GroupId": "ParamGroupMouth",
+			"Name": "耸嘴"
+		},
+		{
+			"Id": "ParamMouthPressLipOpen",
+			"GroupId": "ParamGroupMouth",
+			"Name": "抿嘴 / 唇分开"
+		},
+		{
+			"Id": "ParamMouthFunnel",
+			"GroupId": "ParamGroupMouth",
+			"Name": "嘴 漏斗口"
+		},
+		{
+			"Id": "ParamMouthCornerL",
+			"GroupId": "ParamGroupMouth",
+			"Name": "左侧口角"
+		},
+		{
+			"Id": "ParamMouthCornerR",
+			"GroupId": "ParamGroupMouth",
+			"Name": "右侧口角"
+		},
+		{
+			"Id": "ParamMouthPuckerWidenL",
+			"GroupId": "ParamGroupMouth",
+			"Name": "左侧鼓抿 / 拉宽"
+		},
+		{
+			"Id": "ParamMouthPuckerWidenR",
+			"GroupId": "ParamGroupMouth",
+			"Name": "右侧鼓抿 / 拉宽"
+		},
+		{
+			"Id": "ParamCheekPuff",
+			"GroupId": "ParamGroupMouth",
+			"Name": "鼓腮"
+		},
+		{
+			"Id": "ParamJawOpen",
+			"GroupId": "ParamGroupMouth",
+			"Name": "下颌张开"
+		},
+		{
+			"Id": "ParamBodyAngleX",
+			"GroupId": "ParamGroupBody",
+			"Name": "身体角度 X"
+		},
+		{
+			"Id": "ParamBodyAngleY",
+			"GroupId": "ParamGroupBody",
+			"Name": "身体角度 Y"
+		},
+		{
+			"Id": "ParamBodyAngleZ",
+			"GroupId": "ParamGroupBody",
+			"Name": "身体角度 Z"
+		},
+		{
+			"Id": "ParamBodyLean",
+			"GroupId": "ParamGroupBody",
+			"Name": "身体前后倾"
+		},
+		{
+			"Id": "ParamProportion",
+			"GroupId": "ParamGroupBody",
+			"Name": "大小变（头身比）"
+		},
+		{
+			"Id": "ParamBreath",
+			"GroupId": "ParamGroupBody",
+			"Name": "呼吸"
+		},
+		{
+			"Id": "ParamArmLSwing",
+			"GroupId": "ParamGroupPhysics",
+			"Name": "左臂 摆动"
+		},
+		{
+			"Id": "ParamArmRSwing",
+			"GroupId": "ParamGroupPhysics",
+			"Name": "右臂 摆动"
+		},
+		{
+			"Id": "ParamFace_smile",
+			"GroupId": "ParamGroupCustom",
+			"Name": "ParamFace_smile"
+		},
+		{
+			"Id": "ParamWear_cape",
+			"GroupId": "ParamGroupCustom",
+			"Name": "ParamWear_cape"
+		}
+	],
+	"ParameterGroups": [
+		{
+			"Id": "ParamGroupFace",
+			"GroupId": "",
+			"Name": "面部"
+		},
+		{
+			"Id": "ParamGroupEyes",
+			"GroupId": "",
+			"Name": "眼睛"
+		},
+		{
+			"Id": "ParamGroupBrows",
+			"GroupId": "",
+			"Name": "眉毛"
+		},
+		{
+			"Id": "ParamGroupMouth",
+			"GroupId": "",
+			"Name": "嘴巴"
+		},
+		{
+			"Id": "ParamGroupBody",
+			"GroupId": "",
+			"Name": "身体"
+		},
+		{
+			"Id": "ParamGroupPhysics",
+			"GroupId": "",
+			"Name": "物理"
+		},
+		{
+			"Id": "ParamGroupCustom",
+			"GroupId": "",
+			"Name": "自定义参数"
+		}
+	],
+	"Parts": [
+		{
+			"Id": "modifier:m1:7368617265642f706172743a50617274426f6479",
+			"Name": "身体"
+		},
+		{
+			"Id": "modifier:m1:7368617265642f706172743a5061727448656164",
+			"Name": "头部"
+		},
+		{
+			"Id": "modifier:m1:7368617265642f706172743a5061727446616365",
+			"Name": "面部"
+		},
+		{
+			"Id": "modifier:m1:7368617265642f706172743a506172744865616441636365737",
+			"Name": "头部附件"
+		}
+	],
+	"CombinedParameters": [
+		[
+			"ParamEyeBallX",
+			"ParamEyeBallY"
+		],
+		[
+			"ParamAngleX",
+			"ParamAngleY"
+		],
+		[
+			"ParamBodyAngleX",
+			"ParamBodyAngleY"
+		]
+	],
+	"Drawables": [
+		{
+			"Id": "ArtMeshLayer",
+			"Name": "chest badge"
+		},
+		{
+			"Id": "ArtMeshLayer2",
+			"Name": "cape"
+		},
+		{
+			"Id": "ArtMeshMouth",
+			"Name": "mouth smile"
+		},
+		{
+			"Id": "ArtMeshMouth2",
+			"Name": "mouth neutral"
+		},
+		{
+			"Id": "ArtMeshIridesR",
+			"Name": "eye right"
+		},
+		{
+			"Id": "ArtMeshIridesL",
+			"Name": "eye left"
+		},
+		{
+			"Id": "ArtMeshFace",
+			"Name": "head"
+		},
+		{
+			"Id": "ArtMeshHandwearR",
+			"Name": "right arm"
+		},
+		{
+			"Id": "ArtMeshHandwearL",
+			"Name": "left arm"
+		},
+		{
+			"Id": "ArtMeshLayer3",
+			"Name": "boots"
+		},
+		{
+			"Id": "ArtMeshLegwear",
+			"Name": "legs"
+		},
+		{
+			"Id": "ArtMeshLayer4",
+			"Name": "body"
+		},
+		{
+			"Id": "ArtMeshLayer5",
+			"Name": "antenna"
+		}
+	]
+}
