@@ -185,6 +185,23 @@ class TurnEventCollectorTest {
     }
 
     @Test
+    fun donePersistsWithCanonicalAssistantIdWhenCallbackIsProvided() = runTest {
+        val persisted = mutableListOf<Pair<String, String?>>()
+        TurnEventCollector(
+            open = { flowOf(delta("t1", "answer"), done("t1", assistantId = 77L)) },
+            parse = ::parseAgentEvent,
+        ).collect(
+            emit = {},
+            expectedTurnId = null,
+            assistantLocalId = "a1",
+            userMessageId = null,
+            persist = { error("canonical callback should handle completed turns") },
+            persistWithAssistantId = { text, assistantId -> persisted += text to assistantId },
+        )
+        assertEquals(listOf("answer" to "77"), persisted)
+    }
+
+    @Test
     fun userMessageIdStaysNullOnRegenerate() = runTest {
         // 重新生成没有新的用户消息（submit 回执 id 为 0），不能把 0 当成正式 id。
         val h = Harness(userServerId = 0L) { _, _ ->
