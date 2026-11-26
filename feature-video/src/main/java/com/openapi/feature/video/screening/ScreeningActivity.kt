@@ -846,6 +846,8 @@ private fun Library(
             Column(Modifier.padding(14.dp)) {
                 Text(
                     when {
+                        // 搜索 0 结果先说「没搜到」再谈列表口径（用户 2026-11-26）。
+                        pager.keyword.isNotBlank() -> feedEmptyCopy(pager.keyword, "")
                         page.kind == ScreeningPageKind.SUBCHANNELS -> "这个频道服务端还没配子频道。"
                         filter == "未观看" -> "这一页没有内容。切回「全部」或者返回上一个频道。"
                         else -> "这个频道服务端还没上片单。"

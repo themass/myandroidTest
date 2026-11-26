@@ -40,7 +40,7 @@ internal class ScreeningFeedStore(context: Context) {
 
     /** 频道里的视频列表；`channel` 取自频道卡 actionUrl 里的 `channel=` 参数。 */
     suspend fun videos(channelParam: String, start: Int = 0, keyword: String = ""): Page<RemoteEntry> =
-        page(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, start, channelParam, keyword))
+        page(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, start, channelParam, screeningKeywordParam(keyword)))
 
     /**
      * 配置频道的子频道列表（`video/channel.json`）。夜色配置频道卡（hsex_all 这类）
@@ -52,11 +52,11 @@ internal class ScreeningFeedStore(context: Context) {
 
     /** 用户维度片单索引（/video/user.json），对齐 VideoChannelUserListFragment。 */
     suspend fun videoUsers(channelParam: String, start: Int = 0, keyword: String = ""): Page<RemoteEntry> =
-        page(Constants.getUrlWithParam(Constants.API_VIDEO_USER_URL, channelParam, keyword, start))
+        page(Constants.getUrlWithParam(Constants.API_VIDEO_USER_URL, channelParam, screeningKeywordParam(keyword), start))
 
     /** 某用户的视频列表（/video/user/items.json），actionUrl 即 userId。 */
     suspend fun videoUserItems(userId: String, start: Int = 0, keyword: String = ""): Page<RemoteEntry> =
-        page(Constants.getUrlWithParam(Constants.API_VIDEO_USER_ITEM_URL, start, userId, keyword))
+        page(Constants.getUrlWithParam(Constants.API_VIDEO_USER_ITEM_URL, start, userId, screeningKeywordParam(keyword)))
 
 
     /** 文字馆频道列表（text/channel.json），对齐 TextChannleBodyFragment。 */
@@ -83,7 +83,7 @@ internal class ScreeningFeedStore(context: Context) {
     }
 
     private suspend fun textItemsPage(channelParam: String, start: Int, keyword: String): Page<TextItemsVo> {
-        val url = Constants.getUrlWithParam(Constants.API_TEXT_ITEMS_URL, start, channelParam, keyword)
+        val url = Constants.getUrlWithParam(Constants.API_TEXT_ITEMS_URL, start, channelParam, screeningKeywordParam(keyword))
         val raw: InfoListVo<*>? = service.awaitInfoList(url, TextItemsVo::class.java, NET_TAG)
         @Suppress("UNCHECKED_CAST")
         val items = (raw?.voList as? List<TextItemsVo>).orEmpty()
@@ -113,7 +113,7 @@ internal class ScreeningFeedStore(context: Context) {
         }
 
     private suspend fun soundItemsPage(channelParam: String, start: Int, keyword: String): Page<SoundItemsVo> {
-        val url = Constants.getUrlWithParam(Constants.API_SOUND_ITEMS_URL, start, channelParam, keyword)
+        val url = Constants.getUrlWithParam(Constants.API_SOUND_ITEMS_URL, start, channelParam, screeningKeywordParam(keyword))
         val raw: InfoListVo<*>? = service.awaitInfoList(url, SoundItemsVo::class.java, NET_TAG)
         @Suppress("UNCHECKED_CAST")
         val items = (raw?.voList as? List<SoundItemsVo>).orEmpty()
@@ -127,7 +127,7 @@ internal class ScreeningFeedStore(context: Context) {
 
     /** 图集内的图片（img/items/img.json 带 keyword，对齐 ImgChannelImgListFragment）。 */
     suspend fun albumImages(channelParam: String, start: Int = 0, keyword: String = ""): Page<RemoteEntry> =
-        page(Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, channelParam, keyword))
+        page(Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, channelParam, screeningKeywordParam(keyword)))
 
     /** Lightbox 翻到尾部续取：旧 ImgItemFragment 以当前图片行的 actionUrl 作为 itemUrl。 */
     suspend fun imageItemPage(itemUrl: String, start: Int = 0): Page<RemoteEntry> =
@@ -358,4 +358,16 @@ internal fun SoundItemsVo.toSoundListEntry(index: Int): RemoteEntry {
         isImageCard = false,
         serverId = id?.takeIf { it > 0 }?.toLong(),
     )
+}
+
+/**
+ * 搜索词进 URL 前的编码（用户 2026-11-26：中文/&/= 原样拼进 query 会打坏请求）。
+ * 旧注释说「服务端按原样收中文」——那只对无保留字符的词成立；词里一带 `&`
+ * 后面的参数就被劫持了。走 HttpUtils.encoderParam（与 generateGetUrl 同一条编码路），
+ * 编码失败退回空串（宁可不带词，也不发一个坏 URL）。
+ */
+internal fun screeningKeywordParam(keyword: String): String {
+    val trimmed = keyword.trim()
+    if (trimmed.isEmpty()) return ""
+    return com.openapi.common.net.http.HttpUtils.encoderParam(trimmed) ?: ""
 }

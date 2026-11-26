@@ -139,7 +139,9 @@ internal fun FeedListShell(
                     onSubmit = {
                         val q = it.trim()
                         if (q != pager.keyword) pager.search(q)
-                        if (q.isEmpty()) scrollScope.launch { state.animateScrollToItem(0) }
+                        // 提交任何搜索都回顶（用户 2026-11-26：搜索结果从第一屏看起；
+                        // 以前只有清空词才回顶，带词提交后列表停在上一次滚到的位置）。
+                        scrollScope.launch { state.animateScrollToItem(0) }
                     },
                     onClear = {
                         draft = ""
@@ -267,6 +269,22 @@ internal fun feedShouldLoadMore(state: LazyListState, pager: FeedPager) {
         }
     }
 }
+
+/**
+ * 空列表文案按搜索态分支（用户 2026-11-26：搜索 0 结果时空态还是列表口径，
+ * 用户以为频道本身没内容）。未搜索保留各页自己的列表口径；搜索中必须说出
+ * 「是没搜到」并给下一步——换词。四个可搜索列表共用，文案不再在页面各写各的。
+ */
+internal fun feedEmptyCopy(keyword: String, fallback: String): String =
+    if (keyword.isBlank()) fallback else "没有找到「${keyword.trim()}」，换个词试试。"
+
+/**
+ * 图集册内取数的路由判定（用户 2026-11-26：走到尾续后新搜索被静默丢词——
+ * fetch 闭包只看 tailItemUrl，置位后 keyword 再也进不了请求）。规则：只有
+ * 「没有搜索词」时才走 item/page.json 尾续；一旦有词，走回 albumImages 带词取。
+ */
+internal fun albumImagesUseTail(tailItemUrl: String?, keyword: String): Boolean =
+    tailItemUrl != null && keyword.isBlank()
 
 /**
  * 一页可分页的服务端列表状态：首屏、翻页、失败重试。

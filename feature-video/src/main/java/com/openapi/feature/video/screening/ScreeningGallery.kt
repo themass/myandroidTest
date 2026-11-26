@@ -81,9 +81,11 @@ internal fun ScreeningGallery(
     var tailItemUrl by remember(selected) { mutableStateOf<String?>(null) }
     val shots = remember(selected) {
         FeedPager(pagerScope, fetch = { start, keyword ->
-            val itemUrl = tailItemUrl
-            if (itemUrl == null) store.albumImages(selected?.imageListKey() ?: "", start, keyword)
-            else store.imageItemPage(itemUrl, start)
+            // 尾续只对「没有搜索词」生效（用户 2026-11-26：走到尾续后新搜索被静默丢词——
+            // 旧写法只看 tailItemUrl，置位后 keyword 再也进不了请求）。带词一律走回
+            // img/items/img.json；回到无词态才继续 item/page.json 的尾续。
+            if (albumImagesUseTail(tailItemUrl, keyword)) store.imageItemPage(tailItemUrl!!, start)
+            else store.albumImages(selected?.imageListKey() ?: "", start, keyword)
         })
     }
     // 没有频道参数或没有册子参数就没有可请求的 key：不发无意义的请求，直接给空态
@@ -259,7 +261,8 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
                 ListSkeleton(rows = 2, rowHeight = 120.dp)
             }
         }
-        if (!pager.loading && shots.isEmpty()) item { Text("这一册还没有图片，返回换一册。", Modifier.padding(14.dp), color = Muted) }
+        // 空态按搜索态分支（用户 2026-11-26：搜 0 结果仍印列表口径，看不出是「没搜到」）。
+        if (!pager.loading && shots.isEmpty()) item { Text(feedEmptyCopy(pager.keyword, "这一册还没有图片，返回换一册。"), Modifier.padding(14.dp), color = Muted) }
         items(shots.chunked(3)) { row ->
             Column {
                 Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {

@@ -679,7 +679,8 @@ private fun SoundTrackHub(
                 if (pager.loading && tracks.isEmpty()) ListSkeleton(rowHeight = 56.dp)
             }
             if (!pager.loading && tracks.isEmpty()) {
-                item { Text("这个频道还没有音频。", Modifier.padding(14.dp), color = Muted) }
+                // 空态按搜索态分支（用户 2026-11-26：搜 0 结果仍印列表口径，看不出是「没搜到」）。
+                item { Text(feedEmptyCopy(pager.keyword, "这个频道还没有音频。"), Modifier.padding(14.dp), color = Muted) }
             }
             items(tracks.size) { index ->
                 val track = tracks[index]
