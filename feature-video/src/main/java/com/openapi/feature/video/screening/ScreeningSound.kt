@@ -97,9 +97,11 @@ internal fun ScreeningSound(
     LaunchedEffect(hubs, hubChannel) { if (hubChannel != null) hubs.load() }
     LaunchedEffect(tracksPager, hubParam) { if (hubParam != null) tracksPager.load() }
 
-    val tracks = remember(tracksPager.items) {
-        tracksPager.items.mapIndexedNotNull { i, e -> e.soundTrackRef(i) }
-    }
+    // 就地派生，别拿 pager 的 items 当 remember 的 key（A40 用户 2026-11-26「曲目列表是空的」）：
+    // FeedPager.items 是同一个 mutableStateListOf、取数翻页都在原地增删，
+    // remember 的 key 按实例比永远相等——派生表第一次算完再也不重算，列表空屏。
+    // 读取 items 本身就在快照里，Compose 按内容自动重算这一行。
+    val tracks = tracksPager.items.mapIndexedNotNull { i, e -> e.soundTrackRef(i) }
     var currentIndex by rememberSaveable { mutableIntStateOf(-1) }
     val soundPreferences = remember(context) {
         context.getSharedPreferences("screening_sound", android.content.Context.MODE_PRIVATE)
