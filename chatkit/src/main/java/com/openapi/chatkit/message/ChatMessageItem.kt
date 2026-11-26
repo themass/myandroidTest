@@ -69,6 +69,7 @@ import com.openapi.chatkit.message.parts.FileCard
 import com.openapi.chatkit.message.parts.ImageGrid
 import com.openapi.chatkit.message.parts.LocalMessageImageEditHandler
 import com.openapi.chatkit.message.parts.LocationBubble
+import com.openapi.chatkit.message.parts.LocationCardContent
 import com.openapi.chatkit.message.parts.TextBubble
 import com.openapi.chatkit.message.parts.ThinkingIndicator
 import com.openapi.chatkit.message.parts.VideoCard
@@ -315,10 +316,12 @@ internal fun MessageContent(
     val texts = item.parts.filterIsInstance<MessagePart.Text>().filter { it.text.isNotEmpty() }
     val hasContent = images.isNotEmpty() || files.isNotEmpty() || videos.isNotEmpty() ||
         locations.isNotEmpty() || voices.isNotEmpty() || texts.isNotEmpty()
-    // 「附件 + 文字 = 一条消息」的判定（决策在 attachmentTextLayout，有单测）。
-    // Merged = 附件和文字共用一个气泡（202611 用户反馈：之前看图+文字像两条消息）。
+    // 「附件（含位置）+ 文字 = 一条消息」的判定（决策在 attachmentTextLayout，有单测）。
+    // Merged = 附件和文字共用一个气泡（202611 用户反馈：之前看图+文字像两条消息；
+    // A43-6：位置同样计入——带配文的位置消息此前走 Separate，用户看「位置消息是两条」）。
     val merged = attachmentTextLayout(
         hasAttachments = images.isNotEmpty() || files.isNotEmpty() || videos.isNotEmpty(),
+        hasLocation = locations.isNotEmpty(),
         hasText = texts.isNotEmpty(),
     ) == AttachmentTextLayout.Merged
     // 消息大图的「编辑」由宿主经 CompositionLocal 提供；null 时查看器与从前完全一致。
@@ -339,7 +342,9 @@ internal fun MessageContent(
             TextBubble(
                 sender = sender,
                 onLongPress = onLongPress,
-                modifier = Modifier.widthIn(max = maxWidth),
+                modifier = Modifier
+                    .widthIn(max = maxWidth)
+                    .testTag("merged-bubble"),
                 footer = footer,
                 screenReaderActions = screenReaderActions,
             ) {
@@ -368,6 +373,14 @@ internal fun MessageContent(
                             onClick = { onAction(MessageAction.OpenVideo(video)) },
                             onLongPress = { onAttachmentLongPress(AttachmentTarget.File(MessagePart.File(video.path, video.name, 0))) },
                             modifier = Modifier.widthIn(max = maxWidth),
+                        )
+                    }
+                    // A43-6：位置卡坐进合并气泡的附件位（无气泡皮肤，防双层底色），
+                    // 下面一条分隔线、配文在下——位置消息是一个整体，不再是两条。
+                    locations.forEach { location ->
+                        LocationCardContent(
+                            location = location,
+                            onOpenMap = { onAction(MessageAction.OpenLocation(location)) },
                         )
                     }
                     HorizontalDivider(color = ChatKit.colors.divider)
@@ -403,15 +416,20 @@ internal fun MessageContent(
                 )
             }
         }
-        locations.forEach { location ->
-            LocationBubble(
-                sender = sender,
-                location = location,
-                onOpenMap = { onAction(MessageAction.OpenLocation(location)) },
-                onLongPress = onLongPress,
-                modifier = Modifier.widthIn(max = maxWidth),
-                screenReaderActions = screenReaderActions,
-            )
+        // 独立位置气泡只在**没有文字**时出现（A43-6）：带配文的位置消息已把位置卡并进上面的合并气泡。
+        if (!merged) {
+            locations.forEach { location ->
+                LocationBubble(
+                    sender = sender,
+                    location = location,
+                    onOpenMap = { onAction(MessageAction.OpenLocation(location)) },
+                    onLongPress = onLongPress,
+                    modifier = Modifier
+                        .widthIn(max = maxWidth)
+                        .testTag("location-standalone"),
+                    screenReaderActions = screenReaderActions,
+                )
+            }
         }
         voices.forEach { voice ->
             VoiceBubble(

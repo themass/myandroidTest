@@ -104,16 +104,24 @@ internal fun imageArrangement(count: Int, layout: ImageLayout): ImageArrangement
  *
  * 之前只有文字进气泡、附件是裸卡片，中间还隔着消息级的间距——用户看「图片+文字」就是两条消息
  * （202611 用户反馈）。现在：
- * - [Merged]：同一消息既有附件（图片/文件/视频）又有文字 → **共用一个气泡**（同底色同圆角），
+ * - [Merged]：同一消息既有附件（图片/文件/视频/位置）又有文字 → **共用一个气泡**（同底色同圆角），
  *   中间用一条分隔线而不是空气；
  * - [Separate]：任一者缺席 → 各自保持原样（纯附件裸排布、纯文字单气泡），不为了合并而合并。
  *
- * 位置与语音不并入：它们本身自带完整气泡（坐标卡片 / 转写内嵌），拆开再拼只会重复信息。
+ * 语音不并入：它本身自带完整气泡（转写内嵌），拆开再拼只会重复信息。
+ * 位置并入（A43-6，20261126 用户反馈「位置消息应该是一个整体」）：此前位置不在判定里，
+ * 带配文的位置消息走 Separate——位置卡一条、配文一条，看上去是两条消息。现在 [hasLocation]
+ * 与附件同等参与合并，位置卡进合并气泡的附件位（出卡皮肤，见 [LocationCard]，防双层底色）。
+ * 纯位置消息（无文字）仍是位置气泡单独一条，不回退。
  */
 internal enum class AttachmentTextLayout { Separate, Merged }
 
-internal fun attachmentTextLayout(hasAttachments: Boolean, hasText: Boolean): AttachmentTextLayout =
-    if (hasAttachments && hasText) AttachmentTextLayout.Merged else AttachmentTextLayout.Separate
+internal fun attachmentTextLayout(
+    hasAttachments: Boolean,
+    hasLocation: Boolean,
+    hasText: Boolean,
+): AttachmentTextLayout =
+    if ((hasAttachments || hasLocation) && hasText) AttachmentTextLayout.Merged else AttachmentTextLayout.Separate
 
 /** 气泡形状：四角同一圆角（豆包式，不做「尾巴」）。 */
 @Composable
@@ -566,9 +574,64 @@ fun VideoCard(
 }
 
 /**
- * 位置气泡：坐标两行数字 + 精度标注 + 「在地图打开」。
+ * 位置内容的**无气泡皮肤**（A43-6）：标题行 + 坐标两行数字 + 精度标注 + 「在地图打开」。
+ *
+ * 拆出来是为了让它能进「附件+文字」合并气泡（[attachmentTextLayout] 把 location 计入合并后，
+ * 位置卡坐在合并气泡的附件位上）——再套一层 [TextBubble] 就是气泡里套气泡、双层底色。
+ * 独立位置消息仍用带气泡的 [LocationBubble]。
+ *
  * 组件不画地图也不解地址——按钮点击把回调交给调用方（geo: intent 在业务侧），
  * 所以这里连 Android context 能力都不需要，纯 Compose 就能渲染。
+ */
+@Composable
+fun LocationCardContent(
+    location: MessagePart.Location,
+    onOpenMap: () -> Unit,
+) {
+    val colors = ChatKit.colors
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                Icons.Outlined.LocationOn,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                stringResource(R.string.chatkit_location),
+                fontWeight = FontWeight.SemiBold,
+                fontSize = ChatKit.typography.body,
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            String.format(Locale.US, "%.5f, %.5f", location.latitude, location.longitude),
+            fontSize = ChatKit.typography.secondary,
+        )
+        location.accuracyMeters?.let { meters ->
+            Text(
+                stringResource(R.string.chatkit_location_accuracy, meters),
+                color = colors.secondaryText,
+                fontSize = ChatKit.typography.caption,
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        // 用文本按钮而不是 Button：气泡里的次要操作，颜色跟随气泡 contentColor
+        Text(
+            stringResource(R.string.chatkit_open_in_map),
+            color = ChatKit.colors.accent,
+            fontSize = ChatKit.typography.secondary,
+            modifier = Modifier
+                .clip(RoundedCornerShape(6.dp))
+                .clickable(onClick = onOpenMap)
+                .padding(vertical = 2.dp),
+        )
+    }
+}
+
+/**
+ * 位置气泡：整气泡皮肤（[TextBubble]）+ [LocationCardContent]。
+ * 只有**没有文字**的位置消息走这条（带配文的位置消息进合并气泡，见 [attachmentTextLayout]）。
  */
 @Composable
 fun LocationBubble(
@@ -580,50 +643,12 @@ fun LocationBubble(
     /** 读屏动作，与文字气泡同一套（挂在可点击的气泡节点上）。 */
     screenReaderActions: List<CustomAccessibilityAction> = emptyList(),
 ) {
-    val colors = ChatKit.colors
     TextBubble(
         sender = sender,
         onLongPress = onLongPress,
         modifier = modifier.widthIn(min = 220.dp),
         screenReaderActions = screenReaderActions,
     ) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Outlined.LocationOn,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    stringResource(R.string.chatkit_location),
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = ChatKit.typography.body,
-                )
-            }
-            Spacer(Modifier.height(6.dp))
-            Text(
-                String.format(Locale.US, "%.5f, %.5f", location.latitude, location.longitude),
-                fontSize = ChatKit.typography.secondary,
-            )
-            location.accuracyMeters?.let { meters ->
-                Text(
-                    stringResource(R.string.chatkit_location_accuracy, meters),
-                    color = colors.secondaryText,
-                    fontSize = ChatKit.typography.caption,
-                )
-            }
-            Spacer(Modifier.height(8.dp))
-            // 用文本按钮而不是 Button：气泡里的次要操作，颜色跟随气泡 contentColor
-            Text(
-                stringResource(R.string.chatkit_open_in_map),
-                color = ChatKit.colors.accent,
-                fontSize = ChatKit.typography.secondary,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .clickable(onClick = onOpenMap)
-                    .padding(vertical = 2.dp),
-            )
-        }
+        LocationCardContent(location = location, onOpenMap = onOpenMap)
     }
 }
