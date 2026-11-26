@@ -343,73 +343,18 @@ fun ResultPlaceholder(text: String, modifier: Modifier = Modifier) {
     }
 }
 
-/**
- * 历史详情底部的一排操作。
- *
- * 排版：收藏用纯图标（切换态靠实心/空心星标，不占文字宽度），剩下三项是文字按钮，
- * 每个都 `maxLines = 1 + softWrap = false`，「再拍一题」吃掉剩余宽度。
- *
- * 之前是四个等宽 OutlinedButton 塞一行：4 字标签（取消收藏）在 360dp 宽屏上
- * 每个按钮的文字区只剩 ~40dp，标签必然折成两行，整排按钮高低不齐。
- */
+/** 历史详情底部只保留主操作；管理动作统一收在顶栏「⋯」菜单。 */
 @Composable
 fun HistoryDetailActions(
-    favorite: Boolean,
-    onFavorite: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit,
     onRetake: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    Button(
+        onClick = onRetake,
         modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        OutlinedButton(
-            onClick = onFavorite,
-            contentPadding = PaddingValues(horizontal = 10.dp),
-        ) {
-            Icon(
-                if (favorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                contentDescription = stringResource(
-                    if (favorite) R.string.history_unfavorite else R.string.history_favorite,
-                ),
-                tint = if (favorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        OutlinedButton(
-            onClick = onRename,
-            contentPadding = PaddingValues(horizontal = 12.dp),
-        ) {
-            Text(
-                stringResource(R.string.ui_rename),
-                style = MaterialTheme.typography.labelLarge,
-                maxLines = 1,
-                softWrap = false,
-            )
-        }
-        OutlinedButton(
-            onClick = onDelete,
-            contentPadding = PaddingValues(horizontal = 12.dp),
-        ) {
-            Text(
-                stringResource(R.string.ui_delete),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.error,
-                maxLines = 1,
-                softWrap = false,
-            )
-        }
-        Button(onClick = onRetake, modifier = Modifier.weight(1f)) {
-            Icon(Icons.Filled.CameraAlt, contentDescription = null)
-            Spacer(Modifier.width(6.dp))
-            Text(
-                stringResource(R.string.history_retake),
-                style = MaterialTheme.typography.labelLarge,
-                maxLines = 1,
-                softWrap = false,
-            )
-        }
+        Icon(Icons.Filled.CameraAlt, contentDescription = null)
+        Spacer(Modifier.width(8.dp))
+        Text(stringResource(R.string.history_retake), maxLines = 1, softWrap = false)
     }
 }

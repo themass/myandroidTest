@@ -1,6 +1,7 @@
 package com.openapi.feature.photosolve.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,8 +17,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +53,7 @@ import com.openapi.feature.photosolve.presentation.PhotoSolveResult
 
 /**
  * 解题历史详情：与结果页同样的展示（题目、可折叠思考过程、步骤、答案），
- * 底部多一排管理操作（收藏 / 重命名 / 删除 / 再拍一题）。
+ * 顶栏「⋯」菜单提供收藏 / 重命名 / 删除，底部只留「再拍一题」主操作。
  *
  * 数据从存储读，不依赖刚解完的内存状态，所以关掉 App 再进来看也一样。
  */
@@ -61,6 +69,7 @@ fun SolveHistoryDetailScreen(
     val state by viewModel.uiState.collectAsState()
     var renaming by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
+    var menuExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(recordId) { viewModel.load(recordId) }
 
@@ -79,6 +88,38 @@ fun SolveHistoryDetailScreen(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            if (state.record != null) {
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.ui_more))
+                    }
+                    DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(if (state.record?.favorite == true) R.string.history_unfavorite else R.string.history_favorite)) },
+                            leadingIcon = {
+                                Icon(
+                                    if (state.record?.favorite == true) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                state.record?.let { viewModel.setFavorite(!it.favorite) }
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.ui_rename)) },
+                            leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
+                            onClick = { menuExpanded = false; renaming = true },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.ui_delete), color = MaterialTheme.colorScheme.error) },
+                            leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                            onClick = { menuExpanded = false; deleting = true },
+                        )
+                    }
+                }
+            }
         }
 
         val record = state.record
@@ -91,11 +132,7 @@ fun SolveHistoryDetailScreen(
             else -> DetailBody(
                 record = record,
                 image = state.image,
-                onFavorite = { viewModel.setFavorite(!record.favorite) },
-                onRename = { renaming = true },
-                onDelete = { deleting = true },
                 onRetake = onOpenCamera,
-                onBack = onBack,
             )
         }
     }
@@ -134,11 +171,7 @@ fun SolveHistoryDetailScreen(
 private fun DetailBody(
     record: SolveRecord,
     image: android.graphics.Bitmap?,
-    onFavorite: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit,
     onRetake: () -> Unit,
-    onBack: () -> Unit,
 ) {
     Column(
         Modifier
@@ -181,16 +214,7 @@ private fun DetailBody(
         )
 
         Spacer(Modifier.height(12.dp))
-        HistoryDetailActions(
-            favorite = record.favorite,
-            onFavorite = onFavorite,
-            onRename = onRename,
-            onDelete = onDelete,
-            onRetake = onRetake,
-        )
-        TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.ui_back))
-        }
+        HistoryDetailActions(onRetake = onRetake)
         Spacer(Modifier.height(20.dp))
     }
 }
