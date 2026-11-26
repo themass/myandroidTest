@@ -59,8 +59,13 @@ data class ChatUiState(
      * `app/.../agent/AgentChatState.kt` 的 `QueuedInput`：回合自然结束后由
      * [ReplyStreamer] 取队首续发；用户点停止则清空（中断意图明确）。
      * 只有纯文字走这里——附件/编辑/位置在生成中仍被现有的闸挡住。
+     *
+     * A40：每条带一个本机等 id。「插话」要把这条立刻提交给服务端，并让本机
+     * 新插入的用户气泡用它当 clientMessageId（服务端按它去重、Done 里带回正式
+     * id 后气泡直接换 id）——按 index 定位会在异步回来时错位（队列可能已经变了），
+     * 所以定位必须靠 id。
      */
-    val queued: List<String> = emptyList(),
+    val queued: List<QueuedText> = emptyList(),
 ) {
     /**
      * 文字/附件有内容就能按：生成中不再禁发送键——纯文字走 [queued] 排队，
@@ -71,6 +76,12 @@ data class ChatUiState(
     val selectedCharacter: ChatCharacterOption?
         get() = characters.firstOrNull { it.id == selectedCharacterId }
 }
+
+/**
+ * followup 队列里的一条文字。id 是本机生成的稳定标识（A40：插话/打断要按它定位，
+ * index 在异步操作回来时可能已经错位）。
+ */
+data class QueuedText(val id: String, val text: String)
 
 /** 输入栏里待发送的一个附件。 */
 data class DraftAttachment(

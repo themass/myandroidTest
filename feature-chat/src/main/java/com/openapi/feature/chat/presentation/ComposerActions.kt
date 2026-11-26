@@ -77,10 +77,10 @@ internal class ComposerActions(private val state: MutableStateFlow<ChatUiState>)
      */
     fun withdrawQueued(index: Int) {
         state.update { s ->
-            val text = s.queued.getOrNull(index) ?: return@update s
+            val entry = s.queued.getOrNull(index) ?: return@update s
             s.copy(
                 queued = s.queued.filterIndexed { i, _ -> i != index },
-                input = if (s.input.isBlank()) text else s.input + "\n" + text,
+                input = if (s.input.isBlank()) entry.text else s.input + "\n" + entry.text,
             )
         }
     }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -91,6 +92,10 @@ fun ChatComposer(
     onEditDraftImage: (String) -> Unit = {},
     /** 从「N 条排队中」徽标里撤回第 [index] 条（A36①）。 */
     onRemoveQueued: (Int) -> Unit = {},
+    /** A40：「立刻发出」——把第 [index] 条排队文字马上提交服务端（不等当前回合结束）。 */
+    onPromoteQueued: (Int) -> Unit = {},
+    /** A40：「打断重发」——把第 [index] 条插到队首并取消当前回合。 */
+    onInterruptQueued: (Int) -> Unit = {},
     onVoiceStart: () -> Unit,
     onVoiceStop: () -> Unit,
     onVoiceCancel: () -> Unit,
@@ -154,6 +159,8 @@ fun ChatComposer(
                         // 撤回最后一条后收起：不留一个空展开态
                         if (state.queuedCount == 1) queueExpanded = false
                     },
+                    onPromote = onPromoteQueued,
+                    onInterrupt = onInterruptQueued,
                 )
             }
             // 转文字编辑态：识别文字 + 发送原语音 / 发送 / 取消
@@ -310,6 +317,10 @@ fun ChatComposer(
  * 折叠态只占一行——它必须一直看得见（用户得知道刚按的发送进了队列而不是丢了），
  * 但不能把输入框顶走，所以展开态限高可滚。撤回落回输入框的活儿由调用方决定
  * （feature-chat 直接丢回 input；app/agent 的独立页自己管）。
+ *
+ * A40：每条还有两个「现在就要答案」的出口——「立刻发出」（不等当前回合，服务端裁决
+ * 合并/插话/排队）与「打断重发」（取消当前回合，优先回这条）。三个动作都按 index
+ * 回调；按钮分两行放（文字一行、动作一行），411dp 宽塞三行内联按钮会互相挤。
  */
 @Composable
 internal fun QueuedBadge(
@@ -318,6 +329,8 @@ internal fun QueuedBadge(
     expanded: Boolean,
     onToggle: () -> Unit,
     onRemove: (Int) -> Unit,
+    onPromote: (Int) -> Unit = {},
+    onInterrupt: (Int) -> Unit = {},
 ) {
     val colors = ChatKit.colors
     Column(Modifier.fillMaxWidth().background(colors.surface)) {
@@ -344,33 +357,54 @@ internal fun QueuedBadge(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 160.dp)
+                    .heightIn(max = 200.dp)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp),
             ) {
                 texts.forEachIndexed { index, text ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column {
                         Text(
                             text,
-                            modifier = Modifier.weight(1f),
                             fontSize = ChatKit.typography.secondary,
                             color = colors.secondaryText,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        TextButton(
-                            onClick = { onRemove(index) },
-                            modifier = Modifier.testTag("queued-withdraw-$index"),
-                        ) {
-                            Text(
-                                stringResource(R.string.chatkit_queue_withdraw),
-                                fontSize = ChatKit.typography.caption,
-                                color = colors.accent,
+                        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                            QueuedAction(
+                                label = stringResource(R.string.chatkit_queue_send_now),
+                                tag = "queued-promote-$index",
+                                onClick = { onPromote(index) },
+                            )
+                            QueuedAction(
+                                label = stringResource(R.string.chatkit_queue_interrupt),
+                                tag = "queued-interrupt-$index",
+                                onClick = { onInterrupt(index) },
+                            )
+                            QueuedAction(
+                                label = stringResource(R.string.chatkit_queue_withdraw),
+                                tag = "queued-withdraw-$index",
+                                onClick = { onRemove(index) },
                             )
                         }
                     }
                 }
             }
         }
+    }
+}
+
+/** 徽标展开清单里每行的一个小动作按钮（A40：立刻发出 / 打断重发 / 撤回 共用）。 */
+@Composable
+private fun QueuedAction(label: String, tag: String, onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
+        modifier = Modifier.testTag(tag),
+    ) {
+        Text(
+            label,
+            fontSize = ChatKit.typography.caption,
+            color = ChatKit.colors.accent,
+        )
     }
 }

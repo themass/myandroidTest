@@ -241,7 +241,7 @@ class AgentSseReconnectIntegrationTest {
             )
             val rec = Recorded()
             val job = backgroundScope.launch {
-                collector.collect({ rec.events += it }, null, "a1", null) { rec.persisted += it }
+                collector.collect({ rec.events += it }, null, "a1", null, { rec.persisted += it })
             }
             val frames = listOf(
                 ": keepalive\n\n", // 心跳注释不该产生帧

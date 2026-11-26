@@ -63,4 +63,9 @@ interface ChatStrings {
      * 用户需要知道「不是我没发出去，是上一轮还占着」，以及下一步该做什么。
      */
     fun previousTurnRunning(): String
+    /**
+     * A40「插话」提交失败：这条排队文字已放回输入框。
+     * 用户需要知道两件事：没发出去、文字没丢（在输入框里可以改后再发）。
+     */
+    fun steerSendFailed(): String
 }

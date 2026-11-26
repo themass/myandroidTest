@@ -213,4 +213,57 @@ class TurnEventCollectorTest {
         val d = h.events.last() as ChatStreamEvent.Done
         assertEquals("55", d.assistantId)
     }
+
+    // ---------------------------------------------------------------- A40 restart / skip
+
+    @Test
+    fun restartEventClearsAccAndReappearsWithPostRestartTextOnly() = runTest {
+        // 服务端 merge restart：`turn.restarted` 之后只发新一轮 delta、done 的 fullText
+        // 也只含新一轮。本地已收的旧半截必须作废——否则新回复会拼在旧半截后面重复一遍。
+        val h = Harness { _, _ ->
+            flowOf(
+                delta("t1", "旧半截"),
+                frame(null, "turn.restarted", """{"turn_id":"t1","user_message_ids":[7]}"""),
+                delta("t1", "新回复"),
+                done("t1"),
+            )
+        }
+        h.run()
+        assertTrue(
+            "restart 必须成为显式事件（上层要清气泡）",
+            h.events.any { it is ChatStreamEvent.Restarted },
+        )
+        assertEquals(listOf("旧半截", "新回复"), h.deltas())
+        val d = h.events.last() as ChatStreamEvent.Done
+        assertEquals("persist 只含重跑后的文字", "新回复", h.persisted.single())
+        assertEquals("新回复", d.fullText)
+    }
+
+    @Test
+    fun skipTurnIdLatchesOnTheFirstDifferentTurn() = runTest {
+        // A40「接住下一回合」：订阅时上一轮（t-old）还在跑。它的 snapshot/delta/done
+        // 一律咽掉——否则会在别人的回合上固定锁扣，真正要接的排空回合反而被当串台丢掉。
+        val events = mutableListOf<ChatStreamEvent>()
+        val persisted = mutableListOf<String>()
+        TurnEventCollector(
+            open = { flowOf(
+                snapshot("t-old", "上一轮的尾巴"),
+                done("t-old", assistantId = 11L),
+                delta("t-new", "排空回合的回复"),
+                done("t-new", assistantId = 22L),
+            ) },
+            parse = ::parseAgentEvent,
+        ).collect(
+            emit = { events += it },
+            expectedTurnId = null,
+            assistantLocalId = "a1",
+            userMessageId = null,
+            persist = { persisted += it },
+            skipTurnId = "t-old",
+        )
+        assertEquals(listOf("排空回合的回复"), events.filterIsInstance<ChatStreamEvent.Delta>().map { it.text })
+        val d = events.last() as ChatStreamEvent.Done
+        assertEquals("22", d.assistantId)
+        assertEquals("跳过的回合不得 persist", listOf("排空回合的回复"), persisted)
+    }
 }

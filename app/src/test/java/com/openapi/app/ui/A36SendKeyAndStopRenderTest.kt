@@ -14,6 +14,7 @@ import com.openapi.chatkit.model.VoiceStyle
 import com.openapi.feature.chat.domain.model.ChatMessage
 import com.openapi.feature.chat.domain.model.ChatRole
 import com.openapi.feature.chat.presentation.ChatUiState
+import com.openapi.feature.chat.presentation.QueuedText
 import com.openapi.feature.chat.presentation.ui.ChatScreen
 import com.openapi.feature.chat.roles.domain.SelectedRole
 import org.junit.Rule
@@ -48,6 +49,8 @@ class A36SendKeyAndStopRenderTest {
 
     private var stopped = 0
     private var withdrawn = mutableListOf<Int>()
+    private var promoted = mutableListOf<Int>()
+    private var interrupted = mutableListOf<Int>()
 
     private fun render(state: ChatUiState) {
         compose.setContent {
@@ -61,6 +64,8 @@ class A36SendKeyAndStopRenderTest {
                 onStop = { stopped += 1 },
                 onRemoveDraft = {},
                 onRemoveQueued = { withdrawn += it },
+                onPromoteQueued = { promoted += it },
+                onInterruptQueued = { interrupted += it },
                 onVoiceRecordStart = {},
                 onVoiceRecordStop = {},
                 onVoiceRecordCancel = {},
@@ -124,13 +129,32 @@ class A36SendKeyAndStopRenderTest {
         compose.onNodeWithTag("stop-generating").assertDoesNotExist()
     }
 
-    /** ①：排队徽标显示条数；点「展开」出现逐条「撤回」；撤回走 onRemoveQueued(index)。 */
+    /** ①：排队徽标显示条数；点「展开」出现逐条按钮；撤回走 onRemoveQueued(index)。 */
     @Test
     fun queueBadgeExpandsAndWithdraws() {
-        render(ChatUiState(streaming = true, input = "还要发", queued = listOf("排队甲", "排队乙")))
+        render(ChatUiState(
+            streaming = true, input = "还要发",
+            queued = listOf(QueuedText("q-0", "排队甲"), QueuedText("q-1", "排队乙")),
+        ))
         compose.onNodeWithText("2 条排队中").assertIsDisplayed()
         compose.onNodeWithText("展开").performClick()
         compose.onNodeWithTag("queued-withdraw-0").performClick()
         check(withdrawn == listOf(0)) { "撤回必须按 index 回调（实到 $withdrawn）" }
+    }
+
+    /** A40：展开后每条排队文字都有「立刻发出 / 打断重发」，按 index 回调。 */
+    @Test
+    fun queueBadgeOffersPromoteAndInterrupt() {
+        render(ChatUiState(
+            streaming = true,
+            queued = listOf(QueuedText("q-0", "排队甲"), QueuedText("q-1", "排队乙")),
+        ))
+        compose.onNodeWithText("展开").performClick()
+        // 排队文字本身要可见（用户要确认发的是哪条）
+        compose.onNodeWithText("排队乙").assertIsDisplayed()
+        compose.onNodeWithTag("queued-promote-1").performClick()
+        compose.onNodeWithTag("queued-interrupt-0").performClick()
+        check(promoted == listOf(1)) { "立刻发出必须按 index 回调（实到 $promoted）" }
+        check(interrupted == listOf(0)) { "打断重发必须按 index 回调（实到 $interrupted）" }
     }
 }

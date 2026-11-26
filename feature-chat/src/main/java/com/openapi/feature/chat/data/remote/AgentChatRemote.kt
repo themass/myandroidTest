@@ -130,6 +130,9 @@ class AgentChatRemote(
         return AgentSubmitReceipt(
             messageId = json.optLong("message_id", 0L),
             turnId = json.optString("turn_id", "").takeIf { it.isNotEmpty() },
+            // A40：服务端对「回合进行中的提交」的裁决（started/merged/steered/queued）。
+            // 排队消息点「立刻发出」靠它决定接法；旧调用点不读这个字段，行为不变。
+            disposition = json.optString("disposition", "").takeIf { it.isNotEmpty() },
         )
     }
 
@@ -490,6 +493,11 @@ data class AgentMessageVo(
 
 data class AgentHistoryPage(val items: List<AgentMessageVo>, val hasMore: Boolean)
 
-data class AgentSubmitReceipt(val messageId: Long, val turnId: String?)
+data class AgentSubmitReceipt(
+    val messageId: Long,
+    val turnId: String?,
+    /** A40：`started`/`merged`/`steered`/`queued`（服务端 submit 回执）；旧服务端不带时为 null。 */
+    val disposition: String? = null,
+)
 
 data class AgentSseFrame(val id: String?, val event: String, val data: String)

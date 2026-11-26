@@ -21,6 +21,14 @@ sealed interface ChatStreamEvent {
     data class Done(val assistantId: String?, val userId: String?, val fullText: String) : ChatStreamEvent
 
     /**
+     * A40：本轮被服务端**原地重跑**（`turn.restarted`，合并进来的新输入在首个 token 前
+     * 触发了 restart，见服务端 turn_runner 的 `_run`）。重跑后服务端只发新一轮的 delta，
+     * done 帧的 fullText 也只含新一轮——所以收到它必须把气泡与缓冲区**清零重来**，
+     * 不能把重启前后的文字拼在一起（那是「回复重复一遍」的成因）。
+     */
+    data class Restarted(val messageId: String) : ChatStreamEvent
+
+    /**
      * 请求失败或服务端在流中报错。[userMessageId] 是服务端已保存的用户消息 id（错误帧带来时才有），
      * 有它时重试直接用服务端 id，没有则退回到用本地 id 重发文字。
      *
