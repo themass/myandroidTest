@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.GraphicEq
@@ -97,9 +98,11 @@ internal fun ScreeningSound(
     LaunchedEffect(hubs, hubChannel) { if (hubChannel != null) hubs.load() }
     LaunchedEffect(tracksPager, hubParam) { if (hubParam != null) tracksPager.load() }
 
-    val tracks = remember(tracksPager.items) {
-        tracksPager.items.mapIndexedNotNull { i, e -> e.soundTrackRef(i) }
-    }
+    // 就地派生，别拿 pager 的 items 当 remember 的 key（A40 用户 2026-11-26「曲目列表是空的」）：
+    // FeedPager.items 是同一个 mutableStateListOf、取数翻页都在原地增删，
+    // remember 的 key 按实例比永远相等——派生表第一次算完再也不重算，列表空屏。
+    // 读取 items 本身就在快照里，Compose 按内容自动重算这一行。
+    val tracks = tracksPager.items.mapIndexedNotNull { i, e -> e.soundTrackRef(i) }
     var currentIndex by rememberSaveable { mutableIntStateOf(-1) }
     val soundPreferences = remember(context) {
         context.getSharedPreferences("screening_sound", android.content.Context.MODE_PRIVATE)
@@ -340,11 +343,7 @@ private fun SoundHubPicker(
     onExit: () -> Unit,
     onOpenHub: (String) -> Unit,
 ) {
-    LaunchedEffect(state, pager) {
-        snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged()
-            .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
-    }
+    feedShouldLoadMore(state, pager)
     val rows = pager.items
     FeedListShell(
         pager = pager,
@@ -624,11 +623,7 @@ private fun SoundTrackHub(
         val nextIndex = nextSoundTrackIndex(playbackMode, currentIndex, tracks.size)
         if (nextIndex == null) playbackEnded = false else latestPlayAt(nextIndex)
     }
-    LaunchedEffect(state, pager) {
-        snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged()
-            .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
-    }
+    feedShouldLoadMore(state, pager)
     var positionMs by remember { mutableLongStateOf(0L) }
     var durationMs by remember { mutableLongStateOf(1L) }
     val playing = player?.isPlaying == true
@@ -687,7 +682,8 @@ private fun SoundTrackHub(
                 if (pager.loading && tracks.isEmpty()) ListSkeleton(rowHeight = 56.dp)
             }
             if (!pager.loading && tracks.isEmpty()) {
-                item { Text("这个频道还没有音频。", Modifier.padding(14.dp), color = Muted) }
+                // 空态按搜索态分支（用户 2026-11-26：搜 0 结果仍印列表口径，看不出是「没搜到」）。
+                item { Text(feedEmptyCopy(pager.keyword, "这个频道还没有音频。"), Modifier.padding(14.dp), color = Muted) }
             }
             items(tracks.size) { index ->
                 val track = tracks[index]
@@ -732,6 +728,15 @@ private fun SoundTrackHub(
                             contentDescription = if (isFavorite) "取消收藏" else "收藏",
                             tint = if (isFavorite) Peach else White,
                         )
+                    }
+                    // 分享（A40 用户 2026-11-26）：与收藏并排，发这条曲目的身份地址
+                    // （服务端 fileUrl，不是播放器临时地址）；没有地址不出现按钮。
+                    if (current.fileUrl.isNotBlank()) {
+                        IconButton(onClick = {
+                            com.openapi.common.ui.share.ShareKit.shareText(context, current.fileUrl, subject = current.title)
+                        }) {
+                            Icon(Icons.AutoMirrored.Filled.Send, "分享", tint = White)
+                        }
                     }
                     TextButton(onClick = { subtitlesVisible = !subtitlesVisible }) {
                         Text(if (subtitlesVisible) "字幕中" else "字幕", color = if (subtitlesVisible) Mint else White, fontSize = 12.sp)

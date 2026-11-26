@@ -126,6 +126,19 @@ class CompanionModelsTest {
     }
 
     @Test
+    fun `kind img is the same image kind the chat side accepts`() {
+        // A40（用户 2026-11-26）：服务端图片附件两种写法都有（"image" 与 "img"）。
+        // 这里只收 "image" 的话，同一批数据 chat 显示、陪伴页不显示——解析边界必须认同一个。
+        val item = CompanionHistoryItem.from(
+            JSONObject(
+                """{"role":"user","content":"img 写法",
+                   "attachments":[{"upload_id":"u1","kind":"img","name":"a.jpg"}]}""",
+            ),
+        )
+        assertEquals(listOf("u1"), item.attachmentIds)
+    }
+
+    @Test
     fun `an attachment without a kind field is treated as an image`() {
         // 缺 kind 按 image 解释，与 chat 侧 optString("kind","image") 的默认一致；
         // 两边默认不一致的话，同一批数据在两个页面会出现一边有一边没有。

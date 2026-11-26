@@ -63,13 +63,15 @@ data class CompanionHistoryItem(
          * 某一项没有 `upload_id` → 只跳过那一项（没有 id 就换不到 URL，留着只会渲染出一个
          * 点不动的灰块）。读不回历史从来不该挡住用户开始说话。
          *
-         * 只收 `kind == "image"`：「对话」页把视频/文件附件与图片走**同一条** attachments
-         * 通道提交（`kind: "video" / "file"`），而这里的每个 id 最终都进 `MessagePart.Images`
+         * 只收图片 kind：`"image"` 与 `"img"`（服务端两种写法都发过，A40 用户 2026-11-26
+         * 「图集消息不显示」——chat 侧认了 "img"、这里不认的话，同一条消息一边有一边没有）。
+         * 「对话」页把视频/文件附件与图片走**同一条** attachments 通道提交
+         * （`kind: "video" / "file"`），而这里的每个 id 最终都进 `MessagePart.Images`
          * ——视频 URL 交给 Coil 必然失败，用户会看到一张「图片加载失败」的坏图卡。缺 `kind`
          * 按 image 解释，与 chat 侧 `optString("kind", "image")` 的默认保持一致。
          *
          * 措辞要说准（台账 minor）：**显式的 `"kind": ""` 走的是「丢掉」而不是「按 image 默认」**——
-         * `optString` 只在键缺失时用默认值，空串是个真实值，`takeIf { it == "image" }` 判不过。
+         * `optString` 只在键缺失时用默认值，空串是个真实值，图片 kind 集合判不过。
          * 服务端不会发空 kind（它按 image/video 写），chat 侧同款写法也是同样结果，所以这是
          * 行为一致的边角，不是缺陷；但「缺 kind 按 image」这句盖不到它，所以写清楚。
          */
@@ -80,7 +82,7 @@ data class CompanionHistoryItem(
                 if (arr == null) emptyList()
                 else (0 until arr.length()).mapNotNull { i ->
                     arr.optJSONObject(i)?.let { a ->
-                        a.optString("kind", "image").takeIf { it == "image" }
+                        a.optString("kind", "image").takeIf { it == "image" || it == "img" }
                             ?.let { a.optString("upload_id").trim().takeIf { id -> id.isNotEmpty() } }
                     }
                 }

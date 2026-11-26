@@ -172,7 +172,8 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
             // needLazyUrl 的条目这一步才拿到真正能播的地址
             val url = store.playUrl(entry)
             forward = true
-            selection = ScreeningSource(entry.title, entry.description, uri = Uri.parse(url), key = entry.key)
+            // shareUrl=服务端身份地址：分享发它，不发 uri（懒播放地址带时效签名，发出去会过期）。
+            selection = ScreeningSource(entry.title, entry.description, uri = Uri.parse(url), key = entry.key, shareUrl = entry.actionUrl)
             opening = false
         }
     }
@@ -563,10 +564,7 @@ private fun ChannelsFeed(
     }
     val listState = remember(category) { LazyListState() }
     LaunchedEffect(pager) { pager.load() }
-    LaunchedEffect(listState, pager) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 4) pager.loadMore() }
-    }
+    feedShouldLoadMore(listState, pager)
     val cards = pager.items.filter { routeOf(it) != FeedRoute.PLAY }
     // 疑点（台账外备注，PLAUSIBLE 未改）：这条过滤把 routeOf==PLAY 的卡挡在网格外，
     // 而 hero 取的是未过滤的 items——若服务端有数据但全是可播卡，就会出现
@@ -781,10 +779,7 @@ private fun Library(
             if (!progress.containsKey(entry.key)) progress[entry.key] = storedProgress(preferences, entry.key)
         }
     }
-    LaunchedEffect(listState, pager) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 4) pager.loadMore() }
-    }
+    feedShouldLoadMore(listState, pager)
     val shown = pager.items.filter { filter != "未观看" || (progress[it.key] ?: 0L) == 0L }
     val resume = pager.items.firstOrNull { (progress[it.key] ?: 0L) > 0L }
     val seen = remember(page) { mutableSetOf<String>() }
@@ -852,6 +847,8 @@ private fun Library(
             Column(Modifier.padding(14.dp)) {
                 Text(
                     when {
+                        // 搜索 0 结果先说「没搜到」再谈列表口径（用户 2026-11-26）。
+                        pager.keyword.isNotBlank() -> feedEmptyCopy(pager.keyword, "")
                         page.kind == ScreeningPageKind.SUBCHANNELS -> "这个频道服务端还没配子频道。"
                         filter == "未观看" -> "这一页没有内容。切回「全部」或者返回上一个频道。"
                         else -> "这个频道服务端还没上片单。"

@@ -42,12 +42,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,6 +72,7 @@ import com.google.android.material.imageview.ShapeableImageView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 /**
@@ -136,7 +139,9 @@ internal fun FeedListShell(
                     onSubmit = {
                         val q = it.trim()
                         if (q != pager.keyword) pager.search(q)
-                        if (q.isEmpty()) scrollScope.launch { state.animateScrollToItem(0) }
+                        // 提交任何搜索都回顶（用户 2026-11-26：搜索结果从第一屏看起；
+                        // 以前只有清空词才回顶，带词提交后列表停在上一次滚到的位置）。
+                        scrollScope.launch { state.animateScrollToItem(0) }
                     },
                     onClear = {
                         draft = ""
@@ -227,6 +232,61 @@ private fun SearchRow(
 }
 
 /**
+ * 触底续页的判定（用户 2026-11-26 点名：所有子页「上滑加载更多」失效）。
+ *
+ * 旧写法八个调用点各写一遍 `index >= pager.items.size - k`——拿 LazyColumn 的
+ * **item 下标**去比**数据条数**：网格页把 N 条 chunked 成 N/3 行、外面还有头卡
+ * 和页脚 item，下标永远够不到条数，loadMore() 一次都不发。正确的信号只有一个：
+ * 列表已经不能继续向前滚（到底）且服务端说还有下一页且不在取数中。
+ * 收成一个纯函数，八个调用点统一走 feedShouldLoadMore(state, pager)。
+ */
+internal fun feedShouldLoadMore(
+    lastVisibleIndex: Int,
+    totalItemsCount: Int,
+    canScrollForward: Boolean,
+    hasMore: Boolean,
+    loading: Boolean,
+): Boolean =
+    !canScrollForward && hasMore && !loading && lastVisibleIndex >= 0 && totalItemsCount > 0
+
+/**
+ * 触底续页的唯一触发器：把 (最后可见 item 下标, 总 item 数, 能否继续向前滚) 收成
+ * 一个 Triple，变化时才判 [feedShouldLoadMore]（用户 2026-11-26：所有翻页列表共用）。
+ * 注意判的是**列表还能不能滚**——不是数据条数算术，网格页 chunked 成行同样成立；
+ * 重复页空转由 [FeedPager.loadMore] 的 append 闸挡住。
+ */
+@Composable
+internal fun feedShouldLoadMore(state: LazyListState, pager: FeedPager) {
+    LaunchedEffect(state, pager) {
+        snapshotFlow {
+            Triple(
+                state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1,
+                state.layoutInfo.totalItemsCount,
+                state.canScrollForward,
+            )
+        }.distinctUntilChanged().collect { (last, total, canForward) ->
+            if (feedShouldLoadMore(last, total, canForward, pager.hasMore, pager.loading)) pager.loadMore()
+        }
+    }
+}
+
+/**
+ * 空列表文案按搜索态分支（用户 2026-11-26：搜索 0 结果时空态还是列表口径，
+ * 用户以为频道本身没内容）。未搜索保留各页自己的列表口径；搜索中必须说出
+ * 「是没搜到」并给下一步——换词。四个可搜索列表共用，文案不再在页面各写各的。
+ */
+internal fun feedEmptyCopy(keyword: String, fallback: String): String =
+    if (keyword.isBlank()) fallback else "没有找到「${keyword.trim()}」，换个词试试。"
+
+/**
+ * 图集册内取数的路由判定（用户 2026-11-26：走到尾续后新搜索被静默丢词——
+ * fetch 闭包只看 tailItemUrl，置位后 keyword 再也进不了请求）。规则：只有
+ * 「没有搜索词」时才走 item/page.json 尾续；一旦有词，走回 albumImages 带词取。
+ */
+internal fun albumImagesUseTail(tailItemUrl: String?, keyword: String): Boolean =
+    tailItemUrl != null && keyword.isBlank()
+
+/**
  * 一页可分页的服务端列表状态：首屏、翻页、失败重试。
  *
  * 频道列表、频道里的片单、图集列表、图集内的图片都用这一个形状，页面只认它。
@@ -262,11 +322,18 @@ internal class FeedPager(
 
     private var nextStart: Int? = 0
     private var requested = false
+    /**
+     * 防空转：上一次 append 取回后 [items] 条数没涨（服务端回重复页等），
+     * 「到底」判定会原地反复重发同一枪——标记置位后 [loadMore] 直接返回，
+     * 直到 [load]/[reload]/[search] 重新起头才清。
+     */
+    private var appendStalled = false
 
     /** 首屏。已经取过就不重复取，重组不该反复打接口。 */
     fun load() {
         if (requested) return
         requested = true
+        appendStalled = false
         request(nextStart ?: 0, append = false)
     }
 
@@ -274,6 +341,7 @@ internal class FeedPager(
     fun reload() {
         nextStart = 0
         requested = true
+        appendStalled = false
         request(0, append = false)
     }
 
@@ -287,8 +355,7 @@ internal class FeedPager(
         keyword = newKeyword.trim()
         reload()
     }
-
-    /** 翻下一页；滚到底时调用。 */
+    /** 翻下一页；列表滚到底时调用（判定见 [feedShouldLoadMore]）。 */
     fun loadMore() {
         val start = nextStart ?: return
         if (loading) return
@@ -296,6 +363,9 @@ internal class FeedPager(
         // 少了这道闸，失败 → 空列表 → 触底判定恒真 → 再取 → loading 转圈改变布局 → 又触发判定，
         // 会自己转起来无限拉。首屏只归 load()/reload() 管。
         if (items.isEmpty() && start == 0) return
+        // 上一枪 append 取回后条数没涨（服务端回重复页）：同一位置重发没有意义，
+        // 用户 2026-11-26 点名「加载更多」族问题的防空转闸；重新起头（load/reload/search）才放开。
+        if (appendStalled) return
         request(start, append = true)
     }
 
@@ -342,8 +412,12 @@ internal class FeedPager(
             refreshing = false
             page.fold(
                 onSuccess = { data ->
+                    val before = items.size
                     if (!append) items.clear()
                     items.addAll(data.items)
+                    // append 取回后条数没涨＝服务端回的是重复页：封住 loadMore，
+                    // 别再对同一位置空转（见 [appendStalled]）。真涨了就照常放行。
+                    appendStalled = append && items.size == before
                     nextStart = data.nextStart
                     hasMore = data.hasMore
                     error = null
@@ -441,20 +515,57 @@ internal fun ShimmerPlaceholder(modifier: Modifier = Modifier, shape: androidx.c
 internal val ImagePlaceholderRes = com.openapi.core.R.drawable.img_bg
 
 /**
- * 服务端封面：Glide 加载远程图，加载中/失败/没有地址都落到 `img_bg`，不留空洞。
+ * 一张封面的加载状态：加载中 → 成功 / 失败。
+ *
+ * 收成纯类是因为「扫光什么时候收」是这条链上唯一会骗用户的地方：
+ * 收早了露出空白，收晚了失败也一直被读成「还在加载」。Glide 的
+ * [com.bumptech.glide.request.RequestListener] 直接喂 [onStart]/[onReady]/[onFailed]，
+ * 状态本身不需要真机就能验。字段是快照状态：Glide 的回调在 UI 线程改它，
+ * 必须有快照才能把扫光收掉（纯 `var` 改完屏幕不会重绘）。
+ */
+internal class CoverLoadState {
+    var showShimmer by androidx.compose.runtime.mutableStateOf(true)
+        private set
+    var failed by androidx.compose.runtime.mutableStateOf(false)
+        private set
+
+    /** 新请求开始（首次进入或 view 复用重试）。 */
+    fun onStart() {
+        showShimmer = true
+        failed = false
+    }
+
+    fun onReady() {
+        showShimmer = false
+        failed = false
+    }
+
+    /** 取不到图：不再扫光，露出静态 [ImagePlaceholderRes]——这才是「真没图」。 */
+    fun onFailed() {
+        showShimmer = false
+        failed = true
+    }
+}
+
+/**
+ * 服务端封面：Glide 加载远程图，加载中盖扫光，失败/没有地址落到 `img_bg`，不留空洞。
  *
  * 用 [AndroidView] 包 Glide，而不是另找一个 Compose 图片库：项目里远程图一律走
  * `Glide.with(view).load(url)`（见 `ChannelCardLoaders`），这样共用同一份磁盘缓存和
  * 已配好代理/超时的 OkHttp loader，不用再配一套。
  *
+ * 【A40】加载中必须有等待信号。以前只挂 `.placeholder(img_bg)`：图慢的时候是一块
+ * 静底，用户读成「这块位置本来就没图」，跟「服务端就是没图」再也分不出来
+ * （台账 A28 是另一半：少了 error 底）。现在由 RequestListener 把状态交给
+ * [CoverLoadState]，加载中在图上叠 [ShimmerPlaceholder]（全站唯一的等待语言），
+ * 落地/失败都把扫光收掉，失败留 img_bg 静态底。
+ *
  * 【规矩·A28】`img_bg`（`:core` 的 `drawable-xxhdpi/img_bg.png`）是全 App 统一的
  * 图片占位图兼加载失败默认图——旧代码每条 Glide 链都挂它
  * （`core` 的 `ImagePhotoLoad.options/optionsHigh`、`feature-content` 的
  * `FullScreenImagePagerAdapter`）。新代码接远程图必须同时挂
- * `.placeholder(img_bg)` 和 `.error(img_bg)`：少了 placeholder，图落地前是一块纯色底，
- * 用户读成「这块位置本来就没图」；少了 error，图挂了就一直留着那块纯色底，
- * 和「服务端就是没图」再也分不出来。这条以前在 Compose 迁移时漏掉了（台账 A28），
- * 现在由 [ImagePlaceholderRes] 一处收口。
+ * `.placeholder(ImagePlaceholderRes)` 和 `.error(ImagePlaceholderRes)`；
+ * 这条以前在 Compose 迁移时漏掉了（台账 A28），现在由 [ImagePlaceholderRes] 一处收口。
  */
 @Composable
 internal fun RemoteCover(url: String?, modifier: Modifier = Modifier) {
@@ -470,19 +581,51 @@ internal fun RemoteCover(url: String?, modifier: Modifier = Modifier) {
         )
         return
     }
-    AndroidView(
-        modifier = modifier,
-        factory = {
-            ShapeableImageView(context).apply {
-                scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-                // 短交叉淡入而不是硬切：远程图落地时不闪白块
-                Glide.with(this).load(url).centerCrop()
-                    .placeholder(ImagePlaceholderRes).error(ImagePlaceholderRes)
-                    .transition(DrawableTransitionOptions.withCrossFade(180)).into(this)
-            }
-        },
-        onRelease = { view -> runCatching { Glide.with(view).clear(view) } },
-    )
+    val state = remember(url) { CoverLoadState() }
+    Box(modifier) {
+        AndroidView(
+            modifier = Modifier.matchParentSize(),
+            factory = {
+                ShapeableImageView(context).apply {
+                    scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                    // 短交叉淡入而不是硬切：远程图落地时不闪白块
+                    Glide.with(this).load(url).centerCrop()
+                        .placeholder(ImagePlaceholderRes).error(ImagePlaceholderRes)
+                        .transition(DrawableTransitionOptions.withCrossFade(180))
+                        .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                            override fun onLoadFailed(
+                                e: com.bumptech.glide.load.engine.GlideException?,
+                                model: Any?,
+                                target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
+                                isFirstResource: Boolean,
+                            ): Boolean {
+                                state.onFailed()
+                                // 不拦截：Glide 自己的 .error(img_bg) 继续落静态底。
+                                return false
+                            }
+
+                            override fun onResourceReady(
+                                resource: android.graphics.drawable.Drawable,
+                                model: Any,
+                                target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                                dataSource: com.bumptech.glide.load.DataSource,
+                                isFirstResource: Boolean,
+                            ): Boolean {
+                                state.onReady()
+                                return false
+                            }
+                        })
+                        .into(this)
+                }
+            },
+            // 列表复用/离开组合：clear 掉请求，防止已废弃的 state 被后续回调命中
+            // （扫光收了又复现、或失败态盖住新图）。与 A28 的泄漏钉子同源。
+            onRelease = { view -> runCatching { Glide.with(view).clear(view) } },
+        )
+        if (state.showShimmer) {
+            ShimmerPlaceholder(Modifier.matchParentSize())
+        }
+    }
 }
 
 /**

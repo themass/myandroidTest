@@ -1,5 +1,6 @@
 package com.openapi.feature.video.screening
 
+import android.annotation.SuppressLint
 import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -98,7 +99,15 @@ internal fun ScreeningText(
                 hub != null -> 1
                 else -> 0
             },
-            transitionSpec = { screenSlide(motion, slidePx, targetState > initialState) },
+            transitionSpec = {
+                if (initialState == 2) {
+                    // 从阅览层退回（A40「快速进出闪退」）：AnimatedContent 的退场内容要演完
+                    // 动画才走 onRelease——WebView 的 destroy 跟着拖到动效结束。连点进出时
+                    // 两三个 Chromium 渲染核叠着解码大图，就是 OOM 现场。退回时旧阅览层
+                    // 零时长退场（当场 release/destroy），入场照常滑入。
+                    screenSlideNoExit(motion, slidePx, targetState > initialState)
+                } else screenSlide(motion, slidePx, targetState > initialState)
+            },
             label = "textLevel",
         ) { level ->
             when (level) {
@@ -153,11 +162,7 @@ private fun TextHubPicker(
     onExit: () -> Unit,
     onOpenHub: (String) -> Unit,
 ) {
-    LaunchedEffect(state, pager) {
-        snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged()
-            .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
-    }
+    feedShouldLoadMore(state, pager)
     val rows = pager.items
     FeedListShell(
         pager = pager,
@@ -209,11 +214,7 @@ private fun TextArticleList(
     onBack: () -> Unit,
     onOpenBody: (RemoteEntry) -> Unit,
 ) {
-    LaunchedEffect(state, pager) {
-        snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged()
-            .collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
-    }
+    feedShouldLoadMore(state, pager)
     val rows = pager.items
     FeedListShell(
         pager = pager,
@@ -230,7 +231,8 @@ private fun TextArticleList(
             if (pager.loading && rows.isEmpty()) ListSkeleton(rowHeight = 56.dp)
         }
         if (!pager.loading && rows.isEmpty()) {
-            item { Text("这个频道还没有文章。", Modifier.padding(14.dp), color = Muted) }
+            // 空态按搜索态分支（用户 2026-11-26：搜 0 结果仍印列表口径，看不出是「没搜到」）。
+            item { Text(feedEmptyCopy(pager.keyword, "这个频道还没有文章。"), Modifier.padding(14.dp), color = Muted) }
         }
         items(rows.size) { index ->
             val entry = rows[index]
@@ -344,7 +346,69 @@ internal fun articleBodyHtml(body: String): String =
         "a{color:#0B5CAB;}" +
         "table{max-width:100%;}" +
         "</style>" +
-        "</head><body>" + lazyLoadImages(body) + "</body></html>"
+        "</head><body>" + lazyLoadImages(normalizeBodyImages(body)) + "</body></html>"
+
+/**
+ * 正文图片地址归一化（A40「文章页图片经常没有」用户 2026-11-26，两条根因都在 HTML 里）：
+ *
+ * ① **懒加载**：Discuz 帖子的图把真地址藏在 `data-src`，`src` 是占位
+ *   （`static/image/common/blank.gif` 一类）。旧文章页靠论坛自带的懒加载 JS 把
+ *   data-src 换进 src；1312b454 把 JS 一刀切关掉后，图片就只剩占位图。
+ *   这里端上先把 data-src 顶替成 src——不再依赖页面脚本才显形。
+ * ② **明文**：帖子存的绝对地址是 `http://`，而 network_security_config 全局禁明文，
+ *   Chromium 发起请求前就被系统掐掉（logcat 里连失败响应都没有）。非白名单域一律
+ *   升级 https；白名单只有 `www.ok123find.top`（还没配 https，配置文件里单独放行明文），
+ *   对它的地址升级反而会握手失败——所以那一条必须不动。
+ *
+ * 只动 `<img>` 标签：正文文字与普通链接里的 URL 原样保留。
+ */
+internal fun normalizeBodyImages(body: String): String =
+    IMG_TAG.replace(body) { match ->
+        var tag = match.value
+        // ① data-src 顶替 src（没有 src 属性时补一个）。
+        val real = DATA_SRC_ATTR.find(tag)?.groupValues?.get(1)?.trim()?.takeIf { it.isNotEmpty() }
+        if (real != null) {
+            tag = if (SRC_ATTR.containsMatchIn(tag)) {
+                tag.replace(SRC_ATTR) { """src="$real"""" }
+            } else {
+                IMG_OPEN.find(tag)?.let { m ->
+                    tag.substring(0, m.range.last + 1) + """ src="$real"""" + tag.substring(m.range.last + 1)
+                } ?: tag
+            }
+        }
+        // ② 值以 http:// 开头的图片地址升级 https（白名单域除外）。
+        HTTP_VALUE.replace(tag) { m ->
+            val url = m.groupValues[1]
+            if (cleartextAllowedHost(url)) m.value else "\"https://" + url.substring("http://".length) + "\""
+        }
+    }
+
+/** 放行明文的域：与 `app/src/main/res/xml/network_security_config.xml` 的 domain-config 逐字对齐（includeSubdomains=false，所以精确匹配）。 */
+private const val CLEARTTEXT_ALLOWED_HOST = "www.ok123find.top"
+
+private fun cleartextAllowedHost(url: String): Boolean =
+    url.substringAfter("://", "").substringBefore('/', "") == CLEARTTEXT_ALLOWED_HOST
+
+/**
+ * 正文的 baseUrl：帖子 HTML 里的相对地址（`/data/attachment/…`、`static/…`）没有 base
+ * 就解析不出来——`loadDataWithBaseURL(null, …)` 等于告诉 Chromium「这页不属于任何站点」，
+ * 相对图片请求直接被丢弃（A40 图片缺失的另一条根因；旧页面走真实 URL 加载才没这问题）。
+ * 论坛站点根就是这些相对路径的家；该域在网络安全配置里单独放行明文（只有 http）。
+ */
+internal val TEXT_BODY_BASE_URL = com.openapi.core.config.CommonConstants.MAIN_URL
+
+private val IMG_TAG = Regex("(?i)<img\\b[^>]*>")
+private val IMG_OPEN = Regex("(?i)<img\\b")
+private val LOADING_ATTR = Regex("(?i)\\bloading\\s*=")
+
+/** 懒加载真址：`data-src="…"`。 */
+private val DATA_SRC_ATTR = Regex("""(?i)\bdata-src\s*=\s*"([^"]*)"""")
+
+/** 真正的 src——lookbehind 排除 `data-src`（`-` 也算词边界，不加就会误伤）。 */
+private val SRC_ATTR = Regex("""(?i)(?<!data-)\bsrc\s*=\s*"[^"]*"""")
+
+/** 属性值里的明文 URL。 */
+private val HTTP_VALUE = Regex(""""(http://[^"]*)"""")
 
 /**
  * 连图懒加载：帖子正文里的 `<img>` 一律补 `loading="lazy"`（WebView 即 Chromium，
@@ -360,10 +424,6 @@ internal fun lazyLoadImages(body: String): String =
             tag.substring(0, m.range.last + 1) + " loading=\"lazy\"" + tag.substring(m.range.last + 1)
         } ?: tag
     }
-
-private val IMG_TAG = Regex("(?i)<img\\b[^>]*>")
-private val IMG_OPEN = Regex("(?i)<img\\b")
-private val LOADING_ATTR = Regex("(?i)\\bloading\\s*=")
 
 @Composable
 private fun TextHtmlBody(html: String, onSwipeBack: () -> Unit) {
@@ -382,14 +442,17 @@ private fun TextHtmlBody(html: String, onSwipeBack: () -> Unit) {
             WebView(context).apply {
                 // 纸面白而不是透明：深色屏幕上透明=黑底，而帖子正文没声明颜色（天生黑字）。
                 setBackgroundColor(PAPER_RGB.toInt())
-                // JS 关掉（用户 2026-11-25：「去除错误的 js 之类的噪音」）：
-                // 正文 item.json 回的是论坛帖子 HTML 片段，旧文章页（MyWebView.loadHtmlBody）
-                // 从来不开 JS；开 JS 只会让帖子里残留的论坛脚本（统计/表情/点赞）报错刷屏、
-                // 还吃 CPU/内存。关掉后连 console 回调都不存在，错误自然不进 logcat。
-                settings.javaScriptEnabled = false
+                // JS 开回来（A40「文章页图片经常没有」，修 1312b454 的一刀切）：
+                // 1312b454 为去「论坛脚本噪音」把 JS 整个关了，顺带把 Discuz 懒加载脚本也关了——
+                // 帖子图的真地址在 data-src，靠页面脚本换进 src，关掉后满页只剩 blank 占位图。
+                // 噪音的另一半（相对地址、明文 http）已在 normalizeBodyImages/TEXT_BODY_BASE_URL
+                // 端上修掉，脚本报错少了；再出声就按 console 过滤，而不是把显示功能陪葬。
+                @SuppressLint("SetJavaScriptEnabled")
+                settings.javaScriptEnabled = true
                 settings.allowFileAccess = false
-                // DOM storage 同 JS 一起关掉：JS 关了它就没有使用方，少一个可读写的域。
-                settings.domStorageEnabled = false
+                // DOM storage 开着：论坛懒加载/表情脚本会用到；正文 WebView 不进历史、
+                // 不共享给别的页面，风险面仅限这一个数据目录。
+                settings.domStorageEnabled = true
                 // 大量图片的正文页：保留 Chromium 默认磁盘缓存（不设 LOAD_NO_CACHE），
                 // 重复进同一篇不再重新下载图片。
                 settings.userAgentString = settings.userAgentString + " " + HttpUtils.getUserAgentSuffix(context)
@@ -401,7 +464,9 @@ private fun TextHtmlBody(html: String, onSwipeBack: () -> Unit) {
             }
         },
         update = { view ->
-            view.loadDataWithBaseURL(null, articleBodyHtml(html), "text/html", "utf-8", null)
+            // base 传站点根（A40）：null base 下帖子相对地址（/data/attachment/…、static/…）
+            // 解析不出来，图片请求直接被 Chromium 丢；论坛根就是这些路径的家。
+            view.loadDataWithBaseURL(TEXT_BODY_BASE_URL, articleBodyHtml(html), "text/html", "utf-8", null)
         },
         // 离页时把 WebView 从窗口解绑再销毁：只靠 GC 收 WebView 会在「大量文字+图片」
         // 的页面上留驻渲染内存（反复进出文章页后崩溃的正路之一）。

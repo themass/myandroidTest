@@ -3,6 +3,7 @@ package com.openapi.feature.video.screening
 import android.content.Context
 import android.provider.Settings
 import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -88,6 +89,20 @@ internal fun screenSlide(motion: MotionPlan, slidePx: Float, forward: Boolean): 
     slideOutHorizontally(tween(motion.exitDurationMs(), easing = EaseExit)) {
         (if (forward) -slidePx / 2f else slidePx / 2f).roundToInt()
     }
+
+/**
+ * 入场照常滑入、**旧内容零时长退场**的版本（A40「文章页快速进出闪退」）：
+ * AnimatedContent 的退场内容要演完动画才释放——阅览层里是 WebView，
+ * destroy 跟着拖到动效结束，连点进出时两三个 Chromium 渲染核叠着解码大图。
+ * 离场的这一半换成 `ExitTransition.None`，旧层当场 `onRelease`。
+ */
+internal fun screenSlideNoExit(motion: MotionPlan, slidePx: Float, forward: Boolean): ContentTransform =
+    ContentTransform(
+        targetContentEnter = slideInHorizontally(tween(motion.enterDurationMs(), easing = EaseStandard)) {
+            (if (forward) slidePx else -slidePx).roundToInt()
+        } + fadeIn(tween(motion.enterDurationMs(), easing = EaseStandard)),
+        initialContentExit = ExitTransition.None,
+    )
 
 /** 覆盖层（开屏遮罩、全屏阅览）的淡入淡出对。 */
 internal fun screenFade(motion: MotionPlan): Pair<androidx.compose.animation.EnterTransition, androidx.compose.animation.ExitTransition> =

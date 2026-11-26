@@ -21,6 +21,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -81,9 +82,11 @@ internal fun ScreeningGallery(
     var tailItemUrl by remember(selected) { mutableStateOf<String?>(null) }
     val shots = remember(selected) {
         FeedPager(pagerScope, fetch = { start, keyword ->
-            val itemUrl = tailItemUrl
-            if (itemUrl == null) store.albumImages(selected?.imageListKey() ?: "", start, keyword)
-            else store.imageItemPage(itemUrl, start)
+            // 尾续只对「没有搜索词」生效（用户 2026-11-26：走到尾续后新搜索被静默丢词——
+            // 旧写法只看 tailItemUrl，置位后 keyword 再也进不了请求）。带词一律走回
+            // img/items/img.json；回到无词态才继续 item/page.json 的尾续。
+            if (albumImagesUseTail(tailItemUrl, keyword)) store.imageItemPage(tailItemUrl!!, start)
+            else store.albumImages(selected?.imageListKey() ?: "", start, keyword)
         })
     }
     // 没有频道参数或没有册子参数就没有可请求的 key：不发无意义的请求，直接给空态
@@ -169,10 +172,7 @@ internal fun <T> albumCoverColumnItems(items: List<T>, column: Int): List<T> =
 private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteEntry) -> Unit, onExit: () -> Unit) {
     val listState = state
     val seen = remember { mutableSetOf<String>() }
-    LaunchedEffect(listState, pager) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 6) pager.loadMore() }
-    }
+    feedShouldLoadMore(listState, pager)
     val shown = pager.items
     FeedListShell(
         pager = pager,
@@ -234,10 +234,7 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
 private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Unit, onOpen: (Int) -> Unit) {
     val state = rememberLazyListState()
     val seen = remember { mutableSetOf<String>() }
-    LaunchedEffect(state, pager) {
-        snapshotFlow { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
-            .distinctUntilChanged().collect { index -> if (index >= pager.items.size - 9) pager.loadMore() }
-    }
+    feedShouldLoadMore(state, pager)
     val shots = pager.items
     FeedListShell(
         pager = pager,
@@ -265,7 +262,8 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
                 ListSkeleton(rows = 2, rowHeight = 120.dp)
             }
         }
-        if (!pager.loading && shots.isEmpty()) item { Text("这一册还没有图片，返回换一册。", Modifier.padding(14.dp), color = Muted) }
+        // 空态按搜索态分支（用户 2026-11-26：搜 0 结果仍印列表口径，看不出是「没搜到」）。
+        if (!pager.loading && shots.isEmpty()) item { Text(feedEmptyCopy(pager.keyword, "这一册还没有图片，返回换一册。"), Modifier.padding(14.dp), color = Muted) }
         items(shots.chunked(3)) { row ->
             Column {
                 Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -307,6 +305,7 @@ private fun Lightbox(
     onMove: (Int) -> Unit,
     onTail: (RemoteEntry) -> Unit,
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val pager = rememberPagerState(initialPage = start.coerceIn(shots.indices)) { shots.size }
     var chrome by remember { mutableStateOf(true) }
     var zoom by remember { mutableFloatStateOf(1f) }
@@ -369,6 +368,18 @@ private fun Lightbox(
                 // 「收藏 / 下载」两个键以前是空实现（点了没反应），随死代码一并撤掉；
                 // 做真功能时再加回来。
                 Spacer(Modifier.weight(1f))
+                // 分享（A40 用户 2026-11-26）：发当前这一张的身份地址；没有地址不出现按钮。
+                val shareShot = shots.getOrNull(pager.currentPage)
+                val shareUrl = shareShot?.let { lightboxImageUrl(it) }
+                if (!shareUrl.isNullOrBlank()) {
+                    IconButton(onClick = {
+                        com.openapi.common.ui.share.ShareKit.shareText(
+                            context, shareUrl, subject = shareShot.title,
+                        )
+                    }) {
+                        Icon(Icons.AutoMirrored.Filled.Send, "分享", tint = White)
+                    }
+                }
                 Text("双指缩放 · 左右滑动", color = Muted, fontSize = 11.sp, modifier = Modifier.align(Alignment.CenterVertically))
             }
         }
