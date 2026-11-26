@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -52,6 +53,12 @@ class SolveHistoryViewModel(application: Application) : AndroidViewModel(applica
     val uiState: StateFlow<SolveHistoryUiState> = _uiState.asStateFlow()
 
     init {
+        val initialVersion = store.changes.value
+        viewModelScope.launch {
+            store.changes.collect { version ->
+                if (version != initialVersion) refresh()
+            }
+        }
         refresh()
     }
 
@@ -72,30 +79,18 @@ class SolveHistoryViewModel(application: Application) : AndroidViewModel(applica
     }
 
     fun rename(id: Long, title: String) {
-        viewModelScope.launch {
-            store.rename(id, title)
-            refresh()
-        }
+        viewModelScope.launch { store.rename(id, title) }
     }
 
     fun setFavorite(id: Long, favorite: Boolean) {
-        viewModelScope.launch {
-            store.setFavorite(id, favorite)
-            refresh()
-        }
+        viewModelScope.launch { store.setFavorite(id, favorite) }
     }
 
     fun delete(id: Long) {
-        viewModelScope.launch {
-            store.delete(id)
-            refresh()
-        }
+        viewModelScope.launch { store.delete(id) }
     }
 
     fun clearAll() {
-        viewModelScope.launch {
-            store.clear()
-            refresh()
-        }
+        viewModelScope.launch { store.clear() }
     }
 }

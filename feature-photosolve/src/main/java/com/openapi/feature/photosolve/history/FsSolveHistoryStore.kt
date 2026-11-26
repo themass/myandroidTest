@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -38,6 +40,8 @@ class FsSolveHistoryStore(context: Context) : SolveHistoryStore {
     private val imageDir = File(root, "img")
     private val thumbDir = File(root, "thumb")
     private val lock = Mutex()
+    private val _changes = MutableStateFlow(0L)
+    override val changes = _changes.asStateFlow()
 
     init {
         imageDir.mkdirs()
@@ -89,6 +93,7 @@ class FsSolveHistoryStore(context: Context) : SolveHistoryStore {
             )
             if (existingIndex != null) all[existingIndex] = record else all.add(record)
             writeIndex(all)
+            _changes.value += 1
             record
         }
     }
@@ -102,6 +107,7 @@ class FsSolveHistoryStore(context: Context) : SolveHistoryStore {
             if (i >= 0) {
                 all[i] = all[i].copy(title = trimmed.take(60), updatedAt = System.currentTimeMillis())
                 writeIndex(all)
+                _changes.value += 1
             }
         }
     }
@@ -114,6 +120,7 @@ class FsSolveHistoryStore(context: Context) : SolveHistoryStore {
                 // 收藏不动 updatedAt：列表按"最近看过"排序时，点个收藏不该把旧题顶到最前面
                 all[i] = all[i].copy(favorite = favorite)
                 writeIndex(all)
+                _changes.value += 1
             }
         }
     }
@@ -125,14 +132,17 @@ class FsSolveHistoryStore(context: Context) : SolveHistoryStore {
                 val target = all.firstOrNull { it.id == id }
                 writeIndex(all.filterNot { it.id == id })
                 target?.let { deleteFiles(it) }
+                if (target != null) _changes.value += 1
             }
         }
     }
 
     override suspend fun clear() = withContext(Dispatchers.IO) {
         lock.withLock {
-            readIndex().forEach { deleteFiles(it) }
+            val existing = readIndex()
+            existing.forEach { deleteFiles(it) }
             writeIndex(emptyList())
+            if (existing.isNotEmpty()) _changes.value += 1
         }
     }
 

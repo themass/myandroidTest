@@ -1,5 +1,7 @@
 package com.openapi.feature.photosolve.history
 
+import kotlinx.coroutines.flow.StateFlow
+
 /**
  * 解题记录的持久化接口。实现见 [FsSolveHistoryStore]。
  *
@@ -7,6 +9,9 @@ package com.openapi.feature.photosolve.history
  * 只依赖这个接口，以后换数据库不影响界面。
  */
 interface SolveHistoryStore {
+
+    /** 单调递增的变更版本；save/rename/favorite/delete/clear 持久化后递增。 */
+    val changes: StateFlow<Long>
 
     /** 最近 [limit] 条，按更新时间倒序。 */
     suspend fun recent(limit: Int = 100): List<SolveRecord>
