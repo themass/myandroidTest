@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.view.WindowMetrics;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
@@ -34,7 +33,7 @@ public class AdmobBannerAds extends BannerInter {
     }
 
     @Override
-    public void bannerAds(final FragmentActivity context, final ViewGroup group, final String key, final Handler handler) {
+    public void bannerAds(final Activity context, final ViewGroup group, final String key, final Handler handler) {
         AdView adView = new AdView(context);
         adView.setAdUnitId(AdsIds.adviewToAdmobBanner.get(key));
         if (adView != null) {
@@ -130,7 +129,7 @@ public class AdmobBannerAds extends BannerInter {
     }
 
     @Override
-    public void bannerExit(FragmentActivity context, ViewGroup group, final String key) {
+    public void bannerExit(Activity context, ViewGroup group, final String key) {
         LogUtil.i("admob banner bannerExit:" + key);
         group.removeView(group.findViewWithTag(key));
     }

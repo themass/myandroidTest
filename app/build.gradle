@@ -21,8 +21,8 @@ android {
         applicationId = "com.openapi.ks.chat"
         minSdk = rootProject.ext.minSdkVersion
         targetSdk = rootProject.ext.targetSdkVersion
-        versionCode = 1001000072
-        versionName = "1.1.0.72"
+        versionCode = 1001000073
+        versionName = "1.1.0.73"
         multiDexEnabled = true
         flavorDimensions = ["versionCode"]
 

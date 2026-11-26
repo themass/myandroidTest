@@ -228,6 +228,9 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
         else FeedPager(feedScope, fetch = fetch)
         libraryPager = page to pager
         channelPage = page
+        // 旧 MovieChannleActivity.java:50 等进频道页弹插屏；放映场对应这一步。
+        // 时机闸门（静默期+最小间隔）在 tryInterstitialOnDrill 里，主干从来没有那道闸。
+        tryInterstitialOnDrill(activity)
     }
     /** http(s) 地址交回原路由（`ConfigActionJump` 按 scheme 分流 WebView）。 */
     val openUrl: (String, String) -> Unit = { url, title ->
@@ -239,16 +242,20 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
         forward = true
         galleryChannel = entry?.galleryChannelParam()
         gallery = true
+        // 旧 ImgChannleActivity 进页弹插屏；放映场对应「开图集」。闸门见 ScreeningAds。
+        tryInterstitialOnDrill(activity)
     }
     val openText: (RemoteEntry) -> Unit = { entry ->
         forward = true
         textChannel = entry.channelParam
         textHub = true
+        tryInterstitialOnDrill(activity)
     }
     val openSound: (RemoteEntry) -> Unit = { entry ->
         forward = true
         soundChannel = entry.channelParam
         soundHub = true
+        tryInterstitialOnDrill(activity)
     }
     /**
      * 按 routeOf 派发一张卡的点击：内页里的行和首页网格走同一套判定，
@@ -600,7 +607,7 @@ private fun ChannelsFeed(
                                 Text(if (entry.isGroupEntry) "频道推荐" else "正在热映", Modifier.background(Peach, RoundedCornerShape(5.dp))
                                     .padding(horizontal = 7.dp, vertical = 3.dp), color = Ink, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 Spacer(Modifier.height(6.dp))
-                                Text(entry.title, color = White, fontSize = 22.sp, lineHeight = 26.sp, fontWeight = FontWeight.Black,
+                                Text(entry.title, color = White, fontSize = ScreeningTypography.page, lineHeight = ScreeningTypography.pageLineHeight, fontWeight = FontWeight.Black,
                                     maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 if (entry.description.isNotBlank()) {
                                     Spacer(Modifier.height(3.dp))
@@ -801,7 +808,7 @@ private fun Library(
                 Column(Modifier.align(Alignment.BottomStart).padding(13.dp)) {
                     // 这里原来印 Constants.BASE_IP（接口域名）——调试信息，不是给用户看的（用户点过名）
                     Text("放映场", color = Peach, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    Text(page.title, color = White, fontWeight = FontWeight.Black, fontSize = 21.sp, lineHeight = 25.sp,
+                    Text(page.title, color = White, fontWeight = FontWeight.Black, fontSize = ScreeningTypography.page, lineHeight = ScreeningTypography.pageLineHeight,
                         maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(if (pager.loading) "正在取数据…" else "${pager.items.size} 条", color = Muted, fontSize = 11.sp)
                 }
@@ -827,7 +834,7 @@ private fun Library(
                         ScreeningPageKind.VIDEO_USER_ITEMS -> "Ta 的视频"
                         else -> "全部视频"
                     },
-                    Modifier.weight(1f), fontSize = 19.sp, fontWeight = FontWeight.Black,
+                    Modifier.weight(1f), fontSize = ScreeningTypography.section, fontWeight = FontWeight.Black,
                 )
                 IconButton(onClick = { poster = !poster }) { Icon(if (poster) Icons.Default.ViewList else Icons.Default.GridView, if (poster) "切换列表视图" else "切换海报视图") }
             }
@@ -866,16 +873,23 @@ private fun Library(
         }
         if (poster) items(shown.chunked(3)) { row ->
             // 海报视图与首页网格同一档：三列，一屏多装一半
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEachIndexed { column, entry ->
-                    EntryCard(entry, progress[entry.key] ?: 0L, true,
-                        Modifier.weight(1f).enterFeedItem(seen, entry.key, column), openEntry)
+            Column {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    row.forEachIndexed { column, entry ->
+                        EntryCard(entry, progress[entry.key] ?: 0L, true,
+                            Modifier.weight(1f).enterFeedItem(seen, entry.key, column), openEntry)
+                    }
+                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                 }
-                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+                // AD3：banner 按旧位置表插在整行下方（见 ScreeningAds 的注释）
+                FeedGridAdSlot(shown.indexOf(row.last()))
             }
         } else items(shown, key = { it.key }) { entry ->
-            EntryCard(entry, progress[entry.key] ?: 0L, false,
-                Modifier.fillMaxWidth().enterFeedItem(seen, entry.key, pager.items.indexOf(entry)), openEntry)
+            Column {
+                EntryCard(entry, progress[entry.key] ?: 0L, false,
+                    Modifier.fillMaxWidth().enterFeedItem(seen, entry.key, pager.items.indexOf(entry)), openEntry)
+                FeedRowAdSlot(pager.items.indexOf(entry))
+            }
         }
         item { FeedEndRow(pager.loading, pager.hasMore, pager::loadMore,
             pager.loading && pager.items.isEmpty(), empty = pager.items.isEmpty()) }
@@ -906,7 +920,7 @@ private fun EntryCard(entry: RemoteEntry, position: Long, poster: Boolean, modif
 @Composable
 internal fun Heading(title: String, detail: String = "") {
     Row(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, Modifier.weight(1f), color = White, fontSize = 19.sp, fontWeight = FontWeight.Black)
+        Text(title, Modifier.weight(1f), color = White, fontSize = ScreeningTypography.section, fontWeight = FontWeight.Black)
         if (detail.isNotEmpty()) Text(detail, color = Muted, fontSize = 12.sp)
     }
 }

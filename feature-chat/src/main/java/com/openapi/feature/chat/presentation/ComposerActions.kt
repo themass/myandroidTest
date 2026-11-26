@@ -71,6 +71,21 @@ internal class ComposerActions(private val state: MutableStateFlow<ChatUiState>)
     }
 
     /**
+     * A36①：从 followup 队列里撤回第 [index] 条，文字回到输入框（可改可删可再发）。
+     * 输入框已有内容时按行拼接，不覆盖用户刚敲的东西。越界索引静默忽略
+     * （徽标和队列之间的帧间竞态不该让点击崩）。
+     */
+    fun withdrawQueued(index: Int) {
+        state.update { s ->
+            val text = s.queued.getOrNull(index) ?: return@update s
+            s.copy(
+                queued = s.queued.filterIndexed { i, _ -> i != index },
+                input = if (s.input.isBlank()) text else s.input + "\n" + text,
+            )
+        }
+    }
+
+    /**
      * 放进待发送位置（P2-13）。单值而不是列表：一条消息只带一个坐标，
      * 再点一次「位置」就是换掉上一个（微信同款行为），不堆积。
      */

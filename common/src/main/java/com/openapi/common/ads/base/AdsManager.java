@@ -1,5 +1,6 @@
 package com.openapi.common.ads.base;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
@@ -45,12 +46,25 @@ public class AdsManager {
         return manager;
     }
 
+    private boolean inited = false;
+
+    /**
+     * 幂等初始化。`MyApplication.onCreate` 先跑，那时 debug 闸还没 opt-in；
+     * 真机验收用 `--ez ads_on 1` 在启动页打开闸后，靠这里补一次 init，
+     * 否则 map 是空的，解引用即 NPE。
+     */
+    public synchronized void initIfNeeded(Context context) {
+        if (inited || !AdsGate.enabled()) return;
+        init(context);
+    }
+
     public void init(Context context) {
         // debug 构建（测试机/开发机/CI）不初始化广告 SDK：见 AdsGate 与 AdsGateTest。
         if (!AdsGate.enabled()) {
             LogUtil.i("AdsManager init skipped (debug build)");
             return;
         }
+        inited = true;
         LogUtil.i("AdsManager initok");
         AdviewAdsManager.init(context);
         AdmobAdsManager.init(context);
@@ -88,17 +102,17 @@ public class AdsManager {
     public void offerAds(Context context) {
     }
 
-    public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey) {
+    public void showBannerAds(Activity context, ViewGroup group, AdsContext.Categrey categrey) {
         if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         bannerDescMap.get(AdsContext.AdsFrom.ADMOB).bannerAds(context, group, categrey.key, mHandle);
     }
 
-    public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey, AdsContext.AdsFrom from) {
+    public void showBannerAds(Activity context, ViewGroup group, AdsContext.Categrey categrey, AdsContext.AdsFrom from) {
         if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
         bannerDescMap.get(from).bannerAds(context, group, categrey.key, mHandle);
     }
 
-    public void exitBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey) {
+    public void exitBannerAds(Activity context, ViewGroup group, AdsContext.Categrey categrey) {
         if (!AdsGate.enabled()) return; // debug 未 init，表为空，解引用即 NPE（AdsGate）
         bannerDescMap.get(AdsContext.AdsFrom.ADVIEW).bannerExit(context, group, categrey.key);
     }

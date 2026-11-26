@@ -183,7 +183,7 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
     ) {
         item {
             // 同声音馆：单句限一行，不硬折行（台账 A29）。
-            Text("一册一地方，翻到末页。", color = White, fontSize = 24.sp, lineHeight = 32.sp,
+            Text("一册一地方，翻到末页。", color = White, fontSize = ScreeningTypography.hero, lineHeight = ScreeningTypography.heroLineHeight,
                 fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
             FeedError(pager.error, pager::reload)
             Spacer(Modifier.height(12.dp))
@@ -216,7 +216,7 @@ private fun AlbumCovers(pager: FeedPager, state: LazyListState, onOpen: (RemoteE
                                         )
                                     }
                                     Column(Modifier.align(Alignment.BottomStart).padding(9.dp)) {
-                                        Text(book.title, color = White, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                        Text(book.title, color = White, fontSize = ScreeningTypography.item, fontWeight = FontWeight.ExtraBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                     }
                                 }
                             }
@@ -254,7 +254,7 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
                 EntryCover(book, Modifier.matchParentSize())
                 Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink))))
                 Column(Modifier.align(Alignment.BottomStart).padding(19.dp)) {
-                    Text(book.title, color = White, fontSize = 34.sp, lineHeight = 40.sp, fontWeight = FontWeight.Black,
+                    Text(book.title, color = White, fontSize = ScreeningTypography.featureTitle, lineHeight = ScreeningTypography.featureTitleLineHeight, fontWeight = FontWeight.Black,
                         maxLines = 2, overflow = TextOverflow.Ellipsis)
                     if (book.description.isNotBlank()) Text(book.description, color = Muted, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
@@ -267,7 +267,8 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
         }
         if (!pager.loading && shots.isEmpty()) item { Text("这一册还没有图片，返回换一册。", Modifier.padding(14.dp), color = Muted) }
         items(shots.chunked(3)) { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Column {
+                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 row.forEachIndexed { column, shot ->
                     val index = shots.indexOf(shot)
                     Box(
@@ -288,6 +289,9 @@ private fun AlbumContents(book: RemoteEntry, pager: FeedPager, onBack: () -> Uni
                     }
                 }
                 repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+                // AD3：图集正文列表此前无槽（旧 native 通路早已注释停用，台账 §4.2）。
+                FeedGridAdSlot(shots.indexOf(row.last()))
             }
             Spacer(Modifier.height(5.dp))
         }

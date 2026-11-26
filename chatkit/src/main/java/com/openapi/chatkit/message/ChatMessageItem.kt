@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -43,8 +44,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +57,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Text
@@ -121,6 +125,11 @@ fun ChatMessageItem(
      * 并留等宽空位，保证气泡右边缘对齐。
      */
     userAvatar: (@Composable (ChatItem) -> Unit)? = null,
+    /**
+     * A36②：停止生成的入口挂在**正在生成的气泡**下方（不再占用输入栏的发送键位）。
+     * null = 不显示（陪伴页这类调用方行为不变）。调用方只在最新一条上非空。
+     */
+    onStopGenerating: (() -> Unit)? = null,
 ) {
     val dimens = ChatKit.dimens
     val isUser = item.sender == Sender.User
@@ -202,6 +211,11 @@ fun ChatMessageItem(
                         screenReaderActions = screenReaderActions,
                     )
                 }
+                // A36②：正在生成（思考中或流式）的助手气泡下方挂「停止生成」。
+                // 入口跟着被停止的对象走，发送键位因此永远留给发送（A36①）。
+                if (!isUser && (item.streaming || item.thinking) && onStopGenerating != null) {
+                    StopGeneratingChip(onStop = onStopGenerating)
+                }
                 if (isUser && showSentLabel && item.status == SendStatus.Sent) {
                     Row(
                         modifier = Modifier.padding(top = 2.dp),
@@ -240,6 +254,38 @@ fun ChatMessageItem(
                 }
             }
         }
+    }
+}
+
+/**
+ * 「停止生成」小芯片：挂在正在生成（思考中或流式）的助手气泡下方（A36②）。
+ * 样式沿用「已发送 / 重新回答」那一行：caption 级文字、accent 色、可点。
+ * 带一个方块停止图标——只有一行小字容易被当成状态说明而不是按钮（44dp 高由点击区撑）。
+ */
+@Composable
+internal fun StopGeneratingChip(onStop: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .padding(top = 2.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .clickable(onClick = onStop)
+            .heightIn(min = 32.dp)
+            .padding(horizontal = 6.dp, vertical = 4.dp)
+            .testTag("stop-generating"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            Icons.Filled.Stop,
+            contentDescription = null,
+            tint = ChatKit.colors.accent,
+            modifier = Modifier.size(12.dp),
+        )
+        Spacer(Modifier.width(4.dp))
+        Text(
+            stringResource(R.string.chatkit_stop_generating),
+            fontSize = ChatKit.typography.caption,
+            color = ChatKit.colors.accent,
+        )
     }
 }
 

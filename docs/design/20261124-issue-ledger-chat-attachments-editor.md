@@ -269,7 +269,70 @@
 
 - **现象**：真机走查 chat 页时 app 整个退出到桌面。crash buffer 取证：`signal 11 (SIGSEGV) SEGV_MAPERR fault addr 0xb8`，线程 `GLThread`，栈顶全在 `files/dh-engines/live2d/native-libs/arm64-v8a/libchatwaifu-live2d.so`（4 层 native 内部），Java 侧入口 `Live2dRuntime$buildGlView$view$1$1.onDrawFrame` → `JniBridgeJava.nativeOnDrawFrame`。
 - **定性**：数字人 Live2D 运行时 native 层空指针（native so 内部，非本仓 Kotlin/Java 代码栈帧）。发生在聊天页渲染数字人形象期间。**不是本轮 chat 修复引入**（崩溃栈无 chat 线改动文件），属数字人引擎线（dh live2d runtime）。
-- **状态**：**新立，待派工（数字人线）**。复现线索：ADY-AL00、聊天页带 Live2D 形象、切页/退出时机可疑（0xb8 ≈ 对象已释放后继续 onDrawFrame —— GLSurfaceView 销毁与 native 模型释放顺序竞态是常见根因，需引擎线取证）。
+- **状态**：**已修合线（数字人线 `140287af`，已验证在 weifu-refactor 祖先链）**：GLSurfaceView 销毁与 native 模型释放竞态的 Kotlin 侧所有权护栏（`Live2dNativeOwnership`），数字人 fork v2 一并合入（`e2bbf681` 同在祖先链）。真机复验待装机：ADY-AL00 走查 chat 页不再 SIGSEGV 才算 PASS。
+
+---
+
+## A33 · 编辑器色板要能选任意颜色（用户 20261125，附截图）
+
+- **现象**：图片编辑页色板是预制色，用户要求「应该有个色板的选择器，在上面选择任何一种颜色」。
+- **现状核对（20261125）**：`b97ec6c1` 已落「16 色 2×8 色板 + 自定义行（`PhotoEditor.kt:1095-1137`）」，自定义行点开 `ColorPickerDialog`（HSL 三滑杆 + 实时预览，:1141）。**两种可能**：①用户设备还是旧包（V2279A 未装新版本）；②入口形态不符预期——用户要的是「色板本身就是选择器」（色相环/光谱条直接在面板上），而不是「16 固定色 + 一行『自定义』按钮」。按截图取证设备版本后定：若旧包→装机即验；若新包仍不满→把取色器做成面板内常驻（色相条+明度条）而不是 Dialog。
+- **状态**：**已修合线（worker 分支 `claude/wonderful-aryabhata-4a149a` tip `1e40d5c9`，20261125 并线；色板内常驻光谱取色器，165 测 0 失败）**——真机观感随装机复验：新包上色板内应直接有三根渐变条（色相/饱和度/明度）+ 实时预览点。
+
+## A34 · 文字大小/画笔粗细滑杆无体感（用户 20261125，附截图）
+
+- **现象**：滑杆拖动看不出「往哪边拖是大」，线没有粗细渐变过程。
+- **根因**：滑杆用的是通用 `Slider`，轨道是等粗线——控件的值→视觉映射缺失。
+- **修复方向**：自定义轨道——画笔粗细滑杆的轨道本身画成粗细渐变（左细右粗），文字大小滑杆轨道显示字号渐变的「Aa」示例或气泡预览（拖动时实时显示当前值的实际视觉效果）。抽象点（与 A38 同族）：**参数控件的轨道就是该参数的预览**，值与视觉一一对应。
+- **状态**：**已修合线（同上 `1e40d5c9` 并线）**——`EditSlider.kt` 自绘轨道：画笔=左细右粗渐变线、马赛克=左小右大方块、字号=左小右大圆点；按住即跳档（5 档语义不变）。真机体感随装机复验。
+
+## A35 · 裁剪框长按拖动=移动位置（大小不变，跟手指）（用户 20261125）
+
+- **现象**：用户要求长按裁剪框内拖动可以移动裁剪框位置（尺寸不变），跟随手指。
+- **现状核对**：A3 修复后 mediaview `CropMode.hitHandle` 有框内 `Move` 语义（「只有明确在框内才是 Move」）——需真机/单测复核：是否单指拖框内即移动、还是被边/角热区吃掉；「长按」作为显式意图手势是否需要（防误触：普通拖动可能被当作想调大小）。设计口径：**框内单击拖动=移动**（业界标准），无需长按门槛；若要防误触再加长按门槛。
+- **状态**：**已修合线（同上 `1e40d5c9` 并线）**——框内拖动=整框平移（`cropDragAction`：角上仍 Resize、框内 Move、夹在视口内尺寸不变），`CropModeTest` 新增钉子。真机复验随装机。
+
+## A36 · 发送键变成取消键：不允许继续发送=一问一答（用户 20261125 重申，要求设计）
+
+- **现象**：发一条消息后发送键变成取消/停止键，必须等 AI 回完才能再发。
+- **重要背景**：A2 修复（`cc77dfad`）已实现「生成中发送键保留 + 纯文字入队 + 回合结束自动续发 + 输入栏上方『N 条排队中』」；用户看到的仍是旧行为——大概率是旧包（V2279A 从未装机新版本；ADY-AL00 前一版装机在 A2 修复推送之前也可能滞后）。但用户明确说「这里还需要你设计一下」——排队语义本身也要重新设计，不能只靠「装新包」结案。
+- **设计提案（用户 20261125 拍板：①+②）**：①**发送键常驻**：任何时候有文字就能点发送，生成中点发送=入队（现有 A2 语义），排队徽标显示「N 条排队中」，可点击展开看队列/撤回；②**停止键移位**：不再占用发送键位置，改为生成中消息气泡上的「停止生成」小按钮（点它即可中断，业界主流形态）；③**发送即新回合**（激进方案）：允许并发多回合，服务端 409 已有 `TurnConflictRecovery` 兜底——不推荐，破坏回合叙事（未采纳）。
+- **实现（20261125，本会话）**：
+  - chatkit：`ComposerState.queuedCount:Int` → `queued:List<String>` + `sendVisible`（纯文字生成中仍画发送键；纯草稿生成中不画——发送闸会把纯附件消息挡到回合结束，画了点了没结果更像坏了）；`ChatComposer` 移除生成中停止键位与 `onStop` 参数，`QueuedBadge` 徽标可展开、逐条「撤回」（testTag `queued-withdraw-i`）；`ChatMessageItem`/`ChatMessageList` 新增 `onStopGenerating`，`StopGeneratingChip`（testTag `stop-generating`）只挂在正在生成（thinking/streaming）的最后一条助手气泡下方；陪伴页等不传该参数的调用方逐像素不变。
+  - feature-chat：`ComposerActions.withdrawQueued(index)`（撤回回输入框，已有内容按行拼接不覆盖，越界静默忽略）；`ChatViewModel.onWithdrawQueued`；`ChatRoute` 接线。停止语义不变（`ReplyStreamer.cancel`：本地 Job + 服务端 cancelTurn + 清队列）。
+  - 测试：`ComposerSendVisibilityTest` 5 项（chatkit）；`ComposerAndFeedbackTest` +3 项（withdrawQueued）；`A36SendKeyAndStopRenderTest` 4 项渲染回归（:app Robolectric：生成中发送键在、停止芯片在气泡上且点击回调、无生成不显示、徽标展开撤回按 index 回调）。app ui 全包 35 项 0 失败。
+- **状态**：**已修合线（20261125）**——待装机复验（ADY-AL00 从 tip 重装后确认「生成中可继续发送 + 气泡上停止」）。
+
+## A37 · 拍照解题 UI：字体太大太难看、历史页按钮换行（用户 20261125）
+
+- **现象**：拍照解题结果页字体太大；历史页同样字体过大、底部按钮布局丑且换行。
+- **根因核对（20261125 ui-a37 复核，修正原判断）**：原条目说「实现从未派工、还是旧 View 时代排版」——与代码不符，字号/按钮修复其实已合线：`3b01deae`（结果页排版统一 17/15/14/18sp，`MathText` 改按传入 fontSize 渲染，公式不再永远 16sp）、`5ace4ae3`（历史详情页抽出共用 `SolveResultSections` 跟上同一套字号；`HistoryDetailActions` 收藏改纯图标、其余按钮 maxLines=1+softWrap=false 单行不换行；首页标题 28sp→22sp）。用户仍看到旧观感的解释与 A33/A36 相同：**装机滞后**（V2279A 自 2026-11-24 起未装过新包，adb 取证为空）。
+- **本轮收口**：按 `photo-solve-design.md`（3.6/3.7/3.8）与 protos/photosolve-ui 样稿逐项核对，结果页/历史列表/历史详情页三处已对齐，无需再改视觉方向；顺带修 `summaryOf` 把小数点半角 `.` 误判为句末（`设 x=1.5，…` 被截成「设 x=1.」）；新增 `ResultSummaryTest` 11 项（折叠摘要规则 + `formatTime` 格式），feature-photosolve 单测 72/72、`:app:compileChatDebugKotlin` 通过。
+- **状态**：**已修合线，待装机复验**（从 weifu-refactor 最新 tip 装机后再让用户确认；若装机后仍不满，剩余争议属于 A38 全站字号阶梯规范，随 A38 走）。
+
+## A38 · 全站 UI 共性问题：字体太大、换行太多（title/按钮/控件文字）（用户 20261125 点名彻查）
+
+- **现象**：用户点名共性——「UI布局问题太大，字体太大，太多换行，包括 title，包括按钮，控件上的文字都是」。
+- **根因（架构级）**：全仓没有统一的字号阶梯/单行约束规范——每页各自手写 fontSize（A29 三馆 32-37sp 是同一病灶的一个切片，改掉三处不等于改掉病灶），按钮文字无 maxLines/autosize 约束，长文案直接换行撑破布局。
+- **修复方向**：**先审计后规范**——①全站扫描（grep fontSize/fontSize.sp + 按钮文案），产出「字号超规清单」（基准：正文 14-16sp、标题 18-20sp、按钮 14sp、微标 ≤11sp；title 默认 maxLines=1）；②落一份 Typography 常量表（feature 级共用），超规项逐条收敛；③列改动清单分批派工，photosolve（A37）与三馆已改项作为首批参照。
+- **抽象点（表内补行）**：**字号与换行是规范问题不是每页的品味问题——单一字号阶梯表 + title/按钮默认单行**。
+- **状态**：**第1批已修合线（20261125，merge `cbb6ba32`，远端 tip 已验）**——根因①`AppMaterialTheme` 从未 override Typography（titleLarge 实际 22sp），一次 pin（titleLarge=20/titleMedium=16/labelLarge=14）收掉全部调用点；根因②feature-video/screening 模块脱离 token（≥17sp 的 51 处占 25 处），立 `ScreeningTypography` token 逐条替换（热映卡 22→18、频道页 21→18、FeedShell 顶栏 20→18、Heading 19→16、图集精选卡 34→22、设置面板 20→16）。测试：`AppMaterialTypographyTest`（pin 值）+ `ScreeningTypographyTest` 4 项（层级/上限/行高），协调会话并线前复跑 XML 实钉 0 失败。审计清单见 `docs/design/20261125-a38-font-wrap-audit.md`；第2批（昵称/角色名 maxLines、chatkit 输入框、companion 顶栏）待派。
+
+## A39 · 「agent 感觉一直不结束，一直在生成」（用户 20261125）
+
+- **现象**：发一条消息后「正在生成」的状态永不落地；用户点名「agent」——既可能指主线聊天，也可能指「角色对话（新）」（HomeTab.AgentChat）页。
+- **取证链（20261125，真机+服务端两头）**：
+  - 真机 ADY-AL00（1.1.0.72，21:09 装机）logcat：`22:05:12 W ChatStream: stream error: 等不到新的内容，回复可能已经中断` —— 主线 `TurnEventCollector` 的 45s 帧间看门狗**在真机上确实开火**（紧跟 22:05:11 华为后台冻结恢复的 trimMemory 风暴：app 被冻结期间没有帧，恢复后首个窗口判死），主线文字路径不是本次元凶、但用户感知到的「一直生成」窗口 ≈ 冻结期+45s。
+  - 服务端 104：会话 33 的 `ca:sess:33:events` 两条回合都及时 `message.done`（13:25:37/13:32:01 UTC）；`/metrics` in_flight=0 —— 服务端没有卡回合。
+  - **但** Redis 存在三个孤儿回合键 `ca:sess:{23,24,27}:turn`：`phase=pre_output`、无 TTL、事件流已过期（xlen=0）——回合 runner 死在首 token 之前时 `clear_turn` 没跑，turn 键永挂 → 这些会话后续 submit 全被 409（服务端侧缺陷，记入未闭环，见下）。
+- **根因（两条无看门狗路径，与 A14/A17 同族）**：
+  1. **legacy「角色对话（新）」**（`app/.../agent/`）：`AgentEventSource` readTimeout 60s **大于** 服务端 15s 心跳 →「连接活着、模型不出字」时既不超时也不抛异常，重连（只由异常触发）永不触发；`AgentChatState.active` 只被 done/cancelled/failed 清除，重连耗尽发 `Connection(OFFLINE)` 时 `reduce` 只改连接字段——`active` 气泡永久挂「正在生成」，正是用户描述的形状（`agent_turns_total{role="linche"}` 证明有这条路径的流量）。
+  2. **附件路径** `AttachmentApi.awaitTurnText`：手搓 collect、无看门狗无退避重连，同形状永挂 `attachmentJob` → `streaming=attachmentActive()` 永真。
+- **修复**：
+  - legacy：`AgentEventReconnector` 重写为注入 `open` 的泵+通道结构，补 45s 帧间看门狗——**只在回合进行中武装**（协议自跟踪：snapshot/started 起、done/cancelled/failed 落；空闲会话静默是常态不掐线），触发按一次失败走既有退避重连；`AgentChatState.onStreamOffline()`：收到 OFFLINE 时把半截 `active` 落回气泡列表并清掉、给可行动提示（重复续传帧由 `lastAppliedEventId` 挡住）。
+  - 附件：`awaitTurnText` 整体委托 `TurnEventCollector`（与主线同一台机器：看门狗+退避重连+snapshot 补尾去重白拿），并加 `eventSource` 注入缝供 JVM 测试。
+- **测试**：`AttachmentTurnWatchdogTest` 3 项（XML 3/0）+ `AgentReconnectorWatchdogTest` 4 项（XML 4/0：看门狗退避、空闲不掐线、OFFLINE 收尾半截、OFFLINE 无回合不误报）；并线前复跑 legacy agent 全套 5 个类 37 项 + feature-chat remote 全套 12 个类 61 项，XML 实钉 0 失败。
+- **残留（不算本条已解决）**：①服务端 turn 键无 TTL/无孤儿回收（runner 崩在 pre_output 就把会话 409 锁死）——agent-docs 集成线跟进；②主线看门狗在「app 被 ROM 冻结」场景的 45s 感知窗口——若用户嫌久可降到 30s（两个心跳周期），待装机复验后再定；③metrics `agent_turns_created` 时间戳早于当日回合（serve/worker 双进程双 registry 嫌疑），未追。
 
 ---
 
@@ -296,6 +359,7 @@
 | 17 | 占位/错误图靠每次重写人想起来（A28，与 A5 同族） | 图片加载默认配置必含 placeholder+error（Glide/Coil 两条链都是） | `ScreeningFeedUi.RemoteCover` |
 | 18 | 空数据仍渲染空壳占位（A21） | 区块渲染守卫 = `数据非空 || loading`，空态不占版面 | `ChannelsFeed` hero/逛频道 |
 | 19 | 共享列表规则按单一协议的字段假设行事（A31，与 A12 上限混淆同族） | 每协议族自带身份映射（`*HubEntry`/`*ListKey`），通用过滤器只兜底不裁决 | `soundHubEntry` / `imageListKey` / `textListKey` |
+| 20 | 看门狗只装在一条路径上，别的等待远端事件的流照样永挂（A39，与 #1 同病灶） | 回合等待不手搓 collect——统一走 `TurnEventCollector`；协议层自带回合状态时看门狗按其武装（空闲不掐线）；连接判死必须同时收尾界面 `active` | legacy `AgentEventReconnector` / `AttachmentApi.awaitTurnText` / `AgentChatState.onStreamOffline` |
 
 ## 未闭环项（明确列出，不当作已解决）
 

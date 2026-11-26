@@ -84,7 +84,11 @@ private fun AgentChatState.textOf(key: String): String = bubbles.firstOrNull { i
 
 /** 把一次传输层更新应用到状态。重复事件（id 不大于已应用的）直接忽略。 */
 fun reduce(state: AgentChatState, update: StreamUpdate): AgentChatState = when (update) {
-    is StreamUpdate.Connection -> state.copy(connection = update.state)
+    // A39：OFFLINE（重连彻底失败/401）时回合事件永远不会再来，`active` 必须当场收尾——
+    // 否则「正在生成…」永久挂着。CONNECTED/RECONNECTING 只动连接字段。
+    is StreamUpdate.Connection ->
+        if (update.state == ConnectionState.OFFLINE) state.onStreamOffline()
+        else state.copy(connection = update.state)
     is StreamUpdate.Event -> {
         val event = update.event
         if (event is SessionEvent.Reconnect) state
@@ -259,6 +263,32 @@ fun AgentChatState.withEditedMessage(updated: AgentBubble): AgentChatState =
 
 /** 关掉连续使用提醒。 */
 fun AgentChatState.withoutUsageReminder(): AgentChatState = copy(usageReminder = null)
+
+/**
+ * 断线且本地已判死（[com.openapi.ks.myapp.agent.ConnectionState.OFFLINE]）时的收尾（A39）。
+ *
+ * 旧行为：`active` 气泡只被 done/cancelled/failed 事件清除。连接彻底 OFFLINE 时这些事件
+ * 永远不会来——「正在生成…」就永久挂着，正是用户报的「agent 一直不结束、一直在生成」。
+ * 这里把半截回合落回气泡列表（有字才落），清掉 `active`，并给出可行动的提示；
+ * 续传窗口内服务端补发的重复事件由 `lastAppliedEventId` 挡掉，之后恢复流不会串台。
+ */
+fun AgentChatState.onStreamOffline(): AgentChatState {
+    val active = active ?: return copy(connection = ConnectionState.OFFLINE)
+    val withAnswer = if (active.text.isNotEmpty()) {
+        bubbles + AgentBubble(
+            key = "offline-${active.turnId}", messageId = null, role = "assistant",
+            content = active.text, state = BubbleState.SYNCED, turnId = active.turnId,
+        )
+    } else {
+        bubbles
+    }
+    return copy(
+        bubbles = withAnswer,
+        active = null,
+        connection = ConnectionState.OFFLINE,
+        lastError = "连接已断开，这条回复没有完成；网络恢复后重新发一条试试",
+    )
+}
 
 /** 切换候选回复：用新选中的那条替换同组里原来显示的那条（保持位置）。 */
 fun AgentChatState.withSelectedAlternative(selected: AgentBubble): AgentChatState =

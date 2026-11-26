@@ -217,6 +217,9 @@ class ChatViewModel : ViewModel() {
         attachmentJob?.cancel()
     }
 
+    /** A36①：从「N 条排队中」徽标撤回一条排队文字，回到输入框。 */
+    fun onWithdrawQueued(index: Int) = composer.withdrawQueued(index)
+
     /** 附件发送任务。停止按钮要能同时停掉两者，且两者互不覆盖。 */
     private var attachmentJob: kotlinx.coroutines.Job? = null
 

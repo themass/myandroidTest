@@ -81,6 +81,8 @@ APK 输出到 `app/build/outputs/apk/chat/debug/app-chat-debug.apk`。也可在 
 
 设备验收明细见 [camera-lab-device-checklist-20261123.md](../docs/qa/camera-lab-device-checklist-20261123.md)；能力、性能限制与许可评估见 [camera-fx-capability-and-licensing-review.md](../docs/superpowers/specs/2026-11-24-camera-fx-capability-and-licensing-review.md)。本文不把空场景帧率外推为目标识别性能。
 
+**与主 app 接线表**：`docs/superpowers/specs/2026-11-23-camera-fx-app-lab-wiring.md`。
+
 ## 已知边界（spike 不做）
 
 - 前摄镜像的 x 翻转靠 `CanvasMap.mirrorX` 对齐；不同设备和姿态下的逐帧配准仍需验收。

@@ -308,11 +308,21 @@ fun ThinkingSection(
     }
 }
 
-/** 折叠时的摘要：第一句，长度受限。 */
-private fun summaryOf(text: String): String {
+/**
+ * 折叠时的摘要：第一句，长度受限。internal 以便单测（排版规则不能只靠肉眼验）。
+ *
+ * 句子结束判定只认中文句读 `。` `；`；半角 `.` 仅当**不是**小数点（前后都是数字，如 `x=1.5`）
+ * 才算句末——否则「设 x=1.5，则……」会被截成「设 x=1.」。
+ */
+internal fun summaryOf(text: String): String {
     val firstLine = text.lineSequence().firstOrNull { it.isNotBlank() }?.trim().orEmpty()
     if (firstLine.isEmpty()) return text.trim().take(60)
-    val cut = firstLine.indexOfFirst { it == '。' || it == '；' || it == '.' }
+    val cut = firstLine.indices.firstOrNull { i ->
+        val ch = firstLine[i]
+        ch == '。' || ch == '；' ||
+            (ch == '.' && !(firstLine.getOrNull(i - 1)?.isDigit() == true &&
+                firstLine.getOrNull(i + 1)?.isDigit() == true))
+    } ?: -1
     val sentence = if (cut > 8) firstLine.substring(0, cut + 1) else firstLine
     return if (sentence.length > 80) sentence.take(80) + "…" else sentence
 }

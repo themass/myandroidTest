@@ -163,6 +163,12 @@ fun ChatMessageList(
     loadingOlder: Boolean = false,
     /** 滚到顶时自动加载更早的一页。 */
     onLoadOlder: () -> Unit = {},
+    /**
+     * A36②：停止生成的入口。挂在**正在生成的那条气泡**下方（发送键位让出来，
+     * 见 ChatComposer）。默认 null：陪伴页这类调用方完全不变。
+     * 只给最后一条（正在生成的气泡就是最后一条）；中途新消息插队也不会给旧消息挂按钮。
+     */
+    onStopGenerating: (() -> Unit)? = null,
 ) {
     val latestAssistantId = items.lastOrNull { it.sender == Sender.Assistant && !it.thinking }?.id
     val latestUserId = items.lastOrNull { it.sender == Sender.User }?.id
@@ -340,6 +346,8 @@ fun ChatMessageList(
                         // 多选时把 overlay 收掉：它不在消息行内部，点它不会切换选中。
                         overlay = if (selection.active) null else { { itemOverlay(item) } },
                         userAvatar = userAvatar,
+                        // 生成中的入口只挂在正在生成的那一条（就是列表最后一条）
+                        onStopGenerating = if (index == items.lastIndex) onStopGenerating else null,
                         modifier = Modifier.weight(1f),
                     )
                 }
