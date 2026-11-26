@@ -28,19 +28,10 @@ import java.util.Map;
 
 public class BaseRequest<T> extends ApiRequest<T> {
 
-    private static String UA_DEFAULT = null;
-    private static String UA_APP_SUFFIX = null;
-    public static String DEVID = null;
-
-    static {
-        UA_DEFAULT = System.getProperty("http.agent", "");
-    }
-
     private final Context mContext;
     private final Map<String, String> headers;
     private String authkey;
     private String mCharset = "utf-8";
-    private static String uc = null;
 
     public BaseRequest(Context context, int method, String url,
                        Map<String, String> headers, Response.Listener<T> listener,
@@ -48,44 +39,12 @@ public class BaseRequest<T> extends ApiRequest<T> {
         super(method, url, listener, errorListener);
         long time = new Date().getTime();
         mContext = context;
-        if (UA_APP_SUFFIX == null) {
-            UA_APP_SUFFIX = HttpUtils.getUserAgentSuffix(context);
-        }
         if (headers == null) {
             headers = new HashMap<>();
         }
-        if (!StringUtils.hasText(uc)) {
-            uc = DeviceInfoUtils.getMetaData(context, "UMENG_CHANNEL");
-        }
-        // 渠道没配到时 uc 是 null，拼进 UA 会变成字面量 "null"（服务端日志里能看到
-        // channel=null），看起来像真的渠道就叫 null。这里降级成空串，宁可不带渠道，
-        // 也不要把 Java 的 null 当成取值发出去。
-        if (uc == null) {
-            uc = "";
-        }
-        String sb = null;
-        String fileTxt = DeviceInfoUtils.NULL;
-        if (DEVID == null) {
-            sb = DeviceInfoUtils.getDeviceId(context);
-            if (!DeviceInfoUtils.NULL.equals(sb)) {
-                DEVID = sb;
-//                fileTxt = FileUtilleUtils.getContextId(context,sb);
-            } else {
-                // getDeviceId 拿不到 ANDROID_ID 时会原样返回字符串 "null"，这时 DEVID 保持 null，
-                // 下面 headers.put(Devid, null) 会被 HttpClient 静默丢掉——请求根本没带 Devid 头，
-                // 服务端 DevApp.check() 判 devId==null 直接 500（日志里就是 devId=null）。
-                // 这里退到随机 UUID：服务端只要求非空，UUID 满足；不要为了过校验去伪造渠道。
-                DEVID = "androiduuid" + DeviceInfoUtils.getUUID(context);
-                sb = DEVID;
-            }
-        } else {
-            sb = DEVID;
-//            fileTxt = FileUtils.getContextId(context,DEVID);
-        }
-//        LogUtil.i("devid="+sb+"---"+ FileUtils.getContextId(context,sb));
-        sb = sb + "|" + time;
-        String msg = time + Md5.encode(sb);
-        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel=" + uc + ",cpu=" + SystemUtils.getCpuType() + ",Webkit/" + fileTxt + ",IE" + msg;
+        // UA/设备号的生成收进 UserAgent（A40）：封面那条 Glide 链要用同一份，
+        // 密钥取 UA 末 16 位，两处各写一份迟早对不上。
+        String ua = UserAgent.build(context);
         String loc = "lon:" + StaticDataUtil.get("lon", Double.class) + ";lat:" + StaticDataUtil.get("lat", Double.class);
         this.authkey = ua.substring(ua.length() - 16, ua.length());
         headers.put("Loc", loc);
@@ -102,9 +61,10 @@ public class BaseRequest<T> extends ApiRequest<T> {
             headers.put("userLang", currentLocale.getCountry() + ";" + currentLocale.getLanguage());
         }
         // 值为 null 的头在 HttpClient 里会被跳过，等于没发；Devid 缺失服务端直接判鉴权失败，
-        // 所以这里绝不能把 null 放进去（上面已保证 DEVID 非 null）。
-        if (StringUtils.hasText(DEVID)) {
-            headers.put(NetConfig.deviceHeader(), DEVID);
+        // 所以这里绝不能把 null 放进去（UserAgent.deviceId 已保证非空）。
+        String devid = UserAgent.deviceId(context);
+        if (StringUtils.hasText(devid)) {
+            headers.put(NetConfig.deviceHeader(), devid);
         }
         String token = PreferenceUtils.getPrefString(context, NetConfig.tokenHeader(), null);
         if (token != null)

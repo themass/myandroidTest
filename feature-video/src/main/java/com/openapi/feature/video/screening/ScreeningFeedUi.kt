@@ -515,20 +515,57 @@ internal fun ShimmerPlaceholder(modifier: Modifier = Modifier, shape: androidx.c
 internal val ImagePlaceholderRes = com.openapi.core.R.drawable.img_bg
 
 /**
- * 服务端封面：Glide 加载远程图，加载中/失败/没有地址都落到 `img_bg`，不留空洞。
+ * 一张封面的加载状态：加载中 → 成功 / 失败。
+ *
+ * 收成纯类是因为「扫光什么时候收」是这条链上唯一会骗用户的地方：
+ * 收早了露出空白，收晚了失败也一直被读成「还在加载」。Glide 的
+ * [com.bumptech.glide.request.RequestListener] 直接喂 [onStart]/[onReady]/[onFailed]，
+ * 状态本身不需要真机就能验。字段是快照状态：Glide 的回调在 UI 线程改它，
+ * 必须有快照才能把扫光收掉（纯 `var` 改完屏幕不会重绘）。
+ */
+internal class CoverLoadState {
+    var showShimmer by androidx.compose.runtime.mutableStateOf(true)
+        private set
+    var failed by androidx.compose.runtime.mutableStateOf(false)
+        private set
+
+    /** 新请求开始（首次进入或 view 复用重试）。 */
+    fun onStart() {
+        showShimmer = true
+        failed = false
+    }
+
+    fun onReady() {
+        showShimmer = false
+        failed = false
+    }
+
+    /** 取不到图：不再扫光，露出静态 [ImagePlaceholderRes]——这才是「真没图」。 */
+    fun onFailed() {
+        showShimmer = false
+        failed = true
+    }
+}
+
+/**
+ * 服务端封面：Glide 加载远程图，加载中盖扫光，失败/没有地址落到 `img_bg`，不留空洞。
  *
  * 用 [AndroidView] 包 Glide，而不是另找一个 Compose 图片库：项目里远程图一律走
  * `Glide.with(view).load(url)`（见 `ChannelCardLoaders`），这样共用同一份磁盘缓存和
  * 已配好代理/超时的 OkHttp loader，不用再配一套。
  *
+ * 【A40】加载中必须有等待信号。以前只挂 `.placeholder(img_bg)`：图慢的时候是一块
+ * 静底，用户读成「这块位置本来就没图」，跟「服务端就是没图」再也分不出来
+ * （台账 A28 是另一半：少了 error 底）。现在由 RequestListener 把状态交给
+ * [CoverLoadState]，加载中在图上叠 [ShimmerPlaceholder]（全站唯一的等待语言），
+ * 落地/失败都把扫光收掉，失败留 img_bg 静态底。
+ *
  * 【规矩·A28】`img_bg`（`:core` 的 `drawable-xxhdpi/img_bg.png`）是全 App 统一的
  * 图片占位图兼加载失败默认图——旧代码每条 Glide 链都挂它
  * （`core` 的 `ImagePhotoLoad.options/optionsHigh`、`feature-content` 的
  * `FullScreenImagePagerAdapter`）。新代码接远程图必须同时挂
- * `.placeholder(img_bg)` 和 `.error(img_bg)`：少了 placeholder，图落地前是一块纯色底，
- * 用户读成「这块位置本来就没图」；少了 error，图挂了就一直留着那块纯色底，
- * 和「服务端就是没图」再也分不出来。这条以前在 Compose 迁移时漏掉了（台账 A28），
- * 现在由 [ImagePlaceholderRes] 一处收口。
+ * `.placeholder(ImagePlaceholderRes)` 和 `.error(ImagePlaceholderRes)`；
+ * 这条以前在 Compose 迁移时漏掉了（台账 A28），现在由 [ImagePlaceholderRes] 一处收口。
  */
 @Composable
 internal fun RemoteCover(url: String?, modifier: Modifier = Modifier) {
@@ -544,19 +581,51 @@ internal fun RemoteCover(url: String?, modifier: Modifier = Modifier) {
         )
         return
     }
-    AndroidView(
-        modifier = modifier,
-        factory = {
-            ShapeableImageView(context).apply {
-                scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-                // 短交叉淡入而不是硬切：远程图落地时不闪白块
-                Glide.with(this).load(url).centerCrop()
-                    .placeholder(ImagePlaceholderRes).error(ImagePlaceholderRes)
-                    .transition(DrawableTransitionOptions.withCrossFade(180)).into(this)
-            }
-        },
-        onRelease = { view -> runCatching { Glide.with(view).clear(view) } },
-    )
+    val state = remember(url) { CoverLoadState() }
+    Box(modifier) {
+        AndroidView(
+            modifier = Modifier.matchParentSize(),
+            factory = {
+                ShapeableImageView(context).apply {
+                    scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                    // 短交叉淡入而不是硬切：远程图落地时不闪白块
+                    Glide.with(this).load(url).centerCrop()
+                        .placeholder(ImagePlaceholderRes).error(ImagePlaceholderRes)
+                        .transition(DrawableTransitionOptions.withCrossFade(180))
+                        .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                            override fun onLoadFailed(
+                                e: com.bumptech.glide.load.engine.GlideException?,
+                                model: Any?,
+                                target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
+                                isFirstResource: Boolean,
+                            ): Boolean {
+                                state.onFailed()
+                                // 不拦截：Glide 自己的 .error(img_bg) 继续落静态底。
+                                return false
+                            }
+
+                            override fun onResourceReady(
+                                resource: android.graphics.drawable.Drawable,
+                                model: Any,
+                                target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                                dataSource: com.bumptech.glide.load.DataSource,
+                                isFirstResource: Boolean,
+                            ): Boolean {
+                                state.onReady()
+                                return false
+                            }
+                        })
+                        .into(this)
+                }
+            },
+            // 列表复用/离开组合：clear 掉请求，防止已废弃的 state 被后续回调命中
+            // （扫光收了又复现、或失败态盖住新图）。与 A28 的泄漏钉子同源。
+            onRelease = { view -> runCatching { Glide.with(view).clear(view) } },
+        )
+        if (state.showShimmer) {
+            ShimmerPlaceholder(Modifier.matchParentSize())
+        }
+    }
 }
 
 /**
