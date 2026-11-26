@@ -245,7 +245,9 @@ interface ChatRepository {
      * **图片的图文消息不要用它**（见 [uploadImage]）。
      *
      * @param placeholderId 本地占位气泡的 id，服务端用它关联这次请求
-     * @return 回复；失败（网络、未登录等）返回 null
+     * @return 收到回复时返回内容；实现若以 nullable 结果表示失败，则返回 null
+     * @throws kotlinx.coroutines.CancellationException 调用协程被取消时原样传播
+     * @throws Exception 实现选择传播网络或服务端失败时原样传播；调用方可读取业务错误详情
      */
     suspend fun sendAttachment(
         sessionId: Long,
