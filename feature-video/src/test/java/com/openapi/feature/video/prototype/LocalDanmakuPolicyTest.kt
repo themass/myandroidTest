@@ -1,5 +1,6 @@
 package com.openapi.feature.video.prototype
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -32,6 +33,23 @@ class LocalDanmakuPolicyTest {
         assertFalse(ControlsVisibility.danmakuToggleApplies(local = true, currentlyOn = true))
         assertTrue(ControlsVisibility.danmakuToggleApplies(local = false, currentlyOn = false))
         assertTrue(ControlsVisibility.danmakuToggleApplies(local = false, currentlyOn = true))
+    }
+
+    @Test
+    fun `bottom bar composition - two rows, no fake episode keys`() {
+        // 在线源：完整走带
+        assertEquals(
+            listOf(
+                BottomBarItem.PlayToggle, BottomBarItem.Subtitles, BottomBarItem.Speed,
+                BottomBarItem.Danmaku, BottomBarItem.More, BottomBarItem.Favorite,
+                BottomBarItem.Cast, BottomBarItem.Fullscreen,
+            ),
+            ControlsVisibility.bottomBar(danmakuState(local = false, on = false)),
+        )
+        // 本地源：弹幕不出，其余不动；任何情况下都没有上一集/下一集（本页无对应动作）
+        val local = ControlsVisibility.bottomBar(danmakuState(local = true, on = false))
+        assertFalse(BottomBarItem.Danmaku in local)
+        assertEquals(7, local.size)
     }
 
     private fun danmakuState(local: Boolean, on: Boolean) =

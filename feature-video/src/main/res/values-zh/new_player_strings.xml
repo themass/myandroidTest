@@ -7,15 +7,8 @@
     <string name="np_lock_short">锁屏</string>
     <string name="np_play">播放</string>
     <string name="np_pause">暂停</string>
-    <string name="np_fullscreen">全屏</string>
-    <string name="np_exit_fullscreen">退出全屏</string>
 
-    <string name="np_subtitles">字幕</string>
-    <string name="np_speed">倍速 %1$s</string>
-    <string name="np_danmaku">弹幕</string>
-    <string name="np_more">更多</string>
     <string name="np_favorite">收藏</string>
-    <string name="np_cast">电视投屏</string>
 
     <string name="np_subtitle_panel_title">字幕 · 本地优先</string>
     <string name="np_subtitle_off">关闭字幕</string>
