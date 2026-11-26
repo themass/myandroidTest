@@ -112,6 +112,17 @@ class AgentSubmitBodyTest {
         assertNull(videos[2].durationSeconds)
     }
 
+    /** A40（用户 2026-11-26）：历史附件 kind="img" 要在解析边界归一成 "image"。 */
+    @Test
+    fun historyImgAttachmentNormalizesToImageKind() {
+        val vo = JSONObject(
+            """{"id":15,"role":"user","content":"","kind":"chat","created_at":"2026-11-20T08:30:00Z",
+               "attachments":[{"upload_id":"i1","kind":"img","name":"a.jpg"}]}""",
+        ).toAgentMessageVo()
+        assertEquals("image", vo.attachments.single().kind)
+        assertEquals(MessageKind.IMAGE, vo.toChatMessage().kind)
+    }
+
     /** VO → 领域模型：location 行必须带上坐标并判成 LOCATION；视频附件进 videos。 */
     @Test
     fun voMapsToDomainLocationAndVideos() {

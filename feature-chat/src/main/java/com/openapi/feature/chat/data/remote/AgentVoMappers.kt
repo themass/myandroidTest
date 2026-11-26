@@ -18,7 +18,10 @@ internal fun AgentMessageVo.toChatMessage(): ChatMessage {
     // 历史里的图片/视频只带 upload_id（字节在对象存储）。先挂成空路径的形态：
     // 图片在 loadHistoryPage 换签名 URL 填进 path，视频**不换**——播放 URL 只在点开那一刻
     // 现取（300 秒的 URL 存进缓存等于第二天打开会话是一段黑屏）。
-    val images = attachments.filter { it.kind == "image" }.map {
+    // 图片 kind 两种写法服务端都发过（"image"/"img"，A40 用户 2026-11-26）：
+    // JSON 边界已归一（toAgentMessageVo），这里再认一次是因为 VO 也会从缓存/测试直接构造——
+    // 少认一种就是整条消息的图被丢掉。与陪伴页 CompanionHistoryItem.from 同一条口径。
+    val images = attachments.filter { it.kind in IMAGE_KINDS }.map {
         ImageAttachment(path = "", source = ImageSource.REMOTE, uploadId = it.uploadId)
     }
     val videos = attachments.filter { it.kind == "video" }.map {
@@ -48,6 +51,9 @@ internal fun AgentMessageVo.toChatMessage(): ChatMessage {
         interrupted = interrupted,
     )
 }
+
+/** 服务端图片附件的两种 kind 写法（A40）；新增写法只改这一处。 */
+internal val IMAGE_KINDS = setOf("image", "img")
 
 internal fun AgentSessionVo.toChatSession(): ChatSession = ChatSession(
     id = id,
