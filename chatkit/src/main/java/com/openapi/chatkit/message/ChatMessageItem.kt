@@ -158,10 +158,18 @@ fun ChatMessageItem(
 
     // 根节点从 Row 换成 Column 只为容纳 [overlay]（如「她记得」来源标签）。
     // overlay 为 null 时不产生任何子项，Row 独占 Column 宽度，布局与原版逐像素一致。
+    // A43-2/#11 第二层兜底：**零 part 且不是「正在想」**的消息整行不渲染（空 AI 气泡投诉的
+    // 显示侧保险）。第一层在 ChatItemMapper（feature-chat）把空助手行丢在映射处；这里是组件库
+    // 自己的底线——任何调用方（陪伴页等）递来一个没内容的行，也不会画出「只有头像占位/
+    // 停止芯片、没有内容」的幽灵行。thinking 的合法占位（三个跳动点）照常渲染，不受影响。
+    // 「空文字 Text("")」与 MessageContent 的 texts 过滤同口径：不计数。
+    val hasRenderableContent = item.parts.any { it !is MessagePart.Text || it.text.isNotEmpty() }
+
     Column(
         modifier = modifier
             .fillMaxWidth(),
     ) {
+        if (!hasRenderableContent && !item.thinking) return@Column
         overlay?.invoke()
         Row(
             modifier = Modifier
