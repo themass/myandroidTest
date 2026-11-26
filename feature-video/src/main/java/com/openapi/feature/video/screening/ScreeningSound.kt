@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.GraphicEq
@@ -727,6 +728,15 @@ private fun SoundTrackHub(
                             contentDescription = if (isFavorite) "取消收藏" else "收藏",
                             tint = if (isFavorite) Peach else White,
                         )
+                    }
+                    // 分享（A40 用户 2026-11-26）：与收藏并排，发这条曲目的身份地址
+                    // （服务端 fileUrl，不是播放器临时地址）；没有地址不出现按钮。
+                    if (current.fileUrl.isNotBlank()) {
+                        IconButton(onClick = {
+                            com.openapi.common.ui.share.ShareKit.shareText(context, current.fileUrl, subject = current.title)
+                        }) {
+                            Icon(Icons.AutoMirrored.Filled.Send, "分享", tint = White)
+                        }
                     }
                     TextButton(onClick = { subtitlesVisible = !subtitlesVisible }) {
                         Text(if (subtitlesVisible) "字幕中" else "字幕", color = if (subtitlesVisible) Mint else White, fontSize = 12.sp)

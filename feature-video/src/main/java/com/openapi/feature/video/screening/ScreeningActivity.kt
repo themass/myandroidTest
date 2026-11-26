@@ -172,7 +172,8 @@ private fun ScreeningHome(activity: ComponentActivity, onBack: (() -> Unit)?) {
             // needLazyUrl 的条目这一步才拿到真正能播的地址
             val url = store.playUrl(entry)
             forward = true
-            selection = ScreeningSource(entry.title, entry.description, uri = Uri.parse(url), key = entry.key)
+            // shareUrl=服务端身份地址：分享发它，不发 uri（懒播放地址带时效签名，发出去会过期）。
+            selection = ScreeningSource(entry.title, entry.description, uri = Uri.parse(url), key = entry.key, shareUrl = entry.actionUrl)
             opening = false
         }
     }

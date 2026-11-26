@@ -86,7 +86,26 @@ internal data class ScreeningSource(
     val description: String,
     val uri: Uri? = null,
     val key: String = uri.toString(),
+    /**
+     * 分享用的身份地址（服务端 actionUrl）。分享绝不能拿 [uri]：懒播放地址每次
+     * 现取、带时效签名，发给别人等于发一张过期链接（A40 用户 2026-11-26）。
+     */
+    val shareUrl: String? = null,
 )
+
+/**
+ * 电影那条分享发什么：身份地址优先，没有才退回当前 uri（本机文件等）。
+ * 两个都没有返回空串——入口据此不显示分享按钮，别发一条空文本。
+ * 判定只认字符串：`Uri` 在 JVM 单测里是 stub（`Uri.parse` 直接返回 null），
+ * 拆成字符串入参这条决策才有地方钉。
+ */
+internal fun screeningShareUrl(shareUrl: String?, uriText: String?): String =
+    shareUrl?.takeIf { it.isNotBlank() }
+        ?: uriText?.takeIf { it.isNotBlank() }
+        ?: ""
+
+internal fun screeningShareUrl(source: ScreeningSource): String =
+    screeningShareUrl(source.shareUrl, source.uri?.toString())
 
 internal fun documentName(context: Context, uri: Uri): String = runCatching {
     context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
@@ -704,6 +723,12 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
                     color = White, fontSize = ScreeningTypography.item, lineHeight = ScreeningTypography.itemLineHeight,
                     fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
+                // 分享（A40 用户 2026-11-26）：发片子的身份地址；没有可分享地址时不出现按钮。
+                if (screeningShareUrl(source).isNotEmpty()) {
+                    ScreenIcon(Icons.AutoMirrored.Filled.Send, "分享", {
+                        com.openapi.common.ui.share.ShareKit.shareText(context, screeningShareUrl(source), subject = source.title)
+                    })
+                }
                 ScreenIcon(Icons.Default.Fullscreen, "全屏", { setFull(true) })
             }
         }
@@ -825,6 +850,12 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
                         color = White, fontSize = if (full) 16.sp else 15.sp, lineHeight = 20.sp,
                         fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
+                    // 分享（A40）：影院态顶栏同样给入口，发身份地址（同竖屏那条）。
+                    if (screeningShareUrl(source).isNotEmpty()) {
+                        ScreenIcon(Icons.AutoMirrored.Filled.Send, "分享", {
+                            com.openapi.common.ui.share.ShareKit.shareText(context, screeningShareUrl(source), subject = source.title)
+                        })
+                    }
                     if (full) ScreenIcon(Icons.Default.Lock, "锁定控件", { locked = true })
                 }
                 Row(

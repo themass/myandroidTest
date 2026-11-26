@@ -21,6 +21,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -304,6 +305,7 @@ private fun Lightbox(
     onMove: (Int) -> Unit,
     onTail: (RemoteEntry) -> Unit,
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val pager = rememberPagerState(initialPage = start.coerceIn(shots.indices)) { shots.size }
     var chrome by remember { mutableStateOf(true) }
     var zoom by remember { mutableFloatStateOf(1f) }
@@ -366,6 +368,18 @@ private fun Lightbox(
                 // 「收藏 / 下载」两个键以前是空实现（点了没反应），随死代码一并撤掉；
                 // 做真功能时再加回来。
                 Spacer(Modifier.weight(1f))
+                // 分享（A40 用户 2026-11-26）：发当前这一张的身份地址；没有地址不出现按钮。
+                val shareShot = shots.getOrNull(pager.currentPage)
+                val shareUrl = shareShot?.let { lightboxImageUrl(it) }
+                if (!shareUrl.isNullOrBlank()) {
+                    IconButton(onClick = {
+                        com.openapi.common.ui.share.ShareKit.shareText(
+                            context, shareUrl, subject = shareShot.title,
+                        )
+                    }) {
+                        Icon(Icons.AutoMirrored.Filled.Send, "分享", tint = White)
+                    }
+                }
                 Text("双指缩放 · 左右滑动", color = Muted, fontSize = 11.sp, modifier = Modifier.align(Alignment.CenterVertically))
             }
         }
