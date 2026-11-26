@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.openapi.chatkit.theme.ChatKit
 import kotlin.math.pow
 
 /** 微信式录音的三种松手去向。 */
@@ -127,7 +128,8 @@ private fun ArcPill(label: String, active: Boolean, rotation: Float, modifier: M
             .background(if (active) Color.White else Color(0x55FFFFFF), RoundedCornerShape(29.dp)),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = label, color = if (active) Color(0xFF191919) else Color.White, fontSize = 17.sp)
+        // A38：固定 140dp 胶囊内 17sp 临界，收 body=16 稳在一行。
+        Text(text = label, color = if (active) Color(0xFF191919) else Color.White, fontSize = ChatKit.typography.body)
     }
 }
 
@@ -144,7 +146,8 @@ private fun Bubble(bubble: Color, bars: Color, levels: List<Float>, liveText: St
             if (liveText.isNullOrBlank()) {
                 Waveform(levels = levels, color = bars, modifier = Modifier.width(250.dp).height(40.dp))
             } else {
-                Text(text = liveText, color = Color(0xFF191919), fontSize = 17.sp)
+                // A38：ASR 实时文本保留换行（场景需要），字号 17→body=16。
+                Text(text = liveText, color = Color(0xFF191919), fontSize = ChatKit.typography.body)
             }
         }
         // 向下的小尖角

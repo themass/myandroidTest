@@ -102,7 +102,8 @@ internal fun ActionRow(title: String, trailing: String?, onClick: () -> Unit) {
             .padding(vertical = AppSpacing.md),
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
     ) {
-        Text(title, modifier = Modifier.weight(1f), fontSize = 15.sp, color = AppColors.TextPrimary)
+        // A38：行标题最长可到三行，长设置项名不再挤爆右侧值——限两行。
+        Text(title, modifier = Modifier.weight(1f), fontSize = 15.sp, color = AppColors.TextPrimary, maxLines = 2)
         if (!trailing.isNullOrEmpty()) {
             Text(trailing, fontSize = 13.sp, color = AppColors.TextSecondary)
         }
