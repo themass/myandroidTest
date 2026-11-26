@@ -54,9 +54,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.openapi.common.ui.theme.AppColors
 import com.openapi.feature.photosolve.R
+import com.openapi.feature.photosolve.SolveTypography
 import com.openapi.feature.photosolve.markdown.MathText
 import com.openapi.feature.photosolve.presentation.PhotoSolveResult
 
@@ -172,7 +172,9 @@ fun PhotoResultScreen(
  *
  * **结果页和历史详情页共用这一份**（历史上两处各写各的，结果页把字号从 20/16/20sp 收到
  * 17/15/18sp，详情页没跟着改，用户从历史进去看到的还是旧的大字号）。
- * 字号只在下面这一处定义：题目 17sp、步骤 15sp、思考 14sp、答案 18sp。
+ * A42-#1：字号**值**不再写在这里——四档全部取自 [SolveTypography]（question/step/
+ * thinking/answer），这里是唯一的引用点；守卫 `PhotosolveTypographyGuardTest` 钉住
+ * 「页面级不得出现字面量 sp」。
  */
 @Composable
 fun SolveResultSections(result: PhotoSolveResult, modifier: Modifier = Modifier) {
@@ -181,7 +183,7 @@ fun SolveResultSections(result: PhotoSolveResult, modifier: Modifier = Modifier)
         MathText(
             markdown = result.recognizedQuestion,
             color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 17.sp,
+            fontSize = SolveTypography.question,
         )
 
         if (result.thinking.isNotBlank()) {
@@ -210,7 +212,7 @@ fun SolveResultSections(result: PhotoSolveResult, modifier: Modifier = Modifier)
                     MathText(
                         markdown = step,
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 15.sp,
+                        fontSize = SolveTypography.step,
                     )
                 }
             }
@@ -232,7 +234,7 @@ fun SolveResultSections(result: PhotoSolveResult, modifier: Modifier = Modifier)
                     MathText(
                         markdown = result.finalAnswer,
                         color = AppColors.Success,
-                        fontSize = 18.sp,
+                        fontSize = SolveTypography.answer,
                     )
                 }
             }
@@ -297,11 +299,11 @@ fun ThinkingSection(
         }
         AnimatedVisibility(visible = expanded) {
             Column(Modifier.padding(top = 8.dp)) {
-                // 与正式步骤区分：小一号（14sp）+ secondary 色，样稿里的 supporting 档
+                // 与正式步骤区分：退到 thinking 档 + secondary 色，样稿里的 supporting 档
                 MathText(
                     markdown = thinking,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 14.sp,
+                    fontSize = SolveTypography.thinking,
                 )
             }
         }

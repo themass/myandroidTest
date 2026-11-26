@@ -8,8 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.openapi.feature.photosolve.SolveTypography
 import io.noties.markwon.Markwon
 import io.noties.markwon.core.CorePlugin
 import io.noties.markwon.ext.latex.JLatexMathPlugin
@@ -34,7 +34,9 @@ fun MathText(
     markdown: String,
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
-    fontSize: TextUnit = 16.sp,
+    // A42-#1：默认值也引用 token（步骤档）——之前这里 16.sp 是游离于四档之外的第五个事实源，
+    // 页面调字号时默认路径不受控。调用点必须显式传 SolveTypography 的档位。
+    fontSize: TextUnit = SolveTypography.step,
     selectable: Boolean = true,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -90,8 +92,9 @@ private fun textDrawable(context: Context, text: String): android.graphics.drawa
 
 private fun markwon(context: Context, textSizeSp: Float): Markwon {
     val app = context.applicationContext
-    // 公式字号 = 正文字号 × 1.15：jlatexmath 的行内公式默认偏小，但仍以调用方给的正文为基准
-    val latexSize = textSizeSp.coerceAtLeast(10f) * app.resources.displayMetrics.scaledDensity * 1.15f
+    // 公式字号 = 正文字号 × SolveTypography.LATEX_SIZE_FACTOR：jlatexmath 的行内公式默认略小，
+    // 但仍以调用方给的正文为基准；系数在 token 处统一调（A42-#1 把它从 1.15 降到 1.05）。
+    val latexSize = textSizeSp.coerceAtLeast(10f) * app.resources.displayMetrics.scaledDensity * SolveTypography.LATEX_SIZE_FACTOR
     return Markwon.builder(app)
         .usePlugin(MarkwonInlineParserPlugin.create())
         .usePlugin(SingleDollarLatexPlugin())
