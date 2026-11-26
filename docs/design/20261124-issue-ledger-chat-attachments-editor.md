@@ -371,7 +371,7 @@
 5. **倍速弹窗丑**——同频道 #8：chip 单击循环；档位表三处漂移（:534 缺 0.75/2.5/3）→ 与放映场 {0.5,0.75,1,1.25,1.5,2,2.5,3} 统一成一个共享常量。
 6. **本地视频不该有弹幕**——chip 无条件显示；`VideoUtil.isLocalPlayUrl` 在 :128 算了却没存。**方案**：`PlayerControlsState` 加 `local: Boolean`，弹幕 chip 按它显示、handler no-op。
 
-**状态**：取证完成；频道线 worker 会话已派（A41-频道）；本地视频 6 项本会话修，改完并线；#3/#5/#6 需真机取证点已写进各条。
+**状态（20261126 收口）**：频道八项已并线（`44649b73`）；本地视频六项已并线（`6c7104d1`，并线复跑 :feature-video 274/0/0、:app testChat 153/0/0）。真机取证点待做：#3 CDN 403（logcat）、#5 文章图/崩溃（logcat 三选一）、倍速单击与返回键手感。
 
 ---
 
@@ -386,7 +386,7 @@
 5. **历史详情底部按钮丑/大**——四个边框按钮一排 + 全宽「返回」与顶栏重复（`PhotoResultScreen.kt:353-413`、`SolveHistoryDetailScreen.kt:191-193`）。**方案**：底栏只留主操作，收藏/重命名/删除进顶栏「⋯」菜单（列表页 HistoryRow 有同款可复用）；或底栏改无边框 TextButton 排。
 6. **详情删除后列表行还在只是不能点**——删除走 `SolveDetailViewModel`，回调只 `{ detailId = null }`，**没有任何东西触发列表 refresh**；列表 StateFlow 还是旧 records，再点 → `store.get` null → notFound 空占位 = 「不能点」观感。同型：结果页 saveToHistory 后列表也不刷。**方案**：`SolveHistoryStore` 加变更事件（delete/save/rename 后发一帧），`SolveHistoryViewModel` init collect 即 refresh；最小版本先 `onDeleted = { detailId=null; historyViewModel.refresh() }`。
 
-**状态**：取证完成；worker 会话已派（A42）；#4 的服务端 SSE 与 #2c 的 bbox 属服务端线，客户端先做首帧即进+兜底。
+**状态（20261126 更新）**：取证完成。首个 worker 会话（claude/elegant-gates-5a20d1）上下文耗尽、零 commit 产出，已废；**重开 a42-retry 会话**做全部六项（含 #4 客户端对接已上线的生产 SSE 通道 `POST /v1/photosolve/solve/stream`）。#2c 的 bbox 属服务端契约扩展，另线。
 
 ---
 
