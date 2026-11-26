@@ -191,6 +191,14 @@ class ChatViewModel : ViewModel() {
      */
     fun onSend() = send.onSend()
 
+    /**
+     * 「生成中发消息」开关（设计 20261126 §2 D1）。值推进 [ChatUiState.sendMode]，
+     * 判定仍只在 [ChatTurnGate] 一处；持久化在 ChatRoute（prefs 是平台能力，ViewModel 不碰 Context）。
+     */
+    fun onSendModeChange(mode: SendMode) {
+        _uiState.update { it.copy(sendMode = mode) }
+    }
+
     /** 纯文字消息：插入用户气泡，然后流式接收回复。 */
     private fun sendText(text: String) = send.sendText(text)
 

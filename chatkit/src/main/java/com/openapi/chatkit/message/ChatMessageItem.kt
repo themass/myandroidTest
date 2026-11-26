@@ -69,6 +69,7 @@ import com.openapi.chatkit.message.parts.FileCard
 import com.openapi.chatkit.message.parts.ImageGrid
 import com.openapi.chatkit.message.parts.LocalMessageImageEditHandler
 import com.openapi.chatkit.message.parts.LocationBubble
+import com.openapi.chatkit.message.parts.LocationCardContent
 import com.openapi.chatkit.message.parts.TextBubble
 import com.openapi.chatkit.message.parts.ThinkingIndicator
 import com.openapi.chatkit.message.parts.VideoCard
@@ -157,10 +158,18 @@ fun ChatMessageItem(
 
     // 根节点从 Row 换成 Column 只为容纳 [overlay]（如「她记得」来源标签）。
     // overlay 为 null 时不产生任何子项，Row 独占 Column 宽度，布局与原版逐像素一致。
+    // A43-2/#11 第二层兜底：**零 part 且不是「正在想」**的消息整行不渲染（空 AI 气泡投诉的
+    // 显示侧保险）。第一层在 ChatItemMapper（feature-chat）把空助手行丢在映射处；这里是组件库
+    // 自己的底线——任何调用方（陪伴页等）递来一个没内容的行，也不会画出「只有头像占位/
+    // 停止芯片、没有内容」的幽灵行。thinking 的合法占位（三个跳动点）照常渲染，不受影响。
+    // 「空文字 Text("")」与 MessageContent 的 texts 过滤同口径：不计数。
+    val hasRenderableContent = item.parts.any { it !is MessagePart.Text || it.text.isNotEmpty() }
+
     Column(
         modifier = modifier
             .fillMaxWidth(),
     ) {
+        if (!hasRenderableContent && !item.thinking) return@Column
         overlay?.invoke()
         Row(
             modifier = Modifier
@@ -226,6 +235,16 @@ fun ChatMessageItem(
                             fontSize = ChatKit.typography.caption,
                             color = ChatKit.colors.secondaryText,
                         )
+                        // A43-#10（QUEUE 模式）：这条是排空续发的——回合结束后才出现，
+                        // 标出来用户才知道它没丢、也不是自己刚按的。与「已发送」同一行。
+                        if (item.queuedSend) {
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                stringResource(R.string.chatkit_queued_send),
+                                fontSize = ChatKit.typography.caption,
+                                color = ChatKit.colors.secondaryText,
+                            )
+                        }
                         // 最后一条用户消息还没有回复（例如回复前点了停止）：给一个重新回答的入口，不重复发送
                         if (showAnswerAgain) {
                             Spacer(Modifier.width(8.dp))
@@ -315,10 +334,12 @@ internal fun MessageContent(
     val texts = item.parts.filterIsInstance<MessagePart.Text>().filter { it.text.isNotEmpty() }
     val hasContent = images.isNotEmpty() || files.isNotEmpty() || videos.isNotEmpty() ||
         locations.isNotEmpty() || voices.isNotEmpty() || texts.isNotEmpty()
-    // 「附件 + 文字 = 一条消息」的判定（决策在 attachmentTextLayout，有单测）。
-    // Merged = 附件和文字共用一个气泡（202611 用户反馈：之前看图+文字像两条消息）。
+    // 「附件（含位置）+ 文字 = 一条消息」的判定（决策在 attachmentTextLayout，有单测）。
+    // Merged = 附件和文字共用一个气泡（202611 用户反馈：之前看图+文字像两条消息；
+    // A43-6：位置同样计入——带配文的位置消息此前走 Separate，用户看「位置消息是两条」）。
     val merged = attachmentTextLayout(
         hasAttachments = images.isNotEmpty() || files.isNotEmpty() || videos.isNotEmpty(),
+        hasLocation = locations.isNotEmpty(),
         hasText = texts.isNotEmpty(),
     ) == AttachmentTextLayout.Merged
     // 消息大图的「编辑」由宿主经 CompositionLocal 提供；null 时查看器与从前完全一致。
@@ -336,14 +357,31 @@ internal fun MessageContent(
             // 单气泡：附件在上、一条分隔线、文字在下——同底色同圆角，读起来是一件事。
             // 附件与文字之间的内部间距（8dp）刻意小于消息间距（14dp）：气泡之间的空 > 气泡内的空。
             // footer 仍挂在文字之后（与 Separate 分支同一语义）；读屏动作挂在这个唯一的气泡上。
+            //
+            // A43-4①（20261126 用户反馈：图集消息右边距过深）：含图片的合并气泡让图片段**出血**
+            // （内层盒去掉横向 12dp，图片贴气泡内边），文字/位置卡/分隔线自己补回这 12dp——
+            // 文字边缘不动，只消掉「卡片右缘到气泡右缘」的双份内边距。
+            // 只有图片出血：文件卡/视频卡自带 12dp 圆角行卡皮肤，维持原内边距不变。
+            val bleed = images.isNotEmpty()
+            // 非图片内容的横向内边距：出血模式下内层盒不再压 padding，各段自己补回 12dp
+            //（文字/位置卡/分隔线边缘不动，只有图片贴气泡内边）。非出血时 inset=0，布局与从前逐像素一致。
+            val inset = if (bleed) ChatKit.dimens.bubblePaddingHorizontal else 0.dp
             TextBubble(
                 sender = sender,
                 onLongPress = onLongPress,
-                modifier = Modifier.widthIn(max = maxWidth),
+                modifier = Modifier
+                    .widthIn(max = maxWidth)
+                    .testTag("merged-bubble"),
                 footer = footer,
                 screenReaderActions = screenReaderActions,
+                attachmentsBleed = bleed,
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // A43-4②：收纳盒/轮播是固定宽（190+14×(visible-1)=218dp），默认 Start 把
+                // 218dp 钉在左侧 → 用户消息右侧留一条空白带。按发送者对齐（用户贴右缘、助手贴左缘）。
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = if (sender == Sender.User) Alignment.End else Alignment.Start,
+                ) {
                     images.forEach { part ->
                         ImageGrid(
                             sources = part.sources,
@@ -352,6 +390,7 @@ internal fun MessageContent(
                             layout = part.layout,
                             onRetryImage = { index -> onAction(MessageAction.RetryImage(index)) },
                             onEdit = onEditImage,
+                            modifier = Modifier.testTag("merged-image-grid"),
                         )
                     }
                     files.forEach { file ->
@@ -359,7 +398,7 @@ internal fun MessageContent(
                             file = file,
                             onClick = { onAction(MessageAction.OpenFile(file)) },
                             onLongPress = { onAttachmentLongPress(AttachmentTarget.File(file)) },
-                            modifier = Modifier.widthIn(max = maxWidth),
+                            modifier = Modifier.padding(horizontal = inset).widthIn(max = maxWidth),
                         )
                     }
                     videos.forEach { video ->
@@ -367,11 +406,23 @@ internal fun MessageContent(
                             video = video,
                             onClick = { onAction(MessageAction.OpenVideo(video)) },
                             onLongPress = { onAttachmentLongPress(AttachmentTarget.File(MessagePart.File(video.path, video.name, 0))) },
-                            modifier = Modifier.widthIn(max = maxWidth),
+                            modifier = Modifier.padding(horizontal = inset).widthIn(max = maxWidth),
                         )
                     }
-                    HorizontalDivider(color = ChatKit.colors.divider)
-                    texts.forEach { part -> text(item, part.text) }
+                    // A43-6：位置卡坐进合并气泡的附件位（无气泡皮肤，防双层底色），
+                    // 下面一条分隔线、配文在下——位置消息是一个整体，不再是两条。
+                    locations.forEach { location ->
+                        Box(Modifier.padding(horizontal = inset)) {
+                            LocationCardContent(
+                                location = location,
+                                onOpenMap = { onAction(MessageAction.OpenLocation(location)) },
+                            )
+                        }
+                    }
+                    HorizontalDivider(Modifier.padding(horizontal = inset).testTag("merged-divider"))
+                    texts.forEach { part ->
+                        Box(Modifier.padding(horizontal = inset)) { text(item, part.text) }
+                    }
                 }
             }
         } else {
@@ -403,15 +454,20 @@ internal fun MessageContent(
                 )
             }
         }
-        locations.forEach { location ->
-            LocationBubble(
-                sender = sender,
-                location = location,
-                onOpenMap = { onAction(MessageAction.OpenLocation(location)) },
-                onLongPress = onLongPress,
-                modifier = Modifier.widthIn(max = maxWidth),
-                screenReaderActions = screenReaderActions,
-            )
+        // 独立位置气泡只在**没有文字**时出现（A43-6）：带配文的位置消息已把位置卡并进上面的合并气泡。
+        if (!merged) {
+            locations.forEach { location ->
+                LocationBubble(
+                    sender = sender,
+                    location = location,
+                    onOpenMap = { onAction(MessageAction.OpenLocation(location)) },
+                    onLongPress = onLongPress,
+                    modifier = Modifier
+                        .widthIn(max = maxWidth)
+                        .testTag("location-standalone"),
+                    screenReaderActions = screenReaderActions,
+                )
+            }
         }
         voices.forEach { voice ->
             VoiceBubble(

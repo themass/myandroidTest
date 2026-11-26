@@ -61,6 +61,7 @@ import com.openapi.chatkit.media.imageModel
 import com.openapi.chatkit.model.ImageLayout
 import com.openapi.chatkit.model.ImageLoadState
 import com.openapi.chatkit.model.ImageVisualStatus
+import com.openapi.chatkit.model.isResignableImageSource
 import com.openapi.chatkit.model.MessagePart
 import com.openapi.mediaview.MediaCarousel
 import com.openapi.mediaview.MediaItem
@@ -104,16 +105,24 @@ internal fun imageArrangement(count: Int, layout: ImageLayout): ImageArrangement
  *
  * 之前只有文字进气泡、附件是裸卡片，中间还隔着消息级的间距——用户看「图片+文字」就是两条消息
  * （202611 用户反馈）。现在：
- * - [Merged]：同一消息既有附件（图片/文件/视频）又有文字 → **共用一个气泡**（同底色同圆角），
+ * - [Merged]：同一消息既有附件（图片/文件/视频/位置）又有文字 → **共用一个气泡**（同底色同圆角），
  *   中间用一条分隔线而不是空气；
  * - [Separate]：任一者缺席 → 各自保持原样（纯附件裸排布、纯文字单气泡），不为了合并而合并。
  *
- * 位置与语音不并入：它们本身自带完整气泡（坐标卡片 / 转写内嵌），拆开再拼只会重复信息。
+ * 语音不并入：它本身自带完整气泡（转写内嵌），拆开再拼只会重复信息。
+ * 位置并入（A43-6，20261126 用户反馈「位置消息应该是一个整体」）：此前位置不在判定里，
+ * 带配文的位置消息走 Separate——位置卡一条、配文一条，看上去是两条消息。现在 [hasLocation]
+ * 与附件同等参与合并，位置卡进合并气泡的附件位（出卡皮肤，见 [LocationCard]，防双层底色）。
+ * 纯位置消息（无文字）仍是位置气泡单独一条，不回退。
  */
 internal enum class AttachmentTextLayout { Separate, Merged }
 
-internal fun attachmentTextLayout(hasAttachments: Boolean, hasText: Boolean): AttachmentTextLayout =
-    if (hasAttachments && hasText) AttachmentTextLayout.Merged else AttachmentTextLayout.Separate
+internal fun attachmentTextLayout(
+    hasAttachments: Boolean,
+    hasLocation: Boolean,
+    hasText: Boolean,
+): AttachmentTextLayout =
+    if ((hasAttachments || hasLocation) && hasText) AttachmentTextLayout.Merged else AttachmentTextLayout.Separate
 
 /** 气泡形状：四角同一圆角（豆包式，不做「尾巴」）。 */
 @Composable
@@ -132,7 +141,14 @@ fun bubbleShape(sender: Sender): Shape {
  */
 val LocalMessageImageEditHandler = staticCompositionLocalOf<((String) -> Unit)?> { null }
 
-/** 文字气泡：用户蓝底白字，助手浅灰底深灰字。具体文字由 [content] 渲染（助手可用 Markdown）。 */
+/**
+ * 文字气泡：用户蓝底白字，助手浅灰底深灰字。具体文字由 [content] 渲染（助手可用 Markdown）。
+ *
+ * [attachmentsBleed]（A43-4）：合并气泡里图片块右缘空白过深的修法之一——true 时内层盒只留
+ * **纵向**内边距，横向不再压 12dp，附件段贴到气泡内边（出血）；文字与 footer 由调用方/这里
+ * 自己补回 [ChatKitDimens.bubblePaddingHorizontal]。默认 false：**逐像素不变**
+ * （陪伴页这类不传图集的调用方走的就是默认分支）。
+ */
 @Composable
 fun TextBubble(
     sender: Sender,
@@ -145,6 +161,8 @@ fun TextBubble(
      * 挂在气泡自身节点上，读屏在局部菜单里直接执行，不需要「长按」这个摸不到的手势。
      */
     screenReaderActions: List<CustomAccessibilityAction> = emptyList(),
+    /** true = 内容横向出血（仅合并气泡带图片时用；见上方注释）。false 时布局与从前逐像素一致。 */
+    attachmentsBleed: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colors = ChatKit.colors
@@ -161,13 +179,27 @@ fun TextBubble(
                 else Modifier.semantics { customActions = screenReaderActions }
             ),
     ) {
-        Box(Modifier.padding(horizontal = dimens.bubblePaddingHorizontal, vertical = dimens.bubblePaddingVertical)) {
-            if (footer == null) {
-                content()
-            } else {
-                Column {
+        if (attachmentsBleed) {
+            // 附件段贴气泡内边；文字/分隔线等由调用方补横向 padding；footer 在这里补回。
+            Box(Modifier.padding(vertical = dimens.bubblePaddingVertical)) {
+                if (footer == null) {
                     content()
-                    footer()
+                } else {
+                    Column {
+                        content()
+                        Box(Modifier.padding(horizontal = dimens.bubblePaddingHorizontal)) { footer() }
+                    }
+                }
+            }
+        } else {
+            Box(Modifier.padding(horizontal = dimens.bubblePaddingHorizontal, vertical = dimens.bubblePaddingVertical)) {
+                if (footer == null) {
+                    content()
+                } else {
+                    Column {
+                        content()
+                        footer()
+                    }
                 }
             }
         }
@@ -263,6 +295,26 @@ fun ImageGrid(
         val slot = states.getOrNull(index) ?: return
         slot.value = transform(slot.value)
     }
+    // A43-5（20261126 用户反馈「旧图滑不动」）：历史签名 URL 只活 300 秒，过期 403 是这张格
+    // 进失败态的最大来源，而失败态会 churn items（见 mediaview MediaStack 的 remember(count) 注释）。
+    // 远程图**首次**自然加载失败时不进失败占位：换 key 重载一次，同时让调用方去重签地址
+    // （ImageRetryActions：GET /uploads/{id}，在途去重）——签名 URL 到位后来源一变、这一格全新 Loading。
+    // 换不到（对象已删/离线）第二次失败照常进 Failed，失败占位和手动重试入口不变。
+    // 「一世一次」记在组合生命周期的 set 里（不是状态机里）：来源一换状态实例就重建，
+    // 状态存不住；没有这道闸，重签成功但新地址仍失败（对象已删）会无限「重签→再失败→再重签」。
+    val autoResignUsed = remember(sources) { mutableSetOf<Int>() }
+    fun reportError(index: Int) {
+        val slot = states.getOrNull(index) ?: return
+        val source = sources.getOrNull(index) ?: return
+        val before = slot.value
+        if (index !in autoResignUsed && isResignableImageSource(source)) {
+            autoResignUsed += index
+            slot.value = before.onFailedAwaitingResign()
+            onRetryImage(index)
+        } else {
+            slot.value = before.onFailed()
+        }
+    }
     fun retry(index: Int) {
         val slot = states.getOrNull(index) ?: return
         val before = slot.value
@@ -306,7 +358,7 @@ fun ImageGrid(
                     contentDescription = stringResource(R.string.chatkit_image),
                     contentScale = ContentScale.Fit,
                     onSuccess = { update(0) { it.onLoaded() } },
-                    onError = { update(0) { it.onFailed() } },
+                    onError = { reportError(0) },
                     modifier = Modifier.fillMaxSize(),
                 )
                 if (state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying) {
@@ -351,7 +403,7 @@ fun ImageGrid(
                         onClick = onTap,
                         onLongClick = onLong,
                         onRetry = ::retry,
-                        onItemError = { index -> update(index) { it.onFailed() } },
+                        onItemError = ::reportError,
                     )
                     else -> MediaStack(
                         items = items,
@@ -367,7 +419,7 @@ fun ImageGrid(
                         onClick = onTap,
                         onLongClick = onLong,
                         onRetry = ::retry,
-                        onItemError = { index -> update(index) { it.onFailed() } },
+                        onItemError = ::reportError,
                     )
                 }
             }
@@ -566,9 +618,64 @@ fun VideoCard(
 }
 
 /**
- * 位置气泡：坐标两行数字 + 精度标注 + 「在地图打开」。
+ * 位置内容的**无气泡皮肤**（A43-6）：标题行 + 坐标两行数字 + 精度标注 + 「在地图打开」。
+ *
+ * 拆出来是为了让它能进「附件+文字」合并气泡（[attachmentTextLayout] 把 location 计入合并后，
+ * 位置卡坐在合并气泡的附件位上）——再套一层 [TextBubble] 就是气泡里套气泡、双层底色。
+ * 独立位置消息仍用带气泡的 [LocationBubble]。
+ *
  * 组件不画地图也不解地址——按钮点击把回调交给调用方（geo: intent 在业务侧），
  * 所以这里连 Android context 能力都不需要，纯 Compose 就能渲染。
+ */
+@Composable
+fun LocationCardContent(
+    location: MessagePart.Location,
+    onOpenMap: () -> Unit,
+) {
+    val colors = ChatKit.colors
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                Icons.Outlined.LocationOn,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                stringResource(R.string.chatkit_location),
+                fontWeight = FontWeight.SemiBold,
+                fontSize = ChatKit.typography.body,
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            String.format(Locale.US, "%.5f, %.5f", location.latitude, location.longitude),
+            fontSize = ChatKit.typography.secondary,
+        )
+        location.accuracyMeters?.let { meters ->
+            Text(
+                stringResource(R.string.chatkit_location_accuracy, meters),
+                color = colors.secondaryText,
+                fontSize = ChatKit.typography.caption,
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        // 用文本按钮而不是 Button：气泡里的次要操作，颜色跟随气泡 contentColor
+        Text(
+            stringResource(R.string.chatkit_open_in_map),
+            color = ChatKit.colors.accent,
+            fontSize = ChatKit.typography.secondary,
+            modifier = Modifier
+                .clip(RoundedCornerShape(6.dp))
+                .clickable(onClick = onOpenMap)
+                .padding(vertical = 2.dp),
+        )
+    }
+}
+
+/**
+ * 位置气泡：整气泡皮肤（[TextBubble]）+ [LocationCardContent]。
+ * 只有**没有文字**的位置消息走这条（带配文的位置消息进合并气泡，见 [attachmentTextLayout]）。
  */
 @Composable
 fun LocationBubble(
@@ -580,50 +687,12 @@ fun LocationBubble(
     /** 读屏动作，与文字气泡同一套（挂在可点击的气泡节点上）。 */
     screenReaderActions: List<CustomAccessibilityAction> = emptyList(),
 ) {
-    val colors = ChatKit.colors
     TextBubble(
         sender = sender,
         onLongPress = onLongPress,
         modifier = modifier.widthIn(min = 220.dp),
         screenReaderActions = screenReaderActions,
     ) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Outlined.LocationOn,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    stringResource(R.string.chatkit_location),
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = ChatKit.typography.body,
-                )
-            }
-            Spacer(Modifier.height(6.dp))
-            Text(
-                String.format(Locale.US, "%.5f, %.5f", location.latitude, location.longitude),
-                fontSize = ChatKit.typography.secondary,
-            )
-            location.accuracyMeters?.let { meters ->
-                Text(
-                    stringResource(R.string.chatkit_location_accuracy, meters),
-                    color = colors.secondaryText,
-                    fontSize = ChatKit.typography.caption,
-                )
-            }
-            Spacer(Modifier.height(8.dp))
-            // 用文本按钮而不是 Button：气泡里的次要操作，颜色跟随气泡 contentColor
-            Text(
-                stringResource(R.string.chatkit_open_in_map),
-                color = ChatKit.colors.accent,
-                fontSize = ChatKit.typography.secondary,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .clickable(onClick = onOpenMap)
-                    .padding(vertical = 2.dp),
-            )
-        }
+        LocationCardContent(location = location, onOpenMap = onOpenMap)
     }
 }

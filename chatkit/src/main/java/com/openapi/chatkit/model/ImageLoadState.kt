@@ -46,6 +46,20 @@ data class ImageLoadState(
             this
         }
 
+    /**
+     * 远程图**首次**自然失败（A43-5）：不进失败占位，留在加载态并换 Coil 缓存 key 再走一次
+     * （调用方同时去重签地址，来源一变这一格回到全新 Loading）。[attempt] 必须 +1：
+     * 重签可能拿回同一个地址，不换 key 就不会再发请求，这一格会永远卡在加载。
+     * 「只自动走这一次」的闸在调用方（ImageGrid 按格记账）——本状态实例随来源变化会被重建，
+     * 记不住跨来源的一世一次。
+     */
+    fun onFailedAwaitingResign(): ImageLoadState =
+        if (status == ImageVisualStatus.Loading || status == ImageVisualStatus.Retrying) {
+            copy(attempt = attempt + 1)
+        } else {
+            this
+        }
+
     fun onRetryClick(): ImageLoadState =
         if (status == ImageVisualStatus.Failed) {
             copy(status = ImageVisualStatus.Retrying, attempt = attempt + 1)
@@ -53,3 +67,11 @@ data class ImageLoadState(
             this
         }
 }
+
+/**
+ * 这个图片来源是不是「可以换源」的远程图（A43-5）：签名地址（http/https），或换源失败
+ * 退化出的空 path 槽（ChatLogMapper 的 REMOTE 标记）。本机文件路径没有可换的地址——
+ * 组件自己的强制重载已经是全部能做的事，对它自动重发只会白白多一轮。
+ */
+fun isResignableImageSource(source: String): Boolean =
+    source.startsWith("http://") || source.startsWith("https://") || source.isEmpty()

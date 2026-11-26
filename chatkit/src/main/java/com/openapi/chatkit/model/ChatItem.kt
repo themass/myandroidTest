@@ -84,6 +84,11 @@ data class ChatItem(
     val speaking: Boolean = false,
     /** 助手正在流式输出这条消息（已有部分文字但还没结束）。 */
     val streaming: Boolean = false,
+    /**
+     * A43-#10：这条用户消息是排队队列排空后续发的（气泡在回合结束后才出现）。
+     * 组件在气泡下方画一行「排队发送」小字，解释它为什么现在才出现。
+     */
+    val queuedSend: Boolean = false,
 ) {
     /** 用于复制、分享、编辑的纯文本：文字部分，没有文字时退回语音转写。 */
     val plainText: String

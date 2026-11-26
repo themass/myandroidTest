@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -135,10 +136,10 @@ class SendActionsTest {
         assertTrue("生成中输入框有文字，发送键必须可用（走排队）", h.state.value.canSend)
     }
 
-    /** 生成中 sendText：不直发、不插用户气泡，按 Enter 顺序进队列。 */
+    /** 生成中 sendText（**排队模式**）：不直发、不插用户气泡，按 Enter 顺序进队列。 */
     @Test
     fun sendTextWhileSendingQueuesInOrderWithoutStartingStream() {
-        val h = Harness(ChatUiState(sending = true, streaming = true))
+        val h = Harness(ChatUiState(sending = true, streaming = true, sendMode = SendMode.Queue))
         h.send.sendText("第一条")
         h.send.sendText("第二条")
         h.scope.advanceUntilIdle()
@@ -149,10 +150,10 @@ class SendActionsTest {
         assertTrue(h.repo.sentTexts.isEmpty())
     }
 
-    /** 生成中点发送（纯文字）：立即清空 input 并入队，不走附件发送路径。 */
+    /** 生成中点发送（纯文字，**排队模式**）：立即清空 input 并入队，不走附件发送路径。 */
     @Test
     fun onSendWhileSendingQueuesPlainTextAndClearsInput() {
-        val h = Harness(ChatUiState(input = " 追加的问题 ", sending = true, streaming = true))
+        val h = Harness(ChatUiState(input = " 追加的问题 ", sending = true, streaming = true, sendMode = SendMode.Queue))
         h.send.onSend()
         h.scope.advanceUntilIdle()
 
@@ -160,6 +161,89 @@ class SendActionsTest {
         assertEquals("", h.state.value.input)
         assertEquals(0, h.attachmentSends.size)
         assertTrue(h.state.value.messages.isEmpty())
+    }
+
+    // ---------------------------------------------------------------- D1 即时模式（默认）
+
+    /**
+     * D1（设计 20261126 §2 D1）：默认 Immediate——生成中的纯文字**不进本地队列**，
+     * 气泡立即上屏并直接 submit（clientMessageId = 气泡 id，与 A40「插话」同一套 id 语义）。
+     * 关键：不走 streamer.stream——那条路带 MigrationGuard，同会话在飞回合会 409。
+     */
+    @Test
+    fun immediateModeMidTurnSendSubmitsDirectlyWithoutQueueing() {
+        val h = Harness(ChatUiState(sending = true, streaming = true)) // 默认就是 Immediate
+        h.repo.steerResult = com.openapi.feature.chat.domain.model.SteerResult(
+            true, com.openapi.feature.chat.domain.model.SteerDisposition.MERGED, messageId = 7L, turnId = "t1",
+        )
+        h.send.sendText("生成中发的")
+        h.scope.advanceUntilIdle()
+
+        assertTrue("即时模式绝不进本地队列", h.state.value.queued.isEmpty())
+        assertEquals("必须走 submit（steer 管道），一次", 1, h.repo.steerCalls.size)
+        assertEquals("生成中发的", h.repo.steerCalls[0].second)
+        // 气泡与提交同一个 id：服务端按 clientMessageId 去重，回执换 id 不错位
+        val bubble = h.state.value.messages.single { it.role == ChatRole.USER }
+        assertEquals(h.repo.steerCalls[0].third, bubble.id)
+        // 绝不能再起一条本地流（MigrationGuard 会对同会话 409）
+        assertTrue(h.repo.sentTexts.isEmpty())
+    }
+
+    /** 即时发送失败（网络/旧服务端）：气泡撤掉、文字回输入框——任何路径不丢一条用户输入。 */
+    @Test
+    fun immediateModeSendFailureReturnsTextToInputAndRemovesBubble() {
+        val h = Harness(ChatUiState(sending = true, streaming = true))
+        // steerResult 默认就是失败：显式走这条
+        h.send.sendText("发不出去的")
+        // 提交前气泡已乐观上屏
+        assertEquals(1, h.state.value.messages.count { it.role == ChatRole.USER })
+        h.scope.advanceUntilIdle()
+
+        assertTrue(h.state.value.messages.none { it.role == ChatRole.USER })
+        assertEquals("发不出去的", h.state.value.input)
+        assertEquals("S:steerSendFailed", h.state.value.error)
+    }
+
+    /**
+     * 裁决 queued：当前流收尾后接住服务端排空开的新回合——即时模式原样复用 A40 的
+     * noteCaughtTurn/takeCaughtTurn 路径（协调会话：别自己再造），气泡 id 被 Done
+     * 带回的正式服务端 id 原位替换。
+     */
+    @Test
+    fun immediateModeQueuedDispositionDrainsServerTurnAfterCurrentTurnEnds() {
+        val h = Harness(
+            ChatUiState(
+                sending = true, streaming = true,
+                messages = listOf(userText("user-1", "正在答")),
+            ),
+        )
+        h.repo.steerResult = com.openapi.feature.chat.domain.model.SteerResult(
+            true, com.openapi.feature.chat.domain.model.SteerDisposition.QUEUED, messageId = 42L, turnId = "t-old",
+        )
+        // 当前回合慢一拍：提交必须在它结束前登记成功
+        h.repo.streamFlow = kotlinx.coroutines.flow.flow {
+            emit(com.openapi.feature.chat.domain.model.ChatStreamEvent.Delta("mid", "当前"))
+            kotlinx.coroutines.delay(100)
+            emit(com.openapi.feature.chat.domain.model.ChatStreamEvent.Delta("mid", "回复"))
+            emit(com.openapi.feature.chat.domain.model.ChatStreamEvent.Done("asst-1", "server-user-9", "当前回复"))
+        }
+        h.repo.caughtFlow = kotlinx.coroutines.flow.flow {
+            emit(com.openapi.feature.chat.domain.model.ChatStreamEvent.Delta("mid", "排空回复"))
+            emit(com.openapi.feature.chat.domain.model.ChatStreamEvent.Done("asst-2", "server-user-42", "排空回复"))
+        }
+
+        h.streamer.stream("正在答", userMessageId = "user-1", persistUser = true)
+        h.scope.runCurrent()
+        h.send.sendText("生成中排的")
+        h.scope.runCurrent()
+        h.scope.advanceUntilIdle()
+
+        val userTexts = h.state.value.messages.filter { it.role == ChatRole.USER }.map { it.text }
+        assertEquals(listOf("正在答", "生成中排的"), userTexts)
+        val assistantTexts = h.state.value.messages.filter { it.role == ChatRole.ASSISTANT }.map { it.text }
+        assertEquals("两轮回复都在，顺序正确", listOf("当前回复", "排空回复"), assistantTexts)
+        val bubble = h.state.value.messages.first { it.text == "生成中排的" }
+        assertEquals("Done 后气泡换成正式服务端 id", "server-user-42", bubble.id)
     }
 
     /** 队列只收纯文字：生成中编辑/附件/位置维持旧的闸，不入队也不清输入。 */

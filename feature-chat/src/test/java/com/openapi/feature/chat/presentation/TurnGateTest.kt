@@ -17,6 +17,8 @@ class TurnGateTest {
         editing: String? = null,
         drafts: Boolean = false,
         location: Boolean = false,
+        sendMode: com.openapi.feature.chat.presentation.SendMode =
+            com.openapi.feature.chat.presentation.SendMode.Queue,
     ) = ChatTurnGate(
         sending = sending,
         loadingOlder = loadingOlder,
@@ -24,6 +26,7 @@ class TurnGateTest {
         editingMessageId = editing,
         hasAttachmentDrafts = drafts,
         hasLocationDraft = location,
+        sendMode = sendMode,
     )
 
     @Test
@@ -36,6 +39,33 @@ class TurnGateTest {
         val g = gate(sending = true)
         assertTrue(g.sendPath() == ChatTurnGate.SendPath.Queue)
         assertTrue(g.textSendPath() == ChatTurnGate.SendPath.Queue)
+    }
+
+    // D1（设计 20261126 §2 D1）：默认 Immediate——生成中纯文字不再本地排队，直发交给服务端裁决。
+
+    @Test
+    fun immediateModeSendsPlainTextDirectlyWhileTurnRunning() {
+        val g = gate(sending = true, sendMode = com.openapi.feature.chat.presentation.SendMode.Immediate)
+        assertTrue(g.sendPath() == ChatTurnGate.SendPath.Direct)
+        assertTrue(g.textSendPath() == ChatTurnGate.SendPath.Direct)
+    }
+
+    @Test
+    fun gateDefaultSendModeIsImmediate() {
+        // ChatUiState 的默认值就是 Immediate（用户不设置就是即时发送）——
+        // 从 of() 走一遍钉住，防默认值哪天被翻过去测试还全绿。
+        val g = ChatTurnGate.of(ChatUiState(sending = true))
+        assertTrue(g.sendMode == com.openapi.feature.chat.presentation.SendMode.Immediate)
+        assertTrue(g.sendPath() == ChatTurnGate.SendPath.Direct)
+    }
+
+    @Test
+    fun immediateModeStillBlocksEditDraftsAndLocation() {
+        // 开关只管纯文字：编辑/附件/位置在两种模式下都被同一个闸挡住。
+        val immediate = com.openapi.feature.chat.presentation.SendMode.Immediate
+        assertTrue(gate(sending = true, editing = "m1", sendMode = immediate).sendPath() == ChatTurnGate.SendPath.BlockedTurnRunning)
+        assertTrue(gate(sending = true, drafts = true, sendMode = immediate).sendPath() == ChatTurnGate.SendPath.BlockedTurnRunning)
+        assertTrue(gate(sending = true, location = true, sendMode = immediate).sendPath() == ChatTurnGate.SendPath.BlockedTurnRunning)
     }
 
     @Test

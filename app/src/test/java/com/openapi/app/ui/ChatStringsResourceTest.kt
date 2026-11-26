@@ -57,7 +57,8 @@ class ChatStringsResourceTest {
         val s = strings()
         // 逐字对照迁移前 presentation 层里的中文字面量（改动任何一条都要过这里）
         assertEquals("加载更早的消息失败，请稍后重试", s.historyLoadOlderFailed())
-        assertEquals("已停止，消息未发出，可点重试", s.stoppedNoReply())
+        // A43-#9：stoppedNoReply 整条已从端口删除（停止后不弹底部提示），
+        // 这里不留断言——反射遍历那条测试会自动保证端口与资源一一对应。
         assertEquals("没有收到回复，请重试", s.emptyReply())
         assertEquals("回复失败，请重试", s.replyFailed())
         assertEquals("回复没有完整收到，请重试", s.replyTruncated())

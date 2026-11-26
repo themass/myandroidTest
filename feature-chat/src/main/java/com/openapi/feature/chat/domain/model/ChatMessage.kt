@@ -140,6 +140,12 @@ data class ChatMessage(
      * 映射时被丢掉，于是历史里一条半截回复和一条完整回复在端上完全无法区分。
      */
     val interrupted: Boolean = false,
+    /**
+     * A43-#10（QUEUE 模式）：这条用户消息来自本地排队队列的**排空续发**——
+     * 气泡是在回合结束后才冒出来的，不带标记用户会以为它丢了（或自己没按过发送）。
+     * 只存在于运行时：历史里的消息没有「刚排空」这回事。渲染见 chatkit `queuedSend`。
+     */
+    val fromQueue: Boolean = false,
 )
 
 /**

@@ -107,9 +107,10 @@ internal class SendActions(
 
     fun sendText(text: String) {
         if (text.isBlank()) return
-        if (ChatTurnGate.of(state.value).textSendPath() == ChatTurnGate.SendPath.Queue) {
-            // 生成中不直发：按 Enter 顺序入队（FIFO），回合**自然结束**后由
-            // ReplyStreamer 取队首续发；用户点停止会清空队列（见 ReplyStreamer.cancel）。
+        val gate = ChatTurnGate.of(state.value)
+        if (gate.textSendPath() == ChatTurnGate.SendPath.Queue) {
+            // 排队模式（D1 开关的另一侧）：生成中不直发——按 Enter 顺序入队（FIFO），
+            // 回合**自然结束**后由 ReplyStreamer 取队首续发；用户点停止会清空队列（见 ReplyStreamer.cancel）。
             // A40：入队即带本机 id——「插话」要把这个 id 当 clientMessageId 提交给服务端，
             // 气泡与队列条目从此同一个 id，异步回执回来也不会错位。
             state.update { it.copy(queued = it.queued + QueuedText(id = "q-" + System.nanoTime(), text = text)) }
@@ -124,7 +125,51 @@ internal class SendActions(
             delivery = DeliveryStatus.SENDING,
         )
         state.update { it.copy(messages = it.messages + user, editingMessageId = null) }
+        if (gate.sending) {
+            // D1 即时发送（默认）：生成中也**直接 submit**——服务端单一裁决
+            // （merged 原地重跑 / queued 排空成新回合），绝不本地排队。
+            // 不走 streamer.stream：那条路带 MigrationGuard，同会话在飞回合会被 409 拦下；
+            // submit 在回合进行中不 409（服务端直接给裁决），接住回合同样复用 noteCaughtTurn。
+            submitNow(text, user.id)
+            return
+        }
         streamer.stream(text, userMessageId = user.id, persistUser = true)
+    }
+
+    /**
+     * 立刻提交这条文字（气泡已在屏上，id = [bubbleId] = clientMessageId），按服务端裁决收尾：
+     * queued/started 登记接住回合（A40 的 noteCaughtTurn 路径原样复用）；
+     * merged/steered 会作为当前事件流的 restarted/input 事件自然到达，这里无事可做；
+     * 失败（网络/旧服务端缺 disposition）把文字放回输入框、撤掉气泡——任何路径都不丢一条用户输入。
+     */
+    private fun submitNow(text: String, bubbleId: String) {
+        scope.launch {
+            val snapshot = state.value
+            val sid = repository.currentSessionId()
+            val result = repository.steerQueuedMessage(
+                sid, text, snapshot.selectedCharacterId, snapshot.selectedRole?.id,
+                clientMessageId = bubbleId,
+            )
+            if (!result.ok) {
+                state.update { s ->
+                    s.copy(
+                        messages = s.messages.filterNot { it.id == bubbleId },
+                        input = if (s.input.isBlank()) text else s.input + "\n" + text,
+                        error = strings.steerSendFailed(),
+                    )
+                }
+                return@launch
+            }
+            when (result.disposition) {
+                // 排空/新开回合：本轮事件流收尾后由 ReplyStreamer 接住展示。
+                // started 时回执带新回合 id（精确锁扣）；queued 时带的是当时在跑的回合
+                // （要跳过它，认之后出现的第一条别的回合）。
+                SteerDisposition.QUEUED -> streamer.noteCaughtTurn(sid, skipTurnId = result.turnId, bubbleId = bubbleId, userServerId = result.messageId, expectedTurnId = null)
+                SteerDisposition.STARTED -> streamer.noteCaughtTurn(sid, skipTurnId = null, bubbleId = bubbleId, userServerId = result.messageId, expectedTurnId = result.turnId)
+                // merged/steered：当前事件流自己会收到 restarted/input 事件，无需额外动作。
+                else -> Unit
+            }
+        }
     }
 
     /**

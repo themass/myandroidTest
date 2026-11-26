@@ -125,7 +125,9 @@ internal fun RippleOverlay(intent: VoiceIntent, history: List<Float>, liveTransc
     val cancelMix by animateFloatAsState(if (canceling) 1f else 0f, animationSpec = tween(200), label = "ripple-cancel-mix")
     val textColor by animateColorAsState(if (canceling) CancelRed else Color.White, animationSpec = tween(200), label = "ripple-text")
     val breath = rememberBreath()
-    val scale = breath + 0.2f * level
+    // A43-12：音量到弹跳量的曲线收进 rippleBounce（旧式 0.2f*level 在正常说话档只贡献
+    // 0.04，肉眼看不见——用户投诉「按住说话几乎不动」）。改的是豆包式 VoiceStyle.Ripple。
+    val scale = breath + rippleBounce(level)
     val softFallback = Build.VERSION.SDK_INT < Build.VERSION_CODES.S
 
     Box(modifier.fillMaxWidth().overflowUpwards(RippleOverlayHeight)) {
@@ -184,6 +186,25 @@ internal fun RippleOverlay(intent: VoiceIntent, history: List<Float>, liveTransc
         }
     }
 }
+
+/**
+ * 音量到光晕缩放增量（A43-12「语音输入弹跳」的决策曲线，`RippleBounceTest` 钉住）。
+ *
+ * 旧公式 `0.2f * level`：正常说话的采样档只有 0.2 上下，贡献 0.04 —— 340dp 的浮层
+ * 缩放变化不到 4%，用户看不出「在听」。分段曲线解「小声看不见 / 大喊糊屏」的两难：
+ * - [0, BOUNCE_KNEE]：大声场段（斜率 ≈0.57）——手机离嘴的正常距离就能明显弹；
+ * - [BOUNCE_KNEE, 1]：保护段（斜率 0.08）——贴嘴大嗓门也封顶在 +0.28，不糊出屏幕。
+ * 增量叠加在呼吸系数上（1.00↔1.03），安静时只剩呼吸，画面不会自己乱跳。
+ */
+internal fun rippleBounce(level: Float): Float {
+    val l = level.coerceIn(0f, 1f)
+    return if (l <= BOUNCE_KNEE) l * (BOUNCE_AT_KNEE / BOUNCE_KNEE)
+    else BOUNCE_AT_KNEE + (l - BOUNCE_KNEE) * ((BOUNCE_CEILING - BOUNCE_AT_KNEE) / (1f - BOUNCE_KNEE))
+}
+
+private const val BOUNCE_KNEE = 0.35f
+private const val BOUNCE_AT_KNEE = 0.2f
+private const val BOUNCE_CEILING = 0.28f
 
 /** 呼吸系数：1.00 ↔ 1.03，约 1.6 秒一个来回。 */
 @Composable

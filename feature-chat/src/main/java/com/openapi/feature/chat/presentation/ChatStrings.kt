@@ -13,7 +13,7 @@ package com.openapi.feature.chat.presentation
  */
 interface ChatStrings {
     fun historyLoadOlderFailed(): String
-    fun stoppedNoReply(): String
+    // A43-#9：stoppedNoReply 已删——停止后不再弹底部提示，可重试入口在气泡的 delivery 标。
     fun emptyReply(): String
     fun replyFailed(): String
     fun replyTruncated(): String

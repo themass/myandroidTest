@@ -41,8 +41,15 @@ internal object ChatItemMapper {
                 else -> Reaction.None
             },
             speaking = message.id == speakingId,
+            // A43-#10：排空续发的用户气泡带「排队发送」标记（判定在 ReplyStreamer 排空路径）
+            queuedSend = message.fromQueue,
         )
-    }
+        // A43-2/#11 第一层兜底：没有任何内容可画的**助手**行不进列表（空 AI 气泡投诉）。
+        // 三类合法的空 parts 放行：thinking / streaming 占位（pending）。用户行永远保留
+        //（发送状态、重试入口都挂在用户行上，删除权不归映射层）。
+        // kind=TEXT 且 text 空的历史行更早在 ChatLogMapper 已 return null；这里兜住其余 kind
+        //（历史图集塌缩到 0、服务端存了无内容回复等）。
+    }.filter { it.parts.isNotEmpty() || it.thinking || it.sender == Sender.User }
 
     private fun parts(message: ChatMessage, playback: AudioPlayback): List<MessagePart> = buildList {
         if (message.images.isNotEmpty()) add(MessagePart.Images(message.images.map { it.path }))
