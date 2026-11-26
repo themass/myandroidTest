@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,6 +77,9 @@ fun ChatRoute(
     val scope = rememberCoroutineScope()
     val activity = LocalActivity.current
     var voiceStyle by remember { mutableStateOf(ChatPlatform.loadVoiceStyle(context)) }
+    // D1「生成中发消息」开关：prefs 载入 → 推进 ViewModel 状态；改动同时写 prefs 与状态。
+    var sendMode by remember { mutableStateOf(ChatPlatform.loadSendMode(context)) }
+    LaunchedEffect(Unit) { viewModel.onSendModeChange(sendMode) }
     var cameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
     // 选/拍的图片先暂存，再进入编辑；取消编辑时丢弃，不进入草稿。
     // 两种来源分开（见 PendingEdit）：草稿图编辑完写回暂存文件；消息图编辑完作为**新草稿**加入输入框。
@@ -224,6 +228,11 @@ fun ChatRoute(
             onVoiceStyleChange = { style ->
                 voiceStyle = style
                 ChatPlatform.saveVoiceStyle(context, style)
+            },
+            onSendModeChange = { mode ->
+                sendMode = mode
+                ChatPlatform.saveSendMode(context, mode)
+                viewModel.onSendModeChange(mode)
             },
             onInputChange = viewModel::onInputChange,
             onSend = viewModel::onSend,

@@ -107,6 +107,21 @@ internal fun shouldOpenAttachmentMenu(selectionActive: Boolean, actions: List<At
  * 那两个状态在组合里，见 `userDragged` / `programmaticScroll`。
  * 与 [shouldOpenAttachmentMenu] 同一个提取理由：判断坐在组合里就观察不到。
  */
+/**
+ * 「footer（复制/朗读/赞/踩/删除那一排）挂在哪些助手消息上」的判定（A43-8，20261126 用户反馈：
+ * 每条历史回复下面都顶着一排按钮，列表很吵）。
+ *
+ * 规则：只有**最新一条**助手消息挂 footer，其余为空（[ChatMessageItem] 对空集合已经一个像素不画）。
+ * 非最新的消息并没有失去这些操作——长按菜单仍然全部提供（[menuItemsFor]）。
+ * 提出来放外面（与 [shouldOpenAttachmentMenu] 同一理由）：判定坐在组合里观察不到，提出来才能被测试钉住。
+ */
+internal fun footerActionsFor(
+    item: ChatItem,
+    latestAssistantId: String?,
+    footerActions: (ChatItem) -> List<MessageAction>,
+): List<MessageAction> =
+    if (item.sender == Sender.Assistant && item.id == latestAssistantId) footerActions(item) else emptyList()
+
 internal fun shouldLoadOlderAtTop(
     firstVisibleItemIndex: Int,
     canScrollBackward: Boolean,
@@ -342,7 +357,9 @@ fun ChatMessageList(
                             }
                         },
                         selectionActive = selection.active,
-                        footerActions = footerActions(item),
+                        // A43-8：footer 只挂最新一条助手消息（判定见 footerActionsFor，有单测）。
+                        // 历史回复的复制/朗读/删除仍全部由长按菜单提供。
+                        footerActions = footerActionsFor(item, latestAssistantId, footerActions),
                         // 多选时把 overlay 收掉：它不在消息行内部，点它不会切换选中。
                         overlay = if (selection.active) null else { { itemOverlay(item) } },
                         userAvatar = userAvatar,

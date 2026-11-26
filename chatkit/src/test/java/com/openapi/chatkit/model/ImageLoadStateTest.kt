@@ -1,6 +1,8 @@
 package com.openapi.chatkit.model
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -67,5 +69,47 @@ class ImageLoadStateTest {
         // 失败态下迟到的旧成功同样被忽略：只有用户点重试才能走出失败
         val failed = ImageLoadState().onFailed()
         assertEquals(ImageVisualStatus.Failed, failed.onLoaded().status)
+    }
+
+    // ---- A43-5：历史签名 URL（300 秒）过期时「先静默重签一次」的转移 ----
+
+    @Test
+    fun autoResignKeepsTheSlotLoadingAndBumpsAttempt() {
+        val after = ImageLoadState().onFailedAwaitingResign()
+        assertEquals("自动重签不进失败占位：留在加载态", ImageVisualStatus.Loading, after.status)
+        assertEquals("attempt 必须 +1：重签可能拿回同一地址，不换 Coil key 就不会再发请求", 1, after.attempt)
+    }
+
+    @Test
+    fun autoResignFromRetryingAlsoBumpsAttempt() {
+        val retrying = ImageLoadState().onFailed().onRetryClick()
+        val after = retrying.onFailedAwaitingResign()
+        assertEquals(ImageVisualStatus.Retrying, after.status)
+        assertEquals(2, after.attempt)
+    }
+
+    @Test
+    fun autoResignOutsideLoadingOrRetryingIsIgnored() {
+        // 已 Failed / 已 Success：自动重签不复活它们（一世一次的闸在调用方按格记账，
+        // 这里只是转移表自身的兜底，语义与迟到的旧回调一致）
+        val failed = ImageLoadState().onFailed()
+        assertEquals(failed, failed.onFailedAwaitingResign())
+        val success = ImageLoadState().onLoaded()
+        assertEquals(success, success.onFailedAwaitingResign())
+    }
+
+    @Test
+    fun resignableSourceCoversRemoteUrlsAndEmptyFallbackSlots() {
+        assertTrue(isResignableImageSource("https://signed.example/u1"))
+        assertTrue(isResignableImageSource("http://signed.example/u2"))
+        // 换源失败退化出的空 path 槽（ChatLogMapper 的 REMOTE 标记）：仍值得再换一次
+        assertTrue(isResignableImageSource(""))
+    }
+
+    @Test
+    fun localFilePathIsNotResignable() {
+        // 本机文件没有可换的地址：组件自己的强制重载已经是全部能做的事
+        assertFalse(isResignableImageSource("/data/data/pkg/files/a.jpg"))
+        assertFalse(isResignableImageSource("content://media/external/images/1"))
     }
 }

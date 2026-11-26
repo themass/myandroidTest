@@ -50,6 +50,9 @@
     <string name="chat_voice_style_bar">Voice style C: recording bar</string>
     <string name="chat_voice_style_floating">Voice style A: floating panel</string>
     <string name="chat_voice_style_ripple">Voice style B: ripple and live text</string>
+    <string name="chat_send_mode_title">Sending while replying</string>
+    <string name="chat_send_mode_immediate">Send now</string>
+    <string name="chat_send_mode_queue">Queue</string>
     <string name="home_menu">Menu</string>
     <string name="roles_default_subtitle">Xiao Ai, a general-purpose chat assistant</string>
     <string name="roles_default_title">Default assistant</string>
@@ -80,7 +83,6 @@
     <!-- 错误提示文案（整改清单 P2-14b）：presentation 层经 ChatStrings 端口取用。
          改动这里请同步 values-zh/，:app 的 ResourceChatStringsTest 钉住两侧一致。 -->
     <string name="chat_load_older_failed">Couldn\'t load earlier messages, please try again later</string>
-    <string name="chat_stopped_no_reply">Stopped before the message was sent, tap retry</string>
     <string name="chat_empty_reply">No reply came back, please try again</string>
     <string name="chat_reply_failed">Reply failed, please try again</string>
     <string name="chat_reply_truncated">The reply didn\'t come through complete, please try again</string>

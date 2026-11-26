@@ -70,6 +70,12 @@ fun ChatSessionsSheet(
     onDelete: (Long) -> Unit,
     /** 清空当前对话：删掉当前会话（服务端会自动新建一个空的）。 */
     onClearCurrent: () -> Unit,
+    /**
+     * D1「生成中发消息」两态（设计 20261126 §2 D1）。null = 这一页不提供该设置，
+     * 开关整行不画。值与回调都由调用方（ChatScreen←ChatRoute）持有，弹层只画不改 prefs。
+     */
+    sendMode: com.openapi.feature.chat.presentation.SendMode? = null,
+    onSendModeChange: ((com.openapi.feature.chat.presentation.SendMode) -> Unit)? = null,
     onDismiss: () -> Unit,
 ) {
     var creating by remember { mutableStateOf(false) }
@@ -174,6 +180,12 @@ fun ChatSessionsSheet(
                     }
                 }
             }
+
+            // D1「生成中发消息」两态（设计 20261126 §2 D1）：放在会话列表下方，
+            // 搜索态也照常显示——它是偏好，不是会话条目。不传值/回调 = 整行不画。
+            if (sendMode != null && onSendModeChange != null) {
+                SendModeRow(sendMode = sendMode, onSendModeChange = onSendModeChange)
+            }
         }
     }
 
@@ -257,6 +269,42 @@ private fun MessageHitRow(hit: ChatMessageHit, onSelect: () -> Unit) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+    }
+}
+
+@Composable
+private fun SendModeRow(
+    sendMode: com.openapi.feature.chat.presentation.SendMode,
+    onSendModeChange: (com.openapi.feature.chat.presentation.SendMode) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SearchSectionTitle(stringResource(R.string.chat_send_mode_title))
+        Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
+            SendModeChoice(
+                label = stringResource(R.string.chat_send_mode_immediate),
+                selected = sendMode == com.openapi.feature.chat.presentation.SendMode.Immediate,
+                onClick = { onSendModeChange(com.openapi.feature.chat.presentation.SendMode.Immediate) },
+            )
+            SendModeChoice(
+                label = stringResource(R.string.chat_send_mode_queue),
+                selected = sendMode == com.openapi.feature.chat.presentation.SendMode.Queue,
+                onClick = { onSendModeChange(com.openapi.feature.chat.presentation.SendMode.Queue) },
+            )
+        }
+    }
+}
+
+/** 一个选项 = 单选语义（勾 + 主色），不画成两个独立开关——两态互斥。 */
+@Composable
+private fun SendModeChoice(label: String, selected: Boolean, onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
+        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+            contentColor = if (selected) AppColors.Primary else AppColors.TextSecondary,
+        ),
+    ) {
+        if (selected) Icon(Icons.Filled.Check, contentDescription = null)
+        Text(label, fontWeight = if (selected) AppTypography.emphasisWeight else FontWeight.Normal)
     }
 }
 

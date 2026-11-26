@@ -126,10 +126,17 @@ fun MediaStack(
         if (onRetry != null && item.failed) onRetry(index) else onClick(index)
     }
 
-    // 牌堆最上面那张在 items 里的下标；换一条消息（items 变化）时回到第一张
-    var front by remember(items) { mutableIntStateOf(0) }
-    // 顶卡的水平位移（px）：拖动时跟手，松手后动画收敛
-    var dragX by remember(items) { mutableFloatStateOf(0f) }
+    // 牌堆最上面那张在 items 里的下标。
+    // A43-5（20261126 用户反馈「旧图滑不动」的决定性根因）：状态键必须是 **count**，不是 items。
+    // 调用方（chatkit MessageParts）每次重组都新建 MediaItem 列表——任何一张卡 failed/retrying/
+    // attempt 翻转、或签名 URL 重签（历史图 300 秒过期→403→Coil onError→状态变）都会让 items 变。
+    // 挂在 pointerInput(count) 上的手势协程读写的是 remember **那一刻捕获**的状态对象：
+    // 键用 items 时状态被重建，旧手势协程还在写旧对象——卡片不跟手、front 永不推进，滑动永久失灵；
+    // 滚出再滚回组合才「复活」。张数真变了（换一条消息/图集塌缩）重置回第一张是正确语义，
+    // 内容级变化（失败态、换 URL）绝不能重置。
+    var front by remember(count) { mutableIntStateOf(0) }
+    // 顶卡的水平位移（px）：拖动时跟手，松手后动画收敛——与 front 同一个键，同一个理由。
+    var dragX by remember(count) { mutableFloatStateOf(0f) }
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     val cardWidthPx = with(density) { cardWidth.toPx() }

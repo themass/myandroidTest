@@ -12,7 +12,6 @@ import com.openapi.feature.chat.R
  */
 class ResourceChatStrings(private val context: Context) : ChatStrings {
     override fun historyLoadOlderFailed() = context.getString(R.string.chat_load_older_failed)
-    override fun stoppedNoReply() = context.getString(R.string.chat_stopped_no_reply)
     override fun emptyReply() = context.getString(R.string.chat_empty_reply)
     override fun replyFailed() = context.getString(R.string.chat_reply_failed)
     override fun replyTruncated() = context.getString(R.string.chat_reply_truncated)
