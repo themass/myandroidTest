@@ -61,6 +61,7 @@ import com.openapi.chatkit.media.imageModel
 import com.openapi.chatkit.model.ImageLayout
 import com.openapi.chatkit.model.ImageLoadState
 import com.openapi.chatkit.model.ImageVisualStatus
+import com.openapi.chatkit.model.isResignableImageSource
 import com.openapi.chatkit.model.MessagePart
 import com.openapi.mediaview.MediaCarousel
 import com.openapi.mediaview.MediaItem
@@ -294,6 +295,26 @@ fun ImageGrid(
         val slot = states.getOrNull(index) ?: return
         slot.value = transform(slot.value)
     }
+    // A43-5（20261126 用户反馈「旧图滑不动」）：历史签名 URL 只活 300 秒，过期 403 是这张格
+    // 进失败态的最大来源，而失败态会 churn items（见 mediaview MediaStack 的 remember(count) 注释）。
+    // 远程图**首次**自然加载失败时不进失败占位：换 key 重载一次，同时让调用方去重签地址
+    // （ImageRetryActions：GET /uploads/{id}，在途去重）——签名 URL 到位后来源一变、这一格全新 Loading。
+    // 换不到（对象已删/离线）第二次失败照常进 Failed，失败占位和手动重试入口不变。
+    // 「一世一次」记在组合生命周期的 set 里（不是状态机里）：来源一换状态实例就重建，
+    // 状态存不住；没有这道闸，重签成功但新地址仍失败（对象已删）会无限「重签→再失败→再重签」。
+    val autoResignUsed = remember(sources) { mutableSetOf<Int>() }
+    fun reportError(index: Int) {
+        val slot = states.getOrNull(index) ?: return
+        val source = sources.getOrNull(index) ?: return
+        val before = slot.value
+        if (index !in autoResignUsed && isResignableImageSource(source)) {
+            autoResignUsed += index
+            slot.value = before.onFailedAwaitingResign()
+            onRetryImage(index)
+        } else {
+            slot.value = before.onFailed()
+        }
+    }
     fun retry(index: Int) {
         val slot = states.getOrNull(index) ?: return
         val before = slot.value
@@ -337,7 +358,7 @@ fun ImageGrid(
                     contentDescription = stringResource(R.string.chatkit_image),
                     contentScale = ContentScale.Fit,
                     onSuccess = { update(0) { it.onLoaded() } },
-                    onError = { update(0) { it.onFailed() } },
+                    onError = { reportError(0) },
                     modifier = Modifier.fillMaxSize(),
                 )
                 if (state.status == ImageVisualStatus.Failed || state.status == ImageVisualStatus.Retrying) {
@@ -382,7 +403,7 @@ fun ImageGrid(
                         onClick = onTap,
                         onLongClick = onLong,
                         onRetry = ::retry,
-                        onItemError = { index -> update(index) { it.onFailed() } },
+                        onItemError = ::reportError,
                     )
                     else -> MediaStack(
                         items = items,
@@ -398,7 +419,7 @@ fun ImageGrid(
                         onClick = onTap,
                         onLongClick = onLong,
                         onRetry = ::retry,
-                        onItemError = { index -> update(index) { it.onFailed() } },
+                        onItemError = ::reportError,
                     )
                 }
             }
