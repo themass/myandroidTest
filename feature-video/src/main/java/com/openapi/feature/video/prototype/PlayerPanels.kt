@@ -133,6 +133,31 @@ internal object PlayerPanels {
             .show()
     }
 
+    /**
+     * 「更多」面板：只列真件（清单与理由在 [MoreMenuPolicy]）。
+     * 分享调用由宿主注入——shareVideo 在 local/ 里属于别的会话在动的文件，
+     * 这里不直接引用它，只接一个 `(MoreAction)->Unit`。
+     */
+    fun showMore(context: Context, actions: List<MoreAction>, onPick: (MoreAction) -> Unit) {
+        if (actions.isEmpty()) return
+        val labels = actions.map { context.getString(labelOf(it)) }.toTypedArray()
+        AlertDialog.Builder(context)
+            .setTitle(R.string.np_more_panel_title)
+            .setItems(labels) { dialog, which ->
+                onPick(actions[which])
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun labelOf(action: MoreAction): Int = when (action) {
+        MoreAction.Share -> R.string.np_more_share
+        MoreAction.Cast -> R.string.np_more_cast
+        MoreAction.DecoderSettings -> R.string.np_more_decoder_settings
+        MoreAction.Pip -> R.string.np_more_pip
+    }
+
     private fun speedLabel(speed: Float): String =
         if (speed == speed.toInt().toFloat()) "${speed.toInt()}×" else "$speed×"
 
