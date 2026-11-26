@@ -50,24 +50,36 @@ internal object CornerHeatmapDecoder {
 
         val corners = ArrayList<QuadNorm.Point>(CHANNELS)
         for (channel in 0 until CHANNELS) {
-            var bestIdx = 0
-            var bestVal = Float.NEGATIVE_INFINITY
             val base = channel * cells
+            var bestVal = Float.NEGATIVE_INFINITY
             for (i in 0 until cells) {
                 val v = heatmaps[base + i]
-                if (v > bestVal) {
-                    bestVal = v
-                    bestIdx = i
-                }
+                if (v > bestVal) bestVal = v
             }
-            // 置信度门槛：以前任何峰值都被当成角点，没有纸面的照片也能编出一个框。
+            // 置信度门槛仍使用原始 logits 的峰值；只有定位算法从 argmax 改为 soft-argmax。
             if (sigmoid(bestVal) < minConfidence) return null
 
-            val hx = bestIdx % heatmapSize
-            val hy = bestIdx / heatmapSize
-            // 热力图格心 → 画布像素 → 原图像素 → 归一化。
-            val canvasX = (hx + 0.5f) / heatmapSize * canvasSize
-            val canvasY = (hy + 0.5f) / heatmapSize * canvasSize
+            // Soft-argmax：以最高 logit 为基准做指数权重，计算整张热力图的加权质心。
+            // 模型输出是 logits，所以 exp(v - bestVal) 等价于 softmax 去掉共同分母；
+            // 峰值单格会被邻近格的响应拉向真实峰中心，消除 64×64 单格量化误差。
+            // max-subtraction 防止溢出；权重下溢为 0 是预期行为。
+            var weightSum = 0.0
+            var weightedX = 0.0
+            var weightedY = 0.0
+            for (i in 0 until cells) {
+                val weight = kotlin.math.exp((heatmaps[base + i] - bestVal).toDouble())
+                val x = i % heatmapSize
+                val y = i / heatmapSize
+                weightSum += weight
+                weightedX += (x + 0.5) * weight
+                weightedY += (y + 0.5) * weight
+            }
+            if (weightSum <= 0.0 || !weightSum.isFinite()) return null
+            val heatmapX = (weightedX / weightSum).toFloat()
+            val heatmapY = (weightedY / weightSum).toFloat()
+            // 热力图坐标（以格心为整数+0.5）→ 画布像素 → 原图像素 → 归一化。
+            val canvasX = heatmapX / heatmapSize * canvasSize
+            val canvasY = heatmapY / heatmapSize * canvasSize
             val origX = (canvasX - offsetX) / scale
             val origY = (canvasY - offsetY) / scale
             corners += QuadNorm.Point(

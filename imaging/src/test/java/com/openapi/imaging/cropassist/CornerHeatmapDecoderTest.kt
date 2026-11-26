@@ -81,6 +81,32 @@ class CornerHeatmapDecoderTest {
     }
 
     @Test
+    fun softArgmaxCentroidMovesTowardNeighboringPeakResponse() {
+        val maps = heatmaps(listOf(tl, tr, br, bl), background = -20f)
+        val base = 0
+        // 合成一个右偏的平滑峰：argmax 落在 x=13，但相邻 x=14 也有显著响应；
+        // soft-argmax 质心应落在两格之间，且比 argmax 更接近峰的亚像素中心。
+        maps[base + tl.second * hm + tl.first] = 10f
+        maps[base + tl.second * hm + tl.first + 1] = 9f
+        maps[base + tl.second * hm + tl.first - 1] = 6f
+        val quad = CornerHeatmapDecoder.decode(
+            heatmaps = maps,
+            heatmapSize = hm,
+            canvasSize = canvas,
+            offsetX = offsetX,
+            offsetY = offsetY,
+            scale = scale,
+            srcW = srcW,
+            srcH = srcH,
+        ) ?: return fail("soft-argmax quad should be detected")
+        val actualTl = quad.ordered().corners.first()
+        val argmaxTlX = expected(tl.first, tl.second).first
+        val nextCellTlX = expected(tl.first + 1, tl.second).first
+        assertTrue("centroid should correct part of the argmax half-cell quantization error", actualTl.x > argmaxTlX)
+        assertTrue("centroid should remain within the neighboring grid cell", actualTl.x < nextCellTlX)
+    }
+
+    @Test
     fun confidentCornersPassTheThreshold() {
         // 对照样本：四个角都是高置信度峰，必须能检出（防止下一条把门槛调得谁都过不了）。
         assertNotNull(decode(listOf(tl, tr, br, bl)))
