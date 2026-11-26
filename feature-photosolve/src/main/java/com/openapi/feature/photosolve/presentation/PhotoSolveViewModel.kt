@@ -283,7 +283,14 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
-        val result = runCatching { PhotoSolveRepositories.current().solve(cropped, requestId) }
+        val result = runCatching {
+            PhotoSolveRepositories.current().solveWithProgress(cropped, requestId) { partial ->
+                statusCycler.cancel()
+                _uiState.update { state ->
+                    state.copy(step = PhotoSolveStep.Result, result = partial, errorCode = null)
+                }
+            }
+        }
         statusCycler.cancel()
 
         result.onSuccess { solved ->

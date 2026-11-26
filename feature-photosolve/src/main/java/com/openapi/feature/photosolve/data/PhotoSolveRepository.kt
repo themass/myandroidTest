@@ -20,6 +20,16 @@ interface PhotoSolveRepository {
      *   命中时直接回放、不重复调模型也不重复扣额度（网络超时但服务端已算完是最常见的重试场景）。
      */
     suspend fun solve(image: Bitmap, requestId: String): PhotoSolveResult
+
+    /**
+     * Incremental variant. Implementations may emit a partial presentation result as complete steps arrive;
+     * the default preserves compatibility for local/mock repositories that only return a final result.
+     */
+    suspend fun solveWithProgress(
+        image: Bitmap,
+        requestId: String,
+        onProgress: (PhotoSolveResult) -> Unit,
+    ): PhotoSolveResult = solve(image, requestId).also(onProgress)
 }
 
 // PhotoSolveException / PhotoSolveError 见 presentation/PhotoSolveError.kt（错误码是界面契约，放到 presentation）

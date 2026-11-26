@@ -5,6 +5,10 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.openapi.feature.photosolve.presentation.PhotoSolveError
 import com.openapi.feature.photosolve.presentation.PhotoSolveException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.Call
 import okhttp3.Callback
@@ -24,6 +28,7 @@ internal class AgentPhotoSolveRemote(
     baseUrl: String,
     private val tokenProvider: () -> String?,
     private val calls: Call.Factory = CLIENT,
+    private val streamCalls: Call.Factory = STREAM_CLIENT,
 ) {
     private val endpoint = (baseUrl.trimEnd('/') + "/v1/photosolve/solve").toHttpUrl()
 
@@ -55,6 +60,79 @@ internal class AgentPhotoSolveRemote(
                     }
                 }
             })
+        }
+    }
+
+    /** Read the photosolve SSE endpoint; the final `done` frame is validated by the sync decoder. */
+    suspend fun solveStreaming(
+        image: ByteArray,
+        requestId: String,
+        onFirstFrame: () -> Unit,
+        onThinking: (String) -> Unit,
+        onQuestion: (String) -> Unit,
+        onStep: (String) -> Unit,
+        onAnswer: (String) -> Unit,
+    ): PhotoSolveApiResponse {
+        val token = tokenProvider()?.trim()?.takeIf { it.isNotEmpty() }
+            ?: throw failure(PhotoSolveError.LOGIN_REQUIRED)
+        val url = endpoint.newBuilder().encodedPath("/v1/photosolve/solve/stream")
+            .addQueryParameter("client_request_id", requestId)
+            .addQueryParameter("subject", "math").build()
+        val request = Request.Builder().url(url)
+            .header("Authorization", "Bearer $token")
+            .header("Accept", "text/event-stream")
+            .post(image.toRequestBody("image/jpeg".toMediaType()))
+            .build()
+        return withContext(Dispatchers.IO) {
+            val call = streamCalls.newCall(request)
+            currentCoroutineContext()[Job]?.invokeOnCompletion { cause -> if (cause != null) call.cancel() }
+            call.execute().use { response ->
+                if (!response.isSuccessful) {
+                    val body = response.body?.string().orEmpty()
+                    decode(response.code, body) // throws a sanitized PhotoSolveException
+                    error("unexpected non-error response")
+                }
+                val source = response.body?.source() ?: throw failure(PhotoSolveError.MODEL_UNAVAILABLE)
+                var event = ""
+                val data = StringBuilder()
+                var final: PhotoSolveApiResponse? = null
+                fun dispatch() {
+                    if (data.isEmpty()) { event = ""; return }
+                    val payload = runCatching { JsonParser.parseString(data.toString()).asJsonObject }.getOrNull()
+                    when (event) {
+                        "meta" -> onFirstFrame()
+                        "thinking_delta" -> payload?.get("text")?.takeUnless { it.isJsonNull }?.asString?.let(onThinking)
+                        "question_text_delta" -> payload?.get("text")?.takeUnless { it.isJsonNull }?.asString?.let(onQuestion)
+                        "step_end" -> {
+                            val validStep = payload?.get("valid")?.asBoolean != false
+                            if (validStep) {
+                                val step = payload?.getAsJsonObject("step")
+                                if (step != null) onStep(SolveResultMapper.merge(step.string("text"), step.string("latex")))
+                            }
+                        }
+                        "answer" -> payload?.get("finalAnswer")?.takeUnless { it.isJsonNull }?.asString?.let(onAnswer)
+                        "done" -> final = decode(200, data.toString())
+                        "error" -> {
+                            val code = runCatching { payload?.get("code")?.asInt }.getOrNull()
+                            throw failure(code?.takeIf { it in KNOWN_CODES } ?: PhotoSolveError.MODEL_UNAVAILABLE)
+                        }
+                    }
+                    event = ""
+                    data.setLength(0)
+                }
+                while (true) {
+                    val line = source.readUtf8Line() ?: break
+                    if (line.isEmpty()) dispatch()
+                    else if (line.startsWith(":")) continue // keepalive comment
+                    else if (line.startsWith("event:")) event = line.substringAfter(':').trim()
+                    else if (line.startsWith("data:")) {
+                        if (data.isNotEmpty()) data.append('\n')
+                        data.append(line.substringAfter(':').trimStart())
+                    }
+                }
+                dispatch()
+                final ?: throw failure(PhotoSolveError.MODEL_UNAVAILABLE)
+            }
         }
     }
 
@@ -102,6 +180,10 @@ internal class AgentPhotoSolveRemote(
     private companion object {
         val CLIENT = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS).readTimeout(180, TimeUnit.SECONDS)
+            .callTimeout(210, TimeUnit.SECONDS).build()
+        /** 15s keepalive cadence → 35s read timeout detects a stalled stream without truncating valid idle gaps. */
+        val STREAM_CLIENT = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS).readTimeout(35, TimeUnit.SECONDS)
             .callTimeout(210, TimeUnit.SECONDS).build()
         val KNOWN_CODES = setOf(40000, 40001, 40002, 40003, 42901, 42902, 50001, 50002)
         fun failure(code: Int) = PhotoSolveException(code, PhotoSolveError.userMessage(code))

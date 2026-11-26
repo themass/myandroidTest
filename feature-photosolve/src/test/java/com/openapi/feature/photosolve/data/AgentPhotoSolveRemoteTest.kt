@@ -42,6 +42,42 @@ class AgentPhotoSolveRemoteTest {
         assertEquals("vision", result.providerUsed)
     }
 
+    @Test fun streamingEndpointEmitsOnlyCompleteStepsAndUsesDoneAsFinal() = runBlocking {
+        server.enqueue(
+            MockResponse().setHeader("Content-Type", "text/event-stream").setBody(
+                ": keepalive\n\n" +
+                    "event: meta\ndata: {\"questionFound\":true}\n\n" +
+                    "event: question_text_delta\ndata: {\"questionIndex\":0,\"text\":\"1+1=?\"}\n\n" +
+                    "event: thinking_delta\ndata: {\"questionIndex\":0,\"text\":\"先相加\"}\n\n" +
+                    "event: step_start\ndata: {\"questionIndex\":0,\"stepIndex\":0}\n\n" +
+                    "event: step_delta\ndata: {\"questionIndex\":0,\"stepIndex\":0,\"field\":\"text\",\"text\":\"两个数相加\"}\n\n" +
+                    "event: step_delta\ndata: {\"questionIndex\":0,\"stepIndex\":0,\"field\":\"latex\",\"text\":\"$1+1=2$\"}\n\n" +
+                    "event: step_end\ndata: {\"questionIndex\":0,\"stepIndex\":0,\"step\":{\"index\":1,\"text\":\"两个数相加\",\"latex\":\"$1+1=2$\"}}\n\n" +
+                    "event: answer\ndata: {\"questionIndex\":0,\"finalAnswer\":\"2\",\"finalAnswerLatex\":\"\"}\n\n" +
+                    "event: done\ndata: $valid\n\n".replace("$valid", valid),
+            ),
+        )
+        var firstFrame = false
+        var thinking = ""
+        val questions = mutableListOf<String>()
+        val steps = mutableListOf<String>()
+        var answer = ""
+        val result = remote.solveStreaming(
+            byteArrayOf(1), "stream-id", { firstFrame = true }, { thinking += it },
+            { questions += it }, { steps += it }, { answer = it },
+        )
+        val sent = server.takeRequest(3, TimeUnit.SECONDS)!!
+        assertEquals("/v1/photosolve/solve/stream", sent.requestUrl!!.encodedPath)
+        assertEquals("Bearer login-token", sent.getHeader("Authorization"))
+        assertEquals("text/event-stream", sent.getHeader("Accept"))
+        assertTrue(firstFrame)
+        assertEquals("先相加", thinking)
+        assertEquals(listOf("1+1=?"), questions)
+        assertEquals("两个数相加\n\n\$1+1=2\$", steps.single())
+        assertEquals("2", answer)
+        assertEquals("2", result.questions.first().finalAnswer)
+    }
+
     @Test fun missingLoginDoesNotSendRequest() = runBlocking {
         val unauthenticated = AgentPhotoSolveRemote(server.url("/").toString(), { null })
         try { unauthenticated.solve(byteArrayOf(1), "id"); fail("must reject login") }
