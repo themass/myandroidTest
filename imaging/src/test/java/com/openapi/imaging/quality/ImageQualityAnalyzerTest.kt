@@ -29,6 +29,12 @@ class ImageQualityAnalyzerTest {
         ImageQualityAnalyzer.analyze(gray, size, size, sourceW, sourceH)
 
     @Test
+    fun sharpnessAnalysisKeepsAtLeast1024PixelsOnLongSide() {
+        // 512px resize caused a low-pass loss of fine edges and made sharp question photos fail BLUR_VARIANCE.
+        assertTrue(ImageQualityAnalyzer.ANALYSIS_MAX_SIDE >= 1024)
+    }
+
+    @Test
     fun flatImageIsBlurryWithZeroSharpness() {
         val r = report(flat(128))
         assertEquals(0.0, r.sharpness, 1e-9)

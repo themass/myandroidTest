@@ -55,7 +55,8 @@ data class QualityReport(
  */
 object ImageQualityAnalyzer {
 
-    const val ANALYSIS_MAX_SIDE = 512
+    /** 512px 缩放会低通掉锐利题目边缘的高频响应，误判模糊；1024 保留更多边缘能量。 */
+    const val ANALYSIS_MAX_SIDE = 1024
 
     /**
      * 裁剪之后，长边至少这么多像素，题目小字才读得出来。
@@ -73,7 +74,7 @@ object ImageQualityAnalyzer {
     fun isLowResolution(longSidePx: Int, shortSidePx: Int): Boolean =
         longSidePx < MIN_LONG_SIDE_PX || longSidePx.toLong() * shortSidePx < MIN_PIXELS
 
-    /** 拉普拉斯方差低于此值判为模糊（在 512 分析尺度下）。 */
+    /** 拉普拉斯方差低于此值判为模糊（在 1024 分析尺度下；真机 sharp= 日志用于后续校准）。 */
     const val BLUR_VARIANCE = 60.0
 
     const val DARK_LEVEL = 16
