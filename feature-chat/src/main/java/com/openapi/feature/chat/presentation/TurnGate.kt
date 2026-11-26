@@ -1,6 +1,19 @@
 package com.openapi.feature.chat.presentation
 
 /**
+ * 「生成中再发消息」怎么办（设计 20261126 §2 D1，用户拍板：本地队列不退役，加开关）。
+ *
+ * - [Immediate]（**默认**）：点发送永远走网络、永不本地排队——服务端单一裁决
+ *   （merged 原地重跑 / queued 排空成新回合 / started 直接开新回合）。
+ * - [Queue]：A36/A40 现状——进本地 FIFO，徽标「N 条排队中」+「立刻发出/打断重发/撤回」。
+ *
+ * 只有**纯文字**受这个开关影响：编辑/附件/位置在生成中一律被现有的闸挡住（两种模式相同）。
+ * 开关本身存在 prefs（ChatPlatform），由 ChatRoute 载入并推进 [ChatUiState.sendMode]，
+ * 判定一律走 [ChatTurnGate]——不要在调用点各读各的 prefs。
+ */
+enum class SendMode { Immediate, Queue }
+
+/**
  * 「这一轮占不占着会话」的**读侧**唯一入口（最小收敛，不改写侧）。
  *
  * 为什么要有这一个类型：曾经同一个判断散在七处读 `state.sending`
@@ -28,6 +41,8 @@ internal data class ChatTurnGate(
     val editingMessageId: String?,
     val hasAttachmentDrafts: Boolean,
     val hasLocationDraft: Boolean,
+    /** 「生成中发消息」开关（D1）；见 [SendMode]。 */
+    val sendMode: SendMode = SendMode.Immediate,
 ) {
 
     companion object {
@@ -38,6 +53,7 @@ internal data class ChatTurnGate(
             editingMessageId = state.editingMessageId,
             hasAttachmentDrafts = state.drafts.isNotEmpty(),
             hasLocationDraft = state.locationDraft != null,
+            sendMode = state.sendMode,
         )
     }
 
@@ -59,15 +75,21 @@ internal data class ChatTurnGate(
     /** 发送点击的完整判定（含编辑态与草稿——输入框文字看调用方的 trim 结果，不在这里判）。 */
     fun sendPath(): SendPath = when {
         !sending -> SendPath.Direct
-        editingMessageId == null && !hasAttachmentDrafts && !hasLocationDraft -> SendPath.Queue
+        editingMessageId == null && !hasAttachmentDrafts && !hasLocationDraft ->
+            // D1：即时模式生成中也直发（服务端裁决）；排队模式进本地 FIFO。
+            if (sendMode == SendMode.Immediate) SendPath.Direct else SendPath.Queue
         else -> SendPath.BlockedTurnRunning
     }
 
     /**
-     * 已经拿到手的纯文字（语音转写、队列续发）：生成中入队，否则直发。
-     * 与 [sendPath] 分开是因为这些路径没有草稿/编辑上下文，判据只有「回合占没占着」。
+     * 已经拿到手的纯文字（语音转写、队列续发）：判据只有「回合占没占着」+ D1 开关。
+     * 与 [sendPath] 分开是因为这些路径没有草稿/编辑上下文。
      */
-    fun textSendPath(): SendPath = if (sending) SendPath.Queue else SendPath.Direct
+    fun textSendPath(): SendPath = when {
+        !sending -> SendPath.Direct
+        sendMode == SendMode.Immediate -> SendPath.Direct
+        else -> SendPath.Queue
+    }
 
     /** 选附件进托盘：生成中不接（上传窗口属于下一个回合）。 */
     val allowAttachmentPick: Boolean get() = !sending

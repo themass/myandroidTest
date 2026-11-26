@@ -88,6 +88,28 @@ internal object ChatPlatform {
     /** v2：默认改为豆包式（Ripple）。换了键名，老的手动选择不再覆盖默认值。 */
     private const val KEY = "style_v2"
 
+    /** 「生成中发消息」prefs（D1）：与语音样式分开存，键名带版本语义。 */
+    private const val SEND_MODE_PREFS = "chat_send_mode"
+    private const val SEND_MODE_KEY = "mode_v1"
+
+    /**
+     * 「生成中发消息」模式（设计 20261126 §2 D1）：默认 **Immediate**（即时发送，
+     * 永不本地排队，服务端裁决）；用户可切到 Queue 保留 A36/A40 的本地排队+徽标。
+     * 判定在 ChatTurnGate，这里只存取值。
+     */
+    fun loadSendMode(context: Context): com.openapi.feature.chat.presentation.SendMode {
+        val ordinal = context.getSharedPreferences(SEND_MODE_PREFS, Context.MODE_PRIVATE)
+            .getInt(SEND_MODE_KEY, com.openapi.feature.chat.presentation.SendMode.Immediate.ordinal)
+        return com.openapi.feature.chat.presentation.SendMode.entries.getOrElse(ordinal) {
+            com.openapi.feature.chat.presentation.SendMode.Immediate
+        }
+    }
+
+    fun saveSendMode(context: Context, mode: com.openapi.feature.chat.presentation.SendMode) {
+        context.getSharedPreferences(SEND_MODE_PREFS, Context.MODE_PRIVATE)
+            .edit().putInt(SEND_MODE_KEY, mode.ordinal).apply()
+    }
+
     fun loadVoiceStyle(context: Context): VoiceStyle {
         val ordinal = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY, VoiceStyle.Ripple.ordinal)
         return VoiceStyle.entries.getOrElse(ordinal) { VoiceStyle.Ripple }

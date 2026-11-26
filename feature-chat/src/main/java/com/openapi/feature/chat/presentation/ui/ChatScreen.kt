@@ -85,6 +85,11 @@ fun ChatScreen(
     voiceStyle: VoiceStyle,
     composerActions: List<ComposerAction>,
     onVoiceStyleChange: (VoiceStyle) -> Unit,
+    /**
+     * D1「生成中发消息」两态开关的回调（值本体在 [ChatUiState.sendMode]，
+     * ChatRoute 负责持久化到 prefs）。不传 = 这一页不提供该设置（开关隐藏）。
+     */
+    onSendModeChange: ((com.openapi.feature.chat.presentation.SendMode) -> Unit)? = null,
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
     /** A36②：停止生成——入口挂在生成中的气泡上（ChatMessageList），不再占用输入栏发送键位。 */
@@ -332,6 +337,8 @@ fun ChatScreen(
             onRename = onRenameSession,
             onDelete = onDeleteSession,
             onClearCurrent = onClearConversation,
+            sendMode = state.sendMode,
+            onSendModeChange = onSendModeChange,
             onDismiss = { onSessionsVisibleChange(false) },
         )
     }

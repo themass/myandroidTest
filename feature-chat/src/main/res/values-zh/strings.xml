@@ -49,6 +49,9 @@
     <string name="chat_voice_style_bar">语音样式 C：录音条 + 声波</string>
     <string name="chat_voice_style_floating">语音样式 A：微信式浮层</string>
     <string name="chat_voice_style_ripple">语音样式 B：豆包式波纹 + 实时文字</string>
+    <string name="chat_send_mode_title">生成中发消息</string>
+    <string name="chat_send_mode_immediate">即时发送</string>
+    <string name="chat_send_mode_queue">排队发送</string>
     <string name="home_menu">菜单</string>
     <string name="roles_default_subtitle">小爱，通用的聊天助手</string>
     <string name="roles_default_title">默认助手</string>

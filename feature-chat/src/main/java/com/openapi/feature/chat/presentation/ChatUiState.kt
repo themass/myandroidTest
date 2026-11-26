@@ -66,6 +66,15 @@ data class ChatUiState(
      * 所以定位必须靠 id。
      */
     val queued: List<QueuedText> = emptyList(),
+    /**
+     * 「生成中发消息」的模式（设计 20261126 §2 D1）。默认 [SendMode.Immediate]：
+     * 点发送永远走网络、永不本地排队，由服务端裁决。[SendMode.Queue] 保留 A36/A40 的
+     * 本地 FIFO + 徽标。值由 ChatRoute 从 prefs 载入并推进；判定一律走 [ChatTurnGate]。
+     *
+     * 放在状态里而不是让各 Action 自己读 prefs：模式必须在纯 JVM 单测里可钉，
+     * 而且要能保证「同一击发送」里各处读到的是同一个值。
+     */
+    val sendMode: SendMode = SendMode.Immediate,
 ) {
     /**
      * 文字/附件有内容就能按：生成中不再禁发送键——纯文字走 [queued] 排队，

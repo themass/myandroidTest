@@ -50,6 +50,9 @@
     <string name="chat_voice_style_bar">Voice style C: recording bar</string>
     <string name="chat_voice_style_floating">Voice style A: floating panel</string>
     <string name="chat_voice_style_ripple">Voice style B: ripple and live text</string>
+    <string name="chat_send_mode_title">Sending while replying</string>
+    <string name="chat_send_mode_immediate">Send now</string>
+    <string name="chat_send_mode_queue">Queue</string>
     <string name="home_menu">Menu</string>
     <string name="roles_default_subtitle">Xiao Ai, a general-purpose chat assistant</string>
     <string name="roles_default_title">Default assistant</string>
