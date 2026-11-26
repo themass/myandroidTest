@@ -236,9 +236,9 @@ class ResendAndAttachmentTest {
 
         assertTrue("停止必须以取消结束 deliver（协程取消不许被吞）", rethrown)
         assertEquals("停止也要留下可重试的失败记录", DeliveryStatus.FAILED, h.repo.saved.single().delivery)
-        // 这条文案出自 AttachmentSender（未列入 P2-14b 的注入范围），仍是字面量；
-        // ReplyStreamer 的同款文案已随 A43-#9 整体删除（停止后不弹底部提示）。
-        // 附件这条要不要一并去掉，等协调会话裁决——它不在 D1 设计 §5 的口径里。
+        // 这条文案出自 AttachmentSender（未列入 P2-14b 的注入范围），仍是字面量。
+        // A43-#9 裁决（协调会话）：**保留**——#9 反对的是「停止后底部弹提示」的打扰模式，
+        // 附件这条是状态说明（消息确实没发出、重试是真实可点动作），语义正确。
         assertEquals("已停止，消息未发出，可点重试", h.state.value.error)
         assertTrue("收尾后 streaming 要撤掉", h.state.value.streaming.not())
         assertTrue("停止后这条消息不再是「发送中」", h.sender.isInFlight(message.id).not())
