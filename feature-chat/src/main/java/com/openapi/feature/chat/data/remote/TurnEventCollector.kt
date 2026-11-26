@@ -142,6 +142,8 @@ internal class TurnEventCollector(
          */
         userMessageId: String?,
         persist: suspend (fullText: String) -> Unit,
+        /** Persist using the server's canonical assistant id when a done frame supplies one. */
+        persistWithAssistantId: suspend (fullText: String, assistantMessageId: String?) -> Unit = { text, _ -> persist(text) },
         /**
          * A40「接住下一回合」：订阅时这一会话里还有一条**不属于本次收集**的回合在跑
          * （排队插话被服务端收下时返回的正是那条回合的 id）。它的帧全部忽略，
@@ -228,7 +230,10 @@ internal class TurnEventCollector(
                                     emit(ChatStreamEvent.Delta(assistantLocalId, ev.delta))
                                 }
                                 is ParsedTurnEvent.Done -> if (ours) {
-                                    persist(acc.toString())
+                                    persistWithAssistantId(
+                                        acc.toString(),
+                                        ev.assistantMessageId.takeIf { it > 0 }?.toString(),
+                                    )
                                     emit(
                                         ChatStreamEvent.Done(
                                             assistantId = ev.assistantMessageId.takeIf { it > 0 }?.toString(),

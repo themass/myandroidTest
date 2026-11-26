@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.Flow
  *
  * 会话、消息的权威数据都在服务端（`/api/chat/...`，设计见服务端 docs/chat-history-server.md）：
  * - 会话 id、消息 id 都是服务端分配的；本地不再生成会话 id；
- * - 历史从服务端按页拉取（[loadHistoryPage]），本地 Room 只是离线缓存，服务端不可达时才读它；
+ * - 历史权威来自服务端按页拉取（[loadHistoryPage]）；Room 先提供首屏快照，服务端不可达时继续离线显示；
  * - 发送时不上传历史，只带 sessionId + 当轮 text。
  *
  * 实现放在 data 层。domain 层只认 [ChatMessage]/[ChatStreamEvent]，看不到协议细节。
@@ -29,6 +29,13 @@ interface ChatRepository {
      * @return 服务端不可达时回退到本地缓存（只对最新一页有意义，此时 hasMore 为 false）
      */
     suspend fun loadHistoryPage(sessionId: Long, beforeId: Long? = null, limit: Int = 30): HistoryPage
+
+    /** Fast path for the latest page: return protocol data before signed image URLs are hydrated. */
+    suspend fun loadLatestHistoryPageFast(sessionId: Long, limit: Int = 30): HistoryPage =
+        loadHistoryPage(sessionId, beforeId = null, limit = limit)
+
+    /** Resolve remote image ids after the first history frame is already visible. */
+    suspend fun hydrateHistoryImages(messages: List<ChatMessage>): List<ChatMessage> = messages
 
     /**
      * 发送一条用户消息，流式接收助理回复。

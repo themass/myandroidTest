@@ -94,7 +94,7 @@ object AttachmentStager {
         meta: VideoMetaSource = AndroidVideoMeta,
     ): StageOutcome {
         val dir = stagingDir(context, keep)
-        val stamp = System.currentTimeMillis()
+        val stamp = com.openapi.common.media.StagingFileNames.nextStamp()
         return when (kind) {
             MessageKind.IMAGE -> stageImage(context, uri, dir, stamp)
             MessageKind.FILE -> stageFile(context, uri, dir, stamp)

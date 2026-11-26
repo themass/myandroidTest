@@ -232,7 +232,7 @@ class CompanionViewModel(
             withContext(ioDispatcher) {
                 com.openapi.common.media.StagingGc.sweep(dir, keep = keep)
                 for (uri in uris) {
-                    val stamp = nextStagingStamp()
+                    val stamp = com.openapi.common.media.StagingFileNames.nextStamp()
                     com.openapi.common.media.MediaStager.stageImage(context, uri, dir, stamp)
                         ?.let { addPendingImage(it) }
                 }
@@ -240,27 +240,8 @@ class CompanionViewModel(
         }
     }
 
-    /**
-     * 暂存文件名用的时间戳。
-     *
-     * 必须是**单调递增**的：一次多选里九张图落在同一毫秒很常见，都用
-     * `currentTimeMillis()` 的话后一张会盖掉前一张，用户看到的是「选了九张只剩一张」。
-     *
-     * 而且必须是**原子**的（复审 minor 1）：取 stamp 的位置在 `withContext(ioDispatcher)` 里面，
-     * 「相册多选」和「拍照」两条路可以同时跑，两个协程落在 IO 的不同线程上。
-     * 一句普通的读-改-写会在同一毫秒里读到同一个旧值，于是两条路写出同一个
-     * `img_<stamp>.jpg`，后一张**静默覆盖**前一张（写文件按名字覆盖，一声不吭）。
-     * 所以这里用 CAS 而不是 `lastStagingStamp = …`：同一个旧值只有一个线程换得动，
-     * 换不动就重读重试。
-     */
-    private val lastStagingStamp = java.util.concurrent.atomic.AtomicLong(0L)
-    internal fun nextStagingStamp(): Long {
-        while (true) {
-            val previous = lastStagingStamp.get()
-            val candidate = maxOf(System.currentTimeMillis(), previous + 1)
-            if (lastStagingStamp.compareAndSet(previous, candidate)) return candidate
-        }
-    }
+    /** Kept as a compatibility shim; both app surfaces share the common allocator. */
+    internal fun nextStagingStamp(): Long = com.openapi.common.media.StagingFileNames.nextStamp()
 
     /**
      * 发送。
@@ -1096,12 +1077,9 @@ class CompanionViewModel(
         const val DEFAULT_INBOX_POLL_MILLIS = 30_000L
 
         /**
-         * 一条消息最多带几张图。真值在 :common 的
-         * [com.openapi.common.media.MAX_MESSAGE_IMAGES]——那里同时钉着服务端的
-         * `MAX_MESSAGE_ATTACHMENTS` 和「对话」页的同一道闸；这里只是本页的旧名字，
-         * 留着一个别名比再抄一个 9 安全。
+         * 产品上限为 4 张。:common 的 9 张常量只代表服务端传输硬上限。
          */
-        const val MAX_PENDING_IMAGES = com.openapi.common.media.MAX_MESSAGE_IMAGES
+        const val MAX_PENDING_IMAGES = com.openapi.common.media.MAX_IMAGES_PER_MESSAGE_PICK
 
         /** 选中的图暂存在 `filesDir` 下的这个目录（FileProvider 已授权 files 根目录）。 */
         const val ATTACHMENT_DIR = "companion_attachments"

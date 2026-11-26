@@ -242,6 +242,9 @@ class AgentBackedChatRepository(
             assistantLocalId = assistantLocalId,
             userMessageId = userServerId,
             persist = { fullText -> persistTurn(sessionId, clientMessageId, userText, persistUser, fullText) },
+            persistWithAssistantId = { fullText, assistantId ->
+                persistTurn(sessionId, clientMessageId, userText, persistUser, fullText, assistantId)
+            },
         )
     }
 
@@ -251,6 +254,7 @@ class AgentBackedChatRepository(
         userText: String?,
         persistUser: Boolean,
         reply: String,
+        assistantMessageId: String? = null,
     ) {
         if (reply.isEmpty()) return
         withContext(Dispatchers.IO) {
@@ -268,7 +272,7 @@ class AgentBackedChatRepository(
             local.persist(
                 sessionId,
                 ChatMessage(
-                    id = "local-assistant-${System.currentTimeMillis()}",
+                    id = assistantMessageId ?: "local-assistant-${System.currentTimeMillis()}",
                     role = ChatRole.ASSISTANT, text = reply,
                     createdAtMillis = System.currentTimeMillis(),
                 ),
@@ -347,13 +351,30 @@ class AgentBackedChatRepository(
             assistantLocalId = assistantId,
             userMessageId = userServerId?.takeIf { it > 0 }?.toString(),
             persist = { fullText -> persistTurn(sessionId, null, null, false, fullText) },
+            persistWithAssistantId = { fullText, assistantId ->
+                persistTurn(sessionId, null, null, false, fullText, assistantId)
+            },
             skipTurnId = skipTurnId,
         )
     }
 
     // ------------------------------------------------------------ 历史
 
-    override suspend fun loadHistoryPage(sessionId: Long, beforeId: Long?, limit: Int): HistoryPage {
+    override suspend fun loadHistoryPage(sessionId: Long, beforeId: Long?, limit: Int): HistoryPage =
+        loadHistoryPageInternal(sessionId, beforeId, limit, hydrate = true)
+
+    override suspend fun loadLatestHistoryPageFast(sessionId: Long, limit: Int): HistoryPage =
+        loadHistoryPageInternal(sessionId, beforeId = null, limit = limit, hydrate = false)
+
+    override suspend fun hydrateHistoryImages(messages: List<ChatMessage>): List<ChatMessage> =
+        hydrateImages(messages)
+
+    private suspend fun loadHistoryPageInternal(
+        sessionId: Long,
+        beforeId: Long?,
+        limit: Int,
+        hydrate: Boolean,
+    ): HistoryPage {
         if (sessionId <= 0) return HistoryPage(emptyList(), hasMore = false)
         val safeLimit = limit.coerceIn(1, 100)
         val page = runCatching { withContext(Dispatchers.IO) { remote.history(sessionId, beforeId, safeLimit) } }
@@ -369,7 +390,7 @@ class AgentBackedChatRepository(
                 local.cacheRemote(sessionId, messages, replaceAll = beforeId == null)
             }
         }
-        return HistoryPage(hydrateImages(messages), page.hasMore)
+        return HistoryPage(if (hydrate) hydrateImages(messages) else messages, page.hasMore)
     }
 
     /**

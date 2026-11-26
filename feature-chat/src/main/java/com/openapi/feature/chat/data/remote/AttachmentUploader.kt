@@ -4,7 +4,7 @@ import android.content.Context
 import com.openapi.feature.chat.domain.model.ChatReply
 import com.openapi.feature.chat.domain.model.MessageKind
 import com.openapi.common.net.http.BaseService
-import com.openapi.common.net.awaitUpload
+import com.openapi.common.net.awaitUploadOrThrow
 import com.openapi.core.config.Constants
 import com.openapi.feature.chat.data.remote.Choice
 import com.openapi.feature.chat.data.remote.TtsResponseVo
@@ -22,19 +22,17 @@ internal class AttachmentUploader(private val baseService: BaseService) {
         localFile: File,
         fileName: String,
         placeholderId: String,
-    ): ChatReply? {
+    ): ChatReply {
         val isImage = kind == MessageKind.IMAGE
         val url = Constants.getUrl(if (isImage) Constants.CHAT_IMAGE_URL else Constants.CHAT_FILE_URL)
         // 服务端用这两个表单名区分图片与文件（recognize.json 读 image，file.json 读 file）
         val partName = if (isImage) "image" else "file"
         val param = AttachmentParam(id = placeholderId, sessionId = sessionId)
-        return baseService.awaitUpload(url, param, listOf(localFile), partName, Choice::class.java, CHAT_TAG)
-            ?.let { response ->
-                ChatReply(
-                    id = response.id ?: placeholderId,
-                    text = response.message?.content.orEmpty(),
-                )
-            }
+        val response = baseService.awaitUploadOrThrow(url, param, listOf(localFile), partName, Choice::class.java, CHAT_TAG)
+        return ChatReply(
+            id = response.id ?: placeholderId,
+            text = response.message?.content.orEmpty(),
+        )
     }
 }
 

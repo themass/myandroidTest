@@ -128,13 +128,24 @@ internal class AttachmentSender(
 
         // 3) 文件仍走 legacy 的逐条接口（`/v1` 没有文件类型）。
         for (file in message.files) {
-            val reply = runCatching {
+            val reply = try {
                 kotlinx.coroutines.withTimeoutOrNull(ATTACHMENT_TIMEOUT_MS) {
                     repository.sendAttachment(
                         sessionId, MessageKind.FILE, java.io.File(file.path), file.name, message.id,
                     )
                 }
-            }.getOrNull()
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                val serverMessage = (failure as? com.openapi.common.net.http.NetError.BusinessError)?.msg
+                fail(
+                    message,
+                    restoreDraftsOnFailure,
+                    stopped = false,
+                    errorMessage = serverMessage?.takeIf { it.isNotBlank() },
+                )
+                return
+            }
             if (reply == null) {
                 fail(message, restoreDraftsOnFailure, stopped = false)
                 return
@@ -149,9 +160,18 @@ internal class AttachmentSender(
      * 「是不是被停止」是调用方的事实，不是这里靠 `coroutineContext[Job]` 猜的
      * （整改清单 P3-20：那种写法只在仓库吞掉取消异常时才碰巧执行到）。
      */
-    private suspend fun fail(message: ChatMessage, restoreDraftsOnFailure: Boolean, stopped: Boolean) {
+    private suspend fun fail(
+        message: ChatMessage,
+        restoreDraftsOnFailure: Boolean,
+        stopped: Boolean,
+        errorMessage: String? = null,
+    ) {
         state.update {
-            it.copy(sending = false, error = if (stopped) "已停止，消息未发出，可点重试" else "发送失败，请稍后重试")
+            it.copy(
+                sending = false,
+                error = if (stopped) "已停止，消息未发出，可点重试"
+                    else errorMessage ?: "发送失败，请稍后重试",
+            )
         }
         streamer.setDelivery(message.id, DeliveryStatus.FAILED)
         persistDelivery(message, DeliveryStatus.FAILED)

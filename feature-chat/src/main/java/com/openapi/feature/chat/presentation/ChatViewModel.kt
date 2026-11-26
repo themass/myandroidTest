@@ -105,9 +105,24 @@ class ChatViewModel : ViewModel() {
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(loading = true, error = null, loadError = null) }
-            // 读失败不能静默成空页：那会让「断网」和「历史被清空」看起来一模一样。
-            // 页面照常装配（会话列表、角色都还能用），但把失败原因留下来给消息区渲染。
-            val loaded = runCatching { loadHistory() }
+            // 先把本地快照送进 StateFlow；网络历史和签名图片 URL 都在它之后加载，
+            // 首屏不再等远端响应才出现消息。
+            val initialSessionId = repository.currentSessionId()
+            if (initialSessionId > 0) {
+                val cached = runCatching { repository.cachedMessages(initialSessionId) }.getOrDefault(emptyList())
+                if (cached.isNotEmpty()) {
+                    val cachedVisible = mergePending(cached, initialSessionId)
+                    _uiState.update { current ->
+                        if (repository.currentSessionId() == initialSessionId) {
+                            current.copy(messages = cachedVisible, sessionId = initialSessionId)
+                        } else current
+                    }
+                }
+            }
+            // 首屏先取未换签名 URL 的最新页；图片 URL 在消息已提交到 UI 后单独异步补齐。
+            val loaded = runCatching {
+                repository.loadLatestHistoryPageFast(repository.currentSessionId())
+            }
             val page = loaded.getOrElse { HistoryPage(emptyList(), hasMore = false) }
             val loadError = loaded.exceptionOrNull()?.let(::describeLoadFailure)
             val sessionId = repository.currentSessionId()
@@ -133,6 +148,22 @@ class ChatViewModel : ViewModel() {
                     selectedCharacterId = sessionCharacterId,
                     sessions = sessions,
                 )
+            }
+            if (loadError == null && page.messages.isNotEmpty()) {
+                viewModelScope.launch {
+                    val hydrated = runCatching { repository.hydrateHistoryImages(page.messages) }.getOrNull()
+                        ?: return@launch
+                    val hydratedMessages = mergePending(hydrated, sessionId).associateBy { it.id }
+                    _uiState.update { current ->
+                        if (current.sessionId != sessionId) current
+                        else current.copy(
+                            messages = current.messages.map { currentMessage ->
+                                val resolved = hydratedMessages[currentMessage.id] ?: return@map currentMessage
+                                currentMessage.copy(images = resolved.images)
+                            },
+                        )
+                    }
+                }
             }
         }
     }
