@@ -50,6 +50,8 @@ internal class FakeChatRepository : ChatRepository {
     var streamFlow: Flow<ChatStreamEvent>? = null
     /** 每次 sendMessageStream 带走的 userText，按调用顺序；排队续发用例钉发送顺序用。 */
     val sentTexts = mutableListOf<String>()
+    /** A40：与 sentTexts 同序的 clientMessageId——钉「气泡 id = 提交 id」这条不变量。 */
+    val sentClientMessageIds = mutableListOf<String?>()
     /** 最近一次 sendMessageStream 带的位置（P2-13）；null = 没带。 */
     var sentLocation: com.openapi.feature.chat.domain.model.GeoLocation? = null
     val sentLocations = mutableListOf<com.openapi.feature.chat.domain.model.GeoLocation?>()
@@ -60,12 +62,31 @@ internal class FakeChatRepository : ChatRepository {
         location: com.openapi.feature.chat.domain.model.GeoLocation?,
     ): Flow<ChatStreamEvent> {
         sentTexts += userText
+        sentClientMessageIds += clientMessageId
         sentLocation = location
         sentLocations += location
         return streamFlow ?: emptyFlow()
     }
     /** regenerateStream 被调了几次：验证「带图消息的重跑走服务端，而不是整条重发」。 */
     var regenerateStreamCalls = 0
+    /**
+     * A40：steerQueuedMessage 的返回值（默认失败——测试要显式给裁决才走成功路径），
+     * 以及每次调用的 (sessionId, text, clientMessageId)。
+     */
+    var steerResult: com.openapi.feature.chat.domain.model.SteerResult =
+        com.openapi.feature.chat.domain.model.SteerResult(false)
+    val steerCalls = mutableListOf<Triple<Long, String, String>>()
+    override suspend fun steerQueuedMessage(
+        sessionId: Long, userText: String, characterId: Int?, roleId: String?, clientMessageId: String,
+    ): com.openapi.feature.chat.domain.model.SteerResult {
+        steerCalls += Triple(sessionId, userText, clientMessageId)
+        return steerResult
+    }
+    /** A40：takeCaughtTurn 的注入流（默认空 = 没有待接回合）。 */
+    var caughtFlow: Flow<ChatStreamEvent>? = null
+    override fun takeCaughtTurn(
+        sessionId: Long, skipTurnId: String?, userServerId: Long?, expectedTurnId: String?,
+    ): Flow<ChatStreamEvent> = caughtFlow ?: emptyFlow()
     override fun regenerateStream(sessionId: Long, characterId: Int?, roleId: String?): Flow<ChatStreamEvent> {
         regenerateStreamCalls++
         return emptyFlow()

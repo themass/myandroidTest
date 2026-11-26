@@ -143,7 +143,7 @@ class SendActionsTest {
         h.send.sendText("第二条")
         h.scope.advanceUntilIdle()
 
-        assertEquals(listOf("第一条", "第二条"), h.state.value.queued)
+        assertEquals(listOf("第一条", "第二条"), h.state.value.queued.map { it.text })
         // 没有直发：没有新的用户气泡/占位气泡，仓库一次流都没被调用
         assertTrue(h.state.value.messages.isEmpty())
         assertTrue(h.repo.sentTexts.isEmpty())
@@ -156,7 +156,7 @@ class SendActionsTest {
         h.send.onSend()
         h.scope.advanceUntilIdle()
 
-        assertEquals(listOf("追加的问题"), h.state.value.queued)
+        assertEquals(listOf("追加的问题"), h.state.value.queued.map { it.text })
         assertEquals("", h.state.value.input)
         assertEquals(0, h.attachmentSends.size)
         assertTrue(h.state.value.messages.isEmpty())

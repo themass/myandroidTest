@@ -32,4 +32,5 @@ internal class FakeChatStrings : ChatStrings {
     override fun attachmentLimitReached(max: Int) = "S:attachmentLimitReached:$max"
     override fun turnTimeout() = "S:turnTimeout"
     override fun previousTurnRunning() = "S:previousTurnRunning"
+    override fun steerSendFailed() = "S:steerSendFailed"
 }

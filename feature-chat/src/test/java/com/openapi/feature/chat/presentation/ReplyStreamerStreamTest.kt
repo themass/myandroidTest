@@ -146,7 +146,7 @@ class ReplyStreamerStreamTest {
         }
         val h = Harness(listOf(user()), flow)
         // 生成中用户按了两次 Enter（SendActions.sendText 的落点就是这里）
-        h.state.value = h.state.value.copy(queued = listOf("第二条", "第三条"))
+        h.state.value = h.state.value.copy(queued = listOf(QueuedText("q-2", "第二条"), QueuedText("q-3", "第三条")))
         h.streamer.stream("问", userMessageId = "user-1", persistUser = true)
         h.scope.advanceUntilIdle()
 
@@ -185,7 +185,7 @@ class ReplyStreamerStreamTest {
         val h = Harness(listOf(user()), flow)
         h.streamer.stream("问", userMessageId = "user-1", persistUser = true)
         h.scope.runCurrent()
-        h.state.value = h.state.value.copy(queued = listOf("没发出去的"))
+        h.state.value = h.state.value.copy(queued = listOf(QueuedText("q-x", "没发出去的")))
         h.streamer.cancel()
         h.scope.advanceUntilIdle()
 

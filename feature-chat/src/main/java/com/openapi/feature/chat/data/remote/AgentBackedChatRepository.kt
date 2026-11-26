@@ -276,6 +276,81 @@ class AgentBackedChatRepository(
         }
     }
 
+    /**
+     * A40「插话」：把一条排队文字立即提交（服务端按回合阶段裁决 merge/steer/queue/start）。
+     *
+     * 与 [sendMessageStream] 的关键差别：**这里不等回合**。回合进行中的提交在服务端不会
+     * 409（Lua 判定直接给出裁决），所以没有 cancel-before-retry 那一段；merged/steered
+     * 的回复会出现在**当前**事件流里（`turn.restarted` 已折叠），queued/started 由
+     * [takeCaughtTurn] 在本轮收尾后接住。失败返回 ok=false——调用方把文字放回输入框。
+     */
+    override suspend fun steerQueuedMessage(
+        sessionId: Long,
+        userText: String,
+        characterId: Int?,
+        roleId: String?,
+        clientMessageId: String,
+    ): com.openapi.feature.chat.domain.model.SteerResult = withContext(Dispatchers.IO) {
+        val sid = resolveSessionId(sessionId, roleId, characterId)
+        val receipt = runCatching { remote.submit(sid, userText, clientMessageId, null) }.getOrNull()
+            ?: return@withContext com.openapi.feature.chat.domain.model.SteerResult(false)
+        // disposition 缺失 = 旧服务端或 duplicate 回执：宁可当失败（文字回输入框可重发），
+        // 绝不静默丢一条用户输入。
+        val disposition = receipt.disposition
+            ?: return@withContext com.openapi.feature.chat.domain.model.SteerResult(false)
+        val mapped = when (disposition) {
+            "merged" -> com.openapi.feature.chat.domain.model.SteerDisposition.MERGED
+            "steered" -> com.openapi.feature.chat.domain.model.SteerDisposition.STEERED
+            "queued" -> com.openapi.feature.chat.domain.model.SteerDisposition.QUEUED
+            "started" -> com.openapi.feature.chat.domain.model.SteerDisposition.STARTED
+            else -> null
+        } ?: return@withContext com.openapi.feature.chat.domain.model.SteerResult(false)
+        // submit 已成功：本地缓存这条用户消息（离线重启后气泡与历史能对上）。
+        local.persist(
+            sid,
+            ChatMessage(
+                id = clientMessageId, role = ChatRole.USER, text = userText,
+                createdAtMillis = System.currentTimeMillis(),
+                delivery = com.openapi.feature.chat.domain.model.DeliveryStatus.SENT,
+            ),
+        )
+        com.openapi.feature.chat.domain.model.SteerResult(
+            ok = true,
+            disposition = mapped,
+            messageId = receipt.messageId,
+            turnId = receipt.turnId,
+        )
+    }
+
+    /**
+     * A40：接住「插话」裁决为 queued/started 时服务端开的那条回合。
+     *
+     * 订阅时机在**上一轮事件流收尾之后**（ReplyStreamer 的 runTurn 末尾），因此不会与
+     * 上一轮的连接串台。新订阅 = 只看未来事件 + 活跃回合的 snapshot：排空回合若已开始，
+     * snapshot 补齐已生成的部分，一个字不丢。用户消息服务端已落库（[userServerId] 进 Done），
+     * 本地只补助手行。
+     */
+    override fun takeCaughtTurn(
+        sessionId: Long,
+        skipTurnId: String?,
+        userServerId: Long?,
+        expectedTurnId: String?,
+    ): Flow<ChatStreamEvent> = flow {
+        if (sessionId <= 0) return@flow
+        val assistantId = "local-assistant-${System.currentTimeMillis()}"
+        TurnEventCollector(
+            open = { lastEventId -> remote.events(sessionId, lastEventId) },
+            parse = ::parseAgentEvent,
+        ).collect(
+            emit = { emit(it) },
+            expectedTurnId = expectedTurnId,
+            assistantLocalId = assistantId,
+            userMessageId = userServerId?.takeIf { it > 0 }?.toString(),
+            persist = { fullText -> persistTurn(sessionId, null, null, false, fullText) },
+            skipTurnId = skipTurnId,
+        )
+    }
+
     // ------------------------------------------------------------ 历史
 
     override suspend fun loadHistoryPage(sessionId: Long, beforeId: Long?, limit: Int): HistoryPage {

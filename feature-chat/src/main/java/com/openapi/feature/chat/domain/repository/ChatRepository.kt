@@ -137,6 +137,50 @@ interface ChatRepository {
      */
     suspend fun cancelTurn(sessionId: Long)
 
+    /**
+     * A40：把一条**本地 followup 队列**里的文字立刻提交给服务端（「插话」按钮）。
+     *
+     * 服务端按回合阶段裁决（`_SUBMIT_LUA`）：首个 token 前 → `merged`（当前回合原地重跑，
+     * 事件流会来 `turn.restarted`）；输出中且在额度内 → `steered`（注入正在跑的回合）；
+     * 都不行 → `queued`（服务端队列暂存，本轮结束服务端排空成新回合）；若这一瞬间回合
+     * 恰好结束 → `started`（这条直接开新回合）。前两种并进**当前**事件流，无需第二订阅；
+     * 后两种由实现内部订阅下一个回合（见 AgentBackedChatRepository 的待接回合），
+     * 把新回复照常送进 [sendMessageStream] 之外的那条流——调用方只管把它从本地队列移除。
+     *
+     * 失败（网络、409 之外的服务端拒绝）返回 ok=false：调用方必须把这条放回本地队列，
+     * 用户还能撤回或重试，文字绝不丢。
+     */
+    suspend fun steerQueuedMessage(
+        sessionId: Long,
+        userText: String,
+        characterId: Int?,
+        roleId: String?,
+        /**
+         * 本机用户气泡的 id，直接当 clientMessageId 用：服务端按它去重，
+         * [takeCaughtTurn] 的 Done 带回正式 id 后气泡原位换 id。
+         * 按队列 index 定位会在异步回执回来时错位（队列可能已经变了），所以定位靠 id。
+         */
+        clientMessageId: String,
+    ): com.openapi.feature.chat.domain.model.SteerResult
+
+    /**
+     * A40：接住「插话」裁决为 `queued` / `started` 时服务端那一回合的事件流。
+     *
+     * 调用时机必须是**当前回合的事件流刚收尾之后**（[steerQueuedMessage] 返回后先记下，
+     * ReplyStreamer 在本轮流结束时取）：新订阅 = 只看未来事件 + 活跃回合的 snapshot，
+     * 所以晚订阅不会丢字（snapshot 补齐已生成的部分），但早订阅会串台——
+     * [skipTurnId] 就是防串台的：那一条回合（插话时正在跑的那轮）的所有事件一律忽略，
+     * 直到出现**另一个** turn_id 才认作要接的回合（服务端排空队列自动开的新回合）。
+     *
+     * 默认空流：旧后端没有服务端队列，也就没有可接的回合。
+     */
+    fun takeCaughtTurn(
+        sessionId: Long,
+        skipTurnId: String?,
+        userServerId: Long?,
+        expectedTurnId: String? = null,
+    ): Flow<ChatStreamEvent> = kotlinx.coroutines.flow.emptyFlow()
+
     /** 当前会话 id，来自 SP（Constants.CHAT_SESSION）。0 表示还没有会话。 */
     fun currentSessionId(): Long
 

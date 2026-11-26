@@ -163,27 +163,27 @@ class ComposerAndFeedbackTest {
     /** A36①：徽标撤回排队文字——回到输入框；输入框有内容时按行拼接不覆盖。 */
     @Test
     fun withdrawQueuedReturnsTextToInput() {
-        val state = MutableStateFlow(ChatUiState(queued = listOf("第一条", "第二条")))
+        val state = MutableStateFlow(ChatUiState(queued = listOf(QueuedText("q-0", "第一条"), QueuedText("q-1", "第二条"))))
         ComposerActions(state).withdrawQueued(0)
-        assertEquals(listOf("第二条"), state.value.queued)
+        assertEquals(listOf("第二条"), state.value.queued.map { it.text })
         assertEquals("第一条", state.value.input)
     }
 
     @Test
     fun withdrawQueuedAppendsWhenInputNotEmpty() {
         val state = MutableStateFlow(
-            ChatUiState(input = "刚敲的", queued = listOf("排队甲", "排队乙")),
+            ChatUiState(input = "刚敲的", queued = listOf(QueuedText("q-0", "排队甲"), QueuedText("q-1", "排队乙"))),
         )
         ComposerActions(state).withdrawQueued(1)
-        assertEquals(listOf("排队甲"), state.value.queued)
+        assertEquals(listOf("排队甲"), state.value.queued.map { it.text })
         assertEquals("刚敲的\n排队乙", state.value.input)
     }
 
     @Test
     fun withdrawQueuedIgnoresOutOfRangeIndex() {
-        val state = MutableStateFlow(ChatUiState(input = "保持", queued = listOf("只有这一条")))
+        val state = MutableStateFlow(ChatUiState(input = "保持", queued = listOf(QueuedText("q-0", "只有这一条"))))
         ComposerActions(state).withdrawQueued(7)
-        assertEquals(listOf("只有这一条"), state.value.queued)
+        assertEquals(listOf("只有这一条"), state.value.queued.map { it.text })
         assertEquals("保持", state.value.input)
     }
 

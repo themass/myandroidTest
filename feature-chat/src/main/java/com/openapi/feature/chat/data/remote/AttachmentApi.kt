@@ -101,6 +101,8 @@ internal class AttachmentApi(
                 emit = { ev ->
                     when (ev) {
                         is ChatStreamEvent.Delta -> acc.append(ev.text)
+                        // A40：合并重跑——重跑后的 delta 与 done 只含新一轮，旧半截作废。
+                        is ChatStreamEvent.Restarted -> acc.setLength(0)
                         // 看门狗/服务端错误：acc 里是已收到的半截（或空），照常交出去，
                         // 上层按空回复/半截显示——绝不永远挂着。
                         is ChatStreamEvent.Error -> LogUtil.w("附件回合以错误收尾: ${ev.message}")

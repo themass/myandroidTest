@@ -220,6 +220,12 @@ class ChatViewModel : ViewModel() {
     /** A36①：从「N 条排队中」徽标撤回一条排队文字，回到输入框。 */
     fun onWithdrawQueued(index: Int) = composer.withdrawQueued(index)
 
+    /** A40：「插话」——这条排队文字现在就走服务端（服务端裁决合并/插话/排队/新开）。 */
+    fun onPromoteQueued(index: Int) = send.steerQueued(index)
+
+    /** A40：「打断重发」——这条插到队首并取消当前回合，本轮一收尾就发它。 */
+    fun onInterruptQueued(index: Int) = send.interruptQueued(index)
+
     /** 附件发送任务。停止按钮要能同时停掉两者，且两者互不覆盖。 */
     private var attachmentJob: kotlinx.coroutines.Job? = null
 

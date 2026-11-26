@@ -24,6 +24,12 @@ internal sealed interface ParsedTurnEvent {
     data class Done(override val turnId: String, val assistantMessageId: Long) : ParsedTurnEvent
     data class Cancelled(override val turnId: String, val assistantMessageId: Long) : ParsedTurnEvent
     data class Errored(override val turnId: String, val code: String) : ParsedTurnEvent
+    /**
+     * A40：本轮被服务端原地重跑（`turn.restarted`——回合进行中新输入触发 merge restart）。
+     * 重跑后服务端只发新一轮 delta、done 的 fullText 也只含新一轮，所以这必须是一个
+     * 显式事件让上层**作废已显示的文字**，而不是继续往 acc 里拼。
+     */
+    data class Restarted(override val turnId: String) : ParsedTurnEvent
 }
 
 /** 把一个 SSE 帧翻译成 [ParsedTurnEvent]；data 不是 JSON 或事件与本轮无关时返回 null。 */
@@ -35,6 +41,7 @@ internal fun parseAgentEvent(frame: AgentSseFrame): ParsedTurnEvent? {
         "message.delta" -> ParsedTurnEvent.Delta(turnId, obj.optString("delta", ""))
         "message.done" -> ParsedTurnEvent.Done(turnId, obj.optLong("assistant_message_id", 0L))
         "turn.cancelled" -> ParsedTurnEvent.Cancelled(turnId, obj.optLong("assistant_message_id", 0L))
+        "turn.restarted" -> ParsedTurnEvent.Restarted(turnId)
         "error" -> ParsedTurnEvent.Errored(turnId, obj.optString("code", "unknown"))
         else -> null
     }
@@ -135,6 +142,13 @@ internal class TurnEventCollector(
          */
         userMessageId: String?,
         persist: suspend (fullText: String) -> Unit,
+        /**
+         * A40「接住下一回合」：订阅时这一会话里还有一条**不属于本次收集**的回合在跑
+         * （排队插话被服务端收下时返回的正是那条回合的 id）。它的帧全部忽略，
+         * 出现第一个**不同** turn_id 的事件才固定 [matchedTurn]——否则会在别人的回合上
+         * 固定锁扣，真正要接的排空回合反而被当成串台丢掉。
+         */
+        skipTurnId: String? = null,
     ) {
         val acc = StringBuilder()
         var matchedTurn: String? = expectedTurnId
@@ -194,7 +208,11 @@ internal class TurnEventCollector(
                             frame.id?.let { lastEventId = it }
                             val ev = parse(frame) ?: continue
                             // 第一次拿到 turn_id 时固定下来，后续只认这一轮，避免并发回合串台。
-                            if (ev.turnId.isNotEmpty() && matchedTurn == null) matchedTurn = ev.turnId
+                            if (ev.turnId.isNotEmpty() && matchedTurn == null) {
+                                // skipTurnId 的帧先咽掉：那是订阅时才在跑、不属于本次收集的回合。
+                                if (skipTurnId != null && ev.turnId == skipTurnId) continue
+                                matchedTurn = ev.turnId
+                            }
                             val ours = ev.turnId.isNotEmpty() && ev.turnId == matchedTurn
                             when (ev) {
                                 is ParsedTurnEvent.Snapshot -> if (ours) {
@@ -219,6 +237,13 @@ internal class TurnEventCollector(
                                         ),
                                     )
                                     finished = true
+                                }
+                                is ParsedTurnEvent.Restarted -> if (ours) {
+                                    // 原地重跑：服务端接下来只发新一轮的 delta，done 的 fullText
+                                    // 也只含新一轮。本地 acc 必须一起作废，否则旧半截会被拼进
+                                    // 新回复（用户看到的就是一句话重复一遍）。
+                                    acc.setLength(0)
+                                    emit(ChatStreamEvent.Restarted(assistantLocalId))
                                 }
                                 is ParsedTurnEvent.Cancelled -> if (ours) {
                                     emit(
