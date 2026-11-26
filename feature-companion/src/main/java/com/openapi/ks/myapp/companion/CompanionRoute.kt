@@ -381,6 +381,9 @@ fun CompanionRoute(
         // 当前在岗的引擎实例快照（LabHost 在切引擎/切形象时更新，销毁时回 null）。
         // 换装行与换形象行直接调它——引擎内部状态不可观察，靠这个引用把托盘和引擎接上。
         var stageEngine by remember { mutableStateOf<com.openapi.ks.myapp.dh.DigitalHumanEngine?>(null) }
+        // 热切换保留同一引擎引用，单独发布模型名才能让标签和下一次切换读取新值。
+        // Source: https://developer.android.com/develop/ui/compose/state#state-in-composables
+        var stageModel by remember { mutableStateOf<String?>(null) }
         // 换装/换形象后 +1：托盘行尾的当前值需要重组才刷新（引擎状态不是 Compose state）。
         var wardrobeTick by remember { mutableIntStateOf(0) }
         val uiScope = rememberCoroutineScope()
@@ -623,10 +626,10 @@ fun CompanionRoute(
                     wardrobeTick++
                 }
             } else null,
-            live2dModelLabel = stageEngine?.modelLabel(),
+            live2dModelLabel = stageModel,
             onLive2dModelSwitch = if (callStage != null) {
                 val present = com.openapi.ks.myapp.dh.live2dPresentModels(context)
-                val model = stageEngine?.modelLabel()
+                val model = stageModel
                 if (present.size > 1 && model != null) {
                     {
                         val next = com.openapi.ks.myapp.dh.Live2dModels.next(model, present)
@@ -734,7 +737,10 @@ fun CompanionRoute(
                             // Live2D 多形象：偏好持久化的模型目录名；变化时 LabHost
                             // 原地换引擎实例（先 release 再 create）。
                             live2dModel = live2dModel,
-                            onEngineChanged = { stageEngine = it },
+                            onEngineChanged = {
+                                stageEngine = it
+                                stageModel = it?.modelLabel()
+                            },
                             // Simple 舞台形象回退（投诉 2026-11-23「只有一个字」）：
                             // 没有旧格式形象包但有分层立绘的角色，舞台画立绘不画字。
                             simpleFallback = if (avatarFiles == null) layeredPack else null,
@@ -757,7 +763,7 @@ fun CompanionRoute(
                         }
                         if (labEnabled && !actionTrayOpen && chosen == DhEngineId.LIVE2D &&
                             stageEngine?.id == DhEngineId.LIVE2D &&
-                            stageEngine?.modelLabel() == OriginalAvatarDemo.MODEL_DIR
+                            stageModel == OriginalAvatarDemo.MODEL_DIR
                         ) {
                             OriginalAvatarDemoControls(
                                 smileEnabled = demoSmileEnabled,
@@ -783,7 +789,7 @@ fun CompanionRoute(
                         }
                         if (actionTrayOpen) {
                             val wardrobe = stageEngine?.wardrobeRows().orEmpty()
-                            val model = stageEngine?.modelLabel()
+                            val model = stageModel
                             val present = com.openapi.ks.myapp.dh.live2dPresentModels(context)
                             AvatarActionTray(
                                 actions = avatarActions(),
