@@ -107,4 +107,5 @@
     <string name="chat_error_separator">，</string>
     <string name="chat_turn_timeout">回复卡住了，很久没有新的内容，请重试</string>
     <string name="chat_previous_turn_running">上一轮回复还在进行，请稍等片刻后重试</string>
+    <string name="chat_steer_send_failed">刚才没能发出，文字已放回输入框</string>
 </resources>

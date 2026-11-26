@@ -229,6 +229,8 @@ fun ChatRoute(
             onSend = viewModel::onSend,
             onStop = viewModel::onStopGenerating,
             onRemoveQueued = viewModel::onWithdrawQueued,
+            onPromoteQueued = viewModel::onPromoteQueued,
+            onInterruptQueued = viewModel::onInterruptQueued,
             onRemoveDraft = { id ->
                 // 位置 chip 不是 DraftAttachment（状态里是单值字段），按固定 id 分流
                 if (id == LOCATION_DRAFT_ID) viewModel.onRemoveLocationDraft() else viewModel.onRemoveDraft(id)

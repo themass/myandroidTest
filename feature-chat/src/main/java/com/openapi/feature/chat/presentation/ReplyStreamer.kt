@@ -39,6 +39,38 @@ internal class ReplyStreamer(
     /** 文字回复的流式任务。停止按钮通过 [cancel] 取消它。 */
     private var replyJob: Job? = null
 
+    /** 占位气泡的防碰撞序号（见 [newPlaceholder]）。 */
+    private var placeholderSeq = 0L
+
+    /**
+     * A40「插话」的待接回合：steer 被服务端裁决为 `queued`/`started` 时登记，
+     * 本轮事件流自然收尾后取走（见 [runTurn] 末尾），订阅并流式展示服务端排空开的新回合。
+     * key = 登记时的会话 id：会话都切走了，登记就没有意义（取出时按当前会话查）。
+     */
+    private class CaughtTurn(
+        val bubbleId: String,
+        val skipTurnId: String?,
+        val expectedTurnId: String?,
+        val userServerId: Long?,
+    )
+    private val caughtTurns = mutableMapOf<Long, CaughtTurn>()
+
+    /**
+     * A40：登记一个「插话」后要接住的回合。两种裁决两种锁扣：
+     * - `queued`：回执带的 turn_id 是**当时正在跑**的那条回合（要跳过它，认之后出现的
+     *   第一条别的回合）→ 传 [skipTurnId]；
+     * - `started`：这条输入自己开了新回合，回执直接带它的 id → 传 [expectedTurnId]。
+     */
+    fun noteCaughtTurn(
+        sessionId: Long,
+        skipTurnId: String?,
+        bubbleId: String,
+        userServerId: Long?,
+        expectedTurnId: String? = null,
+    ) {
+        caughtTurns[sessionId] = CaughtTurn(bubbleId, skipTurnId, expectedTurnId, userServerId)
+    }
+
     fun isReplyActive(): Boolean = replyJob?.isActive == true
 
     /**
@@ -53,6 +85,8 @@ internal class ReplyStreamer(
     fun cancel() {
         // 点停止 = 用户的中断意图：排队中的文字一并清空，不能接着发下一条
         // （排空只发生在自然结束的收尾，见 stream 末尾的 drainQueue）。
+        // A40：待接的服务端排空回合同样作废——停止就是要停所有后续生成。
+        caughtTurns.clear()
         state.update { it.copy(queued = emptyList()) }
         val sessionId = repository.currentSessionId()
         scope.launch { repository.cancelTurn(sessionId) }
@@ -98,6 +132,38 @@ internal class ReplyStreamer(
         userMessageId?.let { setDelivery(it, DeliveryStatus.SENDING) }
 
         replyJob = scope.launch {
+            val events = if (regenerate) {
+                repository.regenerateStream(repository.currentSessionId(), snapshot.selectedCharacterId, snapshot.selectedRole?.id)
+            } else {
+                sendMessage(
+                    text.orEmpty(),
+                    snapshot.selectedCharacterId,
+                    snapshot.selectedRole?.id,
+                    persistUser,
+                    clientMessageId = userMessageId,
+                    attachments = attachments,
+                    location = location,
+                )
+            }
+            runTurn(events, placeholder, existing, userMessageId, startsNewSession, syncAfter)
+        }
+    }
+
+    /**
+     * 单回合的收集主体——本机发起（[stream]）与 A40 服务端接住的回合
+     * （[noteCaughtTurn] → 接住那条流）共用这一条流水线：占位气泡、打字机节拍、
+     * 失败收尾、末尾的「先接服务端排空、再排空本机队列」。
+     * 扩展在 [CoroutineScope] 上：打字机的 `reveal` 必须是本次收集的同作用域子任务
+     * （停止/取消时一起结束），不能被拆到构造参数 scope 上变成孤儿。
+     */
+    private suspend fun kotlinx.coroutines.CoroutineScope.runTurn(
+        events: kotlinx.coroutines.flow.Flow<ChatStreamEvent>,
+        placeholder: ChatMessage,
+        existing: ChatMessage?,
+        userMessageId: String?,
+        startsNewSession: Boolean,
+        syncAfter: Boolean,
+    ) {
             val buffer = StringBuilder()
             var ended = false
             var failed = false
@@ -121,22 +187,16 @@ internal class ReplyStreamer(
             }
 
             try {
-                val events = if (regenerate) {
-                    repository.regenerateStream(repository.currentSessionId(), snapshot.selectedCharacterId, snapshot.selectedRole?.id)
-                } else {
-                    sendMessage(
-                        text.orEmpty(),
-                        snapshot.selectedCharacterId,
-                        snapshot.selectedRole?.id,
-                        persistUser,
-                        clientMessageId = userMessageId,
-                        attachments = attachments,
-                        location = location,
-                    )
-                }
                 events.collect { event ->
                         when (event) {
                             is ChatStreamEvent.Delta -> buffer.append(event.text)
+                            is ChatStreamEvent.Restarted -> {
+                                // A40：服务端把这条回合并入新输入后原地重跑（turn.restarted）。
+                                // 重跑后服务端只发新一轮的 delta，done 的 fullText 也只含新一轮：
+                                // 已显示/已缓冲的旧半截必须作废，不能拼接成「回复重复一遍」。
+                                buffer.setLength(0)
+                                updateByKey(placeholder.key) { it.copy(text = "") }
+                            }
                             is ChatStreamEvent.Done -> {
                                 serverId = event.assistantId
                                 serverUserId = event.userId
@@ -215,6 +275,23 @@ internal class ReplyStreamer(
             if (syncAfter && (failed || serverId == null)) reconcile()
             if (startsNewSession) syncSessions()
 
+            // A40：这一轮结束，先接服务端排空开的新回合（若有待接记录）。
+            // 排空回合的文字服务端已经落库、气泡也已由「插话」当场插入，这里只流式回复——
+            // userMessageId 传气泡 id 但 persistUser=false（服务端已有这条），
+            // Done 带回的正式 user id 会把气泡原位换成服务端 id。
+            val sid = repository.currentSessionId()
+            val caught = caughtTurns.remove(sid)
+            if (caught != null) {
+                val user = state.value.messages.firstOrNull { it.id == caught.bubbleId }
+                // 占位气泡必须像 stream() 那样先上屏：runTurn 只往 placeholder.key 写字，
+                // 不在表里就静默丢掉——排空回合一个字都看不见。
+                val placeholder = newPlaceholder()
+                state.update { it.copy(messages = it.messages + placeholder, sending = true, streaming = true) }
+                val events = repository.takeCaughtTurn(sid, caught.skipTurnId, caught.userServerId, caught.expectedTurnId)
+                runTurn(events, placeholder, null, user?.id ?: caught.bubbleId, false, syncAfter = true)
+                return
+            }
+
             // 排空 followup 队列（FIFO 取队首续发，保持 Enter 顺序）。只有**自然结束**会走到这里：
             // 用户点停止的那条 catch 分支会 rethrow，永远不会从这里起新回合；
             // cancel() 同时清空了 queued，中断意图明确。空队列零成本。
@@ -223,16 +300,15 @@ internal class ReplyStreamer(
                 state.update { it.copy(queued = it.queued.drop(1)) }
                 val now = System.currentTimeMillis()
                 val user = ChatMessage(
-                    id = "local-user-$now",
+                    id = next.id,
                     role = ChatRole.USER,
-                    text = next,
+                    text = next.text,
                     createdAtMillis = now,
                     delivery = DeliveryStatus.SENDING,
                 )
                 state.update { it.copy(messages = it.messages + user) }
-                stream(next, userMessageId = user.id, persistUser = true)
+                stream(next.text, userMessageId = user.id, persistUser = true)
             }
-        }
     }
 
     /**
@@ -285,12 +361,15 @@ internal class ReplyStreamer(
     }
 
     fun newPlaceholder(): ChatMessage {
-        val now = System.currentTimeMillis()
+        // 序号必须有：排空续发/A40 接住回合都在上一轮收尾的**同一毫秒**里起新轮，
+        // 只用时间戳会让两条占位气泡撞 key——updateByKey(indexOfLast) 会写进
+        // 上一条已完成的助手气泡，末尾那张 map 也会把两条一起改掉，上一轮的文字被覆盖。
+        val id = "local-pending-" + System.currentTimeMillis() + "-" + placeholderSeq++
         return ChatMessage(
-            id = "local-pending-$now",
+            id = id,
             role = ChatRole.ASSISTANT,
             text = "",
-            createdAtMillis = now,
+            createdAtMillis = System.currentTimeMillis(),
             pending = true,
         )
     }

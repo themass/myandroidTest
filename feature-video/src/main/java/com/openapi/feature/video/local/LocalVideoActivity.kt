@@ -162,7 +162,8 @@ fun LocalVideoScreen(onBack: (() -> Unit)? = null, modifier: Modifier = Modifier
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(stringResource(R.string.localvideo_title), color = AppColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.weight(1f))
+                // A38：静态文案低风险，只补 maxLines 收口（18sp 已在 title 基线内）。
+                Text(stringResource(R.string.localvideo_title), color = AppColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.weight(1f), maxLines = 1)
                 TextButton(onClick = onBack) { Text(stringResource(R.string.localvideo_back), color = AppColors.Primary) }
             }
         }

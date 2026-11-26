@@ -126,12 +126,13 @@ internal fun InputField(
             value = text,
             onValueChange = onTextChange,
             modifier = Modifier.fillMaxWidth().onFocusChanged { onFocusChange(it.isFocused) },
-            textStyle = TextStyle(fontSize = 17.sp, color = Color.Black),
+            // A38：输入框不再比气泡正文大（17→body=16）。
+            textStyle = TextStyle(fontSize = ChatKit.typography.body, color = Color.Black),
             cursorBrush = SolidColor(colors.accent),
             maxLines = 5,
             decorationBox = { inner ->
                 if (text.isEmpty()) {
-                    Text(stringResource(R.string.chatkit_input_hint), fontSize = 17.sp, color = Color(0xFF9CA3AF))
+                    Text(stringResource(R.string.chatkit_input_hint), fontSize = ChatKit.typography.body, color = Color(0xFF9CA3AF))
                 }
                 inner()
             },

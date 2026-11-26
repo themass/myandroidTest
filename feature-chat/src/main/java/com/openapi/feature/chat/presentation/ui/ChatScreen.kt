@@ -92,6 +92,10 @@ fun ChatScreen(
     onRemoveDraft: (String) -> Unit,
     /** A36①：从「N 条排队中」徽标里撤回第 index 条（回到输入框）。 */
     onRemoveQueued: (Int) -> Unit = {},
+    /** A40：「插话」——把第 index 条排队文字立刻提交服务端。 */
+    onPromoteQueued: (Int) -> Unit = {},
+    /** A40：「打断重发」——把第 index 条插到队首并取消当前回合。 */
+    onInterruptQueued: (Int) -> Unit = {},
     /** 长按草稿托盘里的图片再编辑（S3）。不传 = 该页不提供编辑。 */
     onEditDraftImage: (String) -> Unit = {},
     onCancelEdit: () -> Unit = {},
@@ -173,8 +177,9 @@ fun ChatScreen(
             recording = state.recording,
             transcribing = state.transcribing,
             liveTranscript = state.partialText,
-            // followup 队列的可见反馈：输入栏上方「N 条排队中」徽标（可展开撤回）
-            queued = state.queued,
+            // followup 队列的可见反馈：输入栏上方「N 条排队中」徽标（可展开撤回）。
+            // chatkit 只画文字（按 index 回调），QueuedText 的本机 id 留在 feature-chat。
+            queued = state.queued.map { it.text },
         )
     }
     val voiceLevel by com.openapi.speech.audio.VoiceRecorder.level.collectAsState()
@@ -288,6 +293,8 @@ fun ChatScreen(
                 onSend = onSend,
                 onRemoveDraft = onRemoveDraft,
                 onRemoveQueued = onRemoveQueued,
+                onPromoteQueued = onPromoteQueued,
+                onInterruptQueued = onInterruptQueued,
                 onEditDraftImage = onEditDraftImage,
                 onVoiceStart = onVoiceRecordStart,
                 onVoiceStop = onVoiceRecordStop,

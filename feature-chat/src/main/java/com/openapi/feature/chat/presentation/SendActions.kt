@@ -7,6 +7,7 @@ import com.openapi.feature.chat.domain.model.DeliveryStatus
 import com.openapi.feature.chat.domain.model.FileAttachment
 import com.openapi.feature.chat.domain.model.ImageAttachment
 import com.openapi.feature.chat.domain.model.MessageKind
+import com.openapi.feature.chat.domain.model.SteerDisposition
 import com.openapi.feature.chat.domain.repository.ChatRepository
 import com.openapi.speech.audio.AudioPlayer
 import kotlinx.coroutines.CoroutineScope
@@ -109,7 +110,9 @@ internal class SendActions(
         if (ChatTurnGate.of(state.value).textSendPath() == ChatTurnGate.SendPath.Queue) {
             // 生成中不直发：按 Enter 顺序入队（FIFO），回合**自然结束**后由
             // ReplyStreamer 取队首续发；用户点停止会清空队列（见 ReplyStreamer.cancel）。
-            state.update { it.copy(queued = it.queued + text) }
+            // A40：入队即带本机 id——「插话」要把这个 id 当 clientMessageId 提交给服务端，
+            // 气泡与队列条目从此同一个 id，异步回执回来也不会错位。
+            state.update { it.copy(queued = it.queued + QueuedText(id = "q-" + System.nanoTime(), text = text)) }
             return
         }
         val now = System.currentTimeMillis()
@@ -122,6 +125,91 @@ internal class SendActions(
         )
         state.update { it.copy(messages = it.messages + user, editingMessageId = null) }
         streamer.stream(text, userMessageId = user.id, persistUser = true)
+    }
+
+    /**
+     * A40「插话」：把第 [index] 条排队文字**立刻**提交给服务端（不等本轮结束）。
+     *
+     * 服务端按回合阶段裁决（见 ChatRepository.steerQueuedMessage 的契约）：
+     * merged/steered 并进当前回合的事件流（界面什么都不用多做，`turn.restarted`
+     * 会清掉旧半截）；queued/started 由 [ReplyStreamer.noteCaughtTurn] 登记，
+     * 本轮收尾后接住服务端开的新回合。
+     *
+     * 提交失败（网络、服务端拒绝）：这条**放回输入框**并提示——文字绝不丢，
+     * 用户可以改一下再发。气泡同步撤掉（它从未真正发出）。
+     */
+    fun steerQueued(index: Int) {
+        val entry = state.value.queued.getOrNull(index) ?: return
+        // 先原子地摘出队列并插气泡：气泡 id = 队列条目 id = clientMessageId，三合一。
+        state.update { s ->
+            val now = System.currentTimeMillis()
+            s.copy(
+                queued = s.queued.filterNot { it.id == entry.id },
+                messages = s.messages + ChatMessage(
+                    id = entry.id, role = ChatRole.USER, text = entry.text,
+                    createdAtMillis = now, delivery = DeliveryStatus.SENDING,
+                ),
+            )
+        }
+        scope.launch {
+            val snapshot = state.value
+            val sid = repository.currentSessionId()
+            val result = repository.steerQueuedMessage(
+                sid, entry.text, snapshot.selectedCharacterId, snapshot.selectedRole?.id,
+                clientMessageId = entry.id,
+            )
+            if (!result.ok) {
+                // 放回输入框（同「撤回」的行为），撤掉那条永远不会完成的气泡。
+                state.update { s ->
+                    s.copy(
+                        messages = s.messages.filterNot { it.id == entry.id },
+                        input = if (s.input.isBlank()) entry.text else s.input + "\n" + entry.text,
+                        error = strings.steerSendFailed(),
+                    )
+                }
+                return@launch
+            }
+            when (result.disposition) {
+                // 排空/新开回合：本轮事件流收尾后由 ReplyStreamer 接住展示。
+                // started 时回执带新回合 id（精确锁扣）；queued 时带的是当时在跑的回合
+                // （要跳过它，认之后出现的第一条别的回合）。
+                SteerDisposition.QUEUED -> streamer.noteCaughtTurn(sid, skipTurnId = result.turnId, bubbleId = entry.id, userServerId = result.messageId, expectedTurnId = null)
+                SteerDisposition.STARTED -> streamer.noteCaughtTurn(sid, skipTurnId = null, bubbleId = entry.id, userServerId = result.messageId, expectedTurnId = result.turnId)
+                // merged/steered：当前事件流自己会收到 restarted/input 事件，无需额外动作。
+                else -> Unit
+            }
+        }
+    }
+
+    /**
+     * A40「打断重发」：让第 [index] 条排队文字抢在队首，并取消服务端当前回合，
+     * 当前事件流以 `turn.cancelled`→Done 自然收尾后立即按正常路径重发这条。
+     *
+     * 与「停止」的区别：停止清空队列（中断一切）；打断把这条**插到最前**再继续——
+     * 用户要的是「这句更重要，先回我这句」。「停止会清排队」的旧语义保持不变。
+     * 若此刻根本没有回合在跑（竞态：刚好自然结束且队列没续上），直接走正常发送。
+     */
+    fun interruptQueued(index: Int) {
+        val entry = state.value.queued.getOrNull(index) ?: return
+        if (!streamer.isReplyActive()) {
+            // 没有活跃回合：无需取消，摘下队头直接发（等同正常发送）。
+            state.update { s -> s.copy(queued = s.queued.filterNot { it.id == entry.id }) }
+            val now = System.currentTimeMillis()
+            val user = ChatMessage(
+                id = entry.id, role = ChatRole.USER, text = entry.text,
+                createdAtMillis = now, delivery = DeliveryStatus.SENDING,
+            )
+            state.update { s -> s.copy(messages = s.messages + user) }
+            streamer.stream(entry.text, userMessageId = entry.id, persistUser = true)
+            return
+        }
+        state.update { s ->
+            val rest = s.queued.filterNot { it.id == entry.id }
+            s.copy(queued = listOf(entry) + rest)
+        }
+        // 服务端取消 → 当前流收到 turn.cancelled → Done → runTurn 末尾排空队首（就是这条）。
+        // 失败静默（仓库实现内部记日志）：最坏情况是当前回合跑完才轮到这个队首，顺序仍正确。
+        scope.launch { repository.cancelTurn(repository.currentSessionId()) }
     }
 
     fun attachmentPicked(

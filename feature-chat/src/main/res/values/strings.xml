@@ -111,4 +111,6 @@
     <string name="chat_turn_timeout">The reply stopped producing text, please try again</string>
     <!-- 点停止后服务端上一轮仍占着会话，取消并重试一次仍然 409 -->
     <string name="chat_previous_turn_running">The previous reply is still running, please try again in a moment</string>
+    <!-- A40「插话」提交失败：文字已放回输入框，没丢 -->
+    <string name="chat_steer_send_failed">Couldn\'t send it now, the text is back in the input box</string>
 </resources>

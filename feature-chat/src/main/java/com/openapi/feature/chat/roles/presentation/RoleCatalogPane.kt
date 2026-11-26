@@ -119,7 +119,8 @@ fun RoleCatalogPane(
                 FilterChip(
                     selected = (state.filter as? RoleFilter.Division)?.id == division.id,
                     onClick = { viewModel.onFilterChange(RoleFilter.Division(division.id)) },
-                    label = { Text("${division.label} ${division.count}") },
+                    // A38：动态 label（门类名+计数）限一行，chip 不再被换行撑高。
+                    label = { Text("${division.label} ${division.count}", maxLines = 1) },
                 )
             }
         }

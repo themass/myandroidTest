@@ -28,10 +28,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.openapi.common.ui.theme.AppColors
+import com.openapi.common.ui.theme.AppTypography
 import com.openapi.feature.user.home.ProfileDependencies
 import com.openapi.feature.user.home.domain.ProfileAction
 import com.openapi.feature.user.home.domain.ProfileEntry
@@ -139,7 +141,15 @@ internal fun ProfileCard(info: ProfileInfo, onLoginClick: () -> Unit, onAvatarCl
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(info.name, color = AppColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                // A38：昵称 17→16（sectionTitle）；长昵称限一行截断，不再挤压等级徽标。
+                Text(
+                    info.name,
+                    color = AppColors.TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = AppTypography.sectionTitle,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 if (info.levelRes != 0) {
                     Spacer(Modifier.width(6.dp))
                     Image(painterResource(info.levelRes), contentDescription = null)

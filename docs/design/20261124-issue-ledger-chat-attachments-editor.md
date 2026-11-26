@@ -334,6 +334,81 @@
 - **测试**：`AttachmentTurnWatchdogTest` 3 项（XML 3/0）+ `AgentReconnectorWatchdogTest` 4 项（XML 4/0：看门狗退避、空闲不掐线、OFFLINE 收尾半截、OFFLINE 无回合不误报）；并线前复跑 legacy agent 全套 5 个类 37 项 + feature-chat remote 全套 12 个类 61 项，XML 实钉 0 失败。
 - **残留（不算本条已解决）**：①服务端 turn 键无 TTL/无孤儿回收（runner 崩在 pre_output 就把会话 409 锁死）——agent-docs 集成线跟进；②主线看门狗在「app 被 ROM 冻结」场景的 45s 感知窗口——若用户嫌久可降到 30s（两个心跳周期），待装机复验后再定；③metrics `agent_turns_created` 时间戳早于当日回合（serve/worker 双进程双 registry 嫌疑），未追。
 
+## A40 · 排队消息要能「立刻发出」和「打断重发」（用户 20261125，拍板「两者都给」）
+
+- **现象/诉求**：A36 的排队（FIFO 等本轮结束续发）不够——生成中用户想到更重要的话时，要能①不排队、现在就让它进这一轮或被服务端排到下一轮（**插话**），②取消当前回合、这条抢队首重发（**打断重发**）。
+- **服务端契约（20261126 读 `_SUBMIT_LUA` 核实，非猜测）**：mid-turn submit 不会 409，按回合阶段裁决四选一——`merged`（pre_output 且重跑预算内：原地重跑，发 `turn.restarted`，之后 delta/fullText 只含新一轮）、`steered`（output 阶段且有预算：注入正在跑的回合，当前流静默吸收）、`queued`（进服务端队列，当前回合结束后排空成**一个新回合**；回执 turn_id 带的是**当时在跑**的那条，要跳过它）、`started`（锁空闲：直接开新回合，回执带它的 id=精确锁扣）。`DRAIN_BATCH_SIZE=10`。
+- **实现（20261126，本会话）**：
+  - 数据/协议层：`TurnEventCollector` 新增 `turn.restarted` → `ChatStreamEvent.Restarted`（上层作废已显示半截，防「回复重复一遍」）；`collect(skipTurnId=)` 咽掉订阅时仍在跑的老回合帧，锁扣落在之后出现的第一条别的回合。
+  - 仓库层：`ChatRepository.steerQueuedMessage(..., clientMessageId)`（AgentBackedChatRepository 走 `remote.submit`，disposition 四值映射 `SteerDisposition`；回执缺 disposition=老服务端/重复 ⇒ 按失败处理，绝不静默吞输入；用户行本地落 SENT）；`takeCaughtTurn(...)` 新订阅接住排空回合（未来帧+snapshot ⇒ 一个字不丢）。legacy `ChatRepositoryImpl` 给失败桩（旧后端没有服务端队列）。
+  - presentation：`ChatUiState.queued` 从 `List<String>` 改 `List<QueuedText(id,text)>`——**队列条目 id = 用户气泡 id = clientMessageId** 三合一（服务端 `find_by_client_id` 去重；Done 带回正式 id 原位换气泡 id）。`SendActions.steerQueued`（摘队列→气泡立即上屏→提交；失败文字回输入框+撤气泡+提示 `chat_steer_send_failed`，任何路径不丢字）、`interruptQueued`（插队首+`cancelTurn`；无活跃回合的竞态直接发）；`ReplyStreamer.noteCaughtTurn` 登记待接回合，`runTurn` 末尾「先接服务端排空、再排空本机队列」；`ChatStreamEvent.Restarted` 在 `runTurn` 里清 buffer+气泡。
+  - chatkit：`QueuedBadge` 每条三按钮「立刻发出 / 打断重发 / 撤回」（testTag `queued-promote-i` / `queued-interrupt-i` / `queued-withdraw-i`），列表 `heightIn(max=200dp)`；对外仍 `List<String>`，陪伴页等调用方不变。
+- **顺带修的隐藏 bug**：`newPlaceholder()` 只用毫秒时间戳——排空续发/A40 接住回合都在上一轮收尾的同一毫秒起新轮，两条占位气泡撞 key，`updateByKey(indexOfLast)` 会写进上一条已完成气泡、末尾 map 两条一起改，上一轮文字被覆盖。加单调序号。接住回合的占位气泡此前没先插入消息表（runTurn 只往 placeholder.key 写字 → 排空回复一个字都看不见），测试当场抓到并修复。
+- **测试**：`TurnEventCollectorTest` +2（restart 清 acc 只留重跑后文字；skipTurnId 锁扣落在第一条不同回合、跳过回合不 persist）；`SteerAndInterruptTest` 6 项（插话摘队列+气泡+clientMessageId 提交、失败回输入框不丢字、queued 裁决当前流收尾后接住排空回复+正式 id 原位换气泡、打断插队首+cancelTurn、无活跃回合直接发、越界忽略）；排空续发气泡 id=条目 id 钉入。
+- **状态**：**已修合线（20261126）+ versionCode 74 装机**——真机复验点：生成中排队后点「立刻发出」（看服务端裁决后界面：并进当前回复 / 排到下一轮自动出回复 / 失败文字回输入框）；点「打断重发」（当前回复应被打断、这条最先回）；「撤回」语义不变。
+
+---
+
+## A41 · 频道/专题八项 + 本地视频六项（用户 20261126 批量点名）
+
+取证完成（20261126，只读 agent ×2）；**修复 worker 已派**（频道线独立会话），本地视频在本会话修。逐项根因与方案：
+
+**频道/专题（放映场族 `feature-video/.../screening/`）**
+1. **所有子页「上滑加载更多」失效**——系统性算术错：触底判定拿 **LazyColumn item 下标** 比 **pager 数据条数**（`ScreeningActivity.kt:566/785`、`ScreeningGallery.kt:172/237` 等 8 处）。凡「整网格一个 item」或「chunked 成行」的页，item 数 ≪ 数据条数 ⇒ 条件永不成立，`loadMore()` 一次不发。单列页（文字/声音 hub）触发正常——与用户「全是失效」的观感吻合（坏的全是网格页）。**方案**：触底判定收成一个纯函数（`canScrollForward==false && hasMore && !loading`），8 个调用点统一；加「append 后条数没涨就不再发」防空转。
+2. **搜索没效果/体验差**——链路大半已在 `f74e9003` 修好（四列表页可搜、翻页带词）。残余真 bug：图集图片走尾续（`tailItemUrl`）后新搜索静默丢 keyword（`ScreeningGallery.kt:83-86`）；搜索中旧列表挂着无反馈；0 结果文案是列表口径（「这个频道还没上片单」）读起来像坏了；keyword 不过编码器。**方案**：空态文案按 keyword 分支「没有找到「X」」；提交后回顶；search 清 `tailItemUrl`；拼 URL 前过 `HttpUtils.encoderParam`。
+3. **封面经常出不来**——Glide 的全局 OkHttp（`AppGlideConfig`/`GlideHttpClient`）**无 UA/Referer/超时**，而服务端是 UA-keyed（`BaseRequest` 用 UA 尾 16 位当 authkey）⇒ CDN 间歇 403；失败 latch 到静态 img_bg 无重试。**方案**：Glide OkHttp 补与 BaseRequest 同款 UA/Referer + 超时/重试；占位换现成扫光 `ShimmerPlaceholder`（加载中盖扫光、失败落静态底），收口点 `ImagePlaceholderRes` 一处全站受益。需真机 logcat 坐实 403。
+4. **声音馆最底层音乐列表无数据（A31 后仍无）**——数据链全对（接口/参数/身份映射与旧页一致，台账 A31 探针实测回 30 条 mp3），断在 `ScreeningSound.kt:100-102` 的失效 `remember(tracksPager.items)`：items 是同一个 `mutableStateListOf` 实例被原地 clear+addAll，remember 按 equals 恒等 ⇒ 首帧空结果被永久缓存。**一行删除**（直接派生或 derivedStateOf）。修后曲目页分页可见性也复活。
+5. **文章页图片不见了+多操作崩溃**——三层嫌疑都有证据：①`1312b454` 把正文 WebView JS 关了，旧页开着 JS，Discuz 帖 `data-src`+JS 懒加载直接全灭（最强回归点）；②`loadDataWithBaseURL(null,…)` 相对 src 无 base；③正文 http 图被全局 cleartext 拦。崩溃：AnimatedContent 转场里新旧 WebView 同存，大图叠加近 OOM。**方案**：logcat 三选一定案；恢复正文页 JS（禁 fileAccess）、base URL 给站点根、`data-src` 提升为 src；转场进 reader 前先释放上一 WebView。
+6. **img 协议图片集合全套交互没有**——不是缺 UI（滑动/缩放/下载/编辑五件套都在 chatkit），是**协议 kind 没接住**：全仓只认字面量 `"image"`，`"img"` 在 `AgentVoMappers.kt:21-23` 被静默丢成 TEXT。**方案**：解析边界归一化 `kind in ("image","img")`（`AgentChatRemote.kt:420`、`AgentVoMappers`、伴侣侧 `CompanionModels.kt:83` 同步），下游零改动；需先抓一条真实报文确认 wire spelling。
+7. **音乐/电影/图片页加分享**——ShareKit 在 `:common` 现成可用（feature-video 已依赖，零 gradle 工作）；三处播放页均无分享入口（旧时代的「分享」只是复制链接，放映场丢了）。**方案**：播放器顶栏/声音馆底栏/图集 lightbox 各加 Share 按钮 → `ShareKit.shareText(url)`（图片可 shareBitmap），身份取 `actionUrl`/`fileUrl`/`lightboxImageUrl`。
+8. **倍速弹窗丑**——现两跳（pill→面板 8 个整宽按钮）。**方案**：pill 单击按档位循环（1→1.25→1.5→2→3→0.75→1），长按才开面板精确选；`speed`/`host.setSpeed` 是唯一接缝，面板保留。
+
+**本地视频（debug 构建进的是原型页 `NewVideoShowActivity`；release 走旧页——本次修原型页，切旧页需用户单独拍板）**
+1. **全屏返回直接退出页**——targetSdk 37 + predictive back 下 ComponentActivity dispatcher 绕过 `onBackPressed` override（:471）；顶栏返回（:146）同样绕过。**方案**：onCreate 注册 `OnBackPressedCallback`，顶栏与系统返回共用 `handleBack()`（锁定→退横向→退出）。
+2. **底部控件布局丑**——`PlayerControlsLayer.kt:372-458` 四行文字 chip → 收两行 + Material 图标，保持薄荷/暗色方向。
+3. **「更多」只有 toast**——onMore（:184）、弹幕按钮、`setupCast()`（:367）全是占位。**方案**：接现成真件（PlayerMoreMenu 面板参照、EngineFallback、shareVideo、PiP 已 true）。
+4. **播完无法二次播放**——GSY `onAutoCompletion` 移除纹理视图+置状态 6，页面只调 `onVideoResume`（只处理 PAUSE=5）⇒ 再点没反应。**方案**：注册 `VideoAllCallBack`（或轮询 state==6），播完再播走 `setUp+startPlayLogic`。
+5. **倍速弹窗丑**——同频道 #8：chip 单击循环；档位表三处漂移（:534 缺 0.75/2.5/3）→ 与放映场 {0.5,0.75,1,1.25,1.5,2,2.5,3} 统一成一个共享常量。
+6. **本地视频不该有弹幕**——chip 无条件显示；`VideoUtil.isLocalPlayUrl` 在 :128 算了却没存。**方案**：`PlayerControlsState` 加 `local: Boolean`，弹幕 chip 按它显示、handler no-op。
+
+**状态**：取证完成；频道线 worker 会话已派（A41-频道）；本地视频 6 项本会话修，改完并线；#3/#5/#6 需真机取证点已写进各条。
+
+---
+
+## A42 · 拍照解题六项（用户 20261126 批量点名）
+
+取证完成（20261126，只读 agent）；**修复 worker 已派**（拍照解题线独立会话）。逐项根因与方案：
+
+1. **字体还是太大**——三层事实源没收口：①主题层 `AppMaterialTheme.kt:40-44` 只 pin 三档；②阅读主体 `PhotoResultScreen.kt:184/213/235/304` 绕过 typography 硬编码 17/15/18/14sp（题目 17、答案 18 高于正文基线 15）；③公式经 `MathText.kt`（TextView+Markwon 第二套排版）再 ×1.15，页面调 sp 时公式端不受控。另有装机滞后（A38 随 versionCode 73 才上机）。**方案**：token 收口（question/step/thinking/answer 各一档，token 处定义），四个硬编码点 + MathText 默认值全改引 token，latex 系数降到 1.0–1.1；单测/lint 钉住「页面级不得出现字面量 sp」（照 AppMaterialTypographyTest）。
+2. **识别题目边框十分不准**——框完全是端上产出：64×64 热力图取 **argmax 单格**（`CornerHeatmapDecoder.kt:55-64`，3000px 照片上每角 ±20-50px 量化误差）；`MIN_CORNER_CONFIDENCE=0.5` 常态判负（翻拍屏/低对比度四角 0-2 个过线）；判负后 defaultQuad=画面中间 80% 固定框——用户看到的框经常根本不是检测的；DocQuadNet 只在真实纸面训练过，分布外。**方案**：a) 峰值改加权质心（soft-argmax）消半格量化误差；b) 手动校准已是完整能力（QuadAdjustScreen 四角+四边拖拽、重检、旋转），作为兜底入口保证可达；c) 服务端契约无 box 字段——后续可让视觉模型回 bbox（另线）。
+3. **每次拍照都提示不清晰**——清晰度闸在 512 长边算拉普拉斯方差（`QuestionImagePreparer.kt:85-88`），下采样本身低通，锐利图方差也掉到 `BLUR_VARIANCE=60` 以下 ⇒ 几乎必触发；上传前两轮的降质又让服务端 40001 更易触发（同一个弹窗二次出现）。**方案**：分析尺度提到 ≥1024 或方差按缩放比归一；阈值放宽与 40001 同口径（端上判过就不再弹）。真机 `PhotoSolveViewModel` 每次打的 `sharp=` 日志可直接定阈值。
+4. **解题思考没有流式**——**整条链路没有流式**：`AgentPhotoSolveRemote.kt:30-59` 单次 POST 等全量 JSON（180s），Recognizing 期间只有假状态轮播，结果一次性上屏；服务端契约也是同步全量。**方案（两段）**：服务端 `/v1/photosolve/solve` 加 SSE（thinking/steps/answer 增量，复用 chat 帧格式——服务端改动，部署另行安排）；客户端「首帧到达即进 Result」按 step 粒度提交（MathText 对半截 LaTeX 会画红字，**不能**在公式中间切）。
+5. **历史详情底部按钮丑/大**——四个边框按钮一排 + 全宽「返回」与顶栏重复（`PhotoResultScreen.kt:353-413`、`SolveHistoryDetailScreen.kt:191-193`）。**方案**：底栏只留主操作，收藏/重命名/删除进顶栏「⋯」菜单（列表页 HistoryRow 有同款可复用）；或底栏改无边框 TextButton 排。
+6. **详情删除后列表行还在只是不能点**——删除走 `SolveDetailViewModel`，回调只 `{ detailId = null }`，**没有任何东西触发列表 refresh**；列表 StateFlow 还是旧 records，再点 → `store.get` null → notFound 空占位 = 「不能点」观感。同型：结果页 saveToHistory 后列表也不刷。**方案**：`SolveHistoryStore` 加变更事件（delete/save/rename 后发一帧），`SolveHistoryViewModel` init collect 即 refresh；最小版本先 `onDeleted = { detailId=null; historyViewModel.refresh() }`。
+
+**状态**：取证完成；worker 会话已派（A42）；#4 的服务端 SSE 与 #2c 的 bbox 属服务端线，客户端先做首帧即进+兜底。
+
+---
+
+## A43 · chat 对话交互十二项（用户 20261126 批量点名，#1 要求「设计一下」）
+
+设计合同：`docs/design/20261126-chat-send-model-no-queue-design.md`（#1 发送模型：本地队列加开关，服务端裁决 merged/queued 分工，含豆包/ChatGPT 搜证与「真人」推演）。取证完成（只读 agent，基线=HEAD `0e9662e7`=装机版 versionCode 73，A40 未提交改动会让 ReplyStreamer/SendActions/ChatScreen/ChatComposer 行号漂移）。**worker 已派**：a43-sendmode（客户端）、a43-server-queue（服务端裁决+取消空行+赞踩持久化）。
+
+1. **不要「发送队列」，消息立刻发送**——设计见上。要点：D1（用户拍板）本地队列**不退役、加开关**（IMMEDIATE 默认 / QUEUE 保留 A36+A40 徽标）；D2 服务端 output 阶段默认 **queued 不 steer**（pre_output 预算内 merged 不变）；D3「统一回复」不需客户端拼消息（merged 重跑天然含全部 pending 用户消息）。落点 `SendActions.sendText` 分流 + `service/turn/queue.py` 一处。
+2. **取消后残留「只有头像、正文为空」的 AI 气泡**——根因在服务端：`turn_runner.py:464-472` 取消时 `if full or interrupted:` 对 `full==""` 也 append，持久化 `content=""` 的 assistant 行（interrupted=True）；客户端停止后兜底拉历史把它带回 → `ChatItemMapper.kt:89-94` 零 part + thinking=false → `ChatMessageItem.kt:316-331` 内容列什么都不画，头像槽（:176-187）照画。本地即时路径（`finishStopped`）本身是对的。**修法**：服务端取消且 full 空则不 append（与非取消空回复同口径，需确认无路径依赖空行做 turn 对账）；客户端两层兜底——HistoryMerge/ChatItemMapper 丢弃「assistant+空 text+零附件 part」行（放行语音 pending 行）、ChatMessageItem 零 part 非 thinking 整行不渲染。
+3. **取消反应慢，要立刻显示取消成功**——现状是等本地+服务端两端收尾。**修法（D4）**：`ReplyStreamer.cancel` 乐观化——本地收尾先执行，`cancelTurn` 后台发、失败静默。
+4. **图集消息太丑，图片距右边框不要 padding**——padding 链三处：①`MessageParts.kt:164` 合并气泡内容 Box `padding(horizontal=12dp)`（`ChatKitTheme.kt:52-53`）把图集整体内缩（要的是附件段出血）；②`ChatMessageItem.kt:346` merged 内容 Column 没设 `horizontalAlignment`（默认 Start→218dp 收纳盒钉左、右侧空白带）；③`MediaComponents.kt:122-123,147-149` 固定宽 218dp + offset 摆放的 28dp 错位带（台账 cleanup 项 11，属视觉决策）。**先修①②**，③留真机定。风险：圆角衔接（气泡 14/12 vs 卡片 12）、陪伴页共用 TextBubble 必须逐像素不变。
+5. **旧图集消息滑动切图没反应**——决定性根因：`MediaComponents.kt:130/132` 的 `front/dragX` 是 `remember(items)`，手势协程按 `pointerInput(count)` 挂（:154）。items 每次重组由 `MessageParts.kt:333-342` 新建，任一卡 failed/retrying 翻转或签名 URL 变化（历史图 300s 过期→403→Coil onError→items 变→自我持续 churn）就让手势读写**旧对象**，滑动永久失灵；滚出再滚回会「复活」。本地新发图走本机路径无失败故正常——与「旧的滑不动」精确吻合。次因：items 变化把 front 弹回 0 静默回卷；历史图集 uploadId 缺失塌缩成 1 张时压根不挂手势（:151）。已排除 combinedClickable/LazyColumn/Drawer 抢手势。**修法**：状态键改 `remember(count)`（或稳定来源 id）、items 内容变化不重置 front；失败状态走独立槽位不改 items 身份；进失败态前主动重签（复用 `ImageRetryActions.kt:41-52`）。回归面大（:mediaview 陪伴页/视频卡片共用）。
+6. **位置消息 item 还是 2 条不是一个整体**——服务端只存一条（`chat.py:216-221` 无配文合成 `[位置] lat,lng (±acc)`），断在客户端：`attachmentTextLayout`（`MessageParts.kt:115-116`）的 `hasAttachments` 只数 images/files/videos，**location 不在合并判定里** → 带配文走 Separate（位置气泡 `ChatMessageItem.kt:406-415` + 文字 :426-437）。**修法**：location 并入 Merged 判定，LocationBubble 移进合并气泡顶部附件位（自带整气泡 :574-629，需出卡皮肤防双层底色），独立位置循环只在无文字时走；判定表加单测。
+7. **发了位置问「有什么好吃的」乱回答**——我们没有接高德/百度（无 POI API、无 MCP），模型只能编。**设计待定**（另写文档）：agent 服务端加 `poi_search` 工具（高德 Web API，key 走服务端 env，无 key 时明确说「未接入地图服务」而非编造），入参用消息带的 lat/lng/accuracy。
+8. **footer 只挂最后一条 + AI 长按菜单加喜欢/不喜欢**——现状 footer 是**每条**已完成助手消息都挂（`ChatMessageItem.kt:195-201`），`latestAssistantId` 只用于菜单；chatkit **无任何时间显示**。**修法**：`ChatMessageList.kt:345` 传 `footerActions = if (item.id == latestAssistantId) … else emptyList()`；长按菜单加赞踩（`ChatMenuTargets.kt:57-64` 助手分支；资源 `chatkit_like/chatkit_dislike` 现成，`ChatRoute.kt:293-311` 已接）。**赞踩持久化服务端缺**：全仓无 feedback 端点/列（`db/schema.py:108-130` 已 grep 确认），现 `FeedbackActions` 纯内存刷新即丢 → 服务端加 `chat_message.feedback` 列 + `PUT …/messages/{id}/feedback`（a43-server-queue 做；生产库基线停在 0001_baseline，需手动 ALTER 才生效）。注意 footer 只留最后一条会让历史回复失去复制/删除入口（长按仍在）——按用户要求做。
+9. **点停止生成不要底部弹窗提示**——不是 Snackbar，是 `ChatErrorBar`（HEAD `ChatScreen.kt:278-280`），写入点 HEAD `ReplyStreamer.kt:162-168` 的 `stoppedNoReply()`（键 `chat_stopped_no_reply`）。**只去掉主动停止这一条**；`turnTimeout`/`previousTurnRunning` 必须保留。去掉后靠 FAILED 重试图标承载「被自己停掉、可重试」；`ReplyStreamerStreamTest` 断言同步改。
+10. **重新生成不要新增用户消息**——取证纠正假设：`ResendActions.regenerate` 三分支都不插气泡（persistUser=false），服务端 rerun 也无 user append（`submit.py:137-143`）。用户看到的「新用户消息」是 HEAD `ReplyStreamer.kt:221-234` **本地队列排空**自动插的 `local-user-*` 气泡（A36 语义），时序与 regenerate 撞在一起。**修法**=发送模式开关（IMMEDIATE 后基本不再产生）+ 给排空气泡加「（排队发送）」标记，**不动 regenerate**。
+11. **取消的 AI 消息不要空气泡（只有头像）**——同 #2，同一根因链。
+12. **语音输入跳动不明显，参考豆包蓝色椭圆背景**——观感项：现有三 style（Ripple/Floating/Bar），增强 Ripple 的振幅响应（增益区间太小）、背景椭圆加低频呼吸+跟随包络、去机械周期；振幅→位移/缩放曲线先写纯函数单测。改完必须真机复验。
+
+**状态**：取证完成；#1 设计已定并经用户拍板（保留队列+开关）；客户端 worker（a43-sendmode）+ 服务端 worker（a43-server-queue）已开工；#7 位置问答需另写设计后再动工；#4③ 与 #12 留真机定案。
+
 ---
 
 ## 架构抽象点汇总（共性问题一次解决）
@@ -360,6 +435,7 @@
 | 18 | 空数据仍渲染空壳占位（A21） | 区块渲染守卫 = `数据非空 || loading`，空态不占版面 | `ChannelsFeed` hero/逛频道 |
 | 19 | 共享列表规则按单一协议的字段假设行事（A31，与 A12 上限混淆同族） | 每协议族自带身份映射（`*HubEntry`/`*ListKey`），通用过滤器只兜底不裁决 | `soundHubEntry` / `imageListKey` / `textListKey` |
 | 20 | 看门狗只装在一条路径上，别的等待远端事件的流照样永挂（A39，与 #1 同病灶） | 回合等待不手搓 collect——统一走 `TurnEventCollector`；协议层自带回合状态时看门狗按其武装（空闲不掐线）；连接判死必须同时收尾界面 `active` | legacy `AgentEventReconnector` / `AttachmentApi.awaitTurnText` / `AgentChatState.onStreamOffline` |
+| 21 | 「现在就要这条进服务端」的三条路各自假想服务端行为（A40） | 客户端对回合的干预统一走服务端单一裁决点（submit 的 merged/steered/queued/started 四值 disposition），客户端只按裁决登记锁扣（skip/expected turn id），不自造并发回合；「一条输入」的身份从队列条目起就是 clientMessageId，气泡/去重/回执换 id 全程同一个键 | `steerQueuedMessage` / `noteCaughtTurn` / `QueuedText.id` |
 
 ## 未闭环项（明确列出，不当作已解决）
 

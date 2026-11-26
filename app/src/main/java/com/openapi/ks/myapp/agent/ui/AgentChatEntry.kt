@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.openapi.ks.myapp.agent.AgentApi
@@ -118,7 +119,8 @@ fun AgentChatEntry(
                 IconButton(onClick = { sessionId = null; roleId = null }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回角色列表")
                 }
-                Text(role.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                // A38：服务端角色名不定长，限一行截断，不再换行顶掉「新对话」。
+                Text(role.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 TextButton(onClick = { sessions.forget(role.id); sessionId = null; open(role, fresh = true) }) {
                     Text("新对话")
                 }

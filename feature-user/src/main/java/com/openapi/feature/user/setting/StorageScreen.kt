@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.res.stringResource
 import com.openapi.common.ui.theme.AppSpacing
+import com.openapi.common.ui.theme.AppTypography
 import com.openapi.feature.user.R
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -105,7 +106,8 @@ fun StorageScreen(
                 Column(Modifier.weight(1f)) {
                     Text(
                         stringResource(R.string.storage_total, StorageCatalog.formatSize(state.totalBytes)),
-                        fontSize = 17.sp,
+                        // A38：卡片主行收进 16（sectionTitle），17sp 超层级基线。
+                        fontSize = AppTypography.sectionTitle,
                         fontWeight = FontWeight.Medium,
                         color = AppColors.TextPrimary,
                     )

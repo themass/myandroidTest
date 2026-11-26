@@ -109,6 +109,20 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
     private fun legacyStreamingDisabled(): Flow<ChatStreamEvent> =
         flowOf(ChatStreamEvent.Error(LEGACY_STREAM_DISABLED))
 
+    /**
+     * A40：旧后端没有服务端队列/裁决（`/v1` 独有），插话不可用——返回失败，
+     * 调用方把文字放回输入框。接口默认值不适用：默认实现要引用 domain 的 SteerResult，
+     * 这里显式写死保持旧链路行为一目了然。
+     */
+    override suspend fun steerQueuedMessage(
+        sessionId: Long,
+        userText: String,
+        characterId: Int?,
+        roleId: String?,
+        clientMessageId: String,
+    ): com.openapi.feature.chat.domain.model.SteerResult =
+        com.openapi.feature.chat.domain.model.SteerResult(false)
+
     override suspend fun editMessage(sessionId: Long, messageId: String, text: String): Boolean {
         val id = messageId.toLongOrNull() ?: return false
         if (sessionId <= 0) return false

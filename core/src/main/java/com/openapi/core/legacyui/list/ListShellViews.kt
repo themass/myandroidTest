@@ -43,6 +43,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.openapi.common.util.log.LogUtil
+import com.openapi.common.ui.theme.AppTypography
 import com.openapi.common.ui.widget.DividerItemDecoration
 import com.openapi.core.R
 import com.openapi.common.R as UikitR
@@ -153,7 +154,8 @@ internal fun RetryPlaceholder(textRes: Int, onClick: () -> Unit) {
             Text(
                 text = stringResource(textRes),
                 color = Color(0xFFA8B0BE),
-                fontSize = 18.sp,
+                // A38：空态是提示正文不是标题，18→15（body）。
+                fontSize = AppTypography.body,
                 textAlign = TextAlign.Center,
             )
         }
