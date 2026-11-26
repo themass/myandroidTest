@@ -10,6 +10,7 @@ import android.os.Looper
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.mutableStateOf
@@ -100,6 +101,7 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
         setupPlayer()
         setupControls()
         setupCast()
+        installBackCallback()
         applyOrientation(resources.configuration)
         player.startPlayLogic()
         schedulePauseIfWasPaused(playbackSavedState)
@@ -143,7 +145,7 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
     }
 
     private val actions = PlayerControlsActions(
-        onBack = { onBackPressedDispatcher.onBackPressed() },
+        onBack = { handleBack() },
         onTogglePlay = {
             if (player.currentState == GSYVideoView.CURRENT_STATE_PLAYING) {
                 player.onVideoPause()
@@ -468,19 +470,27 @@ class NewVideoShowActivity : AppCompatActivity(), MyFavoriteViewCallbacks {
         runCatching { GSYVideoManager.onPause() }.onFailure(LogUtil::e)
     }
 
-    @Deprecated("旧页面同样用 onBackPressed，保持行为一致")
-    override fun onBackPressed() {
-        if (locked) {
-            locked = false
-            publishState()
-            return
+    /**
+     * targetSdk 37 + androidx.activity 1.11 起系统只走 OnBackPressedDispatcher，
+     * `onBackPressed()` 的 override 会被完全绕过（predictive back）。返回逻辑抽到
+     * [handleBack]，由这里常驻的回调和顶栏返回按钮共用，顺序由 [BackPolicy] 钉死。
+     */
+    private fun installBackCallback() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() = handleBack()
+        })
+    }
+
+    private fun handleBack() {
+        when (BackPolicy.decide(locked = locked, fullscreen = isLandscape())) {
+            BackIntent.Unlock -> {
+                locked = false
+                publishState()
+            }
+            BackIntent.ExitFullscreen ->
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            BackIntent.ClosePage -> finish()
         }
-        if (isLandscape()) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-            return
-        }
-        @Suppress("DEPRECATION")
-        super.onBackPressed()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
