@@ -140,7 +140,14 @@ fun bubbleShape(sender: Sender): Shape {
  */
 val LocalMessageImageEditHandler = staticCompositionLocalOf<((String) -> Unit)?> { null }
 
-/** 文字气泡：用户蓝底白字，助手浅灰底深灰字。具体文字由 [content] 渲染（助手可用 Markdown）。 */
+/**
+ * 文字气泡：用户蓝底白字，助手浅灰底深灰字。具体文字由 [content] 渲染（助手可用 Markdown）。
+ *
+ * [attachmentsBleed]（A43-4）：合并气泡里图片块右缘空白过深的修法之一——true 时内层盒只留
+ * **纵向**内边距，横向不再压 12dp，附件段贴到气泡内边（出血）；文字与 footer 由调用方/这里
+ * 自己补回 [ChatKitDimens.bubblePaddingHorizontal]。默认 false：**逐像素不变**
+ * （陪伴页这类不传图集的调用方走的就是默认分支）。
+ */
 @Composable
 fun TextBubble(
     sender: Sender,
@@ -153,6 +160,8 @@ fun TextBubble(
      * 挂在气泡自身节点上，读屏在局部菜单里直接执行，不需要「长按」这个摸不到的手势。
      */
     screenReaderActions: List<CustomAccessibilityAction> = emptyList(),
+    /** true = 内容横向出血（仅合并气泡带图片时用；见上方注释）。false 时布局与从前逐像素一致。 */
+    attachmentsBleed: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colors = ChatKit.colors
@@ -169,13 +178,27 @@ fun TextBubble(
                 else Modifier.semantics { customActions = screenReaderActions }
             ),
     ) {
-        Box(Modifier.padding(horizontal = dimens.bubblePaddingHorizontal, vertical = dimens.bubblePaddingVertical)) {
-            if (footer == null) {
-                content()
-            } else {
-                Column {
+        if (attachmentsBleed) {
+            // 附件段贴气泡内边；文字/分隔线等由调用方补横向 padding；footer 在这里补回。
+            Box(Modifier.padding(vertical = dimens.bubblePaddingVertical)) {
+                if (footer == null) {
                     content()
-                    footer()
+                } else {
+                    Column {
+                        content()
+                        Box(Modifier.padding(horizontal = dimens.bubblePaddingHorizontal)) { footer() }
+                    }
+                }
+            }
+        } else {
+            Box(Modifier.padding(horizontal = dimens.bubblePaddingHorizontal, vertical = dimens.bubblePaddingVertical)) {
+                if (footer == null) {
+                    content()
+                } else {
+                    Column {
+                        content()
+                        footer()
+                    }
                 }
             }
         }
