@@ -417,7 +417,10 @@ internal fun JSONObject.toAgentMessageVo(): AgentMessageVo = AgentMessageVo(
         a.optString("upload_id").takeIf { it.isNotEmpty() }?.let {
             AgentAttachmentVo(
                 uploadId = it,
-                kind = a.optString("kind", "image"),
+                // A40（用户 2026-11-26「图集消息不显示」）：服务端图片附件两种写法都有
+                // （"image" 与 "img"）。在解析边界归一成 "image"，下游只认一种；
+                // 陪伴页 CompanionHistoryItem.from 认同一条，别一边有一边没有。
+                kind = a.optString("kind", "image").let { k -> if (k == "img") "image" else k },
                 name = a.optString("name", ""),
                 durationSeconds = a.optJSONObject("meta")?.let { m ->
                     m.optInt("duration_s", -1).takeIf { d -> d in 1..86_400 }

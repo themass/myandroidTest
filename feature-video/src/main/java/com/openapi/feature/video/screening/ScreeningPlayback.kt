@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -86,7 +87,39 @@ internal data class ScreeningSource(
     val description: String,
     val uri: Uri? = null,
     val key: String = uri.toString(),
+    /**
+     * 分享用的身份地址（服务端 actionUrl）。分享绝不能拿 [uri]：懒播放地址每次
+     * 现取、带时效签名，发给别人等于发一张过期链接（A40 用户 2026-11-26）。
+     */
+    val shareUrl: String? = null,
 )
+
+/**
+ * 电影那条分享发什么：身份地址优先，没有才退回当前 uri（本机文件等）。
+ * 两个都没有返回空串——入口据此不显示分享按钮，别发一条空文本。
+ * 判定只认字符串：`Uri` 在 JVM 单测里是 stub（`Uri.parse` 直接返回 null），
+ * 拆成字符串入参这条决策才有地方钉。
+ */
+internal fun screeningShareUrl(shareUrl: String?, uriText: String?): String =
+    shareUrl?.takeIf { it.isNotBlank() }
+        ?: uriText?.takeIf { it.isNotBlank() }
+        ?: ""
+
+internal fun screeningShareUrl(source: ScreeningSource): String =
+    screeningShareUrl(source.shareUrl, source.uri?.toString())
+
+/**
+ * 倍速单击循环的档位表（A40 用户 2026-11-26：「倍速要一下一下点，不用每次钻进面板」）：
+ * 1→1.25→1.5→2→3→0.75→1。只这一份，胶囊与测试共用；面板里的 .5×/2.5× 不在循环里
+ * （那两档是用户点名的面板专用位，单击落在它们上时回落到 1×——语义最可预测）。
+ */
+internal val SPEED_CYCLE = listOf(1f, 1.25f, 1.5f, 2f, 3f, 0.75f)
+
+/** 沿 [SPEED_CYCLE] 走一格（回绕）；表外档位回落到 1×。 */
+internal fun nextSpeedGear(current: Float): Float {
+    val i = SPEED_CYCLE.indexOfFirst { kotlin.math.abs(it - current) < 0.001f }
+    return if (i < 0) 1f else SPEED_CYCLE[(i + 1) % SPEED_CYCLE.size]
+}
 
 internal fun documentName(context: Context, uri: Uri): String = runCatching {
     context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
@@ -425,14 +458,25 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
                     "更多" to Icons.Default.MoreHoriz,
                 ).forEachIndexed { index, (name, picture) ->
                     Column(
-                        Modifier.weight(1f).heightIn(min = 40.dp).clip(Tile).clickable {
-                            when {
-                                index == 0 && captionSource != 0 -> { captionSource = 0; info = "字幕已关闭" }
-                                // 弹幕键按互联网惯例直接开/关（和字幕键同款手感）；来源与重试收进「更多 → 弹幕设置」。
-                                index == 2 -> { info = ""; danmaku = !danmaku }
-                                else -> { info = ""; panel = if (index == 1) "倍速" else name }
-                            }
-                        },
+                        // 倍速胶囊改单击切档（A40 用户 2026-11-26）：单击沿 SPEED_CYCLE 走一格
+                        // 直接生效（文案就是当前倍速，切完一眼可见），长按才开面板
+                        // （.5×/2.5× 那两档收在面板里）。其余胶囊行为不变。
+                        Modifier.weight(1f).heightIn(min = 40.dp).clip(Tile).combinedClickable(
+                            onClick = {
+                                when {
+                                    index == 0 && captionSource != 0 -> { captionSource = 0; info = "字幕已关闭" }
+                                    // 弹幕键按互联网惯例直接开/关（和字幕键同款手感）；来源与重试收进「更多 → 弹幕设置」。
+                                    index == 2 -> { info = ""; danmaku = !danmaku }
+                                    index == 1 -> {
+                                        val next = nextSpeedGear(speed)
+                                        speed = next; host.setSpeed(next)
+                                        info = if (next == 1f) "回到正常速度" else "${next}×"
+                                    }
+                                    else -> { info = ""; panel = name }
+                                }
+                            },
+                            onLongClick = { if (index == 1) { info = ""; panel = "倍速" } },
+                        ),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
@@ -454,15 +498,24 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
                 ).forEachIndexed { index, (name, picture) ->
                     val active = index == 0 && captionSource != 0 || index == 2 && danmaku
                     Row(
+                        // 信息态同款：倍速单击切档、长按开面板（与走带那条同一份 SPEED_CYCLE）。
                         Modifier.weight(1f).height(38.dp).clip(RoundedCornerShape(12.dp))
                             .background(if (active) Mint.copy(alpha = .14f) else Lift)
-                            .clickable {
-                                when {
-                                    index == 0 && captionSource != 0 -> { captionSource = 0; info = "字幕已关闭" }
-                                    index == 2 -> { info = ""; danmaku = !danmaku }
-                                    else -> { info = ""; panel = if (index == 1) "倍速" else name }
-                                }
-                            },
+                            .combinedClickable(
+                                onClick = {
+                                    when {
+                                        index == 0 && captionSource != 0 -> { captionSource = 0; info = "字幕已关闭" }
+                                        index == 2 -> { info = ""; danmaku = !danmaku }
+                                        index == 1 -> {
+                                            val next = nextSpeedGear(speed)
+                                            speed = next; host.setSpeed(next)
+                                            info = if (next == 1f) "回到正常速度" else "${next}×"
+                                        }
+                                        else -> { info = ""; panel = name }
+                                    }
+                                },
+                                onLongClick = { if (index == 1) { info = ""; panel = "倍速" } },
+                            ),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -704,6 +757,12 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
                     color = White, fontSize = ScreeningTypography.item, lineHeight = ScreeningTypography.itemLineHeight,
                     fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
+                // 分享（A40 用户 2026-11-26）：发片子的身份地址；没有可分享地址时不出现按钮。
+                if (screeningShareUrl(source).isNotEmpty()) {
+                    ScreenIcon(Icons.AutoMirrored.Filled.Send, "分享", {
+                        com.openapi.common.ui.share.ShareKit.shareText(context, screeningShareUrl(source), subject = source.title)
+                    })
+                }
                 ScreenIcon(Icons.Default.Fullscreen, "全屏", { setFull(true) })
             }
         }
@@ -825,6 +884,12 @@ internal fun ScreeningPlayback(activity: ComponentActivity, source: ScreeningSou
                         color = White, fontSize = if (full) 16.sp else 15.sp, lineHeight = 20.sp,
                         fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
+                    // 分享（A40）：影院态顶栏同样给入口，发身份地址（同竖屏那条）。
+                    if (screeningShareUrl(source).isNotEmpty()) {
+                        ScreenIcon(Icons.AutoMirrored.Filled.Send, "分享", {
+                            com.openapi.common.ui.share.ShareKit.shareText(context, screeningShareUrl(source), subject = source.title)
+                        })
+                    }
                     if (full) ScreenIcon(Icons.Default.Lock, "锁定控件", { locked = true })
                 }
                 Row(

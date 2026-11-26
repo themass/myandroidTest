@@ -56,7 +56,9 @@ public class HttpUtils {
         return url;
     }
 
-    private static String encoderParam(String param) {
+    // 放映场搜索词拼 URL 前也走这里（ScreeningFeedStore.screeningKeywordParam）：
+    // 中文、&、= 原样进 query 会打坏请求——以前只有 generateGetUrl 这条路编码。
+    public static String encoderParam(String param) {
         try {
             return URLEncoder.encode(param, DEFAULT_CHARSET);
         } catch (Exception ignored) {

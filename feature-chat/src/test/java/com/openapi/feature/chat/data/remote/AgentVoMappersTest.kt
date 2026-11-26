@@ -59,6 +59,19 @@ class AgentVoMappersTest {
         assertTrue(mapped.images.isEmpty())
     }
 
+    /**
+     * A40（用户 2026-11-26「图集消息不显示」）：服务端图片附件两种写法都有——
+     * `"image"` 与 `"img"`。端上只认 "image"，"img" 的那条整条丢图（判成 TEXT）。
+     */
+    @Test
+    fun imgKindAliasMapsToImageMessage() {
+        val msg = message(attachments = listOf(AgentAttachmentVo("up_9", "img", "a.jpg")))
+
+        val mapped = msg.toChatMessage()
+        assertEquals(MessageKind.IMAGE, mapped.kind)
+        assertEquals("up_9", mapped.images.single().uploadId)
+    }
+
     @Test
     fun clientMessageIdPassesThrough() {
         assertEquals("local-user-1", message(clientMessageId = "local-user-1").toChatMessage().clientMessageId)
