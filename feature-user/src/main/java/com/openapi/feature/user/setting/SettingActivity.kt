@@ -46,6 +46,7 @@ import com.openapi.common.ads.base.AdsContext
 import com.openapi.common.ads.analytics.MobAgent
 import com.openapi.common.ui.theme.AppColors
 import com.openapi.common.ui.theme.AppSpacing
+import com.openapi.common.ui.theme.AppTypography
 import com.openapi.core.event.CoreEvents
 import com.openapi.common.util.log.LogUtil
 import com.openapi.common.util.android.PreferenceUtils
@@ -320,9 +321,11 @@ internal fun SettingScreen(
                         Text(
                             stringResource(R.string.storage_title),
                             modifier = Modifier.weight(1f),
-                            fontSize = 17.sp,
+                            // A38：存储弹层标题 17→16（sectionTitle），并限一行。
+                            fontSize = AppTypography.sectionTitle,
                             fontWeight = FontWeight.Medium,
                             color = AppColors.TextPrimary,
+                            maxLines = 1,
                         )
                         TextButton(onClick = { storageOpen = false }) {
                             Text(stringResource(R.string.ui_close))

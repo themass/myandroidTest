@@ -109,6 +109,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.openapi.common.ui.theme.AppTypography
 import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
@@ -486,11 +487,13 @@ fun CompanionCallScreen(
         )
         if (onPreviewAudio != null) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                // A38：两个试听按钮同排，旧文案（"■ 停止用户试听"）在窄屏必换行。
+                // speaker 是单值（同时只有一个在试听），"停止"不会指错对象。
                 androidx.compose.material3.TextButton(onClick = { onPreviewAudio("user") }) {
-                    Text(if (previewState.speaker == "user") "■ 停止用户试听" else "▶ 用户试听", color = CallColors.TextPrimary)
+                    Text(if (previewState.speaker == "user") "■ 停止" else "▶ 试听", color = CallColors.TextPrimary, maxLines = 1)
                 }
                 androidx.compose.material3.TextButton(onClick = { onPreviewAudio("ai") }) {
-                    Text(if (previewState.speaker == "ai") "■ 停止 AI 试听" else "▶ AI 试听", color = CallColors.TextPrimary)
+                    Text(if (previewState.speaker == "ai") "■ 停止" else "▶ AI 试听", color = CallColors.TextPrimary, maxLines = 1)
                 }
             }
             if (previewState.speaker != null || previewState.error != null) {
@@ -773,7 +776,8 @@ private fun CallHeader(
             Text(
                 text = agentName.ifBlank { "她" },
                 color = CallColors.TextPrimary,
-                fontSize = 22.sp,
+                // A38：通话顶栏名字 22→18（screenTitle），基线内。
+                fontSize = AppTypography.screenTitle,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -899,7 +903,8 @@ private fun HeroCallHeader(
             Text(
                 text = agentName.ifBlank { "她" },
                 color = CallColors.TextPrimary,
-                fontSize = 20.sp,
+                // A38：半屏名字 20→16（sectionTitle）。
+                fontSize = AppTypography.sectionTitle,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -1161,7 +1166,7 @@ private fun CallThemePickerDialog(
                 Text(
                     text = "${hue.toInt()}°",
                     color = CallColors.TextPrimary,
-                    fontSize = 20.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                 )
             }

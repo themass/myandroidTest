@@ -86,7 +86,8 @@ fun AgentChatScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = { viewModel.loadConsent(); showPrivacy = true }) { Text("隐私与数据") }
                 if (reminders.isNotEmpty()) {
-                    TextButton(onClick = { showReminders = true }) { Text("${reminders.size} 条提醒待发送") }
+                    // A38：动态长文案限一行（数字最多两位，一行装得下）。
+                    TextButton(onClick = { showReminders = true }) { Text("${reminders.size} 条提醒待发送", maxLines = 1) }
                 }
             }
             // 需要你点头才会执行的动作（例如「明天 15:00 提醒你开会」）：不确认就不会执行。
@@ -302,7 +303,8 @@ private fun RemindersDialog(reminders: List<AgentReminder>, onCancel: (String) -
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 reminders.forEach { r ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("${r.dueLocal}  ${r.content}", modifier = Modifier.weight(1f))
+                        // A38：提醒内容不定长，限两行，不再无限撑高列表行。
+                        Text("${r.dueLocal}  ${r.content}", modifier = Modifier.weight(1f), maxLines = 2)
                         TextButton(onClick = { onCancel(r.id) }) { Text("取消") }
                     }
                 }

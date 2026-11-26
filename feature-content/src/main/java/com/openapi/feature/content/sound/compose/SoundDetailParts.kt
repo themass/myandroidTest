@@ -44,10 +44,12 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.openapi.common.ui.theme.AppTypography
 import com.openapi.feature.content.R
 import kotlin.math.roundToInt
 
@@ -78,8 +80,11 @@ internal fun DetailTopBar(onBack: () -> Unit) {
         Text(
             text = stringResource(R.string.sound_detail_title),
             color = TextPrimary,
-            fontSize = 17.sp,
+            // A38：标题 17→16（sectionTitle），weight(1f) 限一行截断。
+            fontSize = AppTypography.sectionTitle,
             fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .weight(1f)
                 .padding(start = 8.dp),

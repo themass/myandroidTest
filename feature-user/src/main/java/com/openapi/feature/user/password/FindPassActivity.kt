@@ -47,6 +47,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.openapi.common.ui.theme.AppColors
+import com.openapi.common.ui.theme.AppTypography
 import com.openapi.common.net.http.BaseService
 import com.openapi.common.net.request.CommonResponse
 import com.openapi.feature.user.R
@@ -280,7 +281,8 @@ private fun SentConfirmation(
         )
         Text(
             stringResource(R.string.findpass_sent_title),
-            fontSize = 20.sp,
+            // A38：结果页状态标题收进 title 基线（20→18=screenTitle）。
+            fontSize = AppTypography.screenTitle,
             fontWeight = FontWeight.Bold,
             color = AppColors.TextPrimary,
         )

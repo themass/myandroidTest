@@ -35,6 +35,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.openapi.chatkit.R
+import com.openapi.chatkit.theme.ChatKit
 
 /*
  * 转文字编辑态（SPEC2 第 6 项）：识别出的文字可以改；下面三个按钮：
@@ -70,7 +71,8 @@ internal fun VoiceDraftEditor(
             BasicTextField(
                 value = text,
                 onValueChange = { text = it },
-                textStyle = TextStyle(fontSize = 17.sp, color = Color.Black),
+                // A38：草稿输入 17→body=16，与气泡正文同级。
+                textStyle = TextStyle(fontSize = ChatKit.typography.body, color = Color.Black),
                 cursorBrush = SolidColor(Color.Black),
                 modifier = Modifier.fillMaxWidth(),
             )

@@ -86,7 +86,8 @@ fun MessageSelectionBar(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         TextButton(onClick = onCancel) {
-            Text(stringResource(R.string.chatkit_selection_cancel), color = colors.secondaryText, fontSize = 16.sp)
+            // A38：选择态按钮 16→secondary=14，和行内次要文字同级。
+            Text(stringResource(R.string.chatkit_selection_cancel), color = colors.secondaryText, fontSize = ChatKit.typography.secondary)
         }
         Text(
             stringResource(R.string.chatkit_selected_count, count),
@@ -97,7 +98,7 @@ fun MessageSelectionBar(
             Text(
                 stringResource(R.string.chatkit_delete),
                 color = if (count > 0) colors.error else colors.secondaryText,
-                fontSize = 16.sp,
+                fontSize = ChatKit.typography.secondary,
             )
         }
     }
