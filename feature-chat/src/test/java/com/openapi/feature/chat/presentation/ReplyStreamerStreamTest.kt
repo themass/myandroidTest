@@ -201,6 +201,10 @@ class ReplyStreamerStreamTest {
         val userTexts = h.state.value.messages.filter { it.role == ChatRole.USER }.map { it.text }
         assertEquals(listOf("问", "第二条", "第三条"), userTexts)
         assertFalse("最后一轮也已正常收尾", h.state.value.streaming)
+        // A43-#10：排空续发的气泡带「排队发送」标记（回合结束后才冒出来，不标用户以为丢了）
+        assertTrue(h.state.value.messages.first { it.text == "问" }.fromQueue.not())
+        assertTrue(h.state.value.messages.filter { it.text == "第二条" || it.text == "第三条" }
+            .all { it.fromQueue })
     }
 
     // ---------------------------------------------------------------- 停止必须停两端（任务 2）

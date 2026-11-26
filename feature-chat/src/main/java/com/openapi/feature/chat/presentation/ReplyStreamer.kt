@@ -309,6 +309,10 @@ internal class ReplyStreamer(
                     text = next.text,
                     createdAtMillis = now,
                     delivery = DeliveryStatus.SENDING,
+                    // A43-#10：排空续发的气泡在回合结束后才出现——带标记让用户认得
+                    // 「这是我之前排的队」，而不是以为消息丢了。只有 QUEUE 模式会走到这里
+                    // （即时模式 sendText 永不入队），标记随这条消息进渲染。
+                    fromQueue = true,
                 )
                 state.update { it.copy(messages = it.messages + user) }
                 stream(next.text, userMessageId = user.id, persistUser = true)

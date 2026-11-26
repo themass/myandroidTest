@@ -235,6 +235,16 @@ fun ChatMessageItem(
                             fontSize = ChatKit.typography.caption,
                             color = ChatKit.colors.secondaryText,
                         )
+                        // A43-#10（QUEUE 模式）：这条是排空续发的——回合结束后才出现，
+                        // 标出来用户才知道它没丢、也不是自己刚按的。与「已发送」同一行。
+                        if (item.queuedSend) {
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                stringResource(R.string.chatkit_queued_send),
+                                fontSize = ChatKit.typography.caption,
+                                color = ChatKit.colors.secondaryText,
+                            )
+                        }
                         // 最后一条用户消息还没有回复（例如回复前点了停止）：给一个重新回答的入口，不重复发送
                         if (showAnswerAgain) {
                             Spacer(Modifier.width(8.dp))

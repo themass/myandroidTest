@@ -41,6 +41,8 @@ internal object ChatItemMapper {
                 else -> Reaction.None
             },
             speaking = message.id == speakingId,
+            // A43-#10：排空续发的用户气泡带「排队发送」标记（判定在 ReplyStreamer 排空路径）
+            queuedSend = message.fromQueue,
         )
         // A43-2/#11 第一层兜底：没有任何内容可画的**助手**行不进列表（空 AI 气泡投诉）。
         // 三类合法的空 parts 放行：thinking / streaming 占位（pending）。用户行永远保留
