@@ -230,9 +230,10 @@ internal class ReplyStreamer(
                 if (kept != null) {
                     kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) { persistStopped(kept) }
                 }
-                // D4：「已取消」的提示也要即时——不再等上面那趟网络。一个字都没收到时
-                // 保留原来的「未发出可重试」提示（#9 只去掉它，不在本片范围）。
-                if (kept == null) state.update { it.copy(error = strings.stoppedNoReply()) }
+                // A43-#9：停止后**不再弹底部提示**（设计 20261126 §5）。一个字都没收到时
+                // 用户看到的可重试入口在气泡自己的 delivery 标（FAILED → 点重试），
+                // 底部那条「已停止，消息未发出」是重复提示，删。看门狗/409 那两句
+                // （turnTimeout/previousTurnRunning）不在这条路径上，原样保留。
                 throw e
             } catch (e: Exception) {
                 // 记日志：文字发送偶发失败时，能从 logcat 看到真实原因（之前无法复现原因）

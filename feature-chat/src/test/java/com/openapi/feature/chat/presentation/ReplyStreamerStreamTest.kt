@@ -85,9 +85,9 @@ class ReplyStreamerStreamTest {
         h.streamer.cancel()
         h.scope.advanceUntilIdle()
         assertEquals(DeliveryStatus.FAILED, h.state.value.messages.first().delivery)
-        // P2-14b：文案走 ChatStrings 端口，JVM 单测里断言取到了哪条标记串；
-        // 真实措辞「未发出」由 :app 的 ResourceChatStringsTest（Robolectric）钉住
-        assertEquals("S:stoppedNoReply", h.state.value.error)
+        // A43-#9：停止后不再弹底部提示——失败的可重试入口在气泡上的 delivery 标（FAILED→重试），
+        // 底部那条「已停止，消息未发出，可点重试」是重复提示，删掉。
+        org.junit.Assert.assertNull("停止后不得再有底部提示", h.state.value.error)
     }
 
     // -------------------------------------------------- A43-3 / 设计 20261126 §2 D4：取消乐观化

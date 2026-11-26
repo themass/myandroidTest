@@ -6,7 +6,6 @@ package com.openapi.feature.chat.presentation
  */
 internal class FakeChatStrings : ChatStrings {
     override fun historyLoadOlderFailed() = "S:historyLoadOlderFailed"
-    override fun stoppedNoReply() = "S:stoppedNoReply"
     override fun emptyReply() = "S:emptyReply"
     override fun replyFailed() = "S:replyFailed"
     override fun replyTruncated() = "S:replyTruncated"
