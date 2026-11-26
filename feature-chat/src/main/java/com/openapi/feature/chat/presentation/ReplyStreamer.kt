@@ -213,23 +213,26 @@ internal class ReplyStreamer(
                         }
                     }
             } catch (e: kotlinx.coroutines.CancellationException) {
-                // 用户点了停止：保留已经生成的内容，不当作失败
+                // 用户点了停止。A43-3 / 设计 20261126 §2 D4：**本地收尾先行、同步做完**——
+                // 气泡定格（已显示 + 缓冲区里还没释放的半截，pending=false）、发送键复位
+                // （sending/streaming=false）、delivery 落定，全都不挂起，点下去就是一帧。
+                // 旧实现把 state 更新排在 finishStopped 的 saveMessage（一次网络往返）之后，
+                // 慢网络下表现为「按了停止但界面还在生成」。
                 reveal.cancel()
-                val replied = kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
-                    finishStopped(placeholder.key, buffer.toString())
-                }
+                val kept = finishStoppedLocally(placeholder.key, buffer.toString())
                 // 停止时一个字都没收到：用户消息标成未发出（可点重试），不当作已发送
-                state.update {
-                    it.copy(
-                        sending = false,
-                        streaming = attachmentActive(),
-                        error = if (replied) it.error else strings.stoppedNoReply(),
-                    )
-                }
-                userMessageId?.let { setDelivery(it, if (replied) DeliveryStatus.SENT else DeliveryStatus.FAILED) }
+                userMessageId?.let { setDelivery(it, if (kept != null) DeliveryStatus.SENT else DeliveryStatus.FAILED) }
                 // 服务端会保存已生成的部分，但这里拿不到正式 id：兜底拉一页历史
                 if (syncAfter) scope.launch { reconcile() }
                 if (startsNewSession) scope.launch { syncSessions() }
+                // 保留的内容交给服务端（失败只记日志，见 persistStopped）；NonCancellable 里做：
+                // 取消后的第一个挂起点会再次抛出取消，吞掉收尾是对整个协程系统撒谎（整改清单 P3-20）。
+                if (kept != null) {
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) { persistStopped(kept) }
+                }
+                // D4：「已取消」的提示也要即时——不再等上面那趟网络。一个字都没收到时
+                // 保留原来的「未发出可重试」提示（#9 只去掉它，不在本片范围）。
+                if (kept == null) state.update { it.copy(error = strings.stoppedNoReply()) }
                 throw e
             } catch (e: Exception) {
                 // 记日志：文字发送偶发失败时，能从 logcat 看到真实原因（之前无法复现原因）
@@ -326,7 +329,13 @@ internal class ReplyStreamer(
     }
 
     /** 返回是否保留了助手内容（false = 一个字都没收到，占位气泡已撤掉）。 */
-    private suspend fun finishStopped(key: String, bufferedText: String): Boolean {
+    /**
+     * 停止后的**本地**收尾（A43-3 / D4）：把已显示文字 + 缓冲区里还没释放的半截定格成
+     * 正式气泡（pending=false）、发送键复位，全同步、不挂起——点停止就是一帧。
+     * 返回定格下来的那条（缓冲区全空时返回 null：撤掉占位气泡，不留下空回复）。
+     * 交给服务端是另一件事（[persistStopped]），失败不影响这里。
+     */
+    private fun finishStoppedLocally(key: String, bufferedText: String): ChatMessage? {
         var kept: ChatMessage? = null
         state.update { current ->
             current.copy(
@@ -338,10 +347,16 @@ internal class ReplyStreamer(
                         if (merged.isEmpty()) null else m.copy(text = merged, pending = false).also { kept = it }
                     }
                 },
+                sending = false,
+                streaming = attachmentActive(),
             )
         }
-        kept?.let { repository.saveMessage(repository.currentSessionId(), it) }
-        return kept != null
+        return kept
+    }
+
+    /** 定格的内容交给服务端（服务端会保存已生成的部分；这里拿不到正式 id，靠兜底拉历史对齐）。 */
+    private suspend fun persistStopped(kept: ChatMessage) {
+        repository.saveMessage(repository.currentSessionId(), kept)
     }
 
     /**

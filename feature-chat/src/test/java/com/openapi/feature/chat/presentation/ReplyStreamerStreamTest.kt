@@ -90,9 +90,54 @@ class ReplyStreamerStreamTest {
         assertEquals("S:stoppedNoReply", h.state.value.error)
     }
 
+    // -------------------------------------------------- A43-3 / 设计 20261126 §2 D4：取消乐观化
+
+    /**
+     * 点停止的这一刻本地就收尾：发送键复位（sending=false）、生成中的占位气泡定格
+     * （pending=false）、排队清空——不等网络。`cancelTurn` 在后台发，失败也不影响本地。
+     * 旧实现要等 catch 分支跑完（含一次 suspend 的 saveMessage）才更新这几个标志，
+     * 慢网络下「按了停止但界面还在生成」。这里用 runCurrent（不 advance）钉住同步性。
+     */
     @Test
-    fun stopAfterSomeDeltasKeepsAssistantTextAndUserSent() {
-        val flow = flow {
+    fun stopFinalizesLocallySynchronouslyWithoutWaitingForNetwork() {
+        val flow = flow<ChatStreamEvent> {
+            emit(ChatStreamEvent.Delta("mid", "已经出来的半截"))
+            kotlinx.coroutines.awaitCancellation()
+        }
+        val h = Harness(listOf(user()), flow)
+        h.streamer.stream("问", userMessageId = "user-1", persistUser = true)
+        h.scope.runCurrent()
+        assertTrue("前置：正在生成", h.state.value.streaming)
+
+        h.streamer.cancel()
+        // 只跑当前已排队的恢复任务（catch 分支同步跑完、停在 persistStopped 挂起点前都算）。
+        // 故意**不** advanceUntilIdle：只看停止那一击本身落定了什么，不等后台网络任务。
+        h.scope.runCurrent()
+        assertFalse("停止后发送态必须当场复位", h.state.value.sending)
+        assertFalse("停止后生成态必须当场复位", h.state.value.streaming)
+        val assistant = h.state.value.messages.lastOrNull { it.role == ChatRole.ASSISTANT }
+        assertTrue("占位气泡必须当场定格（不再是 pending）", assistant != null && !assistant.pending)
+        assertTrue("已显示的文字不能丢", assistant != null && assistant.text.isNotEmpty())
+        // 后台那条服务端取消照常发出（不阻塞本地收尾）
+        h.scope.advanceUntilIdle()
+        assertEquals("仍要请服务端取消这一轮", listOf(1L), h.repo.cancelledTurns)
+    }
+
+    /** 停止后排队清空：中断意图明确，不能接着发下一条。 */
+    @Test
+    fun stopClearsQueueSynchronously() {
+        val flow = flow<ChatStreamEvent> { kotlinx.coroutines.awaitCancellation() }
+        val h = Harness(listOf(user()), flow)
+        h.streamer.stream("问", userMessageId = "user-1", persistUser = true)
+        h.scope.runCurrent()
+        h.state.value = h.state.value.copy(queued = listOf(QueuedText("q-0", "排队的")))
+
+        h.streamer.cancel()
+        assertTrue("停止那一刻队列必须已空", h.state.value.queued.isEmpty())
+    }
+
+    @Test
+    fun stopAfterSomeDeltasKeepsAssistantTextAndUserSent() {        val flow = flow {
             emit(ChatStreamEvent.Delta("mid", "ABCXYZ"))
             kotlinx.coroutines.awaitCancellation()
         }
