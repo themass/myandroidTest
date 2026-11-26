@@ -78,6 +78,16 @@ class AgentPhotoSolveRemoteTest {
         assertEquals("2", result.questions.first().finalAnswer)
     }
 
+    @Test fun streamedMarkdownPublishesOnlyBalancedMathPrefixes() {
+        assertEquals("plain text", safeRenderablePrefix("plain text"))
+        assertEquals("before ", safeRenderablePrefix("before \$x^2"))
+        assertEquals("before \$x^2\$ after", safeRenderablePrefix("before \$x^2\$ after"))
+        assertEquals("text ", safeRenderablePrefix("text \$\$\\frac{1}{2}"))
+        assertEquals("text \$\$\\frac{1}{2}\$\$ end", safeRenderablePrefix("text \$\$\\frac{1}{2}\$\$ end"))
+        assertEquals("text ", safeRenderablePrefix("text \\(x+1"))
+        assertEquals("text \\(x+1\\) end", safeRenderablePrefix("text \\(x+1\\) end"))
+    }
+
     @Test fun missingLoginDoesNotSendRequest() = runBlocking {
         val unauthenticated = AgentPhotoSolveRemote(server.url("/").toString(), { null })
         try { unauthenticated.solve(byteArrayOf(1), "id"); fail("must reject login") }

@@ -25,17 +25,19 @@ class NetworkPhotoSolveRepository(
         val steps = mutableListOf<String>()
         var question = ""
         var thinking = ""
+        var visibleQuestion = ""
+        var visibleThinking = ""
         var answer = ""
         var subject = "math"
         var provider: String? = null
         fun publish() = onProgress(
             PhotoSolveResult(
-                recognizedQuestion = question,
+                recognizedQuestion = visibleQuestion,
                 steps = steps.toList(),
                 finalAnswer = answer,
                 requestId = requestId,
                 providerUsed = provider,
-                thinking = thinking,
+                thinking = visibleThinking,
                 subject = subject,
             ),
         )
@@ -44,8 +46,20 @@ class NetworkPhotoSolveRepository(
                 image = bytes,
                 requestId = requestId,
                 onFirstFrame = ::publish,
-                onThinking = { thinking += it },
-                onQuestion = { question += it },
+                onThinking = {
+                    thinking += it
+                    safeRenderablePrefix(thinking).takeIf { safe -> safe.length > visibleThinking.length }?.let { safe ->
+                        visibleThinking = safe
+                        publish()
+                    }
+                },
+                onQuestion = {
+                    question += it
+                    safeRenderablePrefix(question).takeIf { safe -> safe.length > visibleQuestion.length }?.let { safe ->
+                        visibleQuestion = safe
+                        publish()
+                    }
+                },
                 onStep = { step -> steps += step; publish() },
                 onAnswer = { answer = it; publish() },
             )
@@ -63,4 +77,31 @@ class NetworkPhotoSolveRepository(
             SolveResultMapper.map(remote.solve(bytes, requestId)).also(onProgress)
         }
     }
+}
+
+/** Return only a prefix whose math delimiters are balanced, so Markwon never sees half a formula. */
+internal fun safeRenderablePrefix(markdown: String): String {
+    var activeClose: String? = null
+    var activeStart = -1
+    var i = 0
+    while (i < markdown.length) {
+        if (activeClose != null) {
+            if (markdown.startsWith(activeClose, i)) {
+                i += activeClose.length
+                activeClose = null
+                activeStart = -1
+            } else {
+                i++
+            }
+            continue
+        }
+        when {
+            markdown.startsWith("\\(", i) -> { activeClose = "\\)"; activeStart = i; i += 2 }
+            markdown.startsWith("\\[", i) -> { activeClose = "\\]"; activeStart = i; i += 2 }
+            markdown.startsWith("$$", i) -> { activeClose = "$$"; activeStart = i; i += 2 }
+            markdown[i] == '$' -> { activeClose = "$"; activeStart = i; i++ }
+            else -> i++
+        }
+    }
+    return markdown.substring(0, if (activeClose == null) markdown.length else activeStart)
 }
