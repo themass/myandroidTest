@@ -502,14 +502,11 @@ fun DigitalHumanLabHost(
             val camOk = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
                 PackageManager.PERMISSION_GRANTED
             if (camOk) {
-                faceCameraPipContent?.invoke(
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 12.dp, bottom = 120.dp)
-                        .size(132.dp, 176.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    onCameraStageGesture ?: {},
-                )
+                if (faceCameraPipContent != null) {
+                    DraggableCameraPreview { previewModifier ->
+                        faceCameraPipContent(previewModifier, onCameraStageGesture ?: {})
+                    }
+                }
             }
         }
         // ======================================================================

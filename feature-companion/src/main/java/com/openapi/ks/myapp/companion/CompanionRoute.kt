@@ -365,6 +365,11 @@ fun CompanionRoute(
         val labEnabled = remember(context) { DhLabGate.isEnabled(context) }
         val faceCamPrefs = remember(context) { CompanionFaceCameraPrefs(context) }
         var faceCameraOn by remember { mutableStateOf(faceCamPrefs.enabled) }
+        val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            faceCameraOn = granted
+            faceCamPrefs.enabled = granted
+            if (!granted) toast(context, "没有相机权限，无法打开预览")
+        }
         val dhPrefs = remember(context) { DhLabPreferences(context) }
         var callStage by remember { mutableStateOf(dhPrefs.callStage) }
         // 用户在菜单里再点已勾选的引擎 = 「解除熔断再试一次」。引擎 id 没变，Compose 不会重组，
@@ -589,8 +594,12 @@ fun CompanionRoute(
             faceCameraEnabled = faceCameraOn,
             onFaceCameraChange = if (labEnabled) {
                 { on ->
-                    faceCameraOn = on
-                    faceCamPrefs.enabled = on
+                    if (on && context.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                        cameraLauncher.launch(Manifest.permission.CAMERA)
+                    } else {
+                        faceCameraOn = on
+                        faceCamPrefs.enabled = on
+                    }
                 }
             } else {
                 null
