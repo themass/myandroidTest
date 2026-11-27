@@ -609,15 +609,24 @@ def collect_stage(dev, m, args):
     m['stage']['watchdog_prefs'] = wd.strip()[:300]
     off = re.findall(r'name="([^"]*(?:disabled|quarantin)[^"]*)">([^<]*)<', wd)
     if off:
-        NOTES.append(f'watchdog 里有引擎禁用/隔离标记 {off} —— LIVE2D 场景可能被降级成 SIMPLE，'
-                     f'测到的「Live2D」数字实际是 SIMPLE。需要用户在引擎菜单里主动再选一次 Live2D '
-                     f'来解除（DhEngineWatchdog.clear）。')
+        # 实测教训（2026-11-28）：装机包读的 quarantine key 是源码里的
+        # `companion.dh.quarantined_engine`；盘上若只有 `active_engine_disabled`
+        # 那种旧 key，是残留死数据，**不会**降级（LIVE2D 真的在渲染，有 GL 层为证）。
+        # 所以这里只报事实，别当结论拦人；真要判降级，看场景里有没有 SurfaceView 层。
+        NOTES.append(f'watchdog prefs 里有 {off}。若装机包读的是这个 key，LIVE2D 可能被降级成 '
+                     f'SIMPLE；若是旧版残留 key 则无影响。**判据看场景里是否出现 SurfaceView/GLThread，'
+                     f'不要只看这条**（见下面 sf_layers / threads 表）。')
     prefs = dev.sh(f"run-as {PKG} cat shared_prefs/companion_dh_lab.xml").stdout
     m['stage']['prefs_before'] = prefs.strip()[:300]
 
     # 1) 进陪伴页（无舞台基线：聊天页本身）
-    if not dev.tap(T['tab_companion'], timeout=10)[0]:
-        BLOCKED.append(('陪伴页导航', f'找不到标签「{T["tab_companion"]}」——不在主页或文案变了'))
+    #    应用可能**已经停在陪伴页**（实测：前台 HomeActivity 但页面就是陪伴对话，
+    #    底部标签不在层级里），所以先看通话入口在不在，在就跳过标签导航。
+    if dev.present(T['call_button_desc']):
+        pass
+    elif not dev.tap(T['tab_companion'], timeout=10)[0]:
+        BLOCKED.append(('陪伴页导航', f'找不到标签「{T["tab_companion"]}」或通话入口'
+                                      f'「{T["call_button_desc"]}」——不在主页或文案变了'))
         return
     time.sleep(3)
     dev.screenshot('stage-enter')
