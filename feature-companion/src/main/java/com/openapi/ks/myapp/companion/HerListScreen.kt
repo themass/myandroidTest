@@ -42,7 +42,8 @@ import com.openapi.ks.myapp.dh.StageChoice
  * 稿子的核心语义在这里落成两条硬规则：
  * - **换 her 不换人格**：页顶明说「人格保持不变」，卡片上只有呈现相关的东西
  *   （renderer / 发布状态 / 版本 / 特效与贴纸数量），没有任何人格字段；
- * - **选中即换**：点一张可选的卡 = 写一条 [StageChoice]，下一次进通话页
+ * - **选中即换**：点一张卡打开 [HerDetailSheet]（叠加层，列表本身不动），抽屉里的
+ *   「使用这个形象」仍写一条 [StageChoice]——下一次进通话页
  *   [com.openapi.ks.myapp.dh.resolveCallStage] 就用新引擎。页面不持有选择状态。
  *
  * 深色稿里的缩略图是渲染出来的形象；这一版**不放占位图**——没有 her 包真素材时，
@@ -86,7 +87,7 @@ fun HerListScreen(
                         her = her,
                         selected = selected,
                         followingDefault = selected && selection.followingDefault,
-                        onClick = { onPick(her) },
+                        onClick = { onPick(her) },   // 点卡 = 打开详情抽屉（选用在抽屉里）
                     )
                 }
             }
@@ -102,7 +103,6 @@ private fun HerCard(
     followingDefault: Boolean,
     onClick: () -> Unit,
 ) {
-    val selectable = herSelectability(her) == HerSelectability.SELECTABLE
     val shape = RoundedCornerShape(16.dp)
     Row(
         modifier = Modifier
@@ -112,7 +112,7 @@ private fun HerCard(
             .then(
                 if (selected) Modifier.border(2.dp, HerViolet, shape) else Modifier,
             )
-            .then(if (selectable) Modifier.clickable { onClick() } else Modifier)
+            .clickable { onClick() }
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -191,7 +191,7 @@ private fun HerCard(
 }
 
 @Composable
-private fun HerPill(text: String, accent: Boolean = false) {
+internal fun HerPill(text: String, accent: Boolean = false) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelSmall,
@@ -228,6 +228,7 @@ private fun HerListHeader(roleName: String, onBack: () -> Unit) {
     }
 }
 
+// 点卡语义变了（开抽屉）：预览里抽屉没开，行为与之前一致（不选、不写偏好）。
 private val previewHers = listOf(
     HerSummary(
         id = "simple-linche-v1",

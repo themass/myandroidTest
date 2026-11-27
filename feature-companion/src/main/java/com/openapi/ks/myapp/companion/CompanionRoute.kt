@@ -276,6 +276,9 @@ fun CompanionRoute(
                 // her 形象列表（OpenDesign 02）。数据走第二刀那条链：HerRegistryStore 拉
                 // /v1/hers（失败宽出成空表），写只写 DhLabPreferences.callStageChoice——
                 // 通话页的 resolveCallStage 仍是引擎唯一决定点，这里不另起状态。
+                // 点卡现在只打开详情抽屉（叠加层），选用在抽屉里做；her 包下载安装走
+                // HerPackSync（zip→sha256→CharacterAssetPackStore，失败保持本地版本）。
+                val packSync = remember { HerPackSync(context.filesDir, context.cacheDir) }
                 val vm: HerListViewModel = viewModel(
                     factory = viewModelFactory {
                         initializer {
@@ -284,21 +287,34 @@ fun CompanionRoute(
                                 api = api,
                                 prefs = DhLabPreferences(context),
                                 roleId = characterId,
+                                packSync = packSync,
                             )
                         }
                     },
                 )
                 val herState by vm.state.collectAsStateWithLifecycle()
+                val detailState by vm.detailState.collectAsStateWithLifecycle()
                 HerListScreen(
                     state = herState,
-                    onPick = { her ->
-                        // 选了即生效：回聊天页再进通话就是新引擎（引擎素材缺失时由既有
-                        // DhEngineDownloadGate / 引擎自判兜底，不在这里重复决策）。
-                        if (vm.pick(her)) page = CompanionPage.CHAT
-                    },
+                    onPick = { her -> vm.openDetail(her) },
                     onFollowDefault = vm::followServerDefault,
                     onBack = { page = CompanionPage.CHAT },
                 )
+                detailState?.let { detail ->
+                    HerDetailSheet(
+                        state = detail,
+                        onUse = { her ->
+                            // 选了即生效：回聊天页再进通话就是新引擎（引擎素材缺失时由既有
+                            // DhEngineDownloadGate / 引擎自判兜底，不在这里重复决策）。
+                            if (vm.pick(her)) {
+                                vm.closeDetail()
+                                page = CompanionPage.CHAT
+                            }
+                        },
+                        onDownload = vm::downloadPack,
+                        onDismiss = vm::closeDetail,
+                    )
+                }
             }
 
             CompanionPage.MEMORY -> {
