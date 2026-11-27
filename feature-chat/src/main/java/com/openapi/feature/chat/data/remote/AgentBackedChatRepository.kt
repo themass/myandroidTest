@@ -433,7 +433,9 @@ class AgentBackedChatRepository(
      */
     override suspend fun cancelTurn(sessionId: Long) {
         if (sessionId <= 0) return
+        android.util.Log.i("TurnTrace", "cancelTurn POST session=$sessionId")
         runCatching { withContext(Dispatchers.IO) { remote.cancel(sessionId) } }
+            .onSuccess { android.util.Log.i("TurnTrace", "cancelTurn ok session=$sessionId") }
             .onFailure { LogUtil.w("$TAG cancel turn failed session=$sessionId: ${it.message}") }
     }
 

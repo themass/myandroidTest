@@ -34,6 +34,7 @@ class TurnWatchdogTest {
 
     private class Harness(
         frameTimeoutMs: Long,
+        private val expectedTurnId: String? = null,
         private val streams: (attempt: Int) -> Flow<AgentSseFrame>,
     ) {
         val events = mutableListOf<ChatStreamEvent>()
@@ -49,6 +50,9 @@ class TurnWatchdogTest {
             parse = { frame ->
                 when (frame.event) {
                     "d" -> ParsedTurnEvent.Delta("t1", frame.data)
+                    "foreign" -> ParsedTurnEvent.Delta("other", frame.data)
+                    "step" -> ParsedTurnEvent.Progress("t1")
+                    "foreign-step" -> ParsedTurnEvent.Progress("other")
                     "done" -> ParsedTurnEvent.Done("t1", 55L)
                     else -> null
                 }
@@ -60,7 +64,7 @@ class TurnWatchdogTest {
 
         suspend fun run() = collector.collect(
             emit = { events += it },
-            expectedTurnId = null,
+            expectedTurnId = expectedTurnId,
             assistantLocalId = "a1",
             userMessageId = "u1",
             persist = { persisted += it },
@@ -124,6 +128,9 @@ class TurnWatchdogTest {
     fun unparseableFramesStillResetTheWatchdog() = runTest {
         // 判据是「有没有帧」，不是「帧能不能解析」：连 parse 返回 null 的帧也重新计时。
         // （真实流里这等价于服务端还在说话——哪怕说的是本轮不认识的 event。）
+        // 注意这条语义现网有个副作用：服务端工具阶段的 `step` 帧、别的回合的帧都会
+        // 重置计时——TurnTrace 埋点（frame #N parse=null）就是为钉这个形状加的，
+        // 取证前不收紧判据（见 2026-11-28 卡死排查记录）。
         val h = Harness(frameTimeoutMs = 200) {
             flow {
                 repeat(4) {
@@ -134,6 +141,55 @@ class TurnWatchdogTest {
             }
         }
         h.run()
+        val d = h.events.last() as ChatStreamEvent.Done
+        assertEquals("55", d.assistantId)
+    }
+
+    @Test
+    fun foreignTurnFramesDoNotKeepOurSilentTurnAlive() = runTest {
+        // 2026-11-28 现网挂死形状：我们这一轮卡在「正在思考」，但同一会话里
+        // **别的回合**（另一台设备发的、或排队排空的那条）在持续出字。
+        // 旧实现里别的回合的帧也重置计时 → 45 秒永远数不满 → 界面永久挂死。
+        // 现在：帧间看门狗只认本轮进展，别人的帧再多也照常判死收尾。
+        val h = Harness(
+            frameTimeoutMs = 400,
+            expectedTurnId = "t1", // submit 回执给了本轮 id，归属判定从一开始就生效
+        ) {
+            flow {
+                repeat(6) {
+                    emit(frame("9-0", "foreign", "别的回合在出字"))
+                    delay(150)
+                }
+                emit(frame(null, "done", ""))
+            }
+        }
+        h.run()
+        val e = h.events.single() as ChatStreamEvent.Error
+        assertEquals(ChatStreamEvent.Error.CODE_TURN_TIMEOUT, e.code)
+        assertEquals("看门狗不重连", 1, h.opens)
+        assertTrue("看门狗不走退避", h.waits.isEmpty())
+    }
+
+    @Test
+    fun ourToolStepFramesKeepTheTurnAlive() = runTest {
+        // 本轮的工具进展帧（服务端 `step`）必须续命：poi_search 这类工具排队几秒、
+        // 工具完再让模型续一轮，中间没有任何 delta 是合法形状，不能被掐死。
+        val h = Harness(
+            frameTimeoutMs = 400,
+            expectedTurnId = "t1",
+        ) {
+            flow {
+                emit(frame("1-0", "step", "poi_search running"))
+                delay(300)
+                emit(frame("1-1", "step", "poi_search done"))
+                delay(300)
+                emit(frame("1-2", "d", "查到了"))
+                emit(frame(null, "done", ""))
+            }
+        }
+        h.run()
+        assertEquals(listOf("查到了"), h.events.filterIsInstance<ChatStreamEvent.Delta>().map { it.text })
+        assertTrue("不该有错误", h.events.none { it is ChatStreamEvent.Error })
         val d = h.events.last() as ChatStreamEvent.Done
         assertEquals("55", d.assistantId)
     }
