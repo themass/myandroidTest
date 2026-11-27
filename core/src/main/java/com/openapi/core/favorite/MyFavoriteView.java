@@ -33,7 +33,9 @@ import java.nio.charset.StandardCharsets;
 public class MyFavoriteView extends LinearLayout {
 
     public static String url_pre1 = "https://www.xcvods.com/addons/dplayer/?url=";
-    public static String url_pre2 = "http://file.ok123find.top/index2.html?play=";
+    // 播放器壳页走 https（api.sspacee.com 上同一份静态根，index2.html 已验证 200；
+    // 旧值 http://file.ok123find.top 是明文，网络安全配置禁明文）。
+    public static String url_pre2 = "https://api.sspacee.com/index2.html?play=";
     int currentSpeedIndex = 0;
     float[] speedX = {1.0f, 1.25f, 1.5f, 1.75f, 2f, 3f};
     FavoriteImageView ivFavorite;
