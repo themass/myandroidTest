@@ -70,9 +70,11 @@ import com.openapi.ks.myapp.dh.DhLabPreferences
 import com.openapi.ks.myapp.dh.DigitalHumanLabHost
 import com.openapi.ks.myapp.dh.OriginalAvatarDemo
 import com.openapi.ks.myapp.dh.OriginalAvatarDemoControls
+import com.openapi.ks.myapp.dh.StageChoice
 import com.openapi.ks.myapp.dh.dhEngineMenuRows
 import com.openapi.ks.myapp.dh.dhEngineSeedHint
 import com.openapi.ks.myapp.dh.mapEnsureFailureMessage
+import com.openapi.ks.myapp.dh.resolveCallStage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -374,7 +376,17 @@ fun CompanionRoute(
             if (!granted) toast(context, "没有相机权限，无法打开预览")
         }
         val dhPrefs = remember(context) { DhLabPreferences(context) }
-        var callStage by remember { mutableStateOf(dhPrefs.callStage) }
+        // 舞台引擎的唯一选择点（客户端第二刀，persona/her 分层架构 §4「进房」her 半）：
+        // 用户显式选过（原形象 / 某引擎）→ 听用户的；从没选过 → 按该角色默认 her 的
+        // renderer。注册表拉取失败宽出成空表（HerRegistryStore），没有 her / renderer
+        // 认不出 → null = 原来的分层立绘，绝不因为拉取失败换脸或白屏。
+        // 注意 stageChoice 只在引擎菜单里写（行 id 为 null = 显式「原来的形象」）。
+        var stageChoice by remember { mutableStateOf(dhPrefs.callStageChoice) }
+        val herRegistry = remember(api) { HerRegistryStore(api) }
+        val hers by produceState<List<HerSummary>>(initialValue = emptyList(), characterId) {
+            value = withContext(Dispatchers.IO) { herRegistry.hers() }
+        }
+        val callStage = resolveCallStage(stageChoice, characterId, hers)
         // 用户在菜单里再点已勾选的引擎 = 「解除熔断再试一次」。引擎 id 没变，Compose 不会重组，
         // 所以用计数器重建 LabHost（key），让它重新读隔离状态。
         var engineRetry by remember { mutableIntStateOf(0) }
@@ -539,8 +551,8 @@ fun CompanionRoute(
                         demoSmileEnabled = false
                         demoCapeEnabled = false
                         live2dModel = OriginalAvatarDemo.MODEL_DIR
-                        callStage = DhEngineId.LIVE2D
-                        dhPrefs.callStage = DhEngineId.LIVE2D
+                        stageChoice = StageChoice.Engine(DhEngineId.LIVE2D)
+                        dhPrefs.callStageChoice = StageChoice.Engine(DhEngineId.LIVE2D)
                         DhEngineWatchdog(context).clear(DhEngineId.LIVE2D)
                         engineRetry++
                         toast(context, "原创 Live2D Demo 已就绪")
@@ -683,8 +695,11 @@ fun CompanionRoute(
                         if (live2dModel == OriginalAvatarDemo.MODEL_DIR) {
                             live2dModel = dhPrefs.live2dModel
                         }
-                        callStage = row.id
-                        dhPrefs.callStage = row.id
+                        // 菜单里点任何一行都是**显式**表态（含「原来的形象」= row.id null）：
+                        // 存成 StageChoice，服务端 her 从此不再有权决定这个用户的舞台。
+                        val choice = row.id?.let { StageChoice.Engine(it) } ?: StageChoice.Original
+                        stageChoice = choice
+                        dhPrefs.callStageChoice = choice
                     }
                     EngineClickAction.NOT_READY_START_DOWNLOAD -> {
                         val id = row.id
@@ -706,8 +721,9 @@ fun CompanionRoute(
                                             .firstOrNull { it.id == id }
                                         if (now?.available == true) {
                                             DhEngineWatchdog(context).clear(id)
-                                            callStage = id
-                                            dhPrefs.callStage = id
+                                            val choice = StageChoice.Engine(id)
+                                            stageChoice = choice
+                                            dhPrefs.callStageChoice = choice
                                         } else {
                                             toast(context, "$name 素材已下好，但${now?.reason ?: "现在还不能用"}")
                                         }
