@@ -113,11 +113,12 @@ fun CompanionRoute(
     /** 建会话返回 401 时由 app 层负责跳转登录。 */
     onLoginRequired: (() -> Unit)? = null,
     /**
-     * 通话页右下角人脸贴纸小窗的**内容注入**（组合根 HomeScreen 传
+     * 通话页小窗人脸贴纸的内容注入（组合根 HomeScreen 传
      * `CameraFxStickerPip`）。feature 互不依赖，:feature-companion 不 import
      * :feature-camera-fx（ModuleGraphTest 分层规则）。null = 无小窗。
+     * [stickerAssetId] = 面板选中的「我」贴纸（相机侧白名单校验）；null = 相机侧默认。
      */
-    faceCameraPipContent: (@Composable (Modifier, onGesture: (String) -> Unit) -> Unit)? = null,
+    faceCameraPipContent: (@Composable (Modifier, onGesture: (String) -> Unit, stickerAssetId: String?) -> Unit)? = null,
 ) {
     val context = LocalContext.current.applicationContext
     val tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.common.net.http.NetConfig.tokenHeader(), null) }
@@ -365,6 +366,8 @@ fun CompanionRoute(
         val labEnabled = remember(context) { DhLabGate.isEnabled(context) }
         val faceCamPrefs = remember(context) { CompanionFaceCameraPrefs(context) }
         var faceCameraOn by remember { mutableStateOf(faceCamPrefs.enabled) }
+        // 面板「我」区选中的贴纸资产 id；null = 相机模块默认（摸头爱心）。
+        var userSticker by rememberSaveable { mutableStateOf<String?>(null) }
         val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             faceCameraOn = granted
             faceCamPrefs.enabled = granted
@@ -770,6 +773,9 @@ fun CompanionRoute(
                             particles = waveOptions.particles,
                             // dh-lab 调试面板 → 同一条 Gesture 词表（按选项的 gestureId）。
                             onLabFxTest = { gesture -> chatViewModel.emitStageGesture(gesture) },
+                            // 面板「我」区：选中的贴纸只换本机相机小窗，不进舞台/发送视频。
+                            onLabUserStickerPick = { assetId -> userSticker = assetId },
+                            selectedUserSticker = userSticker,
                             labFaceCameraPip = labEnabled && faceCameraOn,
                             // 小窗手势 → 同一条 Gesture 词表（张→wave、捏→pat_head）。
                             // 词表映射钉在 feature-camera-fx 的 CameraGestureCue（单一事实源）。

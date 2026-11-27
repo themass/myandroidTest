@@ -126,8 +126,15 @@ fun DigitalHumanLabHost(
     gestureSeq: Long = 0L,
     /** 通话页飘散粒子开关；关 → 氛围类特效不播（[FxRenderPolicy]）。 */
     particles: Boolean = true,
-    /** dh-lab 门内「特效测试」按钮；null = 不显示。Route 接到 emitStageGesture("pat_head"). */
+    /** dh-lab 门内「特效测试」按钮；null = 不显示。Route 接到 emitStageGesture(gestureId). */
     onLabFxTest: ((String) -> Unit)? = null,
+    /**
+     * dh-lab 面板「我」区：点一下 = 把相机小窗的贴纸换成该资产（贴在本机画面上，
+     * 不进舞台、不进发送的视频）。null = 不显示「我」区。
+     */
+    onLabUserStickerPick: ((String) -> Unit)? = null,
+    /** 当前选中的「我」贴纸资产 id；null = 相机模块默认（摸头爱心）。 */
+    selectedUserSticker: String? = null,
     /** 通话页右下角小窗：前置相机 + 头顶 Lottie（仅 debug+已授相机权限）。 */
     labFaceCameraPip: Boolean = false,
     /** 小窗手势 → 舞台 cue（"wave"/"pat_head"）；Route 接到 emitStageGesture，不另起总线。 */
@@ -136,8 +143,9 @@ fun DigitalHumanLabHost(
      * 小窗内容本体由**组合根注入**：feature 互不依赖（ModuleGraphTest 分层规则，
      * 2026-11-23 正解），:feature-companion 不 import :feature-camera-fx——
      * HomeScreen（:app）传 `CameraFxStickerPip`。null = 不渲染小窗。
+     * [stickerAssetId] 透传给相机侧选贴纸（须 ∈ 其 StickerAssetIds 白名单）。
      */
-    faceCameraPipContent: (@Composable (Modifier, onGesture: (String) -> Unit) -> Unit)? = null,
+    faceCameraPipContent: (@Composable (Modifier, onGesture: (String) -> Unit, stickerAssetId: String?) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
@@ -507,6 +515,12 @@ fun DigitalHumanLabHost(
                         .padding(horizontal = 14.dp, vertical = 6.dp),
                 )
                 if (fxPanelOpen) {
+                    Text(
+                        text = "她 · 舞台特效",
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 11.sp,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
                     StageFxOptions
                         .options(FxTarget.HER, particles = particles, reducedMotion = reducedMotion)
                         .forEach { option ->
@@ -525,6 +539,49 @@ fun DigitalHumanLabHost(
                                     .padding(horizontal = 14.dp, vertical = 6.dp),
                             )
                         }
+                    // 「我」区 = 贴在本机相机画面上的贴纸（不进舞台、不进发送视频）。
+                    // 相机小窗未开时整区置灰并给原因——不隐藏，让用户知道差在哪一步。
+                    val camOn = labFaceCameraPip &&
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                        PackageManager.PERMISSION_GRANTED
+                    onLabUserStickerPick?.let { pick ->
+                        Text(
+                            text = "我 · 相机贴纸",
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                        StageFxOptions
+                            .options(
+                                FxTarget.USER,
+                                cameraGranted = camOn,
+                                particles = particles,
+                                reducedMotion = reducedMotion,
+                            )
+                            .forEach { option ->
+                                val chosen = option.assetId == selectedUserSticker
+                                Text(
+                                    text = (if (chosen) "✓ " else "　") + option.label +
+                                        (option.unavailableReason?.let { "（$it）" } ?: ""),
+                                    color = if (option.enabled) Color.White else Color.White.copy(alpha = 0.4f),
+                                    fontSize = 13.sp,
+                                    modifier = Modifier
+                                        .padding(top = 6.dp)
+                                        .clip(RoundedCornerShape(percent = 50))
+                                        .background(
+                                            Color.White.copy(
+                                                alpha = when {
+                                                    chosen -> 0.32f
+                                                    option.enabled -> 0.18f
+                                                    else -> 0.07f
+                                                },
+                                            ),
+                                        )
+                                        .clickable(enabled = option.enabled) { pick.invoke(option.assetId) }
+                                        .padding(horizontal = 14.dp, vertical = 6.dp),
+                                )
+                            }
+                    }
                 }
             }
         }
@@ -535,7 +592,7 @@ fun DigitalHumanLabHost(
             if (camOk) {
                 if (faceCameraPipContent != null) {
                     DraggableCameraPreview { previewModifier ->
-                        faceCameraPipContent(previewModifier, onCameraStageGesture ?: {})
+                        faceCameraPipContent(previewModifier, onCameraStageGesture ?: {}, selectedUserSticker)
                     }
                 }
             }

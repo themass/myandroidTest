@@ -451,13 +451,15 @@ fun CameraFxGrantedContent(
 }
 
 /**
- * 通话页右下角小窗：仅贴纸，无 HUD/线框；手势联动舞台 cue（如上层传了 [onStageGesture]）。
+ * 通话页小窗：仅贴纸，无 HUD/线框；手势联动舞台 cue（如上层传了 [onStageGesture]）。
+ * [stickerAssetId] = 面板选中的贴纸（须 ∈ [StickerAssetIds.ALLOWED]）；null = 默认（摸头爱心）。
  */
 @Composable
 fun CameraFxStickerPip(
     modifier: Modifier = Modifier,
     onStageGesture: ((String) -> Unit)? = null,
     stickerRenderer: CameraFxStickerRenderer? = null,
+    stickerAssetId: String? = null,
 ) {
     CameraFxGrantedContent(
         modifier = modifier,
@@ -465,6 +467,7 @@ fun CameraFxStickerPip(
             drawWireframe = false,
             drawStickers = true,
             showDebugHud = false,
+            stickerAssetId = stickerAssetId ?: StickerAssetIds.PAT_HEAD,
         ),
         onStageGesture = onStageGesture,
         stickerRenderer = stickerRenderer,

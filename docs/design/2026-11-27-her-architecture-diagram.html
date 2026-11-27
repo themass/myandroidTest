@@ -1,0 +1,216 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Her App × 服务端架构（2026-11-27）</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", sans-serif; margin: 24px; color: #1c2430; background: #f7f8fa; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #5a6675; font-size: 13px; margin-bottom: 16px; }
+  .legend { display: flex; gap: 18px; font-size: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .chip { width: 26px; height: 0; border-top: 3px solid #33475e; display: inline-block; }
+  .chip.dash { border-top-style: dashed; border-color: #7a8699; }
+  .chip.local { border-color: #0f766e; }
+  svg { background: #fff; border: 1px solid #dde3ea; border-radius: 10px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+  .card { background: #fff; border: 1px solid #dde3ea; border-radius: 10px; padding: 14px 16px; font-size: 13px; line-height: 1.55; }
+  .card h2 { font-size: 14px; margin: 0 0 8px; }
+  .ok { color: #14532d; } .bad { color: #9f1239; }
+  ul { margin: 0; padding-left: 18px; }
+  code { background: #eef1f5; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+</style>
+<h1>Her：App × 服务端架构分层图</h1>
+<div class="sub">实线 = 现在代码里真实存在的路径；虚线 = 设计草案（角色发布契约等）；粗青线 = 本机闭环（不出设备）。「特效测试」面板与相机手势汇入同一条 gesture 词表——单一事件总线是全图最关键的接缝。</div>
+<div class="legend">
+  <span><i class="chip"></i> 已实现链路</span>
+  <span><i class="chip dash"></i> 草案 / 待接入</span>
+  <span><i class="chip local"></i> 本机闭环（不上传）</span>
+</div>
+<svg viewBox="0 0 1240 920" width="1240" height="920" font-family="-apple-system, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#33475e"/></marker>
+    <marker id="ad" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#7a8699"/></marker>
+    <marker id="al" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#0f766e"/></marker>
+  </defs>
+
+  <!-- ===== Android app ===== -->
+  <rect x="30" y="20" width="700" height="880" rx="14" fill="none" stroke="#33475e" stroke-width="1.6"/>
+  <text x="50" y="48" font-size="16" font-weight="700" fill="#1c2430">Android App（:app 组合根 · ModuleGraphTest 钉死模块边界）</text>
+
+  <!-- composition root -->
+  <rect x="50" y="66" width="660" height="66" rx="8" fill="#eef4fb" stroke="#9db8d6"/>
+  <text x="66" y="90" font-size="13" font-weight="600">:app — HomeScreen（组合根）</text>
+  <text x="66" y="110" font-size="12" fill="#43536a">注入跨 feature 内容：faceCameraPipContent = CameraFxStickerPip(...)；feature 之间互不 import</text>
+
+  <!-- feature-companion -->
+  <rect x="50" y="150" width="660" height="470" rx="10" fill="none" stroke="#33475e" stroke-dasharray="0"/>
+  <text x="66" y="174" font-size="14" font-weight="700" fill="#1c2430">:feature-companion（陪伴域）</text>
+
+  <!-- UI row -->
+  <rect x="66" y="190" width="200" height="74" rx="7" fill="#fff" stroke="#b7c4d4"/>
+  <text x="80" y="212" font-size="12.5" font-weight="600">UI 层</text>
+  <text x="80" y="230" font-size="11.5" fill="#43536a">CompanionRoute</text>
+  <text x="80" y="246" font-size="11.5" fill="#43536a">CompanionCallScreen</text>
+  <text x="80" y="262" font-size="11.5" fill="#43536a">CharacterListScreen（角色列表）</text>
+
+  <!-- ViewModel -->
+  <rect x="292" y="190" width="190" height="74" rx="7" fill="#fff" stroke="#b7c4d4"/>
+  <text x="306" y="212" font-size="12.5" font-weight="600">CompanionViewModel</text>
+  <text x="306" y="230" font-size="11.5" fill="#43536a">uiState: connection / subtitle</text>
+  <text x="306" y="246" font-size="11.5" fill="#43536a">gesture + gestureSeq</text>
+  <text x="306" y="262" font-size="11.5" fill="#0f766e">emitStageGesture()（本地并入）</text>
+
+  <!-- transport -->
+  <rect x="508" y="190" width="186" height="74" rx="7" fill="#fff" stroke="#b7c4d4"/>
+  <text x="522" y="212" font-size="12.5" font-weight="600">传输层</text>
+  <text x="522" y="230" font-size="11.5" fill="#43536a">HttpCompanionApi (REST)</text>
+  <text x="522" y="246" font-size="11.5" fill="#43536a">LiveKit transport</text>
+  <text x="522" y="262" font-size="11.5" fill="#43536a">RoomSendGuard → cmp.*</text>
+
+  <!-- gesture bus highlight -->
+  <rect x="292" y="290" width="402" height="46" rx="7" fill="#fff7ed" stroke="#d97706" stroke-width="1.8"/>
+  <text x="306" y="309" font-size="12" font-weight="700" fill="#92400e">单一 Gesture 词表（cmp.cue → AvatarEventMapper → Gesture → uiState）</text>
+  <text x="306" y="326" font-size="11.5" fill="#92400e">不另起第二条总线 —— 服务端 cue、托盘、面板、相机手势全部汇入此处</text>
+
+  <!-- fx -->
+  <rect x="66" y="360" width="330" height="120" rx="7" fill="#fff" stroke="#b7c4d4"/>
+  <text x="80" y="382" font-size="12.5" font-weight="600">fx 舞台特效（独立叠加层）</text>
+  <text x="80" y="400" font-size="11.5" fill="#43536a">StageFxOptions（面板选项 = 白名单单一事实源）</text>
+  <text x="80" y="416" font-size="11.5" fill="#43536a">StageEffectMapper（纯函数词表翻译）→ LottieFxLayer</text>
+  <text x="80" y="432" font-size="11.5" fill="#43536a">FxAssets 白名单 · FxRenderPolicy 降级</text>
+  <text x="80" y="448" font-size="11.5" fill="#43536a">锚点 = 固定视口坐标（不跟舞台捏合）</text>
+  <text x="80" y="466" font-size="11.5" fill="#9f1239">限制：放大时局部特效跳过</text>
+
+  <!-- avatar domain -->
+  <rect x="416" y="360" width="278" height="120" rx="7" fill="#fff" stroke="#b7c4d4"/>
+  <text x="430" y="382" font-size="12.5" font-weight="600">avatar 形象包域</text>
+  <text x="430" y="400" font-size="11.5" fill="#43536a">AvatarSync（/v1/avatars 按角色同步）</text>
+  <text x="430" y="416" font-size="11.5" fill="#43536a">AvatarPackStore（ZIP SHA-256 强校验）</text>
+  <text x="430" y="432" font-size="11.5" fill="#43536a">BundledAvatars（内置包固定哈希）</text>
+  <text x="430" y="448" font-size="11.5" fill="#0f766e">CharacterAssetPack（新增契约：引擎类型 +</text>
+  <text x="430" y="464" font-size="11.5" fill="#0f766e">版本化 manifest + 逐文件哈希 + 暂存发布）</text>
+
+  <!-- dh engines -->
+  <rect x="66" y="500" width="628" height="104" rx="7" fill="#fff" stroke="#b7c4d4"/>
+  <text x="80" y="522" font-size="12.5" font-weight="600">dh 数字人引擎（统一接口 + 注册表）</text>
+  <text x="80" y="540" font-size="11.5" fill="#43536a">DigitalHumanEngine：bind / dispatch(AvatarCommand) / createView / feedPcm / release</text>
+  <text x="80" y="556" font-size="11.5" fill="#43536a">DhEngineRegistry：Simple · Live2D · VRM · Spine · TalkingHead · Duix · Tao（Rive=debug）</text>
+  <text x="80" y="572" font-size="11.5" fill="#43536a">DigitalHumanLabHost：GL 线程红线（JNI 只经 JniDispatcher）· 手势仲裁唯一入口</text>
+  <text x="80" y="590" font-size="11.5" fill="#9f1239">限制：引擎选择与角色包尚未贯通（实验入口手动选）；wardrobe-spec 契约=草案</text>
+
+  <!-- feature-camera-fx -->
+  <rect x="50" y="640" width="660" height="126" rx="10" fill="none" stroke="#0f766e"/>
+  <text x="66" y="664" font-size="14" font-weight="700" fill="#0f5132">:feature-camera-fx（本机相机域）</text>
+  <rect x="66" y="678" width="300" height="76" rx="7" fill="#f0fdfa" stroke="#5eaea0"/>
+  <text x="80" y="698" font-size="11.5" font-weight="600" fill="#0f5132">CameraX + MediaPipe（Face/Pose/Hand）</text>
+  <text x="80" y="714" font-size="11.5" fill="#3b6b62">CameraFxOverlayPolicy + StickerAssetIds 白名单</text>
+  <text x="80" y="730" font-size="11.5" fill="#3b6b62">头顶锚点贴纸 · EMA 跟踪 · 帧不出设备</text>
+  <rect x="390" y="678" width="304" height="76" rx="7" fill="#f0fdfa" stroke="#5eaea0"/>
+  <text x="404" y="698" font-size="11.5" font-weight="600" fill="#0f5132">CameraGestureCue（手势→词表 单一事实源）</text>
+  <text x="404" y="714" font-size="11.5" fill="#3b6b62">张手→wave · 捏合→pat_head</text>
+  <text x="404" y="730" font-size="11.5" fill="#3b6b62">DraggableCameraPreview：左下默认、可拖动</text>
+
+  <!-- dh-engines -->
+  <rect x="50" y="786" width="660" height="96" rx="10" fill="none" stroke="#33475e"/>
+  <text x="66" y="810" font-size="14" font-weight="700" fill="#1c2430">:dh-engines（原生与素材底座）</text>
+  <text x="66" y="830" font-size="11.5" fill="#43536a">AssetStore：下载/进度/可选 SHA-256/ZIP 越界检查</text>
+  <text x="66" y="846" font-size="11.5" fill="#43536a">native bridges（Live2D/Duix/Tao…）+ availability 探测</text>
+  <text x="66" y="864" font-size="11.5" fill="#9f1239">缺口：AssetManifest 各资源尚未固定哈希（下载不校验）</text>
+
+  <!-- ===== Server ===== -->
+  <rect x="780" y="20" width="430" height="880" rx="14" fill="none" stroke="#33475e" stroke-width="1.6"/>
+  <text x="800" y="48" font-size="16" font-weight="700" fill="#1c2430">服务端（api.ok123find.top → nginx → 8081）</text>
+
+  <rect x="800" y="70" width="390" height="120" rx="8" fill="#eef4fb" stroke="#9db8d6"/>
+  <text x="816" y="94" font-size="13" font-weight="600">REST API（登录鉴权）</text>
+  <text x="816" y="112" font-size="11.5" fill="#43536a">GET /v1/characters（角色列表）</text>
+  <text x="816" y="128" font-size="11.5" fill="#43536a">POST /v1/voice/sessions（character_id → LiveKit 接入）</text>
+  <text x="816" y="144" font-size="11.5" fill="#43536a">GET /v1/avatars（形象包版本 → 签名下载链接）</text>
+  <text x="816" y="162" font-size="11.5" fill="#92400e">草案：release 契约（persona/voice/skills/包哈希/wardrobe 版本固定）</text>
+
+  <rect x="800" y="214" width="390" height="130" rx="8" fill="#fff" stroke="#b7c4d4"/>
+  <text x="816" y="238" font-size="13" font-weight="600">LiveKit 房间（每会话一间）</text>
+  <text x="816" y="256" font-size="11.5" fill="#43536a">音频轨：用户 ⇄ Her（TTS 下行）</text>
+  <text x="816" y="272" font-size="11.5" fill="#43536a">数据通道：cmp.ctl（控制） cmp.in（输入）</text>
+  <text x="816" y="288" font-size="11.5" fill="#43536a">cmp.cue（演出提示：手势/表情/特效） cmp.tel（遥测）</text>
+  <text x="816" y="306" font-size="11.5" fill="#9f1239">现状：touch 上报仍走 v1 黑洞（v2 握手未完成）</text>
+
+  <rect x="800" y="368" width="390" height="112" rx="8" fill="#fff" stroke="#b7c4d4"/>
+  <text x="816" y="392" font-size="13" font-weight="600">Agent 编排（服务端裁决）</text>
+  <text x="816" y="410" font-size="11.5" fill="#43536a">persona / 记忆 / 权限解析（私有提示词不下发）</text>
+  <text x="816" y="426" font-size="11.5" fill="#43536a">回合 → TTS → 演出 cue（表情·特效·换装指令）</text>
+  <text x="816" y="442" font-size="11.5" fill="#43536a">未来：agent 生成特效/贴纸指令（复用同一命令语义）</text>
+  <text x="816" y="460" font-size="11.5" fill="#9f1239">草案：指令需白名单校验，禁止指定本地路径</text>
+
+  <rect x="800" y="504" width="390" height="112" rx="8" fill="#fff" stroke="#b7c4d4"/>
+  <text x="816" y="528" font-size="13" font-weight="600">资产存储（对象存储 + 签名链接）</text>
+  <text x="816" y="546" font-size="11.5" fill="#43536a">形象包 ZIP（立绘/分层包：哈希由服务端 API 声明）</text>
+  <text x="816" y="562" font-size="11.5" fill="#43536a">草案：模型包（Live2D/VRM…）按引擎类型 + 逐文件哈希</text>
+  <text x="816" y="578" font-size="11.5" fill="#43536a">下载不携带登录凭据（签名 URL 短期有效）</text>
+  <text x="816" y="596" font-size="11.5" fill="#92400e">草案：下载状态机（未下载/下载中/就绪/损坏/更新）</text>
+
+  <rect x="800" y="640" width="390" height="80" rx="8" fill="#fff" stroke="#b7c4d4"/>
+  <text x="816" y="664" font-size="13" font-weight="600">共享契约</text>
+  <text x="816" y="682" font-size="11.5" fill="#43536a">cmp.* 协议 · gesture 词表（服务端与本地共用一套）</text>
+  <text x="816" y="698" font-size="11.5" fill="#43536a">wardrobe-spec.json（换装唯一事实源，草案）</text>
+  <text x="816" y="714" font-size="11.5" fill="#43536a">FxAssets / StickerAssetIds 双端白名单（同名资产）</text>
+
+  <!-- arrows: app -> server -->
+  <line x1="598" y1="215" x2="800" y2="110" stroke="#33475e" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="640" y="165" font-size="11" fill="#33475e">HTTP：角色/会话</text>
+
+  <line x1="800" y1="150" x2="560" y2="395" stroke="#33475e" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="600" y="352" font-size="11" fill="#33475e">形象包下载（签名 URL）</text>
+
+  <line x1="800" y1="250" x2="560" y2="238" stroke="#33475e" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="660" y="228" font-size="11" fill="#33475e">LiveKit：音频 + cmp.*</text>
+
+  <line x1="598" y1="255" x2="800" y2="270" stroke="#33475e" stroke-width="1.2" stroke-dasharray="5 4" marker-end="url(#ad)"/>
+  <text x="640" y="288" font-size="11" fill="#7a8699">touch/cmp.tel 上报（v2 未完成）</text>
+
+  <!-- arrows: release -> avatars (server internal) -->
+  <line x1="995" y1="190" x2="995" y2="214" stroke="#7a8699" stroke-width="1.2" stroke-dasharray="5 4" marker-end="url(#ad)"/>
+  <line x1="995" y1="344" x2="995" y2="368" stroke="#33475e" stroke-width="1.4" marker-end="url(#a)"/>
+
+  <!-- internal: gesture bus in app -->
+  <line x1="493" y1="264" x2="493" y2="290" stroke="#33475e" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="230" y1="400" x2="292" y2="330" stroke="#33475e" stroke-width="1.4" marker-end="url(#a)" transform="translate(20,0)"/>
+  <line x1="340" y1="336" x2="230" y2="358" stroke="#33475e" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="440" y1="336" x2="440" y2="500" stroke="#33475e" stroke-width="1.4" marker-end="url(#a)"/>
+  <text x="446" y="420" font-size="11" fill="#33475e">AvatarCommand→引擎</text>
+
+  <!-- camera local loop -->
+  <line x1="542" y1="678" x2="542" y2="336" stroke="#0f766e" stroke-width="2.2" marker-end="url(#al)"/>
+  <text x="548" y="640" font-size="11" fill="#0f766e">相机手势 → 同一词表（本机识别）</text>
+  <line x1="216" y1="678" x2="216" y2="480" stroke="#0f766e" stroke-width="2.2" marker-end="url(#al)"/>
+  <text x="120" y="614" font-size="11" fill="#0f766e">「我」贴纸选择 → 小窗策略（不进舞台/不上传）</text>
+
+  <!-- fx panel click -->
+  <line x1="396" y1="360" x2="396" y2="336" stroke="#33475e" stroke-width="1.4" marker-end="url(#a)"/>
+
+  <!-- stage render -->
+  <line x1="230" y1="500" x2="230" y2="480" stroke="#33475e" stroke-width="1.4" marker-end="url(#a)"/>
+  <text x="150" y="497" font-size="11" fill="#33475e">叠加渲染</text>
+</svg>
+
+<div class="grid">
+  <div class="card">
+    <h2>高内聚：现在成立的接缝 ✓</h2>
+    <ul>
+      <li><b>feature 互不依赖</b>：:feature-companion 不 import :feature-camera-fx，跨域内容由 :app 组合根注入，<code>ModuleGraphTest</code> 在测试里钉死。</li>
+      <li><b>单一事件词表</b>：服务端 cue、托盘、特效面板、相机手势全部汇入同一条 <code>gesture → gestureSeq</code> 流；特效层只认 <code>StageEffect</code>，不认识协议也不认识引擎。</li>
+      <li><b>资产白名单</b>：FxAssets / StickerAssetIds 是唯一注册点，未登记资产永远进不了渲染；面板选项从白名单派生（<code>StageFxOptions</code>），不存在第二份清单。</li>
+      <li><b>引擎统一接口</b>：新引擎 = Registry 加工厂 + 实现 <code>DigitalHumanEngine</code>；UI/ViewModel 不感知具体引擎。</li>
+      <li><b>包安装校验</b>：新 <code>CharacterAssetPack</code> 把「引擎类型 + 版本 + 逐文件哈希 + 暂存发布 + 失败保留旧版」做成引擎无关的契约。</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h2>可扩展性：已知缺口 ✗（图上红/虚线）</h2>
+    <ul>
+      <li><b>包机制双轨</b>：旧 AvatarPackStore（立绘/分层）与新 CharacterAssetPack 并存，尚未合并；引擎侧 AssetStore 的清单没固定哈希，下载不校验。</li>
+      <li><b>角色↔引擎未贯通</b>：进房默认仍是角色绑定的立绘；数字人引擎靠实验菜单手选，「目录返回引擎类型→自动选引擎」未实现。</li>
+      <li><b>服务端 release 契约是草案</b>：persona/voice/skills/包哈希/wardrobe 版本固定尚无 API；touch 上报还在 v1 黑洞。</li>
+      <li><b>特效锚点是固定视口坐标</b>：不跟随模型骨骼或舞台缩放；「Her 特效跟部位绑定」需要引擎侧提供真实锚点后才能升级。</li>
+      <li><b>相机贴纸≠视频合成</b>：贴纸只画在本机预览上，未合成进 LiveKit 发送的视频轨。</li>
+    </ul>
+  </div>
+</div>
