@@ -315,10 +315,12 @@ fun CameraFxGrantedContent(
                 // 每张贴纸一路 EMA + 一路丢失容错；下标不是身份（MediaPipe 不保证
                 // 多脸顺序），跳脸由 smoother 内部阈值 snap，见 [PlacementSmoother]；
                 // 单帧漏检由 tracker 钉在最后一次成功位置，见 [StickerHoldTracker]。
+                // 贴纸部位（头顶/眼/嘴/手）由 [stickerAnchorsForFrame] 决定这一帧有几路锚点，
+                // 几何仍全部来自 FxAnalyzer 已算好的 landmark 结果——这里不重算跟踪。
                 val slots = remember { mutableStateListOf<StickerSlotState>() }
-                val faceCount = frameForSticker.faces.size
-                // 脸数会因单帧漏检变化：以 faces 与已挂槽位的较大者为准，漏掉的下标按 miss 推进。
-                val slotCount = maxOf(faceCount, slots.count { it.lastPlacement != null })
+                val anchors = stickerAnchorsForFrame(overlayPolicy.stickerAssetId, frameForSticker)
+                // 锚点数会因单帧漏检变化：以锚点与已挂槽位的较大者为准，漏掉的下标按 miss 推进。
+                val slotCount = maxOf(anchors.size, slots.count { it.lastPlacement != null })
                 while (slots.size < slotCount) {
                     slots.add(StickerSlotState())
                 }
@@ -328,24 +330,15 @@ fun CameraFxGrantedContent(
                     isPlaying = comp != null && drawStickers,
                 )
                 for (slotIndex in 0 until slotCount) {
-                    val face = frameForSticker.faces.getOrNull(slotIndex)
+                    val source = anchors.getOrNull(slotIndex)
                     val slot = slots[slotIndex]
-                    val head = face?.headTop
-                    val fw = face?.bounds?.width
-                    val track = slot.tracker.advance(hasAnchor = head != null && fw != null)
-                    // 从 Held/Off 恢复到 Anchored：头可能已在漏检期间移动，直接 snap 回跟随。
+                    val track = slot.tracker.advance(hasAnchor = source != null)
+                    // 从 Held/Off 恢复到 Anchored：头/手可能已在漏检期间移动，直接 snap 回跟随。
                     val placeFinal: StickerPlacementPx = when (track) {
                         is StickerTrack.Anchored -> {
-                            val place = stickerAtHeadTop(
-                                map,
-                                head!!,
-                                fw!!,
-                                face.tiltDeg,
-                                widthFractionOfFace = 1.05f,
-                            )
                             // 尺寸也要跟着平滑值走，否则 offset 平滑、size 逐帧跳，等于没平滑。
                             // StickerSlotState 在 Held 后重获锚点时会先 reset EMA 并直接 snap。
-                            slot.anchor(place)
+                            slot.anchor(stickerPlacementFor(map, source!!))
                         }
                         is StickerTrack.Held ->
                             // 漏检宽限内：钉在最后一次成功位置，不喂 smoother（否则把
@@ -444,6 +437,22 @@ fun CameraFxGrantedContent(
                         color = Color(0xFFFFCC80),
                         fontSize = 11.sp,
                     )
+                }
+                // 当前这张贴纸为什么没上脸：与面板置灰同一套原因（[StickerAvailability]），
+                // 不另写一套文案——两处不一致时用户只会认为其中一处在撒谎。
+                if (f != null && drawStickers) {
+                    val verdict = StickerAvailability.check(
+                        stickerAssetId = overlayPolicy.stickerAssetId,
+                        hasFace = faceN > 0,
+                        hasHand = handN > 0,
+                    )
+                    verdict.reason?.let {
+                        Text(
+                            "贴纸 ${StickerAssetIds.lookup(overlayPolicy.stickerAssetId)?.label ?: ""}：$it",
+                            color = Color(0xFFFFCC80),
+                            fontSize = 11.sp,
+                        )
+                    }
                 }
             }
         }

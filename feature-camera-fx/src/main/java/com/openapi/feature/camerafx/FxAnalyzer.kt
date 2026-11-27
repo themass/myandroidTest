@@ -27,6 +27,13 @@ data class FaceFx(
     val headTop: Point2d?,
     val eyeLine: Segment2d?,
     val tiltDeg: Float,
+    /**
+     * 唇锚点 = 外唇 landmark 均值（[mouthAnchor]），每帧算一次挂在帧上。
+     *
+     * 挂在这里而不是让贴纸层每帧自己均值：面板判定、预览绘制、HUD 必须用同一个数，
+     * 否则「同一张贴纸在两个地方位置不同」这种 bug 查起来极贵。
+     */
+    val mouth: Point2d? = null,
 )
 
 data class PoseFx(val segments: List<Segment2d>)
@@ -216,6 +223,7 @@ class FxAnalyzer(
         val faces = faceLandmarks.map { lm ->
             val oval = pick(lm, FACE_OVAL)
             val bounds = faceBounds(oval)
+            val lips = pick(lm, FACE_LIPS_OUTER)
             val eyes = if (lm.size > max(FACE_IRIS_CENTER_LEFT, FACE_IRIS_CENTER_RIGHT)) {
                 Segment2d(lm[FACE_IRIS_CENTER_LEFT].toPoint(), lm[FACE_IRIS_CENTER_RIGHT].toPoint())
             } else {
@@ -228,13 +236,15 @@ class FxAnalyzer(
                     FacePolyline(pick(lm, FACE_BROW_RIGHT), closed = false),
                     FacePolyline(pick(lm, FACE_EYE_LEFT), closed = true),
                     FacePolyline(pick(lm, FACE_EYE_RIGHT), closed = true),
-                    FacePolyline(pick(lm, FACE_LIPS_OUTER), closed = true),
+                    FacePolyline(lips, closed = true),
                 ).filter { it.points.size >= 2 },
                 bounds = bounds,
                 headTop = headTopAnchor(oval, bounds),
                 eyeLine = eyes,
                 // HUD 显示用户所见（前摄预览镜像空间）的角度
                 tiltDeg = eyes?.let { lineTiltDegrees(it.a, it.b, mirrorX = true) } ?: 0f,
+                // 胡子贴纸的挂点：复用同一次唇部采样，不再解一遍 landmark。
+                mouth = mouthAnchor(lips),
             )
         }
         val poses = poseLandmarks.map { lm ->

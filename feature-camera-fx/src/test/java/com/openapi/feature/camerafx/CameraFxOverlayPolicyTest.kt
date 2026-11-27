@@ -8,8 +8,18 @@ class CameraFxOverlayPolicyTest {
 
     @Test
     fun lottieAssetPath() {
-        val p = CameraFxOverlayPolicy(stickerAssetId = StickerAssetIds.WAVE)
-        assertEquals("fx/fx_wave.json", p.lottieAssetPath)
+        val p = CameraFxOverlayPolicy(stickerAssetId = StickerAssetIds.CROWN)
+        assertEquals("fx/sticker_crown.json", p.lottieAssetPath)
+    }
+
+    @Test
+    fun stageEffectWordsAreNotAcceptedAsStickers() {
+        // 贴纸白名单不再挪用舞台特效词（fx_wave / fx_swipe）：传进来必须抛，
+        // 而不是静默画一张舞台素材。
+        for (borrowed in listOf("fx_wave", "fx_swipe", "fx_connected")) {
+            val thrown = runCatching { CameraFxOverlayPolicy(stickerAssetId = borrowed) }.isFailure
+            assertTrue("$borrowed 不该再当贴纸", thrown)
+        }
     }
 
     @Test

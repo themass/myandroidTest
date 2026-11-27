@@ -179,12 +179,11 @@ fun CameraFxScreen(onNavigateBack: () -> Unit = {}) {
                     FilterChip(
                         selected = policy.drawStickers,
                         onClick = {
-                            // 三张贴纸轮转：爱心 → 光弧 → 滑动流光
-                            val next = when (policy.stickerAssetId) {
-                                StickerAssetIds.PAT_HEAD -> StickerAssetIds.WAVE
-                                StickerAssetIds.WAVE -> StickerAssetIds.SWIPE
-                                else -> StickerAssetIds.PAT_HEAD
-                            }
+                            // 轮转整张贴纸白名单（顺序 = StickerAssetIds.all）：
+                            // 词表加一条，lab 就能立刻试到，不用再来改这里。
+                            val ids = StickerAssetIds.all.map { it.assetId }
+                            val at = ids.indexOf(policy.stickerAssetId)
+                            val next = ids[(at + 1 + ids.size) % ids.size]
                             persist(
                                 policy.copy(
                                     drawStickers = true,
@@ -193,13 +192,7 @@ fun CameraFxScreen(onNavigateBack: () -> Unit = {}) {
                             )
                         },
                         label = {
-                            Text(
-                                when (policy.stickerAssetId) {
-                                    StickerAssetIds.WAVE -> "光弧"
-                                    StickerAssetIds.SWIPE -> "流光"
-                                    else -> "爱心"
-                                },
-                            )
+                            Text(StickerAssetIds.lookup(policy.stickerAssetId)?.label ?: "贴纸")
                         },
                         modifier = Modifier.padding(start = 6.dp),
                     )
