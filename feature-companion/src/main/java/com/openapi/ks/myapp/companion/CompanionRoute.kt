@@ -83,8 +83,8 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 
-/** 陪伴界面里能去的页面。聊天是主页面，其余三个从顶部进入。 */
-enum class CompanionPage { CHAT, CHARACTERS, MEMORY, PROFILE_DOC, SETTINGS }
+/** 陪伴界面里能去的页面。聊天是主页面，其余从顶部进入。 */
+enum class CompanionPage { CHAT, CHARACTERS, HERS, MEMORY, PROFILE_DOC, SETTINGS }
 
 /**
  * 陪伴界面的完整装配：聊天主页面 + 角色列表 / 记忆 / 偏好三个子页面。
@@ -248,6 +248,7 @@ fun CompanionRoute(
                     modifier = Modifier.fillMaxWidth(),
                     onOpenCall = openCall,
                     onOpenCharacters = { page = CompanionPage.CHARACTERS },
+                    onOpenHers = { page = CompanionPage.HERS },
                     onOpenProfile = { page = CompanionPage.MEMORY },
                     onOpenProfileDoc = { page = CompanionPage.PROFILE_DOC },
                     onMenuClick = onMenuClick,
@@ -267,6 +268,35 @@ fun CompanionRoute(
                         characterId = it.id
                         page = CompanionPage.CHAT
                     },
+                    onBack = { page = CompanionPage.CHAT },
+                )
+            }
+
+            CompanionPage.HERS -> {
+                // her 形象列表（OpenDesign 02）。数据走第二刀那条链：HerRegistryStore 拉
+                // /v1/hers（失败宽出成空表），写只写 DhLabPreferences.callStageChoice——
+                // 通话页的 resolveCallStage 仍是引擎唯一决定点，这里不另起状态。
+                val vm: HerListViewModel = viewModel(
+                    factory = viewModelFactory {
+                        initializer {
+                            HerListViewModel(
+                                registry = HerRegistryStore(api),
+                                api = api,
+                                prefs = DhLabPreferences(context),
+                                roleId = characterId,
+                            )
+                        }
+                    },
+                )
+                val herState by vm.state.collectAsStateWithLifecycle()
+                HerListScreen(
+                    state = herState,
+                    onPick = { her ->
+                        // 选了即生效：回聊天页再进通话就是新引擎（引擎素材缺失时由既有
+                        // DhEngineDownloadGate / 引擎自判兜底，不在这里重复决策）。
+                        if (vm.pick(her)) page = CompanionPage.CHAT
+                    },
+                    onFollowDefault = vm::followServerDefault,
                     onBack = { page = CompanionPage.CHAT },
                 )
             }

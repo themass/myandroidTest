@@ -132,6 +132,8 @@ fun CompanionScreen(
     onOpenCall: () -> Unit = {},
     /** 打开角色选择。 */
     onOpenCharacters: () -> Unit = {},
+    /** 打开「她长什么样」——her 形象列表（换呈现不换人格，OpenDesign 稿 02）。 */
+    onOpenHers: () -> Unit = {},
     /** 打开个性化页面（记忆、重要日子、她的主动性）。 */
     onOpenProfile: () -> Unit = {},
     /** 打开「AI 对你的档案」（Markdown 档案，按角色隔离，可编辑）。 */
@@ -277,6 +279,7 @@ fun CompanionScreen(
                     onMenuClick = onMenuClick,
                     onToggleAvatar = viewModel::toggleAvatarExpanded,
                     onCharacters = onOpenCharacters,
+                    onHers = onOpenHers,
                     onProfile = onOpenProfile,
                     onProfileDoc = onOpenProfileDoc,
                     onToggleOutput = viewModel::toggleOutput,
@@ -392,6 +395,8 @@ private fun CompanionTopBar(
     onMenuClick: (() -> Unit)?,
     onToggleAvatar: () -> Unit,
     onCharacters: () -> Unit,
+    /** 打开「她长什么样」（her 形象列表）。 */
+    onHers: () -> Unit,
     onProfile: () -> Unit,
     onProfileDoc: () -> Unit,
     onToggleOutput: () -> Unit,
@@ -531,6 +536,13 @@ private fun CompanionTopBar(
                         onClick = {
                             menuOpen = false
                             onCharacters()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("她长什么样（换形象）") },
+                        onClick = {
+                            menuOpen = false
+                            onHers()
                         },
                     )
                 }
