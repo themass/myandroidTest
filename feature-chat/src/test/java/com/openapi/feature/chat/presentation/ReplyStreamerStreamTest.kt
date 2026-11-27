@@ -94,7 +94,7 @@ class ReplyStreamerStreamTest {
 
     /**
      * 点停止的这一刻本地就收尾：发送键复位（sending=false）、生成中的占位气泡定格
-     * （pending=false）、排队清空——不等网络。`cancelTurn` 在后台发，失败也不影响本地。
+     * （pending=false）、等待队列保留——不等网络。`cancelTurn` 在后台发，失败也不影响本地。
      * 旧实现要等 catch 分支跑完（含一次 suspend 的 saveMessage）才更新这几个标志，
      * 慢网络下「按了停止但界面还在生成」。这里用 runCurrent（不 advance）钉住同步性。
      */
@@ -123,9 +123,9 @@ class ReplyStreamerStreamTest {
         assertEquals("仍要请服务端取消这一轮", listOf(1L), h.repo.cancelledTurns)
     }
 
-    /** 停止后排队清空：中断意图明确，不能接着发下一条。 */
+    /** 普通停止保留等待输入，队列不会自行启动。 */
     @Test
-    fun stopClearsQueueSynchronously() {
+    fun stopPreservesQueueSynchronously() {
         val flow = flow<ChatStreamEvent> { kotlinx.coroutines.awaitCancellation() }
         val h = Harness(listOf(user()), flow)
         h.streamer.stream("问", userMessageId = "user-1", persistUser = true)
@@ -133,7 +133,7 @@ class ReplyStreamerStreamTest {
         h.state.value = h.state.value.copy(queued = listOf(QueuedText("q-0", "排队的")))
 
         h.streamer.cancel()
-        assertTrue("停止那一刻队列必须已空", h.state.value.queued.isEmpty())
+        assertEquals(listOf("排队的"), h.state.value.queued.map { it.text })
     }
 
     @Test
@@ -151,6 +151,7 @@ class ReplyStreamerStreamTest {
         h.scope.advanceUntilIdle()
         val assistant = h.state.value.messages.lastOrNull { it.role == ChatRole.ASSISTANT }
         assertTrue(assistant != null && assistant.text.isNotEmpty())
+        assertTrue("停止后的部分回复应有明确状态", assistant?.interrupted == true)
         assertEquals(DeliveryStatus.SENT, h.state.value.messages.first().delivery)
     }
 
@@ -225,8 +226,8 @@ class ReplyStreamerStreamTest {
     }
 
     /**
-     * 用户点停止 = 中断意图明确：排队中的文字必须清空，不能接着起新回合
-     * （排空只挂在自然结束的收尾；停止的 catch 分支 rethrow，走不到那里）。
+     * 用户点停止只终止当前回复：排队文字保留，但不自动起下一回合
+     * （排空只挂在流事件收尾；本地停止的 catch 分支 rethrow，走不到那里）。
      */
     @Test
     fun stopClearsQueueAndDoesNotStartNextTurn() {
@@ -234,12 +235,14 @@ class ReplyStreamerStreamTest {
         val h = Harness(listOf(user()), flow)
         h.streamer.stream("问", userMessageId = "user-1", persistUser = true)
         h.scope.runCurrent()
-        h.state.value = h.state.value.copy(queued = listOf(QueuedText("q-x", "没发出去的")))
+        h.state.value = h.state.value.copy(
+            queued = listOf(QueuedText("q-x", "第一条等待"), QueuedText("q-y", "第二条等待")),
+        )
         h.streamer.cancel()
         h.scope.advanceUntilIdle()
 
-        assertTrue("停止必须清空排队", h.state.value.queued.isEmpty())
-        assertEquals("停止后不得再起新回合", listOf("问"), h.repo.sentTexts)
+        assertEquals("停止必须保留排队输入", listOf("第一条等待", "第二条等待"), h.state.value.queued.map { it.text })
+        assertEquals("停止后不得自动起新回合", listOf("问"), h.repo.sentTexts)
         assertEquals("队列文字不能变成用户气泡", listOf("问"), h.state.value.messages.map { it.text })
     }
 }

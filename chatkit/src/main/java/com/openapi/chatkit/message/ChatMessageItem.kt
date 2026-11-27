@@ -257,6 +257,14 @@ fun ChatMessageItem(
                         }
                     }
                 }
+                if (!isUser && item.interrupted) {
+                    Text(
+                        stringResource(R.string.chatkit_interrupted),
+                        modifier = Modifier.padding(start = 6.dp, top = 2.dp),
+                        fontSize = ChatKit.typography.caption,
+                        color = ChatKit.colors.secondaryText,
+                    )
+                }
             }
             // 用户侧头像：只有调用方传了插槽才出现，且同样只在「连续同一发送者的第一条」渲染。
             // 不显示的那些行留等宽空位，气泡右边缘才不会忽宽忽窄。
@@ -354,74 +362,62 @@ internal fun MessageContent(
             return@Column
         }
         if (merged) {
-            // 单气泡：附件在上、一条分隔线、文字在下——同底色同圆角，读起来是一件事。
-            // 附件与文字之间的内部间距（8dp）刻意小于消息间距（14dp）：气泡之间的空 > 气泡内的空。
-            // footer 仍挂在文字之后（与 Separate 分支同一语义）；读屏动作挂在这个唯一的气泡上。
-            //
-            // A43-4①（20261126 用户反馈：图集消息右边距过深）：含图片的合并气泡让图片段**出血**
-            // （内层盒去掉横向 12dp，图片贴气泡内边），文字/位置卡/分隔线自己补回这 12dp——
-            // 文字边缘不动，只消掉「卡片右缘到气泡右缘」的双份内边距。
-            // 只有图片出血：文件卡/视频卡自带 12dp 圆角行卡皮肤，维持原内边距不变。
+            // 附件保持裸露，不再铺一整块消息气泡底色；文字仍保留原有气泡、分隔线和 footer。
+            // 图片继续贴齐原来的出血边缘；其他附件沿用此前的横向内边距。
             val bleed = images.isNotEmpty()
-            // 非图片内容的横向内边距：出血模式下内层盒不再压 padding，各段自己补回 12dp
-            //（文字/位置卡/分隔线边缘不动，只有图片贴气泡内边）。非出血时 inset=0，布局与从前逐像素一致。
             val inset = if (bleed) ChatKit.dimens.bubblePaddingHorizontal else 0.dp
-            TextBubble(
-                sender = sender,
-                onLongPress = onLongPress,
-                modifier = Modifier
-                    .widthIn(max = maxWidth)
-                    .testTag("merged-bubble"),
-                footer = footer,
-                screenReaderActions = screenReaderActions,
-                attachmentsBleed = bleed,
+            Column(
+                modifier = Modifier.widthIn(max = maxWidth),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = if (sender == Sender.User) Alignment.End else Alignment.Start,
             ) {
-                // A43-4②：收纳盒/轮播是固定宽（190+14×(visible-1)=218dp），默认 Start 把
-                // 218dp 钉在左侧 → 用户消息右侧留一条空白带。按发送者对齐（用户贴右缘、助手贴左缘）。
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = if (sender == Sender.User) Alignment.End else Alignment.Start,
+                images.forEach { part ->
+                    ImageGrid(
+                        sources = part.sources,
+                        maxWidth = maxWidth,
+                        onLongPress = { source -> onAttachmentLongPress(AttachmentTarget.Image(source)) },
+                        layout = part.layout,
+                        onRetryImage = { index -> onAction(MessageAction.RetryImage(index)) },
+                        onEdit = onEditImage,
+                        modifier = Modifier.testTag("merged-image-grid"),
+                    )
+                }
+                files.forEach { file ->
+                    FileCard(
+                        file = file,
+                        onClick = { onAction(MessageAction.OpenFile(file)) },
+                        onLongPress = { onAttachmentLongPress(AttachmentTarget.File(file)) },
+                        modifier = Modifier.padding(horizontal = inset).widthIn(max = maxWidth),
+                    )
+                }
+                videos.forEach { video ->
+                    VideoCard(
+                        video = video,
+                        onClick = { onAction(MessageAction.OpenVideo(video)) },
+                        onLongPress = { onAttachmentLongPress(AttachmentTarget.File(MessagePart.File(video.path, video.name, 0))) },
+                        modifier = Modifier.padding(horizontal = inset).widthIn(max = maxWidth),
+                    )
+                }
+                locations.forEach { location ->
+                    Box(Modifier.padding(horizontal = inset)) {
+                        LocationCardContent(
+                            location = location,
+                            onOpenMap = { onAction(MessageAction.OpenLocation(location)) },
+                        )
+                    }
+                }
+                TextBubble(
+                    sender = sender,
+                    onLongPress = onLongPress,
+                    modifier = Modifier
+                        .widthIn(max = maxWidth)
+                        .testTag("merged-bubble"),
+                    footer = footer,
+                    screenReaderActions = screenReaderActions,
                 ) {
-                    images.forEach { part ->
-                        ImageGrid(
-                            sources = part.sources,
-                            maxWidth = maxWidth,
-                            onLongPress = { source -> onAttachmentLongPress(AttachmentTarget.Image(source)) },
-                            layout = part.layout,
-                            onRetryImage = { index -> onAction(MessageAction.RetryImage(index)) },
-                            onEdit = onEditImage,
-                            modifier = Modifier.testTag("merged-image-grid"),
-                        )
-                    }
-                    files.forEach { file ->
-                        FileCard(
-                            file = file,
-                            onClick = { onAction(MessageAction.OpenFile(file)) },
-                            onLongPress = { onAttachmentLongPress(AttachmentTarget.File(file)) },
-                            modifier = Modifier.padding(horizontal = inset).widthIn(max = maxWidth),
-                        )
-                    }
-                    videos.forEach { video ->
-                        VideoCard(
-                            video = video,
-                            onClick = { onAction(MessageAction.OpenVideo(video)) },
-                            onLongPress = { onAttachmentLongPress(AttachmentTarget.File(MessagePart.File(video.path, video.name, 0))) },
-                            modifier = Modifier.padding(horizontal = inset).widthIn(max = maxWidth),
-                        )
-                    }
-                    // A43-6：位置卡坐进合并气泡的附件位（无气泡皮肤，防双层底色），
-                    // 下面一条分隔线、配文在下——位置消息是一个整体，不再是两条。
-                    locations.forEach { location ->
-                        Box(Modifier.padding(horizontal = inset)) {
-                            LocationCardContent(
-                                location = location,
-                                onOpenMap = { onAction(MessageAction.OpenLocation(location)) },
-                            )
-                        }
-                    }
-                    HorizontalDivider(Modifier.padding(horizontal = inset).testTag("merged-divider"))
-                    texts.forEach { part ->
-                        Box(Modifier.padding(horizontal = inset)) { text(item, part.text) }
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        HorizontalDivider(Modifier.testTag("merged-divider"))
+                        texts.forEach { part -> text(item, part.text) }
                     }
                 }
             }

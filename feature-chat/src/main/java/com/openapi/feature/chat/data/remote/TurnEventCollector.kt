@@ -256,10 +256,10 @@ internal class TurnEventCollector(
                                 }
                                 is ParsedTurnEvent.Cancelled -> if (ours) {
                                     emit(
-                                        ChatStreamEvent.Done(
+                                        ChatStreamEvent.Cancelled(
                                             assistantId = ev.assistantMessageId.takeIf { it > 0 }?.toString(),
                                             userId = userMessageId,
-                                            fullText = acc.toString(),
+                                            partialText = acc.toString(),
                                         ),
                                     )
                                     finished = true

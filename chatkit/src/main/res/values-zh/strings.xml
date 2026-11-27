@@ -44,6 +44,7 @@
     <string name="chatkit_queued_count">%d 条排队中</string>
     <string name="chatkit_cancel_edit">取消编辑</string>
     <string name="chatkit_sent">已发送</string>
+    <string name="chatkit_interrupted">已停止</string>
     <string name="chatkit_queued_send">排队发送</string>
     <string name="chatkit_answer_again">重新回答</string>
     <string name="chatkit_slide_here_to_text">滑到这里 转文字</string>
@@ -71,7 +72,7 @@
     <string name="chatkit_queue_withdraw">撤回</string>
     <!-- A40：排队徽标里每条的两个「现在就要答案」出口 -->
     <string name="chatkit_queue_send_now">立刻发出</string>
-    <string name="chatkit_queue_interrupt">打断重发</string>
+    <string name="chatkit_queue_interrupt">停止并优先回答最新消息</string>
     <!-- A36②：停止生成入口从发送键位移到生成中的气泡 -->
     <string name="chatkit_stop_generating">停止生成</string>
 </resources>

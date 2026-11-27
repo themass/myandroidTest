@@ -110,7 +110,7 @@ internal class SendActions(
         val gate = ChatTurnGate.of(state.value)
         if (gate.textSendPath() == ChatTurnGate.SendPath.Queue) {
             // 排队模式（D1 开关的另一侧）：生成中不直发——按 Enter 顺序入队（FIFO），
-            // 回合**自然结束**后由 ReplyStreamer 取队首续发；用户点停止会清空队列（见 ReplyStreamer.cancel）。
+            // 回合**自然结束**后由 ReplyStreamer 取队首续发；普通停止保留队列但不会自动续发。
             // A40：入队即带本机 id——「插话」要把这个 id 当 clientMessageId 提交给服务端，
             // 气泡与队列条目从此同一个 id，异步回执回来也不会错位。
             state.update { it.copy(queued = it.queued + QueuedText(id = "q-" + System.nanoTime(), text = text)) }
@@ -227,15 +227,14 @@ internal class SendActions(
     }
 
     /**
-     * A40「打断重发」：让第 [index] 条排队文字抢在队首，并取消服务端当前回合，
-     * 当前事件流以 `turn.cancelled`→Done 自然收尾后立即按正常路径重发这条。
-     *
-     * 与「停止」的区别：停止清空队列（中断一切）；打断把这条**插到最前**再继续——
-     * 用户要的是「这句更重要，先回我这句」。「停止会清排队」的旧语义保持不变。
-     * 若此刻根本没有回合在跑（竞态：刚好自然结束且队列没续上），直接走正常发送。
+     * 「停止当前并优先回答最新一条」：将队列中最新输入提到队首、保留其余 FIFO，
+     * 并请求取消当前回合；服务端确认取消后，事件流收尾并续发队首。
+     * 若此刻回合已结束（竞态），直接发送这条最新输入。
      */
     fun interruptQueued(index: Int) {
-        val entry = state.value.queued.getOrNull(index) ?: return
+        val snapshot = state.value
+        val entry = snapshot.queued.lastOrNull() ?: return
+        // UI 只对最新一条暴露此动作；如果旧界面/回调携带了其他 index，也始终执行最新优先语义。
         if (!streamer.isReplyActive()) {
             // 没有活跃回合：无需取消，摘下队头直接发（等同正常发送）。
             state.update { s -> s.copy(queued = s.queued.filterNot { it.id == entry.id }) }

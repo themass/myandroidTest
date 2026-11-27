@@ -99,7 +99,7 @@ fun ChatScreen(
     onRemoveQueued: (Int) -> Unit = {},
     /** A40：「插话」——把第 index 条排队文字立刻提交服务端。 */
     onPromoteQueued: (Int) -> Unit = {},
-    /** A40：「打断重发」——把第 index 条插到队首并取消当前回合。 */
+    /** 停止当前回复并优先回答最新排队消息。 */
     onInterruptQueued: (Int) -> Unit = {},
     /** 长按草稿托盘里的图片再编辑（S3）。不传 = 该页不提供编辑。 */
     onEditDraftImage: (String) -> Unit = {},

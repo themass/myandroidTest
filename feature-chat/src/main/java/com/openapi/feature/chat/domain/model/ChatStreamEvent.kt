@@ -20,6 +20,9 @@ sealed interface ChatStreamEvent {
      */
     data class Done(val assistantId: String?, val userId: String?, val fullText: String) : ChatStreamEvent
 
+    /** 服务端明确结束了当前回合，因为用户请求取消。 */
+    data class Cancelled(val assistantId: String?, val userId: String?, val partialText: String) : ChatStreamEvent
+
     /**
      * A40：本轮被服务端**原地重跑**（`turn.restarted`，合并进来的新输入在首个 token 前
      * 触发了 restart，见服务端 turn_runner 的 `_run`）。重跑后服务端只发新一轮的 delta，

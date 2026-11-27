@@ -3,9 +3,8 @@ package com.openapi.feature.chat.presentation
 /**
  * 「生成中再发消息」怎么办（设计 20261126 §2 D1，用户拍板：本地队列不退役，加开关）。
  *
- * - [Immediate]（**默认**）：点发送永远走网络、永不本地排队——服务端单一裁决
- *   （merged 原地重跑 / queued 排空成新回合 / started 直接开新回合）。
- * - [Queue]：A36/A40 现状——进本地 FIFO，徽标「N 条排队中」+「立刻发出/打断重发/撤回」。
+ * - [Queue]（**默认**）：纯文字进本地 FIFO，显示待处理条目并在当前回复自然结束后依序续发。
+ * - [Immediate]：用户显式选择后直接提交，由服务端裁决（merged / queued / started）。
  *
  * 只有**纯文字**受这个开关影响：编辑/附件/位置在生成中一律被现有的闸挡住（两种模式相同）。
  * 开关本身存在 prefs（ChatPlatform），由 ChatRoute 载入并推进 [ChatUiState.sendMode]，
@@ -42,7 +41,7 @@ internal data class ChatTurnGate(
     val hasAttachmentDrafts: Boolean,
     val hasLocationDraft: Boolean,
     /** 「生成中发消息」开关（D1）；见 [SendMode]。 */
-    val sendMode: SendMode = SendMode.Immediate,
+    val sendMode: SendMode = SendMode.Queue,
 ) {
 
     companion object {
