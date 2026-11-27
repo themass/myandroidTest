@@ -5,6 +5,7 @@
 与已有调研的分工（不重复其内容）：
 - [`2026-11-28-open-llm-vtuber-deepread.md`](2026-11-28-open-llm-vtuber-deepread.md) 读的是 OLLV **后端**（FastAPI / agent / TTS / 打断协议）。本篇读 **前端呈现层与桌宠本体**（模型加载、动作与物理、互动命中区、窗口叠加）。
 - [`2026-11-28-ollmv-agent-architecture-deepread.md`](2026-11-28-ollmv-agent-architecture-deepread.md)、[`2026-11-28-ollmv-ui-interaction-deepread.md`](2026-11-28-ollmv-ui-interaction-deepread.md) 覆盖 OLLV 的 agent 与 UI；本篇 §5 只补 **Open-LLM-VTuber-Web 的 Live2D/Electron 层**，并纠正其中一条流传的依赖说法（§5 开头与 §10 末）。
+- 收口对照：[`2026-11-28-surpass-ollmv-synthesis.md`](2026-11-28-surpass-ollmv-synthesis.md) 已在 `:3` 与 `:50` 为本篇预留引用位（它把桌宠线定性为「形态启发」而非竞争面，roadmap 由协调会话裁决）。本篇的 §10 就是那份收口缺的证据层。
 - [`2026-11-28-android-her-stack-audit.md`](2026-11-28-android-her-stack-audit.md) 审计的是**我们自己的**引擎栈；本篇所有外部结论都对着它的口径来判「可抄 / 已有 / 不适用」。
 
 ## 0. 读的是什么代码，以及看不到的部分
@@ -433,7 +434,7 @@ brief 目标 ③ 的三块**没有在这一版里完成**，下面是精确状�
 
 ## 10. 对我们 payload 契约的逐字段判定
 
-对照 `docs/design/2026-11-28-persona-her-split-architecture.md:40`（`ca_her_pack`：`her_id`(unique)、`renderer`、`pack_version`、`payload{model_ref{asset,version,hash}, effects[], stickers[], voice_ref, thumbnail, touch_zones}`、`status`、`source`）与 `feature-companion/.../companion/HerRegistry.kt:15,18`（客户端只读 `renderer` / `pack_version` / `effect_count` / `sticker_count` / `voice_ref.voice_id`）。
+对照 `docs/design/2026-11-28-persona-her-split-architecture.md:40`（`ca_her_pack`：`her_id`(unique)、`renderer`、`pack_version`、`payload{model_ref{asset,version,hash}, effects[], stickers[], voice_ref, thumbnail, touch_zones}`、`status`、`source`）与 `feature-companion/src/main/java/com/openapi/ks/myapp/companion/HerRegistry.kt:16,19`（客户端只读 `renderer` / `pack_version` / `effect_count` / `sticker_count` / `voice_ref.voice_id`）。
 
 | 我们的选择 | 判定 | 依据（本轮读到的代码） |
 |---|---|---|
