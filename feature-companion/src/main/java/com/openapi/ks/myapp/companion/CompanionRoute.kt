@@ -408,12 +408,21 @@ fun CompanionRoute(
                 val debuggable = context.applicationInfo.flags and
                     android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
                 if (debuggable) {
-                    rows + DhEngineMenuRow(
-                        id = DhEngineId.LIVE2D,
-                        label = "原创 Live2D Demo",
-                        switches = true,
-                        detail = "debug",
-                        demoModel = OriginalAvatarDemo.MODEL_DIR,
+                    rows + listOf(
+                        DhEngineMenuRow(
+                            id = DhEngineId.LIVE2D,
+                            label = "原创 Live2D Demo",
+                            switches = true,
+                            detail = "debug",
+                            demoModel = OriginalAvatarDemo.MODEL_DIR,
+                        ),
+                        DhEngineMenuRow(
+                            id = null,
+                            label = "数字人样例实验室",
+                            switches = true,
+                            detail = "debug · 离线样例",
+                            demoModel = "__avatar_lab_gallery__",
+                        ),
                     )
                 } else {
                     rows
@@ -641,7 +650,9 @@ fun CompanionRoute(
             } else null,
             live2dModelSwitchHint = "只推了这一个形象",
             onEngineMenuClick = { row ->
-                if (row.demoModel != null) {
+                if (row.demoModel == "__avatar_lab_gallery__") {
+                    context.startActivity(android.content.Intent().setClassName(context, "com.openapi.avatar.lab.MainActivity"))
+                } else if (row.demoModel != null) {
                     openOriginalAvatarDemo()
                 } else when (engineGate.actionFor(row)) {
                     EngineClickAction.UNAVAILABLE_REASON -> {

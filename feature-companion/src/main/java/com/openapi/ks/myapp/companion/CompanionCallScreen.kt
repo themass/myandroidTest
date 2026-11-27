@@ -1000,7 +1000,7 @@ private fun WaveStyleMenu(
                 MenuSectionLabel("形象")
                 engineMenu.forEach { row ->
                     DropdownMenuItem(
-                        text = { Text(row.menuLabel(selected = row.id == selectedEngine)) },
+                        text = { Text(row.menuLabel(selected = row.demoModel == null && row.id == selectedEngine)) },
                         onClick = {
                             open = false
                             onEngineMenuClick(row)
