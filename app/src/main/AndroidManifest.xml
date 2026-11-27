@@ -74,6 +74,13 @@
             </action>
         </intent>
         <package android:name="com.google.android.gms" />
+        <!-- chat「在地图打开」直跳高德：包可见性前提（Android 11+），
+             没声明时 setPackage 的 intent 直接 ActivityNotFoundException -->
+        <package android:name="com.autonavi.minimap" />
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="geo" />
+        </intent>
     </queries>
     <!--适配Android R包可见性 结束-->
 

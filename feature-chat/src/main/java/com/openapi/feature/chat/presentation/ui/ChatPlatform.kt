@@ -69,20 +69,38 @@ internal object ChatPlatform {
     }
 
     /**
-     * 「在地图打开」：系统 `geo:` intent（P2-13）。
+     * 「在地图打开」（P2-13 + 2026-11-28 直跳整改）：装了高德就**直接递给高德**，
+     * 没装（或递不上）退回通用 `geo:` chooser（Maps、百度都认 geo:）。
      *
-     * 不用任何地图 SDK：坐标精度本来就是城市街区级，交给用户设备上任何一个地图应用
-     * （Maps、高德、百度都认 geo:）。一个都装不上才提示（车载/纯净系统可能真没有）。
+     * 为什么直跳：真机验证发现裸 `geo:` 在装了三方地图的机器上弹系统 chooser，
+     * 用户把「还要再选一下」判定为「没接上高德」。
+     * 为什么用 try/catch 而不是 resolveActivity 预探测：Android 11+ 包可见性会让
+     * 对未声明包的 resolve 永远返回 null（假阴性），预探测反而把装了高德的机器
+     * 判成没装；直接 launch、失败再退，行为对用户一致。
+     * `AndroidManifest.xml` 的 <queries> 里已声明高德包与 geo: scheme（可见性前提）。
      */
-    fun openMap(context: Context, latitude: Double, longitude: Double) {
+    fun openMap(
+        context: Context,
+        latitude: Double,
+        longitude: Double,
+        /** 注入点：测试用（真机默认就是 context.startActivity）。 */
+        startActivity: (Intent) -> Unit = { context.startActivity(it) },
+    ) {
+        // 不拼 ?z= 缩放参数：各地图应用对它的支持不一致，中心点正确比缩放重要
+        val data = Uri.parse("geo:$latitude,$longitude")
         try {
-            // 不拼 ?z= 缩放参数：各地图应用对它的支持不一致，中心点正确比缩放重要
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:$latitude,$longitude"))
-            context.startActivity(intent)
+            startActivity(Intent(Intent.ACTION_VIEW, data).setPackage(AMAP_PACKAGE))
         } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, context.getString(R.string.chat_open_map_failed), Toast.LENGTH_SHORT).show()
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, data))
+            } catch (e2: ActivityNotFoundException) {
+                Toast.makeText(context, context.getString(R.string.chat_open_map_failed), Toast.LENGTH_SHORT).show()
+            }
         }
     }
+
+    /** 高德地图包名（装机直跳用；Android 市场版同名）。 */
+    internal const val AMAP_PACKAGE = "com.autonavi.minimap"
 
     private const val PREFS = "chat_voice_style"
     /** v2：默认改为豆包式（Ripple）。换了键名，老的手动选择不再覆盖默认值。 */

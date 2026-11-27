@@ -30,6 +30,12 @@ internal sealed interface ParsedTurnEvent {
      * 显式事件让上层**作废已显示的文字**，而不是继续往 acc 里拼。
      */
     data class Restarted(override val turnId: String) : ParsedTurnEvent
+    /**
+     * 本轮的进展帧但不带正文（服务端工具阶段的 `step{running|done}`）。
+     * 不产生界面事件，只作为「这一轮还活着」的证据喂看门狗——长工具链不该被
+     * 帧间看门狗掐死，但它也不能无限期拖着（工具自身的服务端超时 + 客户端回合兜底）。
+     */
+    data class Progress(override val turnId: String) : ParsedTurnEvent
 }
 
 /** 把一个 SSE 帧翻译成 [ParsedTurnEvent]；data 不是 JSON 或事件与本轮无关时返回 null。 */
@@ -42,6 +48,10 @@ internal fun parseAgentEvent(frame: AgentSseFrame): ParsedTurnEvent? {
         "message.done" -> ParsedTurnEvent.Done(turnId, obj.optLong("assistant_message_id", 0L))
         "turn.cancelled" -> ParsedTurnEvent.Cancelled(turnId, obj.optLong("assistant_message_id", 0L))
         "turn.restarted" -> ParsedTurnEvent.Restarted(turnId)
+        // 服务端工具阶段的进展帧（`step{kind:"tool",detail:"running|done"}`，带 turn_id）：
+        // 没有正文、界面上不显示，但它是「这一轮还在动」的证据——没有它，一次长工具调用
+        // （poi_search 排队 7s + 模型再来一轮）就可能被回合内看门狗掐死。
+        "step" -> ParsedTurnEvent.Progress(turnId)
         "error" -> ParsedTurnEvent.Errored(turnId, obj.optString("code", "unknown"))
         else -> null
     }
@@ -113,6 +123,9 @@ internal class TurnEventCollector(
          * 就不可能是「模型想得久一点」——判本轮死掉。
          */
         const val DEFAULT_FRAME_TIMEOUT_MS = 45_000L
+
+        /** 排障埋点统一 tag：`adb logcat -s TurnTrace`。见 [collect] 开头的注释。 */
+        const val TRACE_TAG = "TurnTrace"
     }
 
     /** 看门狗触发（[frameTimeoutMs] 内没有任何帧）。走错误收尾，不重连。 */
@@ -159,6 +172,12 @@ internal class TurnEventCollector(
         // 新开流时从哪续传：每条帧自带的 id，断点重连时原样带回
         var lastEventId: String? = null
         var drops = 0
+        // 排障埋点（卡死定位）：把「本轮收到了什么、停在哪一步」打进 logcat，
+        // `adb logcat -s TurnTrace` 一条线就能看出是「服务端不再发帧」「帧来了但不是本轮」
+        // 还是「收尾逻辑没落地」。delta 按 25 帧抽样，别的帧全记，日志不会淹没缓冲区。
+        var framesSeen = 0
+        var oursSeen = 0
+        android.util.Log.i(TRACE_TAG, "collect start session-stream expectedTurn=$expectedTurnId skipTurn=$skipTurnId watchdogMs=$frameTimeoutMs")
 
         while (!finished) {
             try {
@@ -174,6 +193,9 @@ internal class TurnEventCollector(
                     val pump = launch {
                         try {
                             open(lastEventId).collect { frame -> frames.send(frame) }
+                            // 上游正常收尾（HTTP 流结束）却没等到本轮 done：记下来，
+                            // 区分「连接被掐」与「服务端把流关了就完事」。
+                            android.util.Log.i(TRACE_TAG, "upstream stream ENDED without our done (frames so far=$framesSeen)")
                         } catch (c: CancellationException) {
                             throw c
                         } catch (t: Throwable) {
@@ -186,20 +208,44 @@ internal class TurnEventCollector(
                             frames.close(upstream[0])
                         }
                     }
+                    // **回合内看门狗**（2026-11-28 卡死整改）：计时只由**本轮自己的进展**重置。
+                    // 旧实现把「收到任何帧」当作进展，于是同一会话里别的回合（另一台设备、
+                    // 排队排空的那条）持续出字时，我们这一轮的 45 秒静默永远数不满——
+                    // 界面卡在「正在思考」不动，停止也不见效。现在：
+                    //  - 本轮帧（delta / step / snapshot / done…）→ 重新计时；
+                    //  - 别的回合的帧 → 不重新计时（但仍记录，见 TurnTrace）；
+                    //  - parse 不出 turn_id 的帧 → 重新计时（无法归属，保守取旧语义，
+                    //    免得协议新增的无 turn_id 事件把正常回合掐死）。
+                    // 服务端工具阶段会发 `step{running|done}`（带 turn_id），所以合法的
+                    // 长工具链照样续命；工具自身卡死时 step 停发，计时会数满并收尾。
+                    var watchdog: kotlinx.coroutines.Job? = null
+                    val watchdogFired = kotlinx.coroutines.CompletableDeferred<Unit>()
+                    fun armWatchdog() {
+                        if (frameTimeoutMs <= 0L) return
+                        watchdog?.cancel()
+                        watchdog = launch {
+                            delay(frameTimeoutMs)
+                            watchdogFired.complete(Unit)
+                        }
+                    }
+                    armWatchdog()
                     try {
                         while (!finished) {
-                            // 每取一帧重新计时：阈值 = 「距离上一帧静默了多久」，与连接是否活着无关
-                            val received = if (frameTimeoutMs > 0) {
-                                withTimeoutOrNull(frameTimeoutMs) { frames.receiveCatching() }
+                            // 取下一帧，同时盯着看门狗：谁先到算谁。看门狗到点送进来一个
+                            // 带 [FrameTimeout] 的失败 ChannelResult，下面原样抛给既有收尾。
+                            val received: kotlinx.coroutines.channels.ChannelResult<AgentSseFrame> = if (frameTimeoutMs > 0) {
+                                kotlinx.coroutines.selects.select {
+                                    frames.onReceiveCatching { it }
+                                    watchdogFired.onAwait { throw FrameTimeout }
+                                }
                             } else {
                                 // 看门狗关闭：一直等（语义与委托前逐字一致）
                                 frames.receiveCatching()
                             }
-                            if (received == null) throw FrameTimeout
                             received.exceptionOrNull()?.let { closed ->
                                 if (closed is CancellationException) throw closed
                                 // 通道关闭：上游异常已由 close(cause) 带在这里，原样抛出，
-                                // 走既有的 isFatal / 退避重连。
+                                // 走既有的 isFatal / 退避重连。看门狗到点也走这一条（FrameTimeout）。
                                 throw closed
                             }
                             // 到这里通道若已关闭就是「无 cause 关闭」= 上游正常收尾却没 done：
@@ -208,14 +254,37 @@ internal class TurnEventCollector(
                             if (received.isClosed) throw StreamEnded
                             val frame = received.getOrThrow()
                             frame.id?.let { lastEventId = it }
-                            val ev = parse(frame) ?: continue
+                            framesSeen += 1
+                            val ev = parse(frame)
+                            if (ev == null) {
+                                // 帧进来了但认不出（event 名不在协议表里）——这正是
+                                // 「服务端在发、客户端当它不存在」的取证点。
+                                // 归属不了本轮，保守按旧语义续命（见上面看门狗注释）。
+                                android.util.Log.d(TRACE_TAG, "frame #$framesSeen event=${frame.event} parse=null (unrecognized)")
+                                armWatchdog()
+                                continue
+                            }
                             // 第一次拿到 turn_id 时固定下来，后续只认这一轮，避免并发回合串台。
                             if (ev.turnId.isNotEmpty() && matchedTurn == null) {
                                 // skipTurnId 的帧先咽掉：那是订阅时才在跑、不属于本次收集的回合。
-                                if (skipTurnId != null && ev.turnId == skipTurnId) continue
+                                if (skipTurnId != null && ev.turnId == skipTurnId) {
+                                    android.util.Log.d(TRACE_TAG, "frame #$framesSeen ${frame.event} SKIP (skipTurnId=$skipTurnId)")
+                                    continue
+                                }
                                 matchedTurn = ev.turnId
                             }
                             val ours = ev.turnId.isNotEmpty() && ev.turnId == matchedTurn
+                            if (!ours) {
+                                // 帧来了但不是本轮（turn_id 对不上）：界面不会动，但这不是没收到。
+                                android.util.Log.d(TRACE_TAG, "frame #$framesSeen ${frame.event} turn=${ev.turnId} IGNORED (matched=$matchedTurn)")
+                            } else {
+                                oursSeen += 1
+                                // 本轮的进展才续命（delta / step / snapshot / restarted…）。
+                                armWatchdog()
+                                if (ev !is ParsedTurnEvent.Delta || oursSeen % 25 == 1) {
+                                    android.util.Log.d(TRACE_TAG, "frame #$framesSeen ${frame.event} ours (accLen=${acc.length})")
+                                }
+                            }
                             when (ev) {
                                 is ParsedTurnEvent.Snapshot -> if (ours) {
                                     // 补发的是「已生成的全部文字」，把本地没有的尾巴补上即可。
@@ -264,6 +333,7 @@ internal class TurnEventCollector(
                                     )
                                     finished = true
                                 }
+                                is ParsedTurnEvent.Progress -> Unit // 只喂看门狗（上面已 arm），无界面事件
                                 is ParsedTurnEvent.Errored -> if (ours || matchedTurn == null) {
                                     emit(ChatStreamEvent.Error(describe(ev.code), null))
                                     errorEmitted = true
@@ -274,6 +344,7 @@ internal class TurnEventCollector(
                     } finally {
                         // 本轮已定（done / cancelled / error / 看门狗 / 上游异常）：断开这条连接
                         pump.cancel()
+                        watchdog?.cancel()
                     }
                 }
             } catch (e: CancellationException) {
@@ -283,6 +354,7 @@ internal class TurnEventCollector(
                     // 看门狗触发：模型不再出字。重连在这里没有意义——服务端认为这一轮还活着，
                     // 重订阅只会补发同一条 snapshot。按失败收尾，让 `sending` 落地、
                     // 用户可以重新发；界面上已显示的半截文字由 ReplyStreamer 保留。
+                    android.util.Log.i(TRACE_TAG, "WATCHDOG fired: frames=$framesSeen ours=$oursSeen accLen=${acc.length} drops=$drops")
                     emit(
                         ChatStreamEvent.Error(
                             describe(ChatStreamEvent.Error.CODE_TURN_TIMEOUT),

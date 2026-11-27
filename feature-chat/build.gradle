@@ -11,6 +11,13 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests {
+            // 回合链路排障埋点（TurnTrace）用 android.util.Log，JVM 测试里按 no-op 处理
+            // （与 :feature-video 同款）
+            returnDefaultValues = true
+        }
+    }
 }
 
 dependencies {

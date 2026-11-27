@@ -85,6 +85,7 @@ internal class ReplyStreamer(
     fun cancel() {
         // 普通停止只停止当前回复；已排队的输入继续留在徽标中，等待用户决定下一步。
         // A40：待接的服务端排空回合同样作废。
+        android.util.Log.i("TurnTrace", "USER STOP: replyJob=${replyJob?.isActive} session=${repository.currentSessionId()}")
         caughtTurns.clear()
         val sessionId = repository.currentSessionId()
         scope.launch { repository.cancelTurn(sessionId) }
