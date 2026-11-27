@@ -16,9 +16,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -515,72 +518,81 @@ fun DigitalHumanLabHost(
                         .padding(horizontal = 14.dp, vertical = 6.dp),
                 )
                 if (fxPanelOpen) {
-                    Text(
-                        text = "她 · 舞台特效",
-                        color = Color.White.copy(alpha = 0.6f),
-                        fontSize = 11.sp,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                    StageFxOptions
-                        .options(FxTarget.HER, particles = particles, reducedMotion = reducedMotion)
-                        .forEach { option ->
-                            Text(
-                                text = option.label +
-                                    (option.unavailableReason?.let { "（$it）" } ?: ""),
-                                color = if (option.enabled) Color.White else Color.White.copy(alpha = 0.4f),
-                                fontSize = 13.sp,
-                                modifier = Modifier
-                                    .padding(top = 6.dp)
-                                    .clip(RoundedCornerShape(percent = 50))
-                                    .background(Color.White.copy(alpha = if (option.enabled) 0.18f else 0.07f))
-                                    .clickable(enabled = option.enabled) {
-                                        option.gestureId?.let { onLabFxTest.invoke(it) }
-                                    }
-                                    .padding(horizontal = 14.dp, vertical = 6.dp),
-                            )
-                        }
-                    // 「我」区 = 贴在本机相机画面上的贴纸（不进舞台、不进发送视频）。
-                    // 相机小窗未开时整区置灰并给原因——不隐藏，让用户知道差在哪一步。
-                    val camOn = labFaceCameraPip &&
-                        ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
-                        PackageManager.PERMISSION_GRANTED
-                    onLabUserStickerPick?.let { pick ->
+                    // 词表扩到 16 条特效 + 7 张贴纸后一屏装不下：整块可滚，
+                    // 且**不隐藏**任何不可用项（滚到能看到原因）。
+                    Column(
+                        modifier = Modifier
+                            .heightIn(max = 460.dp)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.End,
+                    ) {
                         Text(
-                            text = "我 · 相机贴纸",
+                            text = "她 · 舞台特效",
                             color = Color.White.copy(alpha = 0.6f),
                             fontSize = 11.sp,
                             modifier = Modifier.padding(top = 8.dp),
                         )
                         StageFxOptions
-                            .options(
-                                FxTarget.USER,
-                                cameraGranted = camOn,
-                                particles = particles,
-                                reducedMotion = reducedMotion,
-                            )
+                            .options(FxTarget.HER, particles = particles, reducedMotion = reducedMotion)
                             .forEach { option ->
-                                val chosen = option.assetId == selectedUserSticker
                                 Text(
-                                    text = (if (chosen) "✓ " else "　") + option.label +
+                                    text = option.label +
                                         (option.unavailableReason?.let { "（$it）" } ?: ""),
                                     color = if (option.enabled) Color.White else Color.White.copy(alpha = 0.4f),
                                     fontSize = 13.sp,
                                     modifier = Modifier
                                         .padding(top = 6.dp)
                                         .clip(RoundedCornerShape(percent = 50))
-                                        .background(
-                                            Color.White.copy(
-                                                alpha = when {
-                                                    chosen -> 0.32f
-                                                    option.enabled -> 0.18f
-                                                    else -> 0.07f
-                                                },
-                                            ),
-                                        )
-                                        .clickable(enabled = option.enabled) { pick.invoke(option.assetId) }
+                                        .background(Color.White.copy(alpha = if (option.enabled) 0.18f else 0.07f))
+                                        .clickable(enabled = option.enabled) {
+                                            option.gestureId?.let { onLabFxTest.invoke(it) }
+                                        }
                                         .padding(horizontal = 14.dp, vertical = 6.dp),
                                 )
                             }
+                        // 「我」区 = 贴在本机相机画面上的贴纸（不进舞台、不进发送视频）。
+                        // 相机小窗未开时整区置灰并给原因——不隐藏，让用户知道差在哪一步。
+                        val camOn = labFaceCameraPip &&
+                            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                            PackageManager.PERMISSION_GRANTED
+                        onLabUserStickerPick?.let { pick ->
+                            Text(
+                                text = "我 · 相机贴纸",
+                                color = Color.White.copy(alpha = 0.6f),
+                                fontSize = 11.sp,
+                                modifier = Modifier.padding(top = 8.dp),
+                            )
+                            StageFxOptions
+                                .options(
+                                    FxTarget.USER,
+                                    cameraGranted = camOn,
+                                    particles = particles,
+                                    reducedMotion = reducedMotion,
+                                )
+                                .forEach { option ->
+                                    val chosen = option.assetId == selectedUserSticker
+                                    Text(
+                                        text = (if (chosen) "✓ " else "　") + option.label +
+                                            (option.unavailableReason?.let { "（$it）" } ?: ""),
+                                        color = if (option.enabled) Color.White else Color.White.copy(alpha = 0.4f),
+                                        fontSize = 13.sp,
+                                        modifier = Modifier
+                                            .padding(top = 6.dp)
+                                            .clip(RoundedCornerShape(percent = 50))
+                                            .background(
+                                                Color.White.copy(
+                                                    alpha = when {
+                                                        chosen -> 0.32f
+                                                        option.enabled -> 0.18f
+                                                        else -> 0.07f
+                                                    },
+                                                ),
+                                            )
+                                            .clickable(enabled = option.enabled) { pick.invoke(option.assetId) }
+                                            .padding(horizontal = 14.dp, vertical = 6.dp),
+                                    )
+                                }
+                        }
                     }
                 }
             }

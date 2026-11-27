@@ -19,6 +19,8 @@ android {
 dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.robolectric:robolectric:4.17'
+    // 资产 JSON 结构校验（白名单加了 id 但 json 不合法 → 运行时只静默「加载…」）
+    testImplementation libs.gson
     testImplementation 'androidx.test:core:1.7.0'
     testImplementation libs.kotlinx.coroutines.test
     implementation libs.okhttp
@@ -34,6 +36,8 @@ dependencies {
     implementation platform(libs.androidx.compose.bom)
     implementation libs.androidx.compose.ui
     implementation libs.androidx.compose.ui.graphics
+    // her 形象列表页的 @Preview（与 :feature-camera-fx 同一口径：只 preview，不带 tooling）。
+    implementation libs.androidx.compose.ui.tooling.preview
     implementation libs.androidx.compose.material3
     implementation libs.androidx.compose.material.icons.extended
     implementation libs.androidx.activity.compose

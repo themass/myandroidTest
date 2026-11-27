@@ -37,10 +37,17 @@ class StageFxOptionsTest {
     }
 
     @Test
-    fun `user stickers only expose tracked assets and require camera`() {
+    fun `user stickers are the sticker whitelist not borrowed effect words`() {
         val granted = StageFxOptions.options(FxTarget.USER, cameraGranted = true)
-        assertEquals(listOf(FxAssets.PAT_HEAD, FxAssets.WAVE, FxAssets.SWIPE), granted.map { it.assetId })
+        // 用户 2026-11-28：「贴纸只是挪用其中 3 个……贴纸你也没搞啊」——
+        // USER 列必须走自己的贴纸词表（CameraStickers），且比原来多。
+        assertEquals(CameraStickers.ALL, granted.map { it.assetId })
+        assertTrue(granted.size >= 7)
         assertTrue(granted.all { it.enabled && it.target == FxTarget.USER && it.gestureId == null })
+        // 贴纸列里不得出现舞台特效词。
+        assertTrue(granted.none { it.assetId == FxAssets.WAVE || it.assetId == FxAssets.SWIPE })
+        // 每条都有中文文案（不是裸 id）。
+        granted.forEach { assertTrue(it.label.isNotBlank() && it.label != it.assetId) }
 
         val denied = StageFxOptions.options(FxTarget.USER, cameraGranted = false)
         assertTrue(denied.none { it.enabled })

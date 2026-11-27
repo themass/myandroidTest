@@ -34,17 +34,17 @@ class TeachingDemoActivity : ComponentActivity() {
                     onExit = { finish() },
                     studentCamera = { modifier, praiseActive ->
                         // 摄像头内容注入：与 HomeScreen 给通话页接人脸小窗一模一样。
-                        // 表扬时贴纸词换 fx_wave（光弧），平时 fx_pat_head（爱心）——
-                        // 词表与舞台特效同源（tools/gen_lottie_fx.py 自制素材）。
+                        // 表扬时贴纸换皇冠（庆祝），平时爱心——都走贴纸白名单，
+                        // 不再借用舞台特效词（用户 2026-11-28：贴纸与特效是两套词表）。
                         com.openapi.feature.camerafx.CameraFxGrantedContent(
                             modifier = modifier,
                             overlayPolicy = com.openapi.feature.camerafx.CameraFxOverlayPolicy(
                                 drawWireframe = false,
                                 drawStickers = true,
                                 showDebugHud = false,
-                                // 词表在 StickerAssetIds 白名单内（fx_pat_head / fx_wave）。
+                                // 词表在 StickerAssetIds 白名单内。
                                 stickerAssetId = if (praiseActive)
-                                    com.openapi.feature.camerafx.StickerAssetIds.WAVE
+                                    com.openapi.feature.camerafx.StickerAssetIds.CROWN
                                 else
                                     com.openapi.feature.camerafx.StickerAssetIds.PAT_HEAD,
                             ),

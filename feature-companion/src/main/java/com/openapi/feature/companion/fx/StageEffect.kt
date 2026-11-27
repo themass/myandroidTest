@@ -40,24 +40,79 @@ enum class FxCategory {
 /**
  * 资产词表（白名单）与规格元数据。
  *
- * 词表只有这里登记的 id 能进渲染；新增特效 = 放 JSON + 这里加一行 + mapper 加映射。
+ * 词表只有这里登记的 id 能进渲染；新增特效 = 生成 JSON + 这里加一行 + mapper 加触发词。
  * 资产全部仓库自制（tools/gen_lottie_fx.py），许可与规格证据见 assets/fx/README.md。
+ *
+ * 规模口径（用户 2026-11-28：「特效只有 4 个……常规的短视频特效不是该有么」）：
+ * HER 侧扩到 16 条，覆盖 头部 / 身体 / 手部 / 全屏 四类锚点 × 事件响应 / 氛围 两类语义。
+ * [Spec.anchor] 登记在词表里（而不是散在 mapper 的 when 分支），这样「锚点 + 类别」
+ * 一眼可审，降级判定与面板置灰都从同一处取。
  */
 object FxAssets {
+    // ---- 既有四条 ----------------------------------------------------------
     const val PAT_HEAD = "fx_pat_head"
     const val WAVE = "fx_wave"
     const val CONNECTED = "fx_connected"
     const val SWIPE = "fx_swipe"
 
-    data class Spec(val assetId: String, val category: FxCategory)
+    // ---- 头部锚点（人物头上）----------------------------------------------
+    const val CAT_EARS = "fx_cat_ears"
+    const val STAR_EYES = "fx_star_eyes"
+    const val BLUSH = "fx_blush"
+
+    // ---- 身体锚点 ----------------------------------------------------------
+    const val BUBBLES = "fx_bubbles"
+    const val HALO = "fx_halo"
+
+    // ---- 手部锚点 ----------------------------------------------------------
+    const val SPARKLE = "fx_sparkle"
+
+    // ---- 全屏：事件响应 ----------------------------------------------------
+    const val FIREWORKS = "fx_fireworks"
+    const val COINS = "fx_coins"
+
+    // ---- 全屏：氛围 --------------------------------------------------------
+    const val HEART_RAIN = "fx_heart_rain"
+    const val SNOW = "fx_snow"
+    const val RAIN = "fx_rain"
+    const val SPOTLIGHT = "fx_spotlight"
+
+    data class Spec(
+        val assetId: String,
+        val category: FxCategory,
+        /** 该特效默认的画位锚点；[StageEffectMapper] 从这里取，不在分支里各写一套。 */
+        val anchor: StageEffect.Anchor,
+    )
 
     private val registered = listOf(
-        Spec(PAT_HEAD, FxCategory.EVENT_RESPONSE),
+        Spec(PAT_HEAD, FxCategory.EVENT_RESPONSE, StageEffect.Anchor.HEAD),
         // 光弧是对「挥手」这个动作的反馈，不是持续氛围——归事件响应类。
-        Spec(WAVE, FxCategory.EVENT_RESPONSE),
-        Spec(CONNECTED, FxCategory.AMBIENCE),
+        Spec(WAVE, FxCategory.EVENT_RESPONSE, StageEffect.Anchor.HAND),
+        Spec(CONNECTED, FxCategory.AMBIENCE, StageEffect.Anchor.FULL),
         // 流光是对「手指滑动」cue（CameraSwipeCue）的反馈——事件响应类。
-        Spec(SWIPE, FxCategory.EVENT_RESPONSE),
+        Spec(SWIPE, FxCategory.EVENT_RESPONSE, StageEffect.Anchor.FULL),
+
+        // 猫耳/星星眼/脸红都是「对她做某件事」的即时反馈（摸头、夸、调戏），
+        // 不是常驻装饰：particles 关也要播，放大态则不画（锚点对不上人）。
+        Spec(CAT_EARS, FxCategory.EVENT_RESPONSE, StageEffect.Anchor.HEAD),
+        Spec(STAR_EYES, FxCategory.EVENT_RESPONSE, StageEffect.Anchor.HEAD),
+        Spec(BLUSH, FxCategory.EVENT_RESPONSE, StageEffect.Anchor.HEAD),
+
+        // 气泡从身上冒出、光环围身体转——都是身体锚点上的一次性反馈。
+        Spec(BUBBLES, FxCategory.EVENT_RESPONSE, StageEffect.Anchor.BODY),
+        Spec(HALO, FxCategory.EVENT_RESPONSE, StageEffect.Anchor.BODY),
+
+        Spec(SPARKLE, FxCategory.EVENT_RESPONSE, StageEffect.Anchor.HAND),
+
+        // 烟花/金币：一次庆祝事件，铺满视口，particles 关仍播（它是反馈不是装饰）。
+        Spec(FIREWORKS, FxCategory.EVENT_RESPONSE, StageEffect.Anchor.FULL),
+        Spec(COINS, FxCategory.EVENT_RESPONSE, StageEffect.Anchor.FULL),
+
+        // 爱心雨/雪花/雨滴/追光：没有事件也一直存在的氛围——particles 关必须全停。
+        Spec(HEART_RAIN, FxCategory.AMBIENCE, StageEffect.Anchor.FULL),
+        Spec(SNOW, FxCategory.AMBIENCE, StageEffect.Anchor.FULL),
+        Spec(RAIN, FxCategory.AMBIENCE, StageEffect.Anchor.FULL),
+        Spec(SPOTLIGHT, FxCategory.AMBIENCE, StageEffect.Anchor.FULL),
     )
 
     val all: List<Spec> get() = registered

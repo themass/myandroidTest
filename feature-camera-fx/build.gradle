@@ -48,6 +48,8 @@ dependencies {
 
     // 锚点纯函数（归一化坐标 → 人脸框/头顶锚点/两眼倾角/画布映射）的 JVM 单测
     testImplementation 'junit:junit:4.13.2'
+    // 贴纸资产 JSON 结构校验
+    testImplementation libs.gson
 
     debugImplementation libs.androidx.compose.ui.tooling
 }
