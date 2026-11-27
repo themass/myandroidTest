@@ -19,6 +19,11 @@ await copyFile(path.join(root, 'demos/avatar-lab/models/HairSample_Female.vrm'),
 await mkdir(path.join(assets, 'scene/models'), { recursive: true });
 await copyFile(path.join(root, 'demos/avatar-lab/models/SOURCES.md'), path.join(assets, 'scene/models/SOURCES.md'));
 
+// 角色触碰实验：模型需从已核验的转换版本单独提供。
+await mkdir(path.join(assets, 'touch'), { recursive: true });
+await bundle('touch.js', 'touch/touch.bundle.js');
+await copyFile(path.join(here, 'touch.html'), path.join(assets, 'touch/index.html'));
+
 // 2) Live2D 官方样例 Hiyori:core 先 <script> 挂全局,再 pixi+cubism4 bundle
 await bundle('live2d.js', 'live2d/live2d.bundle.js');
 await copyFile(path.join(here, 'live2d.html'), path.join(assets, 'live2d/index.html'));

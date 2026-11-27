@@ -12,9 +12,10 @@ public class EngineCatalogTest {
         }
     }
     @Test public void onlineSamplesGalleriesAndReferencesRemainDistinct() {
-        assertEquals(11, EngineCatalog.ALL.size());
-        // 六个本地离线页，含原创机器人双引擎对比；在线只剩 gallery/reference。
-        assertEquals(6, EngineCatalog.ALL.stream().filter(e -> e.kind == EngineCatalog.Kind.LOCAL).count());
+        assertEquals(12, EngineCatalog.ALL.size());
+        // 七个本地离线页，含角色触碰实验。
+        assertEquals(7, EngineCatalog.ALL.stream().filter(e -> e.kind == EngineCatalog.Kind.LOCAL).count());
+        assertEquals(EngineCatalog.Kind.LOCAL, EngineCatalog.find("touch-woman").kind);
         assertEquals(EngineCatalog.Kind.LOCAL, EngineCatalog.find("original-robot").kind);
         assertEquals(0, EngineCatalog.ALL.stream().filter(e -> e.kind == EngineCatalog.Kind.ONLINE_SAMPLE).count());
         assertEquals(1, EngineCatalog.ALL.stream().filter(e -> e.kind == EngineCatalog.Kind.ONLINE_GALLERY).count());
