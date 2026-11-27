@@ -14,6 +14,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -44,6 +45,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.openapi.feature.companion.fx.LottieFxLayer
+import com.openapi.feature.companion.fx.FxTarget
+import com.openapi.feature.companion.fx.StageFxOptions
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.AvatarTouch
 import com.openapi.ks.myapp.avatar.AvatarTouchKind
@@ -124,7 +127,7 @@ fun DigitalHumanLabHost(
     /** 通话页飘散粒子开关；关 → 氛围类特效不播（[FxRenderPolicy]）。 */
     particles: Boolean = true,
     /** dh-lab 门内「特效测试」按钮；null = 不显示。Route 接到 emitStageGesture("pat_head"). */
-    onLabFxTest: (() -> Unit)? = null,
+    onLabFxTest: ((String) -> Unit)? = null,
     /** 通话页右下角小窗：前置相机 + 头顶 Lottie（仅 debug+已授相机权限）。 */
     labFaceCameraPip: Boolean = false,
     /** 小窗手势 → 舞台 cue（"wave"/"pat_head"）；Route 接到 emitStageGesture，不另起总线。 */
@@ -482,20 +485,48 @@ fun DigitalHumanLabHost(
             stageZoomed = stage.isZoomed,
             modifier = Modifier.fillMaxSize(),
         )
-        // dh-lab 调试：点一下 = 走同一条 Gesture 词表（pat_head），验证合成/触摸回归。
+        // dh-lab 调试：面板列出**白名单内**的舞台特效（[StageFxOptions] 单一事实源），
+        // 点一下 = 走同一条 Gesture 词表，验证合成/触摸回归。不可播的置灰并显示原因，
+        // 不隐藏也不假装可点（用户 2026-11-27「先展示出来，我来点击测试效果」）。
         if (onLabFxTest != null && DhLabGate.isEnabled(context)) {
-            Text(
-                text = "特效测试",
-                color = Color.White,
-                fontSize = 13.sp,
+            var fxPanelOpen by remember { mutableStateOf(false) }
+            Column(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 96.dp, end = 16.dp)
-                    .clip(RoundedCornerShape(percent = 50))
-                    .background(Color.White.copy(alpha = 0.18f))
-                    .clickable { onLabFxTest.invoke() }
-                    .padding(horizontal = 14.dp, vertical = 6.dp),
-            )
+                    .padding(top = 96.dp, end = 16.dp),
+                horizontalAlignment = Alignment.End,
+            ) {
+                Text(
+                    text = if (fxPanelOpen) "特效测试 ×" else "特效测试",
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(percent = 50))
+                        .background(Color.White.copy(alpha = 0.18f))
+                        .clickable { fxPanelOpen = !fxPanelOpen }
+                        .padding(horizontal = 14.dp, vertical = 6.dp),
+                )
+                if (fxPanelOpen) {
+                    StageFxOptions
+                        .options(FxTarget.HER, particles = particles, reducedMotion = reducedMotion)
+                        .forEach { option ->
+                            Text(
+                                text = option.label +
+                                    (option.unavailableReason?.let { "（$it）" } ?: ""),
+                                color = if (option.enabled) Color.White else Color.White.copy(alpha = 0.4f),
+                                fontSize = 13.sp,
+                                modifier = Modifier
+                                    .padding(top = 6.dp)
+                                    .clip(RoundedCornerShape(percent = 50))
+                                    .background(Color.White.copy(alpha = if (option.enabled) 0.18f else 0.07f))
+                                    .clickable(enabled = option.enabled) {
+                                        option.gestureId?.let { onLabFxTest.invoke(it) }
+                                    }
+                                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                            )
+                        }
+                }
+            }
         }
         // 集成竖切二：小窗人脸贴纸（本机处理，不上传）；不抢舞台 pointerInput。
         if (labFaceCameraPip && DhLabGate.isEnabled(context)) {

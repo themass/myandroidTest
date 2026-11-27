@@ -768,8 +768,8 @@ fun CompanionRoute(
                             gestureId = uiState.gesture,
                             gestureSeq = uiState.gestureSeq,
                             particles = waveOptions.particles,
-                            // dh-lab 调试按钮 → 同一条 Gesture 词表（pat_head）。
-                            onLabFxTest = { chatViewModel.emitStageGesture("pat_head") },
+                            // dh-lab 调试面板 → 同一条 Gesture 词表（按选项的 gestureId）。
+                            onLabFxTest = { gesture -> chatViewModel.emitStageGesture(gesture) },
                             labFaceCameraPip = labEnabled && faceCameraOn,
                             // 小窗手势 → 同一条 Gesture 词表（张→wave、捏→pat_head）。
                             // 词表映射钉在 feature-camera-fx 的 CameraGestureCue（单一事实源）。
