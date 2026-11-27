@@ -25,19 +25,20 @@ class DhEngineMenuTest {
     }
 
     @Test
-    fun callStage_defaults_to_original_even_when_engine_is_simple() {
+    fun callStage_defaults_to_unset_choice_even_when_engine_is_simple() {
         val prefs = DhLabPreferences(context)
         assertEquals(DhEngineId.SIMPLE, prefs.engine)
-        assertNull(prefs.callStage)
+        // 没选过 ≠ 显式原形象：前者让服务端 her 决定引擎，后者谁也不许盖（第二刀三态）。
+        assertEquals(StageChoice.Unset, prefs.callStageChoice)
     }
 
     @Test
     fun callStage_persists_choice_and_clears_back_to_original() {
         val prefs = DhLabPreferences(context)
-        prefs.callStage = DhEngineId.DUIX
-        assertEquals(DhEngineId.DUIX, DhLabPreferences(context).callStage)
-        DhLabPreferences(context).callStage = null
-        assertNull(DhLabPreferences(context).callStage)
+        prefs.callStageChoice = StageChoice.Engine(DhEngineId.DUIX)
+        assertEquals(StageChoice.Engine(DhEngineId.DUIX), DhLabPreferences(context).callStageChoice)
+        DhLabPreferences(context).callStageChoice = StageChoice.Original
+        assertEquals(StageChoice.Original, DhLabPreferences(context).callStageChoice)
     }
 
     @Test

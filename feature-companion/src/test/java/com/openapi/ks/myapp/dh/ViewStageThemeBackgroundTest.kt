@@ -20,6 +20,13 @@ class ViewStageThemeBackgroundTest {
     }
 
     @Test
+    fun `SurfaceView rejects opaque theme background covering surface hole`() {
+        val ctx = RuntimeEnvironment.getApplication()
+        val surface = android.view.SurfaceView(ctx)
+        assertFalse(canApplyThemeBackgroundToView(surface))
+    }
+
+    @Test
     fun `plain View accepts theme background`() {
         val ctx = RuntimeEnvironment.getApplication()
         val v = View(ctx)

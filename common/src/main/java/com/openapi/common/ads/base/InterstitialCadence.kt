@@ -15,13 +15,26 @@ object InterstitialCadence {
     @JvmStatic
     var clock: AdsClock = AdsClock { System.currentTimeMillis() }
 
+    /**
+     * adb 剧本验收（`script_case`）期间静音插屏：全屏广告页会打断脚本
+     * （P2-13 同源干扰）。闸总开（用户 20261125 亲令），剧本保护放这一层。
+     */
+    @Volatile
+    @JvmStatic
+    var scriptQuiet: Boolean = false
+
     private var startupAtMs = 0L
     private var lastShownAtMs = 0L
 
-    /** 进程启动锚点（MyApplication.onCreate 调一次）。 */
+    /**
+     * 进程启动锚点（MyApplication.onCreate 调一次）。同时清空上一轮节律状态：
+     * 进程启动时必然没有「本进程已展示」的插屏；也让 JVM 测试可重复调用此方法隔离状态。
+     */
     @JvmStatic
+    @Synchronized
     fun noteStartup() {
         startupAtMs = clock.now()
+        lastShownAtMs = 0L
     }
 
     /** 真正展示过一屏插屏之后调用（决定下一次的最小间隔）。 */
@@ -33,5 +46,5 @@ object InterstitialCadence {
     /** 当前时刻是否允许弹插屏。 */
     @JvmStatic
     fun allow(): Boolean =
-        AdsShowPolicy.allowInterstitial(clock.now(), startupAtMs, lastShownAtMs)
+        !scriptQuiet && AdsShowPolicy.allowInterstitial(clock.now(), startupAtMs, lastShownAtMs)
 }

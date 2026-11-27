@@ -14,6 +14,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -44,6 +45,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.openapi.feature.companion.fx.LottieFxLayer
+import com.openapi.feature.companion.fx.FxTarget
+import com.openapi.feature.companion.fx.StageFxOptions
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.AvatarTouch
 import com.openapi.ks.myapp.avatar.AvatarTouchKind
@@ -123,8 +126,15 @@ fun DigitalHumanLabHost(
     gestureSeq: Long = 0L,
     /** 通话页飘散粒子开关；关 → 氛围类特效不播（[FxRenderPolicy]）。 */
     particles: Boolean = true,
-    /** dh-lab 门内「特效测试」按钮；null = 不显示。Route 接到 emitStageGesture("pat_head"). */
-    onLabFxTest: (() -> Unit)? = null,
+    /** dh-lab 门内「特效测试」按钮；null = 不显示。Route 接到 emitStageGesture(gestureId). */
+    onLabFxTest: ((String) -> Unit)? = null,
+    /**
+     * dh-lab 面板「我」区：点一下 = 把相机小窗的贴纸换成该资产（贴在本机画面上，
+     * 不进舞台、不进发送的视频）。null = 不显示「我」区。
+     */
+    onLabUserStickerPick: ((String) -> Unit)? = null,
+    /** 当前选中的「我」贴纸资产 id；null = 相机模块默认（摸头爱心）。 */
+    selectedUserSticker: String? = null,
     /** 通话页右下角小窗：前置相机 + 头顶 Lottie（仅 debug+已授相机权限）。 */
     labFaceCameraPip: Boolean = false,
     /** 小窗手势 → 舞台 cue（"wave"/"pat_head"）；Route 接到 emitStageGesture，不另起总线。 */
@@ -133,8 +143,9 @@ fun DigitalHumanLabHost(
      * 小窗内容本体由**组合根注入**：feature 互不依赖（ModuleGraphTest 分层规则，
      * 2026-11-23 正解），:feature-companion 不 import :feature-camera-fx——
      * HomeScreen（:app）传 `CameraFxStickerPip`。null = 不渲染小窗。
+     * [stickerAssetId] 透传给相机侧选贴纸（须 ∈ 其 StickerAssetIds 白名单）。
      */
-    faceCameraPipContent: (@Composable (Modifier, onGesture: (String) -> Unit) -> Unit)? = null,
+    faceCameraPipContent: (@Composable (Modifier, onGesture: (String) -> Unit, stickerAssetId: String?) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     DhLabBootstrap.ensureDefaults()
@@ -437,7 +448,7 @@ fun DigitalHumanLabHost(
                             v.scaleY = stage.scale * pulse
                             v.translationX = stage.offsetX
                             v.translationY = stage.offsetY
-                            // TextureView（含 Live2D）禁止 setBackgroundColor；用 canApplyThemeBackgroundToView 统一门禁。
+                            // TextureView / SurfaceView（含 Live2D）均由渲染器清屏，不设置遮挡 GL 的 View 背景。
                             theme?.let {
                                 if (canApplyThemeBackgroundToView(v)) {
                                     val argb = stageClearColorArgb(it.topArgb, it.midArgb, it.bottomArgb)
@@ -482,34 +493,108 @@ fun DigitalHumanLabHost(
             stageZoomed = stage.isZoomed,
             modifier = Modifier.fillMaxSize(),
         )
-        // dh-lab 调试：点一下 = 走同一条 Gesture 词表（pat_head），验证合成/触摸回归。
+        // dh-lab 调试：面板列出**白名单内**的舞台特效（[StageFxOptions] 单一事实源），
+        // 点一下 = 走同一条 Gesture 词表，验证合成/触摸回归。不可播的置灰并显示原因，
+        // 不隐藏也不假装可点（用户 2026-11-27「先展示出来，我来点击测试效果」）。
         if (onLabFxTest != null && DhLabGate.isEnabled(context)) {
-            Text(
-                text = "特效测试",
-                color = Color.White,
-                fontSize = 13.sp,
+            var fxPanelOpen by remember { mutableStateOf(false) }
+            Column(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 96.dp, end = 16.dp)
-                    .clip(RoundedCornerShape(percent = 50))
-                    .background(Color.White.copy(alpha = 0.18f))
-                    .clickable { onLabFxTest.invoke() }
-                    .padding(horizontal = 14.dp, vertical = 6.dp),
-            )
+                    .padding(top = 96.dp, end = 16.dp),
+                horizontalAlignment = Alignment.End,
+            ) {
+                Text(
+                    text = if (fxPanelOpen) "特效测试 ×" else "特效测试",
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(percent = 50))
+                        .background(Color.White.copy(alpha = 0.18f))
+                        .clickable { fxPanelOpen = !fxPanelOpen }
+                        .padding(horizontal = 14.dp, vertical = 6.dp),
+                )
+                if (fxPanelOpen) {
+                    Text(
+                        text = "她 · 舞台特效",
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 11.sp,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                    StageFxOptions
+                        .options(FxTarget.HER, particles = particles, reducedMotion = reducedMotion)
+                        .forEach { option ->
+                            Text(
+                                text = option.label +
+                                    (option.unavailableReason?.let { "（$it）" } ?: ""),
+                                color = if (option.enabled) Color.White else Color.White.copy(alpha = 0.4f),
+                                fontSize = 13.sp,
+                                modifier = Modifier
+                                    .padding(top = 6.dp)
+                                    .clip(RoundedCornerShape(percent = 50))
+                                    .background(Color.White.copy(alpha = if (option.enabled) 0.18f else 0.07f))
+                                    .clickable(enabled = option.enabled) {
+                                        option.gestureId?.let { onLabFxTest.invoke(it) }
+                                    }
+                                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                            )
+                        }
+                    // 「我」区 = 贴在本机相机画面上的贴纸（不进舞台、不进发送视频）。
+                    // 相机小窗未开时整区置灰并给原因——不隐藏，让用户知道差在哪一步。
+                    val camOn = labFaceCameraPip &&
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                        PackageManager.PERMISSION_GRANTED
+                    onLabUserStickerPick?.let { pick ->
+                        Text(
+                            text = "我 · 相机贴纸",
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                        StageFxOptions
+                            .options(
+                                FxTarget.USER,
+                                cameraGranted = camOn,
+                                particles = particles,
+                                reducedMotion = reducedMotion,
+                            )
+                            .forEach { option ->
+                                val chosen = option.assetId == selectedUserSticker
+                                Text(
+                                    text = (if (chosen) "✓ " else "　") + option.label +
+                                        (option.unavailableReason?.let { "（$it）" } ?: ""),
+                                    color = if (option.enabled) Color.White else Color.White.copy(alpha = 0.4f),
+                                    fontSize = 13.sp,
+                                    modifier = Modifier
+                                        .padding(top = 6.dp)
+                                        .clip(RoundedCornerShape(percent = 50))
+                                        .background(
+                                            Color.White.copy(
+                                                alpha = when {
+                                                    chosen -> 0.32f
+                                                    option.enabled -> 0.18f
+                                                    else -> 0.07f
+                                                },
+                                            ),
+                                        )
+                                        .clickable(enabled = option.enabled) { pick.invoke(option.assetId) }
+                                        .padding(horizontal = 14.dp, vertical = 6.dp),
+                                )
+                            }
+                    }
+                }
+            }
         }
         // 集成竖切二：小窗人脸贴纸（本机处理，不上传）；不抢舞台 pointerInput。
         if (labFaceCameraPip && DhLabGate.isEnabled(context)) {
             val camOk = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
                 PackageManager.PERMISSION_GRANTED
             if (camOk) {
-                faceCameraPipContent?.invoke(
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 12.dp, bottom = 120.dp)
-                        .size(132.dp, 176.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    onCameraStageGesture ?: {},
-                )
+                if (faceCameraPipContent != null) {
+                    DraggableCameraPreview { previewModifier ->
+                        faceCameraPipContent(previewModifier, onCameraStageGesture ?: {}, selectedUserSticker)
+                    }
+                }
             }
         }
         // ======================================================================

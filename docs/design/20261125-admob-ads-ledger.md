@@ -68,14 +68,14 @@ tip（本分支 HEAD 起点 6da4aee9）。所有 file:line 均为该基线上的
   (2023-04-24 `admob&mobvista`) 起连续存在，Kotlin 化在 `632b3834`
   `Stage 8: LaunchActivity becomes Kotlin`，**没有删除提交**。
 
-**怎么没的** → **条件闸不满足**（原因 1）：debug 包 `showSplashAds` 直接 return，
-`init` 也被挡。另有一条与用户无关的旁路：带 `script_case` extra 启动时
-`LaunchActivity.kt:52-55` 主动跳过开屏（adb 验收用）。
+**怎么没的** → **条件闸不满足**（原因 1）：此前 debug 包 `showSplashAds` 直接 return，
+`init` 也被挡。用户已于 2026-11-25 定夺总闸恒开（见 §6 D1），该条件闸已取消。
+另有一条独立旁路：带 `script_case` extra 启动时 `LaunchActivity.kt:52-55`
+主动跳过开屏（adb 验收用），此契约保留。
 
 **恢复落点与最小方案**
-1. 代码零改动即可恢复 release 行为——只需确认闸的策略（见 §6 决定项 D1）。
-2. debug 包要能验收开屏：`AdsGate` 增加 debug 侧显式 opt-in（`adb` 广播或
-   debug 设置页开关），默认仍关闭，保持 `28b2226e` 保护验收的初衷。
+1. 开屏代码原本仍在；总闸恒开后，debug 与 release 都走既有启动调用。
+2. `script_case` 仍跳过开屏，以免打断自动化验收；其他环境不因构建类型关闭广告。
 3. 附带修正：`AdmobSplashAds.launchAds` 载入失败走
    `postLaunchAdsNext`，但成功路径不通知倒计时；`LaunchActivity` 倒计时
    `max = Constants.STARTUP_SHOW_TIME_6000 + 1000` 与广告展示无耦合——广告弹出期间
@@ -263,10 +263,15 @@ tip（本分支 HEAD 起点 6da4aee9）。所有 file:line 均为该基线上的
 
 ## 6. 需要用户/协调线定夺的事（不猜）
 
-- **D1 debug 闸要不要放开**：`28b2226e` 是刻意关的（验收机被全屏广告干扰）。用户现在
-  抱怨看不到广告。两种做法：(a) 保持 debug 默认关，增加 debug 侧显式 opt-in
-  （adb 广播 / 设置页开关），验收与广告两不误；(b) 直接恢复 debug 也展示。
-  **本线按 (a) 实现**（保护既有验收流程），如需 (b) 请示下后一行改回。
+- **D1 debug 闸要不要放开**：**已定（用户 20261125 当面亲令「一直开，忽略debug」）**
+  —— 采纳方案 (b)：`AdsGate.enabled()` 恒为 `true`，debug 与 release 一律加载并
+  展示广告。`28b2226e`（P2-13：debug 冷启动弹全屏开屏/插屏、误触跳
+  googleadservices 证书报警页）带来的验收干扰由用户明确接受。
+  该决定由 `AdsGateTest` 钉住（任何人把闸改回按构建类型关会红），`debugBuild`
+  标记保留给日志/诊断但闸门不再读它。
+  **剧本房验收的干扰改在 `script_case` 这一层挡**：启动页原本就跳过开屏倒计时，
+  新增 `InterstitialCadence.scriptQuiet`（`HomeActivity.onCreate` 见
+  `script_case` 就置位）静音整个进程的插屏——放映场下钻与首页插屏都查它。
 - **D2 广告位 id**：仓库里 id 齐全（§1），**无需**新 id；`adviewToAdmobBanner` 映射
   （`AdsIds.java:39-44`）已把三个 adview key 映射到两个 ADMOB banner id，
   恢复时直接可用。
@@ -288,21 +293,22 @@ tip（本分支 HEAD 起点 6da4aee9）。所有 file:line 均为该基线上的
 - `InterstitialCadence.kt`：进程级时间戳持有者（noteStartup/noteShown/allow），
   时钟可注入。锚点在 `MyApplication.onCreate`。
 - `AdsClock.kt`：可注入时钟接口。
-- `AdsGate.kt`：新增 debug 侧显式 opt-in（§6 D1 方案 (a)）。
-- 单测：`AdsShowPolicyTest.kt` 钉闸行为、预算窗口过期重开（旧实现永久 false）、
-  概率边界、静默期/间隔、位置表。既有 `AdsGateTest`/`AdsManagerGateTest` 保持绿。
+- `AdsGate.kt`：**恒开**（§6 D1 用户亲令定案）——debug 与 release 一律加载展示；
+  `debugBuild` 标记保留给诊断，闸门不读。`AdsManager` 保持「所有 map 访问前先过闸」
+  的形状（`AdsManagerGateTest` 钉住），`init` 加 `inited` 幂等。
+- 单测：`AdsGateTest` 钉总闸恒开；`AdsShowPolicyTest.kt` 钉剧本静音、预算窗口过期
+  重开（旧实现永久 false）、概率边界、静默期/间隔、位置表与类别规则；既有
+  `AdsManagerGateTest` 保持 map 访问前有闸的源码结构。
 
 **恢复接线**
-- **D1 / AD1 验证入口**：`LaunchActivity` 解析启动 Intent extra `ads_on`
-  （`adb shell am start -n <pkg>/com.openapi.app.LaunchActivity --ez ads_on 1`）→
-  `AdsGate.debugOptIn = true` + `AdsManager.initIfNeeded()`（幂等补初始化，
-  MyApplication 里那次因闸关着被跳过）。开屏链路本身零改动（§2：代码一直在，
-  只是被闸压住），默认行为不变——debug 仍不加载广告，保护既有验收流程。
+- **AD1 开屏**：代码零改动即恢复（§2：链路一直在，此前只是被闸压住）；闸恒开后
+  debug 装机直接可见。剧本房（`script_case`）仍跳过开屏倒计时——那是既有
+  adb 验收契约，不是广告开关。
 - **AD2**：`HomeActivity.showHomeInterstitialOnce()` —— 进程内最多一次、过
   `InterstitialCadence` + `rateShow`、`script_case` 剧本房不弹、开屏关闭后 1.5s
   才尝试（不接力全屏广告）。旧「进主页必弹」刻意不恢复。
 - **AD3**：`common/.../ads/ui/AdsBannerSlot.kt` —— Compose 内嵌 banner 槽
-  （`AndroidView` + 现存 `AdsManager.showBannerAds`，闸关闭时高度 0；
+  （`AndroidView` + 现存 `AdsManager.showBannerAds`；
   LazyColumn 回收时 `onRelease` 销毁 AdView，补旧路泄漏）。
   `feature-video/.../screening/ScreeningAds.kt` 把纯函数规则接到槽上：
   - 片单列表（`ScreeningActivity` Library 海报网格 + 紧凑行）：`FeedGridAdSlot`/`FeedRowAdSlot`；

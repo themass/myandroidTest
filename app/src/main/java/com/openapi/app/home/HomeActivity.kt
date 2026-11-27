@@ -29,6 +29,11 @@ class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // 总闸恒开（用户 20261125 亲令），剧本房验收的干扰放这一层：
+        // script_case 进程内静音所有插屏（放映场下钻也会查这个标志）。
+        if (!intent.getStringExtra(EXTRA_SCRIPT_CASE).isNullOrBlank()) {
+            InterstitialCadence.scriptQuiet = true
+        }
         setContent {
             AppMaterialTheme { HomeScreen() }
         }
@@ -41,12 +46,10 @@ class HomeActivity : ComponentActivity() {
     /**
      * AD2 恢复（台账 §3）：旧首页 `MainFragmentViewPage.java:133` 进主页即弹插屏，
      * 迁 Compose 时没搬（死亡点 `eefb98a9`）。这里恢复为**进程内最多一次**，且必须
-     * 过 `InterstitialCadence` 的时机闸门（启动静默期已过、距上次插屏足够远）与
+     * 过 `InterstitialCadence` 的时机闸门（剧本静音、启动静默期、最小间隔）与
      * `AdsContext.rateShow()` 的窗口概率——旧「每次进主页必弹」正是 Play 拒审的形状。
-     * 剧本房验收（`script_case`）不弹：广告全屏页会打断 adb 剧本。
      */
     private fun showHomeInterstitialOnce() {
-        if (!intent.getStringExtra(EXTRA_SCRIPT_CASE).isNullOrBlank()) return
         // 稍等一拍：开屏广告（AppOpenAd 全屏页）刚关闭的瞬间不接力插屏。
         window.decorView.postDelayed({
             if (interstitialTried || isFinishing) return@postDelayed

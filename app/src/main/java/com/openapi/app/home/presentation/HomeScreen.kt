@@ -371,10 +371,11 @@ fun HomeScreen() {
                             },
                             // 通话页右下角人脸贴纸小窗：内容从组合根注入——
                             // feature 互不依赖（ModuleGraphTest），:app 可同时依赖两个 feature。
-                            faceCameraPipContent = { mod, onGesture ->
+                            faceCameraPipContent = { mod, onGesture, stickerAssetId ->
                                 com.openapi.feature.camerafx.CameraFxStickerPip(
                                     modifier = mod,
                                     onStageGesture = onGesture,
+                                    stickerAssetId = stickerAssetId,
                                 )
                             },
                         )

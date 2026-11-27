@@ -136,8 +136,7 @@ class Live2dRuntime internal constructor(
                     JniBridgeJava.nativeOnSurfaceCreated()
                     if (!modelLoadedOnGl) {
                         modelLoadedOnGl = true
-                        JniBridgeJava.nativeProjectChangeTo(modelPath, json)
-                        JniBridgeJava.nativeAutoBlinkEyes(true)
+                        prepareLive2dScene(modelPath, json)
                         Log.i(TAG, "model load on GL surface: $json")
                     }
                 }
@@ -221,8 +220,7 @@ class Live2dRuntime internal constructor(
         runCatching {
             d.post {
                 runCatching {
-                    JniBridgeJava.nativeProjectChangeTo(modelPath, modelJsonName)
-                    JniBridgeJava.nativeAutoBlinkEyes(true)
+                    prepareLive2dScene(modelPath, modelJsonName)
                 }
             }
         }

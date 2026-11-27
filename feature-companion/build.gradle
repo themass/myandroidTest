@@ -11,6 +11,9 @@ android {
     buildFeatures {
         compose = true
     }
+    // The offline comparison gallery and evaluation-only models are debug APK assets.
+    sourceSets.debug.java.srcDir rootProject.file('demos/avatar-lab/app/src/main/java')
+    sourceSets.debug.assets.srcDir rootProject.file('demos/avatar-lab/app/src/main/assets')
 }
 
 dependencies {
@@ -51,6 +54,7 @@ dependencies {
     // Rive 官方运行时：只挂 debug（与 :app 的 debugImplementation 同版本，升级一起改）。
     // release 变体里引擎类与运行时都不存在 → 通话页引擎菜单显示「未编入」。
     debugImplementation 'app.rive:rive-android:11.16.3'
+    debugImplementation 'androidx.webkit:webkit:1.12.1'
     // 通话页小窗人脸贴纸：feature 互不依赖——:feature-camera-fx 的 PIP 内容由组合根
     // HomeScreen 注入（faceCameraPipContent），这里**不**声明对 :feature-camera-fx 的依赖。
 }

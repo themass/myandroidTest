@@ -45,6 +45,14 @@ interface CompanionApi {
     suspend fun attachmentUrl(uploadId: String): String?
     suspend fun characters(limit: Int = 20, offset: Int = 0): CharacterPage
     suspend fun character(id: String): CharacterDetail
+    /**
+     * her 注册表摘要（`GET /v1/hers`，服务端第一刀 ca_her_pack）：呈现实体的 renderer、
+     * 包版本、特效/贴纸计数。引擎自动选择（[com.openapi.ks.myapp.dh.resolveCallStage]）读它。
+     *
+     * 服务端还没上这一刀时默认实现回空页——调用方（HerRegistryStore）因此永远拿到
+     * 列表，老服务端零影响；网络失败由 store 宽出成过期缓存/空表，不白屏。
+     */
+    suspend fun hers(limit: Int = 20, offset: Int = 0): HerPage = HerPage(emptyList(), 0)
     /** 记忆按角色隔离：必须带 roleId，否则读到的是「不属于任何角色」的空空间。 */
     suspend fun memory(roleId: String, limit: Int = 20, offset: Int = 0): FactPage
     suspend fun deleteMemory(roleId: String, id: String)
@@ -152,6 +160,14 @@ class HttpCompanionApi(
 
     override suspend fun character(id: String): CharacterDetail =
         CharacterDetail.from(call("GET", "/v1/characters/${enc(id)}"))
+
+    override suspend fun hers(limit: Int, offset: Int): HerPage {
+        val json = call("GET", "/v1/hers?limit=$limit&offset=$offset")
+        return HerPage(
+            items = json.optJSONArray("items").toList { HerSummary.from(it) },
+            total = json.optInt("total"),
+        )
+    }
 
     override suspend fun memory(roleId: String, limit: Int, offset: Int): FactPage {
         // 按角色隔离：带上 role_id，否则读到的是用户级空空间

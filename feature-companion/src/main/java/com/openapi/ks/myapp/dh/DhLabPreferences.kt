@@ -2,6 +2,22 @@ package com.openapi.ks.myapp.dh
 
 import android.content.Context
 
+/**
+ * 通话舞台的用户意愿，三态——这是「服务端能不能决定引擎」的分界：
+ * 只有 [Unset]（用户从没在引擎菜单里表达过偏好）才让服务端 her 注册表决定引擎。
+ * [Original] 与 [Engine] 都是显式选择，任何服务端值都不覆盖（用户的手比接口大）。
+ */
+sealed interface StageChoice {
+    /** 没存过偏好：跟随 her 注册表（没有 her 就是原形象）。 */
+    data object Unset : StageChoice
+
+    /** 显式选了「原来的形象」（分层立绘 / 圆头像）。 */
+    data object Original : StageChoice
+
+    /** 显式选了某个数字人引擎。 */
+    data class Engine(val id: DhEngineId) : StageChoice
+}
+
 /** Lab 偏好：上次引擎 + 是否强制打开 Lab（非 debuggable 也可开）。 */
 class DhLabPreferences(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -15,19 +31,29 @@ class DhLabPreferences(context: Context) {
         }
 
     /**
-     * 通话页右上角下拉选中的引擎。
+     * 通话页右上角下拉的舞台选择——三态（[StageChoice]）：
+     * - `Unset`（没存过）= 用户没表达过偏好，服务端 her 注册表可以决定引擎（第二刀）；
+     * - `Original`（存 "ORIGINAL"）= 用户显式选了「原来的形象」，谁也不许盖掉它；
+     * - `Engine(id)` = 用户显式选了某个引擎，同样不被服务端覆盖。
      *
-     * null = 原来的形象（分层立绘 / 圆头像）。与 [engine] 分开：后者默认 SIMPLE，
-     * 不能拿来决定要不要盖掉原来的舞台，否则 Lab 一开形象就没了。
+     * 存储与旧版完全兼容：旧版没选过=键缺失、显式原形象=键值 "ORIGINAL"，这个区分
+     * 本来就在盘上，只是旧 getter 把两者抹成了同一个 null。与 [engine] 分开：后者默认
+     * SIMPLE，不能拿来决定要不要盖掉原来的舞台，否则 Lab 一开形象就没了。
      */
-    var callStage: DhEngineId?
+    var callStageChoice: StageChoice
         get() {
-            val raw = prefs.getString(KEY_CALL_STAGE, null) ?: return null
-            if (raw.isBlank() || raw == ORIGINAL) return null
-            return runCatching { DhEngineId.valueOf(raw) }.getOrNull()
+            val raw = prefs.getString(KEY_CALL_STAGE, null) ?: return StageChoice.Unset
+            if (raw.isBlank() || raw == ORIGINAL) return StageChoice.Original
+            return runCatching { StageChoice.Engine(DhEngineId.valueOf(raw)) }
+                .getOrDefault(StageChoice.Original)
         }
         set(value) {
-            prefs.edit().putString(KEY_CALL_STAGE, value?.name ?: ORIGINAL).apply()
+            val raw = when (value) {
+                StageChoice.Unset -> null
+                StageChoice.Original -> ORIGINAL
+                is StageChoice.Engine -> value.id.name
+            }
+            prefs.edit().putString(KEY_CALL_STAGE, raw).apply()
         }
 
     var labForced: Boolean

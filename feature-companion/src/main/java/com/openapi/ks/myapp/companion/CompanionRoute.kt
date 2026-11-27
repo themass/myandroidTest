@@ -70,9 +70,11 @@ import com.openapi.ks.myapp.dh.DhLabPreferences
 import com.openapi.ks.myapp.dh.DigitalHumanLabHost
 import com.openapi.ks.myapp.dh.OriginalAvatarDemo
 import com.openapi.ks.myapp.dh.OriginalAvatarDemoControls
+import com.openapi.ks.myapp.dh.StageChoice
 import com.openapi.ks.myapp.dh.dhEngineMenuRows
 import com.openapi.ks.myapp.dh.dhEngineSeedHint
 import com.openapi.ks.myapp.dh.mapEnsureFailureMessage
+import com.openapi.ks.myapp.dh.resolveCallStage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -113,11 +115,12 @@ fun CompanionRoute(
     /** 建会话返回 401 时由 app 层负责跳转登录。 */
     onLoginRequired: (() -> Unit)? = null,
     /**
-     * 通话页右下角人脸贴纸小窗的**内容注入**（组合根 HomeScreen 传
+     * 通话页小窗人脸贴纸的内容注入（组合根 HomeScreen 传
      * `CameraFxStickerPip`）。feature 互不依赖，:feature-companion 不 import
      * :feature-camera-fx（ModuleGraphTest 分层规则）。null = 无小窗。
+     * [stickerAssetId] = 面板选中的「我」贴纸（相机侧白名单校验）；null = 相机侧默认。
      */
-    faceCameraPipContent: (@Composable (Modifier, onGesture: (String) -> Unit) -> Unit)? = null,
+    faceCameraPipContent: (@Composable (Modifier, onGesture: (String) -> Unit, stickerAssetId: String?) -> Unit)? = null,
 ) {
     val context = LocalContext.current.applicationContext
     val tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.common.net.http.NetConfig.tokenHeader(), null) }
@@ -365,8 +368,25 @@ fun CompanionRoute(
         val labEnabled = remember(context) { DhLabGate.isEnabled(context) }
         val faceCamPrefs = remember(context) { CompanionFaceCameraPrefs(context) }
         var faceCameraOn by remember { mutableStateOf(faceCamPrefs.enabled) }
+        // 面板「我」区选中的贴纸资产 id；null = 相机模块默认（摸头爱心）。
+        var userSticker by rememberSaveable { mutableStateOf<String?>(null) }
+        val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            faceCameraOn = granted
+            faceCamPrefs.enabled = granted
+            if (!granted) toast(context, "没有相机权限，无法打开预览")
+        }
         val dhPrefs = remember(context) { DhLabPreferences(context) }
-        var callStage by remember { mutableStateOf(dhPrefs.callStage) }
+        // 舞台引擎的唯一选择点（客户端第二刀，persona/her 分层架构 §4「进房」her 半）：
+        // 用户显式选过（原形象 / 某引擎）→ 听用户的；从没选过 → 按该角色默认 her 的
+        // renderer。注册表拉取失败宽出成空表（HerRegistryStore），没有 her / renderer
+        // 认不出 → null = 原来的分层立绘，绝不因为拉取失败换脸或白屏。
+        // 注意 stageChoice 只在引擎菜单里写（行 id 为 null = 显式「原来的形象」）。
+        var stageChoice by remember { mutableStateOf(dhPrefs.callStageChoice) }
+        val herRegistry = remember(api) { HerRegistryStore(api) }
+        val hers by produceState<List<HerSummary>>(initialValue = emptyList(), characterId) {
+            value = withContext(Dispatchers.IO) { herRegistry.hers() }
+        }
+        val callStage = resolveCallStage(stageChoice, characterId, hers)
         // 用户在菜单里再点已勾选的引擎 = 「解除熔断再试一次」。引擎 id 没变，Compose 不会重组，
         // 所以用计数器重建 LabHost（key），让它重新读隔离状态。
         var engineRetry by remember { mutableIntStateOf(0) }
@@ -381,6 +401,9 @@ fun CompanionRoute(
         // 当前在岗的引擎实例快照（LabHost 在切引擎/切形象时更新，销毁时回 null）。
         // 换装行与换形象行直接调它——引擎内部状态不可观察，靠这个引用把托盘和引擎接上。
         var stageEngine by remember { mutableStateOf<com.openapi.ks.myapp.dh.DigitalHumanEngine?>(null) }
+        // 热切换保留同一引擎引用，单独发布模型名才能让标签和下一次切换读取新值。
+        // Source: https://developer.android.com/develop/ui/compose/state#state-in-composables
+        var stageModel by remember { mutableStateOf<String?>(null) }
         // 换装/换形象后 +1：托盘行尾的当前值需要重组才刷新（引擎状态不是 Compose state）。
         var wardrobeTick by remember { mutableIntStateOf(0) }
         val uiScope = rememberCoroutineScope()
@@ -405,12 +428,21 @@ fun CompanionRoute(
                 val debuggable = context.applicationInfo.flags and
                     android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
                 if (debuggable) {
-                    rows + DhEngineMenuRow(
-                        id = DhEngineId.LIVE2D,
-                        label = "原创 Live2D Demo",
-                        switches = true,
-                        detail = "debug",
-                        demoModel = OriginalAvatarDemo.MODEL_DIR,
+                    rows + listOf(
+                        DhEngineMenuRow(
+                            id = DhEngineId.LIVE2D,
+                            label = "原创 Live2D Demo",
+                            switches = true,
+                            detail = "debug",
+                            demoModel = OriginalAvatarDemo.MODEL_DIR,
+                        ),
+                        DhEngineMenuRow(
+                            id = null,
+                            label = "数字人样例实验室",
+                            switches = true,
+                            detail = "debug · 离线样例",
+                            demoModel = "__avatar_lab_gallery__",
+                        ),
                     )
                 } else {
                     rows
@@ -519,8 +551,8 @@ fun CompanionRoute(
                         demoSmileEnabled = false
                         demoCapeEnabled = false
                         live2dModel = OriginalAvatarDemo.MODEL_DIR
-                        callStage = DhEngineId.LIVE2D
-                        dhPrefs.callStage = DhEngineId.LIVE2D
+                        stageChoice = StageChoice.Engine(DhEngineId.LIVE2D)
+                        dhPrefs.callStageChoice = StageChoice.Engine(DhEngineId.LIVE2D)
                         DhEngineWatchdog(context).clear(DhEngineId.LIVE2D)
                         engineRetry++
                         toast(context, "原创 Live2D Demo 已就绪")
@@ -577,8 +609,12 @@ fun CompanionRoute(
             faceCameraEnabled = faceCameraOn,
             onFaceCameraChange = if (labEnabled) {
                 { on ->
-                    faceCameraOn = on
-                    faceCamPrefs.enabled = on
+                    if (on && context.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                        cameraLauncher.launch(Manifest.permission.CAMERA)
+                    } else {
+                        faceCameraOn = on
+                        faceCamPrefs.enabled = on
+                    }
                 }
             } else {
                 null
@@ -623,10 +659,10 @@ fun CompanionRoute(
                     wardrobeTick++
                 }
             } else null,
-            live2dModelLabel = stageEngine?.modelLabel(),
+            live2dModelLabel = stageModel,
             onLive2dModelSwitch = if (callStage != null) {
                 val present = com.openapi.ks.myapp.dh.live2dPresentModels(context)
-                val model = stageEngine?.modelLabel()
+                val model = stageModel
                 if (present.size > 1 && model != null) {
                     {
                         val next = com.openapi.ks.myapp.dh.Live2dModels.next(model, present)
@@ -638,7 +674,9 @@ fun CompanionRoute(
             } else null,
             live2dModelSwitchHint = "只推了这一个形象",
             onEngineMenuClick = { row ->
-                if (row.demoModel != null) {
+                if (row.demoModel == "__avatar_lab_gallery__") {
+                    context.startActivity(android.content.Intent().setClassName(context, "com.openapi.avatar.lab.MainActivity"))
+                } else if (row.demoModel != null) {
                     openOriginalAvatarDemo()
                 } else when (engineGate.actionFor(row)) {
                     EngineClickAction.UNAVAILABLE_REASON -> {
@@ -657,8 +695,11 @@ fun CompanionRoute(
                         if (live2dModel == OriginalAvatarDemo.MODEL_DIR) {
                             live2dModel = dhPrefs.live2dModel
                         }
-                        callStage = row.id
-                        dhPrefs.callStage = row.id
+                        // 菜单里点任何一行都是**显式**表态（含「原来的形象」= row.id null）：
+                        // 存成 StageChoice，服务端 her 从此不再有权决定这个用户的舞台。
+                        val choice = row.id?.let { StageChoice.Engine(it) } ?: StageChoice.Original
+                        stageChoice = choice
+                        dhPrefs.callStageChoice = choice
                     }
                     EngineClickAction.NOT_READY_START_DOWNLOAD -> {
                         val id = row.id
@@ -680,8 +721,9 @@ fun CompanionRoute(
                                             .firstOrNull { it.id == id }
                                         if (now?.available == true) {
                                             DhEngineWatchdog(context).clear(id)
-                                            callStage = id
-                                            dhPrefs.callStage = id
+                                            val choice = StageChoice.Engine(id)
+                                            stageChoice = choice
+                                            dhPrefs.callStageChoice = choice
                                         } else {
                                             toast(context, "$name 素材已下好，但${now?.reason ?: "现在还不能用"}")
                                         }
@@ -734,7 +776,10 @@ fun CompanionRoute(
                             // Live2D 多形象：偏好持久化的模型目录名；变化时 LabHost
                             // 原地换引擎实例（先 release 再 create）。
                             live2dModel = live2dModel,
-                            onEngineChanged = { stageEngine = it },
+                            onEngineChanged = {
+                                stageEngine = it
+                                stageModel = it?.modelLabel()
+                            },
                             // Simple 舞台形象回退（投诉 2026-11-23「只有一个字」）：
                             // 没有旧格式形象包但有分层立绘的角色，舞台画立绘不画字。
                             simpleFallback = if (avatarFiles == null) layeredPack else null,
@@ -742,8 +787,11 @@ fun CompanionRoute(
                             gestureId = uiState.gesture,
                             gestureSeq = uiState.gestureSeq,
                             particles = waveOptions.particles,
-                            // dh-lab 调试按钮 → 同一条 Gesture 词表（pat_head）。
-                            onLabFxTest = { chatViewModel.emitStageGesture("pat_head") },
+                            // dh-lab 调试面板 → 同一条 Gesture 词表（按选项的 gestureId）。
+                            onLabFxTest = { gesture -> chatViewModel.emitStageGesture(gesture) },
+                            // 面板「我」区：选中的贴纸只换本机相机小窗，不进舞台/发送视频。
+                            onLabUserStickerPick = { assetId -> userSticker = assetId },
+                            selectedUserSticker = userSticker,
                             labFaceCameraPip = labEnabled && faceCameraOn,
                             // 小窗手势 → 同一条 Gesture 词表（张→wave、捏→pat_head）。
                             // 词表映射钉在 feature-camera-fx 的 CameraGestureCue（单一事实源）。
@@ -757,7 +805,7 @@ fun CompanionRoute(
                         }
                         if (labEnabled && !actionTrayOpen && chosen == DhEngineId.LIVE2D &&
                             stageEngine?.id == DhEngineId.LIVE2D &&
-                            stageEngine?.modelLabel() == OriginalAvatarDemo.MODEL_DIR
+                            stageModel == OriginalAvatarDemo.MODEL_DIR
                         ) {
                             OriginalAvatarDemoControls(
                                 smileEnabled = demoSmileEnabled,
@@ -783,7 +831,7 @@ fun CompanionRoute(
                         }
                         if (actionTrayOpen) {
                             val wardrobe = stageEngine?.wardrobeRows().orEmpty()
-                            val model = stageEngine?.modelLabel()
+                            val model = stageModel
                             val present = com.openapi.ks.myapp.dh.live2dPresentModels(context)
                             AvatarActionTray(
                                 actions = avatarActions(),

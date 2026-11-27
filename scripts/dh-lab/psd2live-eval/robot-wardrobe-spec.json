@@ -1,0 +1,18 @@
+{
+  "comment": "Original robot input fixture only; parameters and visibility are not runtime verified.",
+  "naming": {"order": ["top", "shoes", "face"]},
+  "slots": [
+    {"slot": "top", "region": "body", "exclusive": true, "variants": [
+      {"token": "cape", "layer": "cape", "param": "ParamWear_cape"},
+      {"token": "jacket", "layer": "jacket", "param": "ParamWear_jacket"}
+    ]},
+    {"slot": "shoes", "region": "foot", "exclusive": true, "variants": [
+      {"token": "boots", "layer": "boots", "param": "ParamWear_boots"},
+      {"token": "sneakers", "layer": "sneakers", "param": "ParamWear_sneakers"}
+    ]},
+    {"slot": "face", "region": "head", "exclusive": true, "variants": [
+      {"token": "neutral", "layer": "mouth_neutral", "param": "ParamFace_neutral"},
+      {"token": "smile", "layer": "mouth_smile", "param": "ParamFace_smile"}
+    ]}
+  ]
+}

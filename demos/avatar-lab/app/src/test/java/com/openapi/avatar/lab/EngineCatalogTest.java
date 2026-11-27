@@ -12,9 +12,11 @@ public class EngineCatalogTest {
         }
     }
     @Test public void onlineSamplesGalleriesAndReferencesRemainDistinct() {
-        assertEquals(10, EngineCatalog.ALL.size());
-        // 官方示例已整树随包:五个可验收的本地离线页;在线只剩 gallery/reference。
-        assertEquals(5, EngineCatalog.ALL.stream().filter(e -> e.kind == EngineCatalog.Kind.LOCAL).count());
+        assertEquals(12, EngineCatalog.ALL.size());
+        // 七个本地离线页，含角色触碰实验。
+        assertEquals(7, EngineCatalog.ALL.stream().filter(e -> e.kind == EngineCatalog.Kind.LOCAL).count());
+        assertEquals(EngineCatalog.Kind.LOCAL, EngineCatalog.find("touch-woman").kind);
+        assertEquals(EngineCatalog.Kind.LOCAL, EngineCatalog.find("original-robot").kind);
         assertEquals(0, EngineCatalog.ALL.stream().filter(e -> e.kind == EngineCatalog.Kind.ONLINE_SAMPLE).count());
         assertEquals(1, EngineCatalog.ALL.stream().filter(e -> e.kind == EngineCatalog.Kind.ONLINE_GALLERY).count());
         assertEquals(0, EngineCatalog.ALL.stream().filter(e -> e.kind == EngineCatalog.Kind.ONLINE_THIRD_PARTY).count());

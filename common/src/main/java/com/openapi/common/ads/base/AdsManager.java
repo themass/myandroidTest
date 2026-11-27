@@ -48,22 +48,14 @@ public class AdsManager {
 
     private boolean inited = false;
 
-    /**
-     * 幂等初始化。`MyApplication.onCreate` 先跑，那时 debug 闸还没 opt-in；
-     * 真机验收用 `--ez ads_on 1` 在启动页打开闸后，靠这里补一次 init，
-     * 否则 map 是空的，解引用即 NPE。
-     */
-    public synchronized void initIfNeeded(Context context) {
-        if (inited || !AdsGate.enabled()) return;
-        init(context);
-    }
-
     public void init(Context context) {
-        // debug 构建（测试机/开发机/CI）不初始化广告 SDK：见 AdsGate 与 AdsGateTest。
+        // 总闸恒开（用户 20261125 亲令「一直开，忽略debug」，台账 §6 D1）。
+        // inited 幂等：将来若再引入运行时开关，重复 init 会往表里塞第二份实现。
         if (!AdsGate.enabled()) {
-            LogUtil.i("AdsManager init skipped (debug build)");
+            LogUtil.i("AdsManager init skipped (AdsGate off)");
             return;
         }
+        if (inited) return;
         inited = true;
         LogUtil.i("AdsManager initok");
         AdviewAdsManager.init(context);
@@ -103,48 +95,48 @@ public class AdsManager {
     }
 
     public void showBannerAds(Activity context, ViewGroup group, AdsContext.Categrey categrey) {
-        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
+        if (!AdsGate.enabled()) return; // 总闸（恒开；形状由 AdsManagerGateTest 钉住）
         bannerDescMap.get(AdsContext.AdsFrom.ADMOB).bannerAds(context, group, categrey.key, mHandle);
     }
 
     public void showBannerAds(Activity context, ViewGroup group, AdsContext.Categrey categrey, AdsContext.AdsFrom from) {
-        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
+        if (!AdsGate.enabled()) return; // 总闸（恒开；形状由 AdsManagerGateTest 钉住）
         bannerDescMap.get(from).bannerAds(context, group, categrey.key, mHandle);
     }
 
     public void exitBannerAds(Activity context, ViewGroup group, AdsContext.Categrey categrey) {
-        if (!AdsGate.enabled()) return; // debug 未 init，表为空，解引用即 NPE（AdsGate）
+        if (!AdsGate.enabled()) return; // 总闸关闭时表为空，解引用即 NPE（AdsGate）
         bannerDescMap.get(AdsContext.AdsFrom.ADVIEW).bannerExit(context, group, categrey.key);
     }
 
     public void showSplashAds(AdsContext.AdsFrom from, FragmentActivity context, RelativeLayout group, RelativeLayout skipView) {
-        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
+        if (!AdsGate.enabled()) return; // 总闸（恒开；形状由 AdsManagerGateTest 钉住）
         splashMap.get(from).launchAds(context, group, skipView, mHandle);
     }
 
     public void exitSplashAds(Context context, RelativeLayout group) {
-        if (!AdsGate.enabled()) return; // debug 未 init，表为空，解引用即 NPE（AdsGate）
+        if (!AdsGate.enabled()) return; // 总闸关闭时表为空，解引用即 NPE（AdsGate）
         splashMap.get(AdsContext.AdsFrom.ADMOB).lanchExit(context, group);
     }
 
 
     public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score, AdsContext.AdsFrom from, int count) {
-        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
+        if (!AdsGate.enabled()) return; // 总闸（恒开；形状由 AdsManagerGateTest 钉住）
         interstitialMap.get(from).interstitialAds(context, mHandle, categrey.key, score, count);
     }
 
     public void exitInterstitialAds(Context context, AdsContext.Categrey categrey) {
-        if (!AdsGate.enabled()) return; // debug 未 init，表为空，解引用即 NPE（AdsGate）
+        if (!AdsGate.enabled()) return; // 总闸关闭时表为空，解引用即 NPE（AdsGate）
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialExit(context, categrey.key);
     }
 
     public void showNative(Context context, NativeAdsReadyListener listener, AdsContext.Categrey categrey) {
-        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
+        if (!AdsGate.enabled()) return; // 总闸（恒开；形状由 AdsManagerGateTest 钉住）
         nativeMap.get(AdsContext.AdsFrom.ADVIEW).showNative(context, mHandle, listener, categrey.key);
     }
 
     public void reqVideo(Context context) {
-        if (!AdsGate.enabled()) return; // debug 不展示（AdsGate）
+        if (!AdsGate.enabled()) return; // 总闸（恒开；形状由 AdsManagerGateTest 钉住）
         videoMap.get(AdsContext.AdsFrom.ADVIEW).reqVideo(context, mHandle);
     }
 
@@ -162,7 +154,7 @@ public class AdsManager {
     }
 
     public void closeVideo(Context context) {
-        if (!AdsGate.enabled()) return; // debug 未 init，表为空，解引用即 NPE（AdsGate）
+        if (!AdsGate.enabled()) return; // 总闸关闭时表为空，解引用即 NPE（AdsGate）
         videoMap.get(AdsContext.AdsFrom.ADVIEW).exitVideo(context);
     }
 }

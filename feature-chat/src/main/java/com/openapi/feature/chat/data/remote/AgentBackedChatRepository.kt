@@ -1,6 +1,7 @@
 package com.openapi.feature.chat.data.remote
 
 import android.content.Context
+import com.openapi.common.ids.CharacterIds
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.common.util.log.LogUtil
 import com.openapi.core.config.Constants
@@ -87,8 +88,10 @@ class AgentBackedChatRepository(
         name: String = "新会话",
     ): Long = withContext(Dispatchers.IO) {
         if (sessionId > 0) return@withContext sessionId
+        // chat 线 Int 角色 id → role_id 的桥提公在 :common 的 CharacterIds（单一事实源，
+        // persona/her 契约「角色 ID 映射核账」项）：可证的只有 u_<id>，系统 id 不猜。
         val role = roleId?.takeIf { it.isNotBlank() }
-            ?: characterId?.takeIf { it > 0 }?.let { "u_$it" }
+            ?: characterId?.takeIf { it > 0 }?.let(CharacterIds::toRoleId)
             ?: FALLBACK_ROLE_ID
         val created = remote.createSession(role, name)
         setCurrentSessionId(created.id)
@@ -463,7 +466,7 @@ class AgentBackedChatRepository(
             val trimmed = name.trim()
             if (trimmed.isEmpty()) return@withContext null
             val role = roleId?.takeIf { it.isNotBlank() }
-                ?: characterId?.takeIf { it > 0 }?.let { "u_$it" }
+                ?: characterId?.takeIf { it > 0 }?.let(CharacterIds::toRoleId)
                 ?: FALLBACK_ROLE_ID
             runCatching {
                 remote.createSession(role, trimmed).toChatSession().also { local.cacheSession(it) }
