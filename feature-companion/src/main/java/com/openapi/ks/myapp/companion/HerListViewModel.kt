@@ -46,6 +46,8 @@ class HerListViewModel(
     private val prefs: DhLabPreferences,
     /** 会话里正在聊的角色：列表只列能证明属于它的 her。 */
     private val roleId: String,
+    /** her 包下载→校验→安装（详情抽屉的下载按钮）。null = 不具备下载能力，按钮不兑现。 */
+    private val packSync: HerPackSync? = null,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HerListState(roleId = roleId))
@@ -91,4 +93,62 @@ class HerListViewModel(
         prefs.callStageChoice = StageChoice.Unset
         _state.update { it.copy(choice = StageChoice.Unset) }
     }
+
+    // ---- her 详情抽屉（稿 02 第二层：形象 / 人格 / 介绍 / 装饰 + her 包下载安装） ----
+
+    private val _detail = MutableStateFlow<HerDetailState?>(null)
+
+    /** null = 抽屉没开。选择状态仍只有 [DhLabPreferences.callStageChoice] 那一份。 */
+    val detailState: StateFlow<HerDetailState?> = _detail.asStateFlow()
+
+    /**
+     * 点卡打开抽屉：先回「读取中」，详情拉取（[CompanionApi.herDetail]）失败**宽出成 null**——
+     * 抽屉明说「这份详情还取不到」（老服务端 404 / 断网），列表与当前引擎完全不受影响。
+     * 包状态（已装哪版）从 [HerPackSync] 现查，不存第二份。
+     */
+    fun openDetail(her: HerSummary) {
+        _detail.value = HerDetailState(summary = her, loading = true)
+        viewModelScope.launch {
+            val detail = runCatching { api.herDetail(her.id) }.getOrNull()
+            val pack = detail?.let { packSync?.stateFor(it) } ?: HerPackState.NotInstalled
+            _detail.update {
+                if (it?.summary?.id == her.id) it.copy(detail = detail, loading = false, packState = pack) else it
+            }
+        }
+    }
+
+    fun closeDetail() {
+        _detail.value = null
+    }
+
+    /**
+     * 下载 / 更新这个 her 的素材包。走 [HerPackSync]（永不抛）：sha256 不过就是
+     * [HerPackState.VerifyFailed]，已装版本原封不动，按钮变「校验失败，重试」。
+     */
+    fun downloadPack() {
+        val sync = packSync ?: return
+        val detail = _detail.value?.detail ?: return
+        if (!detail.model.downloadable) return   // 「暂不可下载」的卡不兑现下载
+        _detail.update { it?.copy(packState = HerPackState.Downloading(null)) }
+        viewModelScope.launch {
+            val final = sync.sync(detail) { progress ->
+                _detail.update { if (it?.detail?.id == detail.id) it.copy(packState = progress) else it }
+            }
+            _detail.update { if (it?.detail?.id == detail.id) it.copy(packState = final) else it }
+        }
+    }
+}
+
+/**
+ * 详情抽屉一份状态：摘要（卡片带来的，永远画得出）+ 详情（可能取不到）+ 包状态。
+ * 下载按钮文案 / 可点性由 [herDownloadButtonLabel] / [herDownloadButtonEnabled] 现算。
+ */
+data class HerDetailState(
+    val summary: HerSummary,
+    val detail: HerDetail? = null,
+    val loading: Boolean = false,
+    val packState: HerPackState = HerPackState.NotInstalled,
+) {
+    /** 链接 + 哈希形状 + 版本号三者合格才谈下载；否则按钮说「暂不可下载」。 */
+    val downloadable: Boolean get() = detail?.model?.downloadable ?: false
 }

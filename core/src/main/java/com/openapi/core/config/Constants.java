@@ -116,7 +116,7 @@ public class Constants {
     public static final String SEX_F = "F";
 
     public static final String USERIP = "USERIP";
-    public static final String helpUrl = "https://file.ok123find.top/uher_help.html";
+    public static final String helpUrl = "https://api.sspacee.com/uher_help.html";
     // 有新版本时，是否打开app就提醒升级
     //用户反馈
     public static final String DEFAULT_FEEDBACK_APPKEY = "23575056";
@@ -261,10 +261,13 @@ public class Constants {
     public static final String CUSTOME_SORT = "CUSTOME_SORT";
     public static final String LOCATION_ICON_ALL = "timeline://img/flag_all.png";
     public static final String BOOK_CSS = " body{font-size:22px;font-family: 微软雅黑;letter-spacing:1.8px;line-height:1.2;background-color:rgba(0,0,0,0);}";
-    public static String BASE_IP = "api.ok123find.top";
+    // 2026-11-28 主 API 域名切到 sspacee.com 系：api.sspacee.com 在 8.217 上与
+    // api.ok123find.top 共用同一份 api-routes.inc 路由，Let's Encrypt 正式证书已签发
+    // （自动续期）。ok123find.top 保留为回退域名，暂不下线。
+    public static String BASE_IP = "api.sspacee.com";
     public static String ABOUT_FIRST = "ABOUT_FbbIRST";
-    public static String ABOUT_ZH = "https://file.ok123find.top/about.html";
-    public static String ABOUT = "https://file.ok123find.top/about.html";
+    public static String ABOUT_ZH = "https://api.sspacee.com/about.html";
+    public static String ABOUT = "https://api.sspacee.com/about.html";
     /** 应用商店页：用本应用自己的包名，不要写死别的应用的 id。 */
     public static String playStoreUrl(String packageName) {
         return "https://play.google.com/store/apps/details?id=" + packageName;

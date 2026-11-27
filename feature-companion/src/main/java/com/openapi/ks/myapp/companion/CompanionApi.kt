@@ -53,6 +53,15 @@ interface CompanionApi {
      * 列表，老服务端零影响；网络失败由 store 宽出成过期缓存/空表，不白屏。
      */
     suspend fun hers(limit: Int = 20, offset: Int = 0): HerPage = HerPage(emptyList(), 0)
+    /**
+     * her 详情（`GET /v1/hers/{id}`，服务端第二刀）：形象包引用（model_ref）、装饰清单
+     * （effects / stickers）、音色与人格卡片。详情抽屉（HerDetailSheet）与 HerPackSync 读它。
+     *
+     * 与 [hers] 同一纪律：服务端还没上这一刀时默认实现回 null——调用方（详情抽屉）显示
+     * 「这份详情还取不到」，不白屏也不报错；老服务端零影响。HTTP 实现没上这一刀会抛 404，
+     * 同样由调用方兜成这个空态。返回非 null 时字段缺省由各模型自己退化（见 [HerDetail.from]）。
+     */
+    suspend fun herDetail(herId: String): HerDetail? = null
     /** 记忆按角色隔离：必须带 roleId，否则读到的是「不属于任何角色」的空空间。 */
     suspend fun memory(roleId: String, limit: Int = 20, offset: Int = 0): FactPage
     suspend fun deleteMemory(roleId: String, id: String)
@@ -168,6 +177,9 @@ class HttpCompanionApi(
             total = json.optInt("total"),
         )
     }
+
+    override suspend fun herDetail(herId: String): HerDetail =
+        HerDetail.from(call("GET", "/v1/hers/${enc(herId)}"))
 
     override suspend fun memory(roleId: String, limit: Int, offset: Int): FactPage {
         // 按角色隔离：带上 role_id，否则读到的是用户级空空间
