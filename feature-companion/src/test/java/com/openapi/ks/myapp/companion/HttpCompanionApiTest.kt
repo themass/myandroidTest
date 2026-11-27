@@ -294,4 +294,44 @@ class HttpCompanionApiTest {
         assertNull(runBlocking { api(fake, token = null).attachmentUrl("u1") })
         assertTrue(fake.seen.isEmpty())
     }
+
+    // ---- /v1/hers（her 注册表，服务端第一刀）----
+
+    @Test
+    fun `hers requests the registry with paging and the bearer token`() {
+        val fake = Fake(body = """{"items":[],"total":0,"limit":20,"offset":0}""")
+        runBlocking { api(fake).hers(limit = 20, offset = 0) }
+        val req = fake.seen.single()
+        assertEquals("GET", req.method)
+        assertEquals("https://example.test/v1/hers?limit=20&offset=0", req.url.toString())
+        assertEquals("Bearer tok", req.header("Authorization"))
+    }
+
+    @Test
+    fun `hers parses the production list shape`() {
+        val fake = Fake(
+            body = """
+                {"items":[{"id":"simple-linche-v1","name":"林澈","tagline":"冷静务实",
+                  "renderer":"simple","status":"published","pack_version":1,
+                  "thumbnail":null,"effect_count":4,"sticker_count":0,"voice_ref":{"voice_id":"v1"}}],
+                 "total":1,"limit":20,"offset":0}
+            """.trimIndent(),
+        )
+        val page = runBlocking { api(fake).hers() }
+        assertEquals(1, page.total)
+        val her = page.items.single()
+        assertEquals("simple-linche-v1", her.id)
+        assertEquals("simple", her.renderer)
+        assertEquals("published", her.status)
+        assertEquals(1, her.packVersion)
+        assertEquals(4, her.effectCount)
+    }
+
+    @Test
+    fun `a her service that is not deployed yet surfaces the api error, not a crash`() {
+        // nginx HTML 404 = 服务端还没上这一刀；错误语义与 characters() 一致，
+        // 由 HerRegistryStore 宽出成空表——这里钉的是 HTTP 层本身不吞错误。
+        val e = failure { api(Fake(code = 404, body = "<html>404</html>")).hers() }
+        assertEquals(404, e.statusCode)
+    }
 }
