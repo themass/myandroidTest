@@ -262,7 +262,7 @@ class ChatViewModel : ViewModel() {
     /** A40：「插话」——这条排队文字现在就走服务端（服务端裁决合并/插话/排队/新开）。 */
     fun onPromoteQueued(index: Int) = send.steerQueued(index)
 
-    /** A40：「打断重发」——这条插到队首并取消当前回合，本轮一收尾就发它。 */
+    /** 停止当前回复并优先回答最新排队消息。 */
     fun onInterruptQueued(index: Int) = send.interruptQueued(index)
 
     /** 附件发送任务。停止按钮要能同时停掉两者，且两者互不覆盖。 */

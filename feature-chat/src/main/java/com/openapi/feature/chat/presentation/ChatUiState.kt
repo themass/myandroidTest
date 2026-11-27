@@ -57,7 +57,7 @@ data class ChatUiState(
     /**
      * 生成中按发送排队的纯文字（FIFO，按 Enter 顺序）。语义照搬
      * `app/.../agent/AgentChatState.kt` 的 `QueuedInput`：回合自然结束后由
-     * [ReplyStreamer] 取队首续发；用户点停止则清空（中断意图明确）。
+     * [ReplyStreamer] 取队首续发；用户点停止时保留，等用户继续操作。
      * 只有纯文字走这里——附件/编辑/位置在生成中仍被现有的闸挡住。
      *
      * A40：每条带一个本机等 id。「插话」要把这条立刻提交给服务端，并让本机
@@ -67,14 +67,14 @@ data class ChatUiState(
      */
     val queued: List<QueuedText> = emptyList(),
     /**
-     * 「生成中发消息」的模式（设计 20261126 §2 D1）。默认 [SendMode.Immediate]：
-     * 点发送永远走网络、永不本地排队，由服务端裁决。[SendMode.Queue] 保留 A36/A40 的
+     * 「生成中发消息」的模式。默认 [SendMode.Queue]：纯文字先进入本地 FIFO，
+     * 自然结束后续发。[SendMode.Immediate] 可由用户显式选择，由服务端裁决。A36/A40 的
      * 本地 FIFO + 徽标。值由 ChatRoute 从 prefs 载入并推进；判定一律走 [ChatTurnGate]。
      *
      * 放在状态里而不是让各 Action 自己读 prefs：模式必须在纯 JVM 单测里可钉，
      * 而且要能保证「同一击发送」里各处读到的是同一个值。
      */
-    val sendMode: SendMode = SendMode.Immediate,
+    val sendMode: SendMode = SendMode.Queue,
 ) {
     /**
      * 文字/附件有内容就能按：生成中不再禁发送键——纯文字走 [queued] 排队，

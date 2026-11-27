@@ -139,7 +139,7 @@ class SendActionsTest {
     /** 生成中 sendText（**排队模式**）：不直发、不插用户气泡，按 Enter 顺序进队列。 */
     @Test
     fun sendTextWhileSendingQueuesInOrderWithoutStartingStream() {
-        val h = Harness(ChatUiState(sending = true, streaming = true, sendMode = SendMode.Queue))
+        val h = Harness(ChatUiState(sending = true, streaming = true)) // 默认模式即 FIFO Queue
         h.send.sendText("第一条")
         h.send.sendText("第二条")
         h.scope.advanceUntilIdle()
@@ -153,7 +153,7 @@ class SendActionsTest {
     /** 生成中点发送（纯文字，**排队模式**）：立即清空 input 并入队，不走附件发送路径。 */
     @Test
     fun onSendWhileSendingQueuesPlainTextAndClearsInput() {
-        val h = Harness(ChatUiState(input = " 追加的问题 ", sending = true, streaming = true, sendMode = SendMode.Queue))
+        val h = Harness(ChatUiState(input = " 追加的问题 ", sending = true, streaming = true))
         h.send.onSend()
         h.scope.advanceUntilIdle()
 
@@ -166,13 +166,13 @@ class SendActionsTest {
     // ---------------------------------------------------------------- D1 即时模式（默认）
 
     /**
-     * D1（设计 20261126 §2 D1）：默认 Immediate——生成中的纯文字**不进本地队列**，
+     * 显式选择 Immediate 后，生成中的纯文字**不进本地队列**，
      * 气泡立即上屏并直接 submit（clientMessageId = 气泡 id，与 A40「插话」同一套 id 语义）。
      * 关键：不走 streamer.stream——那条路带 MigrationGuard，同会话在飞回合会 409。
      */
     @Test
     fun immediateModeMidTurnSendSubmitsDirectlyWithoutQueueing() {
-        val h = Harness(ChatUiState(sending = true, streaming = true)) // 默认就是 Immediate
+        val h = Harness(ChatUiState(sending = true, streaming = true, sendMode = SendMode.Immediate))
         h.repo.steerResult = com.openapi.feature.chat.domain.model.SteerResult(
             true, com.openapi.feature.chat.domain.model.SteerDisposition.MERGED, messageId = 7L, turnId = "t1",
         )
@@ -192,7 +192,7 @@ class SendActionsTest {
     /** 即时发送失败（网络/旧服务端）：气泡撤掉、文字回输入框——任何路径不丢一条用户输入。 */
     @Test
     fun immediateModeSendFailureReturnsTextToInputAndRemovesBubble() {
-        val h = Harness(ChatUiState(sending = true, streaming = true))
+        val h = Harness(ChatUiState(sending = true, streaming = true, sendMode = SendMode.Immediate))
         // steerResult 默认就是失败：显式走这条
         h.send.sendText("发不出去的")
         // 提交前气泡已乐观上屏
@@ -213,7 +213,7 @@ class SendActionsTest {
     fun immediateModeQueuedDispositionDrainsServerTurnAfterCurrentTurnEnds() {
         val h = Harness(
             ChatUiState(
-                sending = true, streaming = true,
+                sending = true, streaming = true, sendMode = SendMode.Immediate,
                 messages = listOf(userText("user-1", "正在答")),
             ),
         )

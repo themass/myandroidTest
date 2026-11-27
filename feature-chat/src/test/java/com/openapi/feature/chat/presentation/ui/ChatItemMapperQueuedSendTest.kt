@@ -31,6 +31,17 @@ class ChatItemMapperQueuedSendTest {
     }
 
     @Test
+    fun interruptedAssistantCarriesStoppedStateToUi() {
+        val item = map(
+            ChatMessage(
+                id = "a1", role = ChatRole.ASSISTANT, text = "部分回答",
+                createdAtMillis = 1L, interrupted = true,
+            ),
+        ).single()
+        assertEquals(true, item.interrupted)
+    }
+
+    @Test
     fun normalSendHasNoQueuedSendFlag() {
         val item = map(
             ChatMessage(id = "u1", role = ChatRole.USER, text = "直接发的", createdAtMillis = 1L),

@@ -93,15 +93,14 @@ internal object ChatPlatform {
     private const val SEND_MODE_KEY = "mode_v1"
 
     /**
-     * 「生成中发消息」模式（设计 20261126 §2 D1）：默认 **Immediate**（即时发送，
-     * 永不本地排队，服务端裁决）；用户可切到 Queue 保留 A36/A40 的本地排队+徽标。
+     * 「生成中发消息」模式：未设置或存值损坏时默认 **Queue**；显式保存的模式仍按 ordinal 读取。
      * 判定在 ChatTurnGate，这里只存取值。
      */
     fun loadSendMode(context: Context): com.openapi.feature.chat.presentation.SendMode {
         val ordinal = context.getSharedPreferences(SEND_MODE_PREFS, Context.MODE_PRIVATE)
-            .getInt(SEND_MODE_KEY, com.openapi.feature.chat.presentation.SendMode.Immediate.ordinal)
+            .getInt(SEND_MODE_KEY, com.openapi.feature.chat.presentation.SendMode.Queue.ordinal)
         return com.openapi.feature.chat.presentation.SendMode.entries.getOrElse(ordinal) {
-            com.openapi.feature.chat.presentation.SendMode.Immediate
+            com.openapi.feature.chat.presentation.SendMode.Queue
         }
     }
 

@@ -94,7 +94,7 @@ fun ChatComposer(
     onRemoveQueued: (Int) -> Unit = {},
     /** A40：「立刻发出」——把第 [index] 条排队文字马上提交服务端（不等当前回合结束）。 */
     onPromoteQueued: (Int) -> Unit = {},
-    /** A40：「打断重发」——把第 [index] 条插到队首并取消当前回合。 */
+    /** 停止当前回复并优先回答最新排队消息。 */
     onInterruptQueued: (Int) -> Unit = {},
     onVoiceStart: () -> Unit,
     onVoiceStop: () -> Unit,
@@ -318,9 +318,8 @@ fun ChatComposer(
  * 但不能把输入框顶走，所以展开态限高可滚。撤回落回输入框的活儿由调用方决定
  * （feature-chat 直接丢回 input；app/agent 的独立页自己管）。
  *
- * A40：每条还有两个「现在就要答案」的出口——「立刻发出」（不等当前回合，服务端裁决
- * 合并/插话/排队）与「打断重发」（取消当前回合，优先回这条）。三个动作都按 index
- * 回调；按钮分两行放（文字一行、动作一行），411dp 宽塞三行内联按钮会互相挤。
+ * A40：每条可「立刻发出」交给服务端裁决；只有最新一条提供「停止并优先回答最新消息」，
+ * 将它提到队首、保留其他条目的 FIFO 顺序。操作按 index 回调；按钮分行避免窄屏挤压。
  */
 @Composable
 internal fun QueuedBadge(
@@ -376,11 +375,13 @@ internal fun QueuedBadge(
                                 tag = "queued-promote-$index",
                                 onClick = { onPromote(index) },
                             )
-                            QueuedAction(
-                                label = stringResource(R.string.chatkit_queue_interrupt),
-                                tag = "queued-interrupt-$index",
-                                onClick = { onInterrupt(index) },
-                            )
+                            if (index == texts.lastIndex) {
+                                QueuedAction(
+                                    label = stringResource(R.string.chatkit_queue_interrupt),
+                                    tag = "queued-interrupt-$index",
+                                    onClick = { onInterrupt(index) },
+                                )
+                            }
                             QueuedAction(
                                 label = stringResource(R.string.chatkit_queue_withdraw),
                                 tag = "queued-withdraw-$index",

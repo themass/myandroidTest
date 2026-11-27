@@ -41,7 +41,7 @@ class TurnGateTest {
         assertTrue(g.textSendPath() == ChatTurnGate.SendPath.Queue)
     }
 
-    // D1（设计 20261126 §2 D1）：默认 Immediate——生成中纯文字不再本地排队，直发交给服务端裁决。
+    // 用户显式选择 Immediate 后，生成中的纯文字交给服务端裁决。
 
     @Test
     fun immediateModeSendsPlainTextDirectlyWhileTurnRunning() {
@@ -51,12 +51,10 @@ class TurnGateTest {
     }
 
     @Test
-    fun gateDefaultSendModeIsImmediate() {
-        // ChatUiState 的默认值就是 Immediate（用户不设置就是即时发送）——
-        // 从 of() 走一遍钉住，防默认值哪天被翻过去测试还全绿。
+    fun gateDefaultSendModeQueuesPlainText() {
         val g = ChatTurnGate.of(ChatUiState(sending = true))
-        assertTrue(g.sendMode == com.openapi.feature.chat.presentation.SendMode.Immediate)
-        assertTrue(g.sendPath() == ChatTurnGate.SendPath.Direct)
+        assertTrue(g.sendMode == com.openapi.feature.chat.presentation.SendMode.Queue)
+        assertTrue(g.sendPath() == ChatTurnGate.SendPath.Queue)
     }
 
     @Test

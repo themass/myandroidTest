@@ -83,11 +83,9 @@ internal class ReplyStreamer(
      * 用 [scope] 而不是 replyJob：replyJob 马上就要被取消，挂在它下面的清理会被一起取消。
      */
     fun cancel() {
-        // 点停止 = 用户的中断意图：排队中的文字一并清空，不能接着发下一条
-        // （排空只发生在自然结束的收尾，见 stream 末尾的 drainQueue）。
-        // A40：待接的服务端排空回合同样作废——停止就是要停所有后续生成。
+        // 普通停止只停止当前回复；已排队的输入继续留在徽标中，等待用户决定下一步。
+        // A40：待接的服务端排空回合同样作废。
         caughtTurns.clear()
-        state.update { it.copy(queued = emptyList()) }
         val sessionId = repository.currentSessionId()
         scope.launch { repository.cancelTurn(sessionId) }
         replyJob?.cancel()
@@ -167,6 +165,7 @@ internal class ReplyStreamer(
             val buffer = StringBuilder()
             var ended = false
             var failed = false
+            var cancelled = false
             var serverId: String? = null
             var serverUserId: String? = null
             var errorUserId: String? = null
@@ -201,6 +200,12 @@ internal class ReplyStreamer(
                                 serverId = event.assistantId
                                 serverUserId = event.userId
                                 fullText = event.fullText
+                            }
+                            is ChatStreamEvent.Cancelled -> {
+                                cancelled = true
+                                serverId = event.assistantId
+                                serverUserId = event.userId
+                                fullText = event.partialText
                             }
                             is ChatStreamEvent.Error -> {
                                 failed = true
@@ -246,7 +251,7 @@ internal class ReplyStreamer(
             reveal.join()
 
             // 流正常结束但一个字都没有：撤掉占位气泡，给提示，用户消息标成可重试
-            val emptyReply = !failed && fullText.isNullOrEmpty() && buffer.isEmpty()
+            val emptyReply = !failed && !cancelled && fullText.isNullOrEmpty() && buffer.isEmpty()
             state.update { current ->
                 current.copy(
                     messages = current.messages.mapNotNull { m ->
@@ -257,7 +262,12 @@ internal class ReplyStreamer(
                             // 出错或空回复且一个字都没收到：撤掉占位气泡；已经有内容就保留
                             // 重新生成失败：恢复原来的回复，不能把用户已经看到的内容删掉
                             (failed || emptyReply) && m.text.isEmpty() -> existing?.copy(pending = false)
-                            else -> m.copy(id = serverId ?: m.id, text = fullText ?: m.text, pending = false)
+                            else -> m.copy(
+                                id = serverId ?: m.id,
+                                text = fullText ?: m.text,
+                                pending = false,
+                                interrupted = m.interrupted || cancelled,
+                            )
                         }
                     },
                     sending = false,
@@ -270,7 +280,7 @@ internal class ReplyStreamer(
                 )
             }
             // 流结束但没有 done 帧（服务端中途断开、只给了部分文字）：不能当成已完整收到，用户消息标成失败可重试
-            val truncated = !failed && !emptyReply && serverId == null && serverUserId == null && userMessageId != null
+            val truncated = !failed && !cancelled && !emptyReply && serverId == null && serverUserId == null && userMessageId != null
             if (truncated) {
                 state.update { it.copy(error = strings.replyTruncated()) }
             }
@@ -279,7 +289,7 @@ internal class ReplyStreamer(
             if (syncAfter && (failed || serverId == null)) reconcile()
             if (startsNewSession) syncSessions()
 
-            // A40：这一轮结束，先接服务端排空开的新回合（若有待接记录）。
+            // 一轮结束，先接服务端排空开的新回合（若有待接记录）。
             // 排空回合的文字服务端已经落库、气泡也已由「插话」当场插入，这里只流式回复——
             // userMessageId 传气泡 id 但 persistUser=false（服务端已有这条），
             // Done 带回的正式 user id 会把气泡原位换成服务端 id。
@@ -296,9 +306,8 @@ internal class ReplyStreamer(
                 return
             }
 
-            // 排空 followup 队列（FIFO 取队首续发，保持 Enter 顺序）。只有**自然结束**会走到这里：
-            // 用户点停止的那条 catch 分支会 rethrow，永远不会从这里起新回合；
-            // cancel() 同时清空了 queued，中断意图明确。空队列零成本。
+            // 排空 followup 队列（FIFO 取队首续发，保持 Enter 顺序）。只有自然完成或服务端
+            // 确认取消这类流事件收尾会走到这里；本地 Stop 的取消 catch 会 rethrow，保留队列且不续发。
             val next = state.value.queued.firstOrNull()
             if (next != null) {
                 state.update { it.copy(queued = it.queued.drop(1)) }
@@ -349,7 +358,7 @@ internal class ReplyStreamer(
                         m
                     } else {
                         val merged = m.text + bufferedText
-                        if (merged.isEmpty()) null else m.copy(text = merged, pending = false).also { kept = it }
+                        if (merged.isEmpty()) null else m.copy(text = merged, pending = false, interrupted = true).also { kept = it }
                     }
                 },
                 sending = false,

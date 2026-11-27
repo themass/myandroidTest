@@ -179,12 +179,17 @@ class SteerAndInterruptTest {
     }
 
     @Test
-    fun interruptIgnoresOutOfRangeIndex() {
-        val h = Harness(ChatUiState(sending = true, streaming = true, queued = queued("只有一条")))
+    fun interruptUsesLatestQueuedMessageEvenIfCallbackIndexIsStale() {
+        val h = Harness(ChatUiState(sending = true, streaming = true, queued = queued("甲", "乙", "丙")))
+        h.repo.streamFlow = flow<ChatStreamEvent> { kotlinx.coroutines.awaitCancellation() }
+        h.streamer.stream("正在答", userMessageId = "user-1", persistUser = true)
+        h.scope.runCurrent()
+
         h.send.interruptQueued(9)
-        h.scope.advanceUntilIdle()
-        assertEquals(listOf("只有一条"), h.state.value.queued.map { it.text })
-        assertTrue(h.repo.cancelledTurns.isEmpty())
+        h.scope.runCurrent()
+
+        assertEquals(listOf("丙", "甲", "乙"), h.state.value.queued.map { it.text })
+        assertEquals(listOf(1L), h.repo.cancelledTurns)
     }
 
     // ---------------------------------------------------------------- 队列排空用条目 id

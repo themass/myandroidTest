@@ -106,7 +106,7 @@ internal class AttachmentApi(
                         // 看门狗/服务端错误：acc 里是已收到的半截（或空），照常交出去，
                         // 上层按空回复/半截显示——绝不永远挂着。
                         is ChatStreamEvent.Error -> LogUtil.w("附件回合以错误收尾: ${ev.message}")
-                        is ChatStreamEvent.Done -> Unit
+                        is ChatStreamEvent.Done, is ChatStreamEvent.Cancelled -> Unit
                     }
                 },
                 expectedTurnId = expectedTurnId,

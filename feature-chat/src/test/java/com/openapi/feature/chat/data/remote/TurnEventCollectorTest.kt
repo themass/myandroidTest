@@ -171,6 +171,22 @@ class TurnEventCollectorTest {
     }
 
     @Test
+    fun cancelledTurnIsDistinctFromNormalDoneAndCarriesPartialText() = runTest {
+        val h = Harness(userServerId = 91L) { _, _ ->
+            flowOf(
+                delta("t1", "partial"),
+                frame(null, "turn.cancelled", """{"turn_id":"t1","assistant_message_id":55}"""),
+            )
+        }
+        h.run()
+
+        val cancelled = h.events.last() as ChatStreamEvent.Cancelled
+        assertEquals("partial", cancelled.partialText)
+        assertEquals("91", cancelled.userId)
+        assertEquals("55", cancelled.assistantId)
+    }
+
+    @Test
     fun doneCarriesTheUserMessageIdFromSubmitSoEditingWorksAtOnce() = runTest {
         // 编辑/删除用户气泡要用服务端正式 id。submit 回执里的 message_id 必须
         // 一路带进 Done.userId，否则刚发完的气泡是本地 id，编辑会报「还没同步到服务端」，

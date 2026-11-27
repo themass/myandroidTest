@@ -89,6 +89,8 @@ data class ChatItem(
      * 组件在气泡下方画一行「排队发送」小字，解释它为什么现在才出现。
      */
     val queuedSend: Boolean = false,
+    /** 助手回复被用户或服务端中断，正文可能不完整。 */
+    val interrupted: Boolean = false,
 ) {
     /** 用于复制、分享、编辑的纯文本：文字部分，没有文字时退回语音转写。 */
     val plainText: String
