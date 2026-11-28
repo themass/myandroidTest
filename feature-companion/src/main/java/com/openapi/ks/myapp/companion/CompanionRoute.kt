@@ -83,8 +83,14 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 
-/** 陪伴界面里能去的页面。聊天是主页面，其余从顶部进入。 */
-enum class CompanionPage { CHAT, CHARACTERS, HERS, MEMORY, PROFILE_DOC, SETTINGS }
+/**
+ * 陪伴界面里能去的页面。聊天是主页面，其余从顶部进入。
+ *
+ * `PERSONAS` 是 OpenDesign 稿 01「她是谁」的着陆页（tab 首屏，见
+ * [companionLandingPage]），`CHARACTERS` 是聊天页菜单里的旧角色列表——两者
+ * 数据同源（`CharacterListViewModel`），观感与出口不同，先并存。
+ */
+enum class CompanionPage { CHAT, PERSONAS, CHARACTERS, HERS, MEMORY, PROFILE_DOC, SETTINGS }
 
 /**
  * 陪伴界面的完整装配：聊天主页面 + 角色列表 / 记忆 / 偏好三个子页面。
@@ -124,6 +130,9 @@ fun CompanionRoute(
 ) {
     val context = LocalContext.current.applicationContext
     val tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.common.net.http.NetConfig.tokenHeader(), null) }
+    // 着陆页要区分「没登录」与「没加载出来」：判据是 token 在不在，不是错误文案
+    // （没有 token 时服务端必然 401，见 personaLandingContent）。
+    val hasToken = { !tokenProvider().isNullOrBlank() }
     val api = remember(context) {
         HttpCompanionApi(
             baseUrl = CompanionConfig.baseUrl,
@@ -141,7 +150,12 @@ fun CompanionRoute(
         CompanionViewModel.ImageUploader { file, mime -> uploader.upload(file, mime) }
     }
 
-    var page by rememberSaveable { mutableStateOf(CompanionPage.CHAT) }
+    var page by rememberSaveable {
+        mutableStateOf(companionLandingPage(launchCallOnOpen = launchCallOnOpen, scriptCaseId = scriptCaseId))
+    }
+    // HERS 的返回目标取决于从哪进来：着陆页的「呈现形象」→ 回着陆页；聊天页菜单 → 回聊天。
+    // 只有这一份回退状态，仍走 page 状态机，不另起返回栈（见 backTargetFor）。
+    var herBack by rememberSaveable { mutableStateOf(CompanionPage.CHAT) }
     var characterId by rememberSaveable { mutableStateOf(initialCharacterId) }
     // 热启动 adb 再带 script_case：rememberSaveable 不会吃新的 initialCharacterId，显式跟上。
     LaunchedEffect(initialCharacterId, scriptCaseId) {
@@ -160,9 +174,10 @@ fun CompanionRoute(
         },
     )
 
-    // 系统返回键：在子页面时回到聊天页，而不是把整个应用退出（真机上踩到：
+    // 系统返回键：在子页面时回到它进来的地方，而不是把整个应用退出（真机上踩到：
     // 子页面只是 page 状态切换，没有返回栈，返回键会直接回到桌面）。
-    BackHandler(enabled = page != CompanionPage.CHAT) { page = CompanionPage.CHAT }
+    // HERS 回哪里取决于从着陆页还是聊天页进来——去向只由 backTargetFor 决定。
+    BackHandler(enabled = page != CompanionPage.CHAT) { page = backTargetFor(page, herBack) }
 
     // 全屏通话是覆盖层而不是子页面：它要保持房间连接，退出后回到原来的对话现场，
     // 所以不走 CompanionPage 那套"切换页面"的状态。
@@ -208,6 +223,10 @@ fun CompanionRoute(
     }
     LaunchedEffect(launchCallOnOpen) {
         if (launchCallOnOpen) {
+            // 首屏决策只在首次组合生效（rememberSaveable 会还原上次停留的页）：从聊天页
+            // 电话入口进来时显式回到 CHAT，通话覆盖层压在对话现场上，挂断后也回对话，
+            // 不会被上次停留的着陆页挡住（口径同 [companionLandingPage]）。
+            page = CompanionPage.CHAT
             openCall()
             onLaunchCallHandled()
         }
@@ -255,6 +274,34 @@ fun CompanionRoute(
                 )
             }
 
+            CompanionPage.PERSONAS -> {
+                // persona 着陆页（OpenDesign 稿 01「她是谁」）：tab 首屏先选人。
+                // 数据与旧角色列表同源（CharacterListViewModel → api.characters），
+                // 不改 API 层；点卡片 = 选定该角色并进 CHAT（选人格的目的是换人说话）。
+                val vm: CharacterListViewModel = viewModel(
+                    factory = viewModelFactory { initializer { CharacterListViewModel(api) } },
+                )
+                val state by vm.state.collectAsStateWithLifecycle()
+                PersonaGridScreen(
+                    state = state,
+                    currentCharacterId = characterId,
+                    hasToken = hasToken(),
+                    onRetry = vm::load,
+                    // 没有 token 时「去登录」接宿主那条既有的登录路径（与建会话 401 同一条）。
+                    onLoginRequired = onLoginRequired,
+                    onPick = {
+                        characterId = it.id
+                        page = CompanionPage.CHAT
+                    },
+                    // 「呈现形象」= 稿 01 → 02 的通道；记下回跳点，返回时回到着陆页
+                    // 而不是聊天页（backTargetFor）。
+                    onOpenHers = {
+                        herBack = CompanionPage.PERSONAS
+                        page = CompanionPage.HERS
+                    },
+                )
+            }
+
             CompanionPage.CHARACTERS -> {
                 val vm: CharacterListViewModel = viewModel(
                     factory = viewModelFactory { initializer { CharacterListViewModel(api) } },
@@ -298,7 +345,8 @@ fun CompanionRoute(
                     state = herState,
                     onPick = { her -> vm.openDetail(her) },
                     onFollowDefault = vm::followServerDefault,
-                    onBack = { page = CompanionPage.CHAT },
+                    // 回跳点取决于从哪进来（着陆页「呈现形象」→ 回稿 01；聊天页 → 回 CHAT）。
+                    onBack = { page = backTargetFor(CompanionPage.HERS, herBack) },
                 )
                 detailState?.let { detail ->
                     HerDetailSheet(
