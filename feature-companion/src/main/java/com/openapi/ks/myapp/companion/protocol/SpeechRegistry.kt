@@ -64,10 +64,13 @@ class SpeechRegistry<P>(
      * - id 在墓碑里：丢弃并计数（`segDroppedTombstone`），墓碑不删（F5）。
      * - 段号不连续、时间线已结束或已作废：拒绝并计数（`segRejected`）。
      *
+     * [declaredAt] 是收包时刻（单调毫秒），写进新建时间线的 `declaredAt`，供端侧
+     * 首响计时（`turn_first_audio`）。默认 `null`：调用方不喂就没有这个口径。
+     *
      * @return 是否接受这一段。
      */
     @Synchronized
-    fun onSeg(args: JSONObject): Boolean {
+    fun onSeg(args: JSONObject, declaredAt: Long? = null): Boolean {
         val (speechId, seg) = SpeechTimeline.parseSeg(args) ?: run {
             segRejected++
             return false
@@ -83,6 +86,7 @@ class SpeechRegistry<P>(
                 return false
             }
             val timeline = SpeechTimeline(speechId)
+            timeline.declaredAt = declaredAt
             timeline.append(seg)
             putTimeline(timeline)
             return true
@@ -143,26 +147,105 @@ class SpeechRegistry<P>(
     // -------------------------------------------------------------- 音频开始
 
     /**
-     * 该给哪条时间线标定 `t0`：最新一条已收到 seg、还没开始播的。
+     * 该给哪条时间线标定 `t0`：**最早声明**、还没开始播的那条。
      *
-     * 端侧只有一条远端音频轨道，所以"音频开始播了"这件事没有 `speech_id`。用最新的
-     * PENDING 时间线是唯一合理的归属：`speech.seg` 一定早于音频首帧（服务端先发
-     * seg 再推流），所以它就在最上面。
+     * 服务端并行合成按序交付（延迟刀 C3）后，一条远端音轨上会同时在飞多条已声明、
+     * 都还没定 `t0` 的句子——下一句的 `speech.seg` 先于上一句的音频播完就到（data
+     * channel 比 jitter buffer 快）。服务端按序交付 ⇒ 音频序 == seg 声明序 ⇒ FIFO。
+     * 不带 `now` 时不做「上一句是否还在出声」判定（没有钟就没法判），只按声明序取。
      */
     @Synchronized
     fun timebasePendingId(): String? =
-        timelines.values.lastOrNull { it.state == SpeechTimeline.State.PENDING && it.t0 == null }?.speechId
+        timelines.values.firstOrNull {
+            (it.state == SpeechTimeline.State.PENDING || it.state == SpeechTimeline.State.DONE) &&
+                it.t0 == null
+        }?.speechId
+
+    /**
+     * 带钟的归属判定（[onAudioFrame] 用）：在 FIFO 之上加「上一句还在出声就不许换」。
+     *
+     * 候选 = [timebasePendingId()]。若它前面（声明更早）还有任何一条**已定 t0、未作废**
+     * 的时间线在 `now` 时刻仍然「在出声」，这一帧属于那句，返回 `null`：
+     *
+     * - 「在出声」= `now <` 估算终点（[SpeechTimeline.estimatedEnd]），或静音间隔还没出现；
+     * - 出现连续 ≥ [silenceGapMs] 的亚阈值帧后，该句标记为静音收尾——`est_ms` 偏长时
+     *   这是唯一的收尾信号。副作用：句内真出现 ≥ 阈值的自然停顿、且下一句 seg 已声明时，
+     *   会把停顿后的音频错归给下一句。彻底的解法是服务端按句打流标记（方案文档 §4），
+     *   端侧启发式只求 P50 不错位。
+     *
+     * DONE（end 早到）也算在出声：end 只是服务端生成侧排空，jitter buffer 里还有声音。
+     */
+    @Synchronized
+    fun timebasePendingId(now: Long): String? {
+        val candidate = timebasePendingId() ?: return null
+        for (tl in timelines.values) {
+            if (tl.speechId == candidate) break
+            if (tl.t0 == null || tl.state == SpeechTimeline.State.CANCELLED) continue
+            if (isSounding(tl, now)) return null
+        }
+        return candidate
+    }
+
+    /**
+     * 有「已声明、还没定 `t0`」的时间线吗？transport 每帧调一次的便宜门。
+     *
+     * 与 [timebasePendingId]`(now)` 的区别：这个不带归属判定——上一句还在出声时
+     * 门也必须开着，静音观察要连续（收尾判据靠它）。
+     */
+    @Synchronized
+    fun hasUntimedPending(): Boolean =
+        timelines.values.any {
+            (it.state == SpeechTimeline.State.PENDING || it.state == SpeechTimeline.State.DONE) &&
+                it.t0 == null
+        }
+
+    /** 上一条被成功标定 `t0` 的时间线 id（transport 打 `turn_first_audio` 日志要用）。 */
+    var lastTimebaseId: String? = null
+        private set
+
+    /** 静音收尾阈值：连续亚阈值帧超过这个时长，「在出声」判定提前结束（见 [timebasePendingId]）。 */
+    var silenceGapMs: Long = 200L
+
+    private var silentRunStartedAt: Long? = null
+
+    private fun isSounding(tl: SpeechTimeline, now: Long): Boolean {
+        if (tl.streamClosed) return false
+        val end = tl.estimatedEnd() ?: return false
+        return now < end
+    }
+
+    /** 每帧先记账：连续静音达到阈值就把最近一条「在出声」的句子判收尾（幂等）。 */
+    private fun observeFrame(loud: Boolean, now: Long) {
+        if (loud) {
+            silentRunStartedAt = null
+            return
+        }
+        val start = silentRunStartedAt
+        if (start == null) {
+            silentRunStartedAt = now
+            return
+        }
+        if (now - start >= silenceGapMs) {
+            // 最近一条已定 t0、未作废、未收尾的时间线 = 刚才在出声的那句。
+            val sounding = timelines.values.lastOrNull {
+                it.t0 != null && it.state != SpeechTimeline.State.CANCELLED && !it.streamClosed
+            }
+            sounding?.streamClosed = true
+        }
+    }
 
     /** sink 给了采集时间戳（§9.4 首选路径）。 */
     @Synchronized
     fun onAudioStarted(now: Long, nowCaptureTs: Long?, firstCaptureTs: Long?): Boolean {
         val tl = timelineForTimebase() ?: return false
-        return if (nowCaptureTs != null && firstCaptureTs != null) {
+        val ok = if (nowCaptureTs != null && firstCaptureTs != null) {
             tl.startFromCapture(now, nowCaptureTs, firstCaptureTs)
         } else {
             // sink 不给时间戳：退回首帧到达时刻，误差约一个 jitter buffer（§9.4）。
             tl.startNow(now)
         }
+        if (ok && tl.t0 != null) lastTimebaseId = tl.speechId
+        return ok
     }
 
     /**
@@ -174,6 +257,7 @@ class SpeechRegistry<P>(
      *
      * [minRms] 与 [FirstAudioDetector] 同阈：LiveKit 会先推引导静音，把首帧当 t0 会进入假
      * PLAYING，用户一开口就 barge_in → 服务端 TTS `frames=0`（190d782a / 5313185b）。
+     * 静音帧同时喂给 [observeFrame] 做「还在出声」的收尾记账，但**不标定** `t0`。
      */
     @Synchronized
     fun onAudioFrame(
@@ -182,8 +266,10 @@ class SpeechRegistry<P>(
         rms: Double = Double.MAX_VALUE,
         minRms: Double = 0.0,
     ): Boolean {
-        if (rms <= minRms) return false
-        val id = timebasePendingId()
+        val loud = rms > minRms
+        observeFrame(loud, now)
+        if (!loud) return false
+        val id = timebasePendingId(now)
         if (id == null) {
             armedId = null
             armedFirstCapture = null
@@ -367,6 +453,8 @@ class SpeechRegistry<P>(
     fun onReconnected() {
         timelines.clear()
         pending.clear()
+        silentRunStartedAt = null
+        lastTimebaseId = null
     }
 
     val pendingCount: Int get() = pending.size
