@@ -10,6 +10,7 @@ import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
+import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.max
 
@@ -71,9 +72,14 @@ data class FrameFx(
  *
  * 线程：CameraX analysis executor。结果经 [onFrame] 交给 StateFlow（线程安全）。
  * 背压：KEEP_ONLY_LATEST + inFlight 丢帧——识别慢于 30fps 是预期，绝不排队积压。
+ *
+ * 关闭：[close] 把模型释放排入 [analysisExecutor]（见 [FxCloseGate]）。
+ * **调用方纪律：先 [close] 再 `analysisExecutor.shutdown()`，且 dispose 时先解绑相机**——
+ * 顺序走反就是真机 SIGSEGV 的原样复刻。
  */
 class FxAnalyzer(
     private val context: Context,
+    private val analysisExecutor: Executor,
     private val onFrame: (FrameFx) -> Unit,
     private val onFatal: (String) -> Unit,
     /** 姿态/手部每 N 帧跑一次（脸每帧都跑）：三模型全帧 ~12fps，降半 pose+hand 换帧率。 */
@@ -81,6 +87,8 @@ class FxAnalyzer(
 ) : ImageAnalysis.Analyzer {
 
     private val inFlight = AtomicBoolean(false)
+    /** 关闭协议（纯 JVM 决策层，FxCloseGateTest 钉死）：closed 标志 + 释放排入分析队列。 */
+    private val closeGate = FxCloseGate(this::releaseModels)
     private var face: FaceLandmarker? = null
     private var pose: PoseLandmarker? = null
     private var hand: HandLandmarker? = null
@@ -101,7 +109,9 @@ class FxAnalyzer(
         emptyList()
 
     override fun analyze(image: ImageProxy) {
-        if (disabled) {
+        // 关闭已开始（模型可能已排队释放）：入口直接丢帧，绝不进 detectForVideo。
+        // 崩溃真因就是漏了这一段——见 FxCloseGate 的注释。
+        if (closeGate.isClosed() || disabled) {
             image.close()
             return
         }
@@ -286,8 +296,16 @@ class FxAnalyzer(
         }
     }
 
-    /** Activity 销毁时调用：释放 native 模型资源。 */
+    /**
+     * 开始关闭：置 closed（后续帧入口丢弃）并把 [releaseModels] 排入 [analysisExecutor]，
+     * 保证释放发生在所有已接受的在途帧之后。幂等；从任意线程调用安全。
+     */
     fun close() {
+        closeGate.closeOn(analysisExecutor)
+    }
+
+    /** 只在分析 executor 上执行（由 [FxCloseGate] 串行保证），与 detect 不交错。 */
+    private fun releaseModels() {
         face?.close()
         pose?.close()
         hand?.close()

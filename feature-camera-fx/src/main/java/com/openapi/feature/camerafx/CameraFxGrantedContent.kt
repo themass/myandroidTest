@@ -93,15 +93,10 @@ fun CameraFxGrantedContent(
     val analyzer = remember {
         FxAnalyzer(
             context = context,
+            analysisExecutor = analysisExecutor,
             onFrame = { frameFlow.value = it },
             onFatal = { fatalFlow.value = it },
         )
-    }
-    DisposableEffect(analyzer, analysisExecutor) {
-        onDispose {
-            analyzer.close()
-            analysisExecutor.shutdown()
-        }
     }
 
     // 相机权限生命周期（通话页小窗路径此前没有这一段：无权限时绑定会失败，
@@ -160,6 +155,19 @@ fun CameraFxGrantedContent(
     var viewSize by remember { mutableStateOf(0 to 0) }
     var layoutW by remember { mutableStateOf(0) }
     var layoutH by remember { mutableStateOf(0) }
+
+    DisposableEffect(analyzer, analysisExecutor) {
+        onDispose {
+            // 真机 P0-B（ADY-AL00：关小窗 ~3s SIGSEGV，栈=detectForVideo native）：
+            // 顺序必须是 解绑停帧 → close（释放排入 executor，排在在途帧之后）→ shutdown。
+            // 小窗是挂在通话页 composition 里的，lifecycleOwner 还是活动的——不 unbind
+            // 的话相机继续出帧投给已关线程的 executor（关窗后相机灯不灭也是这个）。
+            // 绝不允许「主线程直接 close 模型」——那就是崩溃本体。见 FxCloseGate。
+            provider?.unbindAll()
+            analyzer.close()
+            analysisExecutor.shutdown()
+        }
+    }
 
     LaunchedEffect(Unit) {
         if (provider == null) {
