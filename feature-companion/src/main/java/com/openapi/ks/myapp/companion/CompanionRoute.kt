@@ -691,6 +691,8 @@ fun CompanionRoute(
                 chatViewModel.onInputChange(text)
                 chatViewModel.send()
             },
+            // 举手键（C7）：她在说=打断（带 heard 前缀回传），空闲=催她主动说话。
+            onRaiseHand = { chatViewModel.raiseHand() },
             avatarContent = avatarSlot,
             // 数字人引擎舞台 = 主角模式（人物铺满整块舞台）；「原来的形象」分层立绘
             // 与圆形头像保持原有分栏布局不变。
