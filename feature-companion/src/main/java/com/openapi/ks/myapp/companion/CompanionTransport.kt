@@ -131,6 +131,18 @@ interface CompanionTransport {
     fun sendText(text: String)
 
     /**
+     * 通话页举手键（C7 一键两义）：她在说 = 打断这句话，空闲 = 催她主动说话。
+     *
+     * 语义分流留在实现侧：只有房间里的实现知道「正在播的是哪句」（speech 时间线），
+     * 界面只表达「用户按了这根键」。打断走 `control.barge_in`（带 heard 前缀，
+     * 见 `docs/design/2026-11-28-heard-prefix-feedback-contract.md`）；催话走
+     * `control.input{kind:"nudge"}`，去重在 [com.openapi.ks.myapp.companion.protocol.NudgeGate]。
+     *
+     * 默认空实现：没有房间能力的替身不该假装她会被打断或催开口。
+     */
+    fun raiseHand() = Unit
+
+    /**
      * 用户点了她一下。[region] 是命中的部位（[com.openapi.ks.myapp.avatar.AvatarRegion]）。
      *
      * 默认空实现：没有形象能力的替身不该假装能上报触摸。真实实现把它作为一条数据

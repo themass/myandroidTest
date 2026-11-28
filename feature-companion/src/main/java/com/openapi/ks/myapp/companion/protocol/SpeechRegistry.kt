@@ -320,6 +320,19 @@ class SpeechRegistry<P>(
         }?.speechId
 
     /**
+     * 举手打断（C7）该作废的那句，取最新一条活的（PENDING ∪ PLAYING）。
+     *
+     * 与 [activeSpeechId] 的口径差在 PENDING：VAD 自动打断只认 PLAYING——seg 到了但
+     * 远端 PCM 还没起时发 barge_in 会自掐 TTS（frames=0，回归 8a7c909e）。用户**明确按键**
+     * 是另一回事：这一轮照样该停，「按了没反应」不可接受。DONE / CANCELLED 两边都不算。
+     */
+    @Synchronized
+    fun handInterruptibleSpeechId(): String? =
+        timelines.values.lastOrNull {
+            it.state == SpeechTimeline.State.PLAYING || it.state == SpeechTimeline.State.PENDING
+        }?.speechId
+
+    /**
      * 此刻是否有句 speech 已声明、还没 end/cancel（PENDING ∪ PLAYING）。
      *
      * 降级阶梯的静默传感器要用（§12.3）：cmp.* 只在回合边界前后有包是协议形状本身，

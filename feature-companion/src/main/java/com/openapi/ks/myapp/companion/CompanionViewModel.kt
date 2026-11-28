@@ -579,6 +579,18 @@ class CompanionViewModel(
     }
 
     /**
+     * 通话页举手键（C7 一键两义）：她在说 = 打断，空闲 = 催她主动说话。
+     *
+     * ViewModel 只转发不按态分流——「正在播哪句」只有房间里的传输层知道
+     * （speech 时间线），界面也只表达「用户按了这根键」。语义分流、去重、
+     * heard 前缀回传都在实现侧（[CompanionTransport.raiseHand]），这里再判一次
+     * 状态反而会把 UI 快照与房间事实的错位当成真相。
+     */
+    fun raiseHand() {
+        transport.raiseHand()
+    }
+
+    /**
      * 把传输层的连接状态映射进界面。
      *
      * 以前界面只看「有没有建过连」：重连中、已断开全都显示成「已连接」（或者永远

@@ -49,6 +49,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.CallEnd
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
+import androidx.compose.material.icons.filled.PanTool
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VideocamOff
 import androidx.compose.material.icons.filled.MoreVert
@@ -355,6 +356,11 @@ fun CompanionCallScreen(
     onToggleMute: () -> Unit,
     onToggleCamera: () -> Unit,
     onSendText: (String) -> Unit,
+    /**
+     * 举手键（C7 一键两义）：她在说=打断，空闲=催她主动说话。
+     * 语义分流在实现侧（transport），本屏只负责把键画对、按对。
+     */
+    onRaiseHand: () -> Unit = {},
     modifier: Modifier = Modifier,
     cameraAvailable: Boolean = true,
     avatarContent: (@Composable () -> Unit)? = null,
@@ -524,9 +530,11 @@ fun CompanionCallScreen(
                 cameraActive = state.cameraActive,
                 cameraAvailable = cameraAvailable,
                 composerOpen = composerOpen,
+                agentSpeaking = state.isAgentSpeaking,
                 onToggleMute = onToggleMute,
                 onToggleCamera = onToggleCamera,
                 onOpenComposer = { composerOpen = true },
+                onRaiseHand = onRaiseHand,
                 onHangUp = onHangUp,
             )
         }
@@ -2639,14 +2647,21 @@ private fun CallDisconnectedBanner(
 }
 
 @Composable
-private fun CallControlBar(
+/**
+ * 通话页底栏。public 而不是 private：`:app` 的 Robolectric 渲染测试要单独把这一条
+ * 组合出来（整页有常开的呼吸环/背景动画，Robolectric 等不到 idle 会抛
+ * AppNotIdleException；渲染契约只关心控件在不在、按下去通不通）。
+ */
+fun CallControlBar(
     isMuted: Boolean,
     cameraActive: Boolean,
     cameraAvailable: Boolean,
     composerOpen: Boolean,
+    agentSpeaking: Boolean,
     onToggleMute: () -> Unit,
     onToggleCamera: () -> Unit,
     onOpenComposer: () -> Unit,
+    onRaiseHand: () -> Unit,
     onHangUp: () -> Unit,
 ) {
     Row(
@@ -2673,6 +2688,14 @@ private fun CallControlBar(
             enabled = cameraAvailable,
             onClick = onToggleCamera,
         )
+        // 一键两义举手键（C7）：她在说=打断，空闲=催她开口。放在静音与文字之间——
+        // 它是「关于她」的动作，不该离静音键太远（拇指区同一个）。
+        ControlButton(
+            icon = Icons.Filled.PanTool,
+            label = callHandActionLabel(agentSpeaking),
+            active = agentSpeaking,
+            onClick = onRaiseHand,
+        )
         ControlButton(
             icon = Icons.AutoMirrored.Filled.Send,
             label = "文字",
@@ -2682,6 +2705,16 @@ private fun CallControlBar(
         HangUpButton(onClick = onHangUp)
     }
 }
+
+/**
+ * 举手键的动作标签：随「她在不在说」切换，且**一个标签只说一个语义**。
+ *
+ * 混写（"打断/催话"）会让她在说时用户误以为按的是催话——打断是不可逆地掐掉
+ * 正在放的话，用户必须能从两个字里看出这一点。纯函数放外面：JVM 单测钉语义，
+ * 渲染测试只钉可达。
+ */
+internal fun callHandActionLabel(isAgentSpeaking: Boolean): String =
+    if (isAgentSpeaking) "打断" else "叫她说话"
 
 /**
  * 普通操作按钮：56dp 圆 + 下方文字标签。

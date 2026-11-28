@@ -14,6 +14,9 @@ import com.openapi.ks.myapp.companion.protocol.CueGapBaseline
 import com.openapi.ks.myapp.companion.protocol.Decision
 import com.openapi.ks.myapp.companion.protocol.FirstAudioDetector
 import com.openapi.ks.myapp.companion.protocol.DegradeController
+import com.openapi.ks.myapp.companion.protocol.HeardPrefix
+import com.openapi.ks.myapp.companion.protocol.HeardTextTracker
+import com.openapi.ks.myapp.companion.protocol.NudgeGate
 import com.openapi.ks.myapp.companion.protocol.PresentationCue
 import com.openapi.ks.myapp.companion.protocol.ProtocolCatalog
 import com.openapi.ks.myapp.companion.protocol.ProtocolCodec
@@ -166,6 +169,19 @@ class LiveKitCompanionTransport(
 
     /** §10.1：本地开口打断闸。只在本房间生命周期内有意义。 */
     private val bargeGate = BargeInGate()
+
+    /**
+     * 字幕流的端侧镜像（C2）：`lk.transcription` 的 delta 在这里攒着，打断时按播放器
+     * 进度切出 `heard_text` 回传。不在 ViewModel 里取——气泡会被本地截断改写，而这里要
+     * 的是「服务端送来了什么」的原始事实；传输层也不该反向依赖 UI 状态。
+     */
+    private val heardText = HeardTextTracker()
+
+    /** 催话去重闸（C7 空闲分支）：连点与「催了、回合在飞」都不再发。 */
+    private val nudgeGate = NudgeGate()
+
+    /** 催话幂等键的自增位（服务端按 `nudge_id` 判重，与 attachments 的 client_msg_id 同理由）。 */
+    private var nudgeSeq = 0
 
     /** 有新 cue 入库 / 有新音频时把自己踹醒。CONFLATED：连来十条只醒一次，醒来全扫。 */
     private val speechWake = Channel<Unit>(Channel.CONFLATED)
@@ -410,7 +426,13 @@ class LiveKitCompanionTransport(
         newRoom.registerTextStreamHandler(TEXT_OUT_TOPIC) { reader, identity ->
             scope.launch {
                 if (identity == newRoom.localParticipant.identity) return@launch
-                reader.flow.collect { chunk -> bus.emit(CompanionEvent.TextDelta(chunk)) }
+                reader.flow.collect { chunk ->
+                    // 镜像先攒再转发：打断时要按播放器进度切 heard_text（C2）。
+                    heardText.onDelta(chunk)
+                    bus.emit(CompanionEvent.TextDelta(chunk))
+                }
+                heardText.onTurnDone()
+                nudgeGate.onReplyEnded(SystemClock.elapsedRealtime())
                 bus.emit(CompanionEvent.TurnDone)
             }
         }
@@ -506,6 +528,49 @@ class LiveKitCompanionTransport(
                     logError("attempt=$activeAttemptId event=mic_apply_failed type=${it.javaClass.simpleName}")
                     bus.emit(CompanionEvent.Error("麦克风未开启，请检查录音权限和麦克风占用后重试"))
                 }
+            }
+        }
+    }
+
+    /**
+     * 举手键（C7 一键两义）：她在说（含已声明未起播）= 打断；空闲 = 催她主动说话。
+     *
+     * 打断走 `control.barge_in{reason:"hand"}` 带 heard 前缀——与 VAD 打断同一条机器，
+     * 只有找句的口径不同（[SpeechRegistry.handInterruptibleSpeechId] 把 PENDING 也算进去：
+     * 用户明确按键时「按了没反应」不可接受，而 VAD 必须只认 PLAYING 否则自掐 TTS）。
+     * 催话走 `control.input{kind:"nudge"}`（与 touch / attachments 同一入口），
+     * 去重在 [nudgeGate]：连点与「催了、回合在飞」都不再发。
+     */
+    override fun raiseHand() {
+        val now = SystemClock.elapsedRealtime()
+        val target = speech.handInterruptibleSpeechId()
+        if (target != null) {
+            sendBargeIn(target, speech.playedMs(target, now), reason = "hand")
+            return
+        }
+        if (!nudgeGate.onTap(agentSpeaking = false, now = now)) return
+        val id = "nudge-$activeAttemptId-${nudgeSeq++}"
+        sendNudge(id)
+    }
+
+    private fun sendNudge(nudgeId: String) {
+        val current = room ?: return
+        val protocolLink = link ?: return
+        val bytes = protocolLink.outgoing(
+            topic = ProtocolCatalog.TOPIC_IN,
+            eventType = "control.input",
+            args = nudgeArgs(nudgeId),
+        ) ?: return
+        scope.launch {
+            runCatching {
+                current.localParticipant
+                    .publishData(bytes, DataPublishReliability.RELIABLE, ProtocolCatalog.TOPIC_IN)
+            }.onFailure {
+                // 催不出去不弹错：她没开口比一次失败提示更不打扰，用户再按一次就行
+                // （闸的冷却保证不会连烧推理）。
+                logWarn("attempt=$activeAttemptId event=nudge_publish_failed type=${it.javaClass.simpleName}")
+            }.onSuccess {
+                logInfo("attempt=$activeAttemptId event=nudge_sent id=$nudgeId")
             }
         }
     }
@@ -690,18 +755,28 @@ class LiveKitCompanionTransport(
      * 未协商出 v2 时只做本地 cancel（老服务端没有这条协议路径）。
      * 失败静默：打断是低延迟路径，弹错误只会更吵。
      */
-    private fun sendBargeIn(speechId: String, playedMs: Long) {
+    private fun sendBargeIn(speechId: String, playedMs: Long, reason: String = "vad") {
+        // C2：先按字幕镜像与已播毫秒切出「已精确播出的文本前缀」，**再**作废。
+        // 顺序是契约的一部分：silenceCancelledSpeech 会清掉字幕镜像（下一轮不该拿
+        // 上一轮的字切前缀），镜像清了前缀就切不出来了。播放器进度是精确的
+        // （t0 由首帧音频标定），所以前缀不必让服务端按 est_ms 猜。
+        val streamed = heardText.snapshot()
+        val spokenChars = speech.timeline(speechId)?.spokenChars(playedMs) ?: 0
+
         // 本地立刻作废（§10.1）：哪怕发包失败，视觉也要停。
         speech.onCancel(JSONObject().put("speech_id", speechId))
         speechWake.trySend(Unit)
-        silenceCancelledSpeech(speechId, playedMs, reason = "vad")
+        silenceCancelledSpeech(speechId, playedMs, reason = reason)
 
         val current = room ?: return
         val protocolLink = link ?: return
-        val args = JSONObject()
-            .put("speech_id", speechId)
-            .put("played_ms", playedMs)
-            .put("reason", "vad")
+        val args = HeardPrefix.bargeArgs(
+            speechId = speechId,
+            playedMs = playedMs,
+            reason = reason,
+            streamedText = streamed,
+            spokenChars = spokenChars,
+        )
         val bytes = protocolLink.outgoing(
             topic = ProtocolCatalog.TOPIC_CTL,
             eventType = "control.barge_in",
@@ -734,6 +809,10 @@ class LiveKitCompanionTransport(
         bargeMuted = true
         applyPlayback()
         val chars = speech.timeline(speechId)?.spokenChars(playedMs) ?: 0
+        // 字幕镜像同步清零：下一条 barge 不该拿这一轮的全文去切前缀。发送侧已在
+        // 清空**之前**取好快照（sendBargeIn），这里只管收尾。
+        heardText.onInterrupted()
+        nudgeGate.onReplyEnded(SystemClock.elapsedRealtime())
         bus.tryEmit(CompanionEvent.SpeechInterrupted(chars))
         logInfo("attempt=$activeAttemptId event=speech_silenced id=$speechId reason=$reason spokenChars=$chars")
     }
@@ -745,6 +824,8 @@ class LiveKitCompanionTransport(
         detachSelfSink()
         _mouthLevel.value = 0f
         bargeGate.reset()
+        nudgeGate.reset()
+        heardText.onTurnDone()
         speech.onReconnected()      // 断开了：时间线与队列都没有意义了
         // 与 Reconnected 处对称：时间线清了就别再拿旧连接上声明过的 speech
         // 当静默升档的证据。连接态本身已强制 L4，这行只是让 latch 不留脏状态。
@@ -1213,11 +1294,16 @@ class LiveKitCompanionTransport(
                 val accepted = speech.onSeg(args)
                 if (!accepted) {
                     logWarn("attempt=$activeAttemptId event=speech_seg_rejected id=${args.optString("speech_id")} idx=${args.optString("idx")}")
-                } else if (bargeMuted) {
-                    // 新的一句被接受 = 服务端已按打断后的新回合往下走，出声门重新打开。
-                    // 只在 accepted 上开：迟到的 / 墓碑里的 seg 不该把刚打断的句子放出来。
-                    bargeMuted = false
-                    applyPlayback()
+                } else {
+                    // 催话换来的回合开始了（C7）：后续按键吞掉直到回合结束，
+                    // 挡「催了、她在酝酿、用户又点一下」的重复推理。
+                    nudgeGate.onReplyStarted(SystemClock.elapsedRealtime())
+                    if (bargeMuted) {
+                        // 新的一句被接受 = 服务端已按打断后的新回合往下走，出声门重新打开。
+                        // 只在 accepted 上开：迟到的 / 墓碑里的 seg 不该把刚打断的句子放出来。
+                        bargeMuted = false
+                        applyPlayback()
+                    }
                 }
                 // 静默传感器的「期望数据」窗口开了（§12.3）：从 seg 声明起，
                 // cue 与后续 seg 是该到的，cmp 静默才开始成为降级证据。
@@ -1468,3 +1554,17 @@ internal fun attachmentsArgs(uploadIds: List<String>, clientMsgId: String): JSON
         .put("upload_ids", idsJson)
         .put("client_msg_id", clientMsgId)
 }
+
+/**
+ * 催话的 args（C7 空闲分支）：`control.input{kind:"nudge", nudge_id}`。
+ *
+ * 走 `control.input` 而不是新造 `control.nudge` 事件类型：事件目录与服务端
+ * `catalog.py` 靠 `protocol_v2.json` 那份共享向量锁 SHA-256，单方面加 t 会先红
+ * 两端测试。`kind` 判别是 touch / attachments 已在用的形状；服务端只需在
+ * `control.input` 的 kind 分派里多认一条。`nudge_id` 是幂等键：网络抖动重发、
+ * 或用户重复触发时服务端按它判重（契约 §3）。
+ */
+internal fun nudgeArgs(nudgeId: String): JSONObject =
+    JSONObject()
+        .put("kind", "nudge")
+        .put("nudge_id", nudgeId)
