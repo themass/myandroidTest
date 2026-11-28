@@ -84,6 +84,12 @@ class FxAnalyzer(
     private val onFatal: (String) -> Unit,
     /** 姿态/手部每 N 帧跑一次（脸每帧都跑）：三模型全帧 ~12fps，降半 pose+hand 换帧率。 */
     private val poseEvery: Int = 2,
+    /**
+     * 预览画面回调（真机 P0-A：通话页小窗换「分析帧直绘」路径，见 CameraFxGrantedContent
+     * 的 [framePreview]）。收到的是**正立、未镜像、已裁到 crop** 的帧，长边 ≤ [PREVIEW_MAX_DIM]；
+     * 所有权移交调用方（不回收，交给 GC）。在 detect 之前发布——模型慢/挂不影响预览。
+     */
+    private val onPreviewFrame: ((android.graphics.Bitmap) -> Unit)? = null,
 ) : ImageAnalysis.Analyzer {
 
     private val inFlight = AtomicBoolean(false)
@@ -138,6 +144,9 @@ class FxAnalyzer(
                 android.graphics.Bitmap.createBitmap(full, crop.left, crop.top, crop.width(), crop.height())
                     .also { full.recycle() }
             }
+            // 预览直绘路径：在 detect 之前发布（模型慢/挂不断预览），且发布的是**独立副本**
+            // ——bmp 随后照常 recycle，UI 持有的副本归 GC（见构造器 onPreviewFrame 注释）。
+            onPreviewFrame?.let { cb -> cb(previewCopy(bmp)) }
             val mp = BitmapImageBuilder(bmp).build()
             val ipOptions = ImageProcessingOptions.builder().setRotationDegrees(rotation).build()
             val tsNanos = System.nanoTime()
@@ -181,6 +190,18 @@ class FxAnalyzer(
             image.close()
             inFlight.set(false)
         }
+    }
+
+    /**
+     * 预览副本：水平镜像（前摄「用户所见」，与 overlay 的 mirrorX=true 同一口径）
+     * + 长边压缩（[previewDownscaleSize]）。独立于 [bmp]（后者随后 recycle），归 GC。
+     */
+    private fun previewCopy(src: android.graphics.Bitmap): android.graphics.Bitmap {
+        val (w, h) = previewDownscaleSize(src.width, src.height)
+        if (w <= 0 || h <= 0) return src.copy(android.graphics.Bitmap.Config.ARGB_8888, false)
+        val m = android.graphics.Matrix()
+        m.preScale(-w.toFloat() / src.width, h.toFloat() / src.height)
+        return android.graphics.Bitmap.createBitmap(src, 0, 0, src.width, src.height, m, true)
     }
 
     private fun ensureLoaded() {

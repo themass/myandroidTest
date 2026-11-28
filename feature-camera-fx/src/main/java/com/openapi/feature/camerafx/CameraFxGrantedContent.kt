@@ -10,6 +10,7 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +41,10 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -69,6 +74,17 @@ import kotlin.math.roundToInt
  * 已授权相机后的预览 + 可选 HUD + Lottie 头顶贴纸。
  * [drawWireframe] 关时仅贴纸（通话页小窗）；开时与全屏 lab 一致。
  *
+ * [framePreview]：预览渲染路径开关（真机 P0-A，ADY-AL00 开小窗整块舞台黑屏）。
+ * - false（默认，lab 路径不变）：CameraX PreviewView（COMPATIBLE=TextureView 实现）。
+ * - true（通话页小窗）：**不用 PreviewView**，把 [FxAnalyzer] 已解出的分析帧
+ *   直接画进 Compose（Image + ContentScale.Crop）。Live2D 舞台是 GLSurfaceView
+ *   （Live2dRuntime.kt buildGlView，默认 z-order 挖孔合成）；麒麟机上同一窗口里
+ *   再挂一个 surface-backed 视图（PreviewView 两种实现都是）会把舞台和小窗一起合成黑
+ *   （相机 HAL 明明在出帧）。framePreview=true 让窗口里只剩舞台一个独立 surface，
+ *   预览走普通 Compose 绘制。代价：预览帧率=分析帧率（~5-12fps），小窗可接受。
+ *   前摄镜像：PreviewView 对前摄自动镜像，这里改成手动水平翻转 bitmap，
+ *   保持「用户所见」和 overlay 的 mirrorX=true 映射一致。
+ *
  * [onStageGesture]：把本机手势翻成**舞台词表 cue**（`wave`/`pat_head`，见
  * [CameraGestureCue]）。由上层喂 `emitStageGesture`，本模块**不**依赖
  * `feature-companion`、不自造总线（架构 spec §纪律1）。null = 不联动舞台。
@@ -79,6 +95,7 @@ fun CameraFxGrantedContent(
     overlayPolicy: CameraFxOverlayPolicy = CameraFxOverlayPolicy(),
     onStageGesture: ((String) -> Unit)? = null,
     stickerRenderer: CameraFxStickerRenderer? = null,
+    framePreview: Boolean = false,
 ) {
     val showDebugHud = overlayPolicy.showDebugHud
     val drawWireframe = overlayPolicy.drawWireframe
@@ -89,6 +106,8 @@ fun CameraFxGrantedContent(
 
     val frameFlow = remember { MutableStateFlow<FrameFx?>(null) }
     val fatalFlow = remember { MutableStateFlow<String?>(null) }
+    /** framePreview=true 时的小窗预览画面：分析线程发布，Compose 只读（bitmap 不回收，交给 GC）。 */
+    val previewFlow = remember { MutableStateFlow<ImageBitmap?>(null) }
     val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
     val analyzer = remember {
         FxAnalyzer(
@@ -96,6 +115,7 @@ fun CameraFxGrantedContent(
             analysisExecutor = analysisExecutor,
             onFrame = { frameFlow.value = it },
             onFatal = { fatalFlow.value = it },
+            onPreviewFrame = if (framePreview) { bmp -> previewFlow.value = bmp.asImageBitmap() } else null,
         )
     }
 
@@ -156,6 +176,10 @@ fun CameraFxGrantedContent(
     var layoutW by remember { mutableStateOf(0) }
     var layoutH by remember { mutableStateOf(0) }
 
+    // dispose 时要 unbind「最新」的 provider，但 provider 到位（null→实例）绝不能
+    // 触发本 effect 重进 onDispose（那会在刚绑定时就 close 掉 analyzer）——所以 key
+    // 只用 analyzer/executor，provider 经 rememberUpdatedState 在 dispose 时取最新值。
+    val latestProvider by rememberUpdatedState(provider)
     DisposableEffect(analyzer, analysisExecutor) {
         onDispose {
             // 真机 P0-B（ADY-AL00：关小窗 ~3s SIGSEGV，栈=detectForVideo native）：
@@ -163,7 +187,7 @@ fun CameraFxGrantedContent(
             // 小窗是挂在通话页 composition 里的，lifecycleOwner 还是活动的——不 unbind
             // 的话相机继续出帧投给已关线程的 executor（关窗后相机灯不灭也是这个）。
             // 绝不允许「主线程直接 close 模型」——那就是崩溃本体。见 FxCloseGate。
-            provider?.unbindAll()
+            latestProvider?.unbindAll()
             analyzer.close()
             analysisExecutor.shutdown()
         }
@@ -185,11 +209,17 @@ fun CameraFxGrantedContent(
         }
     }
 
-    LaunchedEffect(provider, previewView, lifecycleOwner, viewSize, cameraGranted) {
+    LaunchedEffect(provider, previewView, lifecycleOwner, viewSize, cameraGranted, framePreview, layoutW, layoutH) {
         val p = provider ?: return@LaunchedEffect
-        val view = previewView ?: return@LaunchedEffect
-        if (viewSize.first == 0 || viewSize.second == 0) return@LaunchedEffect
         if (!cameraGranted) return@LaunchedEffect
+        // PreviewView 路径要等它布局出尺寸（viewPort 从它来）；帧直绘路径没有 PreviewView，
+        // 用外层 Box 的尺寸当就绪信号。
+        if (!framePreview) {
+            val view = previewView ?: return@LaunchedEffect
+            if (viewSize.first == 0 || viewSize.second == 0) return@LaunchedEffect
+        } else if (layoutW == 0 || layoutH == 0) {
+            return@LaunchedEffect
+        }
         try {
             p.unbindAll()
             val selector = ResolutionSelector.Builder()
@@ -201,10 +231,6 @@ fun CameraFxGrantedContent(
                     ),
                 )
                 .build()
-            val preview = Preview.Builder()
-                .setResolutionSelector(selector)
-                .build()
-                .also { it.setSurfaceProvider(view.surfaceProvider) }
             val analysis = ImageAnalysis.Builder()
                 .setResolutionSelector(selector)
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
@@ -212,11 +238,20 @@ fun CameraFxGrantedContent(
                 .setOutputImageRotationEnabled(true)
                 .build()
                 .also { it.setAnalyzer(analysisExecutor, analyzer) }
-            val viewPort = view.viewPort ?: view.getViewPort(preview.targetRotation)
             val groupBuilder = UseCaseGroup.Builder()
-                .addUseCase(preview)
                 .addUseCase(analysis)
-            if (viewPort != null) groupBuilder.setViewPort(viewPort)
+            if (!framePreview) {
+                // lab：PreviewView 出画 + ViewPort 裁剪（分析帧 crop 与预览同视野，
+                // 漏了 → 框/折线掉到脖子胸口）。
+                val view = previewView!!
+                val preview = Preview.Builder()
+                    .setResolutionSelector(selector)
+                    .build()
+                    .also { it.setSurfaceProvider(view.surfaceProvider) }
+                groupBuilder.addUseCase(preview)
+                val viewPort = view.viewPort ?: view.getViewPort(preview.targetRotation)
+                if (viewPort != null) groupBuilder.setViewPort(viewPort)
+            }
             p.bindToLifecycle(
                 lifecycleOwner,
                 CameraSelector.DEFAULT_FRONT_CAMERA,
@@ -228,6 +263,7 @@ fun CameraFxGrantedContent(
     }
 
     val frame by frameFlow.collectAsState()
+    val previewBitmap by previewFlow.collectAsState()
     val fatal by fatalFlow.collectAsState()
     val stickerCompositionResult = rememberLottieComposition(LottieCompositionSpec.Asset(stickerAssetPath))
     val stickerComposition = stickerCompositionResult.value
@@ -256,23 +292,39 @@ fun CameraFxGrantedContent(
             .background(Color.Black)
             .onSizeChanged { layoutW = it.width; layoutH = it.height },
     ) {
-        AndroidView(
-            factory = { ctx ->
-                PreviewView(ctx).apply {
-                    scaleType = PreviewView.ScaleType.FILL_CENTER
-                    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                }.also { v ->
-                    previewView = v
-                    v.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-                        val next = v.width to v.height
-                        if (next.first > 0 && next.second > 0 && next != viewSize) {
-                            viewSize = next
+        if (framePreview) {
+            // 真机 P0-A：通话页小窗不挂 PreviewView（任何实现都会给麒麟窗口添第二个
+            // surface-backed 视图，把 Live2D GLSurfaceView 舞台一起合成黑）。
+            // 预览=分析线程发布的帧副本（已镜像），Compose 普通绘制；Crop 与
+            // overlay 的 CanvasMap(fill=true) 同几何 → 贴纸仍对得上画面。
+            val bmp = previewBitmap
+            if (bmp != null) {
+                Image(
+                    bitmap = bmp,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        } else {
+            AndroidView(
+                factory = { ctx ->
+                    PreviewView(ctx).apply {
+                        scaleType = PreviewView.ScaleType.FILL_CENTER
+                        implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                    }.also { v ->
+                        previewView = v
+                        v.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+                            val next = v.width to v.height
+                            if (next.first > 0 && next.second > 0 && next != viewSize) {
+                                viewSize = next
+                            }
                         }
                     }
-                }
-            },
-            modifier = Modifier.fillMaxSize(),
-        )
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
 
         // 无权限（被拒/永久拒绝后）：黑屏上给一次性可点的提示（小窗尺寸也读得下），
         // 点了重新走 PermissionGateway；永久拒绝时网关会直接带去系统设置页。
@@ -470,6 +522,10 @@ fun CameraFxGrantedContent(
 /**
  * 通话页小窗：仅贴纸，无 HUD/线框；手势联动舞台 cue（如上层传了 [onStageGesture]）。
  * [stickerAssetId] = 面板选中的贴纸（须 ∈ [StickerAssetIds.ALLOWED]）；null = 默认（摸头爱心）。
+ *
+ * `framePreview = true`：预览走分析帧直绘、不挂 PreviewView（真机 P0-A，
+ * 见 [CameraFxGrantedContent] 的 framePreview 注释）——通话页必然有 Live2D
+ * GLSurfaceView 舞台在同窗口，PreviewView 任何一种实现都会把舞台合成黑。
  */
 @Composable
 fun CameraFxStickerPip(
@@ -488,6 +544,7 @@ fun CameraFxStickerPip(
         ),
         onStageGesture = onStageGesture,
         stickerRenderer = stickerRenderer,
+        framePreview = true,
     )
 }
 
