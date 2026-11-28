@@ -125,6 +125,108 @@ object Live2dTouchReaction {
         Live2dFace.NONE -> "正常"; Live2dFace.BLUSH -> "脸红"; Live2dFace.WHITE -> "白眼"
     }
 
+    // ---- 声明驱动的轴操作（触摸刀 C6：反应从数据来，不写死在 enum 里） ----
+    // 状态机的四根轴与 spec 的四个 active 槽是同一批东西；这里只补「按槽位/变体推进」
+    // 的入口，让声明里的 cue 能落到轴上。
+    //
+    // [expressionRegistered] 是**资产事实**闸门：这个模型的 model3 注册了哪些表情名
+    // （ATRI 180 个，Amadeus/Yuuka 只有 base+blush——盘点 2026-11-23）。落不进去的 cue
+    // 一律不生效：宁可这发触摸没变化（调用方回 Ignored），也不发明一个没有资产的表情名——
+    // 与 pending 槽不进命名空间是同一条纪律（Live2dTouchReactionTest 钉死两侧一致）。
+    // 这一闸也**取代了旧引擎里按目录名写死的 `fullWardrobe` 分支**：最小模型只剩脸轴能动，
+    // 是资产表推出来的结果，不是代码里的 if。
+
+    /** 可被 cue 驱动的槽位名（= wardrobe-spec 里进命名空间的 active 槽）。 */
+    fun knownSlots(): Set<String> = setOf("top", "shoes", "held", "face")
+
+    /** 把一条 cue 应用到状态上；未知槽/未知变体/表情未注册 → 原状态。 */
+    fun applyCue(
+        state: Live2dTouchReactionState,
+        cue: TouchCue,
+        expressionRegistered: (String) -> Boolean = { true },
+    ): Live2dTouchReactionState {
+        if (cue.kind == TouchCueKind.MOTION) return state // 表情状态机不管动作
+        return when (cue.slot) {
+            "top" -> if (cue.kind == TouchCueKind.CYCLE) {
+                stepped(state, Live2dTop.entries.toTypedArray(), state.top,
+                    { s, v -> s.copy(top = v) }, expressionRegistered)
+            } else {
+                setAxis(topOf(cue.token), state, { s, v -> s.copy(top = v as Live2dTop) }, expressionRegistered)
+            }
+            "shoes" -> if (cue.kind == TouchCueKind.CYCLE) {
+                stepped(state, Live2dShoes.entries.toTypedArray(), state.shoes,
+                    { s, v -> s.copy(shoes = v) }, expressionRegistered)
+            } else {
+                setAxis(shoesOf(cue.token), state, { s, v -> s.copy(shoes = v as Live2dShoes) }, expressionRegistered)
+            }
+            "held" -> if (cue.kind == TouchCueKind.CYCLE) {
+                stepped(state, Live2dHeld.entries.toTypedArray(), state.held,
+                    { s, v -> s.copy(held = v) }, expressionRegistered)
+            } else {
+                setAxis(heldOf(cue.token), state, { s, v -> s.copy(held = v as Live2dHeld) }, expressionRegistered)
+            }
+            "face" -> if (cue.kind == TouchCueKind.CYCLE) {
+                stepped(state, Live2dFace.entries.toTypedArray(), state.face,
+                    { s, v -> s.copy(face = v) }, expressionRegistered)
+            } else {
+                setAxis(faceOf(cue.token), state, { s, v -> s.copy(face = v as Live2dFace) }, expressionRegistered)
+            }
+            else -> state
+        }
+    }
+
+    /** 变体：置成声明值，但该组合表情必须在这个模型注册过。 */
+    private fun <T> setAxis(
+        target: T?,
+        state: Live2dTouchReactionState,
+        set: (Live2dTouchReactionState, T) -> Live2dTouchReactionState,
+        registered: (String) -> Boolean,
+    ): Live2dTouchReactionState {
+        val value = target ?: return state
+        val candidate = set(state, value)
+        return if (registered(expressionFor(candidate))) candidate else state
+    }
+
+    /**
+     * 循环：在本轴上往后走，**跳过没有资产的那一格**。
+     * Amadeus/Yuuka 只有 base+blush：脸轴从 BLUSH 下一格 WHITE 未注册，就继续走到 NONE（=base），
+     * 于是「点头 正常↔脸红」是资产表推出来的同一手感，不需要专门的 stepFaceOnly。
+     */
+    private fun <T : Enum<T>> stepped(
+        state: Live2dTouchReactionState,
+        values: Array<T>,
+        from: T,
+        set: (Live2dTouchReactionState, T) -> Live2dTouchReactionState,
+        registered: (String) -> Boolean,
+    ): Live2dTouchReactionState {
+        var v = from
+        repeat(values.size) {
+            v = next(v, values)
+            val candidate = set(state, v)
+            if (registered(expressionFor(candidate))) return candidate
+        }
+        return state
+    }
+
+    /** token（wardrobe-spec 的词缀，含 "none"）→ 轴值；不认识返回 null。 */
+    private fun topOf(token: String): Live2dTop? = when (token) {
+        "none" -> Live2dTop.NONE; "bikini" -> Live2dTop.BIKINI; "pajamas" -> Live2dTop.PAJAMAS
+        "pumpkin" -> Live2dTop.PUMPKIN; "blood" -> Live2dTop.BLOOD; else -> null
+    }
+
+    private fun shoesOf(token: String): Live2dShoes? = when (token) {
+        "none" -> Live2dShoes.NONE; "sandal" -> Live2dShoes.SANDAL; "leather" -> Live2dShoes.LEATHER; else -> null
+    }
+
+    private fun heldOf(token: String): Live2dHeld? = when (token) {
+        "none" -> Live2dHeld.NONE; "kani" -> Live2dHeld.KANI; "bird" -> Live2dHeld.BIRD
+        "pillow" -> Live2dHeld.PILLOW; else -> null
+    }
+
+    private fun faceOf(token: String): Live2dFace? = when (token) {
+        "none" -> Live2dFace.NONE; "blush" -> Live2dFace.BLUSH; "white" -> Live2dFace.WHITE; else -> null
+    }
+
     /**
      * 状态 → lab 清单里的表情名；与 exp3 文件一一对应。
      * 词缀顺序固定：上衣 → 鞋 → 手持 → 表情（生成器与测试同序）。
@@ -160,21 +262,24 @@ object Live2dTouchReaction {
         return if (parts.isEmpty()) "base" else parts.joinToString("_")
     }
 
-    // ---- Amadeus / Yuuka 的最小装扮层 ----
-    // 这两个模型没有上游已验证的换装参数（盘点 2026-11-23：Yuuka 零 exp3、
-    // Amadeus 只有 logo 开关），跨模型唯一语义一致的已验证值是 ParamCheek=1
-    // （三张 cdi3 都标「脸颊」）。所以它们只开放脸轴（正常↔脸红），每次点头
-    // 都有可见变化；其余区域由引擎判 Ignored，不做「点了没动静」的假轴。
+    // ---- 最小装扮层去哪了（触摸刀 C6）----
+    // 旧代码在这里写死「Amadeus/Yuuka 只开放脸轴」（stepFaceOnly / expressionForFaceOnly，
+    // 引擎侧还有 `fullWardrobe = 目录名 == "ATRI"`）。那是**资产盘点事实**（Yuuka 零 exp3、
+    // Amadeus 只有 logo 开关，跨模型唯一已验证值是 ParamCheek）被硬编码成了分支。
+    // 现在闸在数据侧：[applyCue] 带 `expressionRegistered`，循环会跳过这个模型没注册的表情格，
+    // 于是 base+blush 的模型自然得到「点头 正常↔脸红」，其余轴自然落不到可用反应
+    // （引擎回 Ignored，不做假轴）。同一手感，来源从代码换成了包。
 
-    /** 最小模型的头轴：只在 BLUSH/NONE 间循环（WHITE 没有已验证资产）。 */
-    fun stepFaceOnly(state: Live2dTouchReactionState, region: String): Live2dTouchReactionState =
-        if (region == AvatarRegion.HEAD) {
-            state.copy(face = if (state.face == Live2dFace.BLUSH) Live2dFace.NONE else Live2dFace.BLUSH)
-        } else {
-            state
-        }
-
-    /** 最小模型的清单名：只有 base 与 blush 注册在案。 */
-    fun expressionForFaceOnly(state: Live2dTouchReactionState): String =
-        if (state.face == Live2dFace.BLUSH) "blush" else "base"
+    /**
+     * 这根轴在当前模型**有没有可切的表情**（收纳盒/托盘的灰显判据）。
+     * 判据就是「推进一根轴能不能真的变」——与 [applyCue] 用同一个闸，两处不会打架。
+     */
+    fun axisHasAssets(
+        axis: Live2dWardrobeAxis,
+        state: Live2dTouchReactionState,
+        expressionRegistered: (String) -> Boolean,
+    ): Boolean {
+        if (!axis.active) return false
+        return applyCue(state, TouchCue(TouchCueKind.CYCLE, slot = axis.id), expressionRegistered) != state
+    }
 }

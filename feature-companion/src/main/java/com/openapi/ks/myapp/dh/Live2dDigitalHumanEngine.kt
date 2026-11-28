@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.dh
 import android.content.Context
 import android.util.Log
 import android.view.View
+import com.openapi.ks.dh.EngineAssets
 import com.openapi.ks.dh.Live2dRuntime
 import com.openapi.ks.myapp.avatar.AvatarCapability
 import com.openapi.ks.myapp.avatar.AvatarCommand
@@ -10,6 +11,7 @@ import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.AvatarTouch
 import com.openapi.ks.myapp.avatar.AvatarTouchKind
 import com.openapi.ks.myapp.avatar.TouchResult
+import kotlin.random.Random
 
 /**
  * Live2D 适配器：直接调 `:dh-engines` 的 [Live2dRuntime]（已内置 Java/JNI 包装，无反射）。
@@ -17,16 +19,20 @@ import com.openapi.ks.myapp.avatar.TouchResult
  * [DhEngineAvailability.needsDownload]；JNI 包装库缺失时回「native 库缺失」并 blocked。
  * 口型走 [Live2dRuntime.setMouth]，情绪走 [Live2dRuntime.setExpression]。
  *
- * 触点互动（demo #2 → v2）：[onTouch] 吃舞台层认出的轻触（归一化坐标），用
- * [Live2dTouchReaction] 纯状态机决定表情名——四根轴各自循环（头→表情、躯干→上衣、
- * 手→手持、脚→鞋），每次点击都进新的可见状态（真机投诉 2026-11-23「只能点一次」
- * 的根治），再经 `nativeApplyExpression` 交给 native 交叉淡入淡出。表情名对应的 exp3
- * 资产由 lab 清单注册（scripts/dh-lab/live2d-lab-assets/，seed-assets.sh live2d 推送）。
+ * 触点互动（demo #2 → v2 → **触摸刀 C6**）：[onTouch] 吃舞台层认出的轻触（归一化坐标），
+ * 反应**从声明来**：命中区与候选反应读自模型包里的 `wardrobe-spec.json` 的
+ * `touchReactions`（[Live2dPackFacts]），路由与抽签是纯决策层（[TouchZoneRouter] /
+ * [TouchReactionDecision]），三级回落 = 声明 → 模型自带 → 兜底分区 + 循环。
+ * tap 不再需要任何托盘/菜单配合：点下去这一发就地生效（0 跳），长按才是托盘。
  *
- * 多形象（用户 2026-11-23「demo里有好几个形象」）：[activeModelDir] 选 ATRI / Amadeus /
- * Yuuka。后两个没有上游已验证的换装参数（盘点：Yuuka 零 exp3、Amadeus 只有 logo 开关），
- * 只有跨模型语义一致的 ParamCheek——所以它们走 [Live2dTouchReaction.stepFaceOnly]
- * 最小层（点头 正常↔脸红），换装托盘只给脸轴；其余区域回 Ignored，不做假轴。
+ * 「哪个形象能动哪几根轴」也不再按目录名写死（旧代码是 `fullWardrobe = dir == "ATRI"`）：
+ * 闸来自包自己注册的**表情名集合**（[Live2dPackFacts.Facts.registered]）。ATRI 注册 180 个
+ * 组合表情所以四轴全开；Amadeus/Yuuka 只注册 base+blush，于是它们的脸轴只在两者间循环
+ * （循环会跳过没有资产的那一格），其余轴的结构化结果就是「没有可用反应」→ [TouchResult.Ignored]，
+ * 与旧的最小层同手感，但那是资产事实推出来的，不是代码里的分支。
+ *
+ * 表情名对应的 exp3 资产由 lab 清单注册（scripts/dh-lab/live2d-lab-assets/，seed-assets.sh
+ * live2d 推送；同一目录也推 wardrobe-spec.json，见 [Live2dPackFacts]）。
  */
 class Live2dDigitalHumanEngine(
     private val initialModelDirName: String = Live2dRuntime.DEFAULT_MODEL_DIR,
@@ -47,8 +53,14 @@ class Live2dDigitalHumanEngine(
         AvatarCapability.TOUCH_TAP,
     )
 
-    /** 只有 ATRI 有全套已验证换装资产；其余模型走最小脸轴（见类注释）。 */
-    private val fullWardrobe: Boolean get() = activeModelDir == "ATRI"
+    /**
+     * 当前运行时能吃哪几类 cue（能力门，[TouchReactionDecision] 用它过滤候选）。
+     *
+     * fork 的 JNI 只有 `nativeApplyExpression`（`JniBridgeJava` 无 motion API），所以
+     * `motion` 类声明今天**不参与抽签**——声明与校验先行，fork 补上 motion API 后把
+     * [TouchCueKind.MOTION] 加进来即可，不用再动结构。
+     */
+    private val supportedCueKinds: Set<TouchCueKind> = setOf(TouchCueKind.VARIANT, TouchCueKind.CYCLE)
 
     private var runtime: Live2dRuntime? = null
     private var viewCreated = false
@@ -56,6 +68,18 @@ class Live2dDigitalHumanEngine(
 
     /** 触点互动状态（四轴循环位）；release 后重建引擎会回到初始态——与画面一致。 */
     private var reaction = Live2dTouchReactionState()
+
+    /** 上一发播过的 cue：连点同一处要换样（只剩它时不排除，见 pickWeighted）。 */
+    private var lastCueKey: String? = null
+
+    /** 抽签取数；单测注入固定值让「随机」可断言。 */
+    internal var rollSource: () -> Int = { Random.nextInt(1000) }
+
+    /** createView / availability 拿到的 host Context（读包事实用；JVM 单测里为 null）。 */
+    private var hostContext: Context? = null
+
+    /** 按模型目录缓存的包事实；换形象（[switchToModel]）自动失效。 */
+    private var factsCache: Pair<String, Live2dPackFacts.Facts>? = null
 
     /**
      * 主题色在 buildGlView 之前也可能先到（通话页先组合主题、后挂 View），
@@ -112,54 +136,74 @@ class Live2dDigitalHumanEngine(
     }
 
     /**
-     * 舞台层认出的轻触（归一化坐标）。用 [live2dTapZone] 细分区（头/躯干/手/脚，
-     * 阈值来自真机截图实测）→ v2 循环状态机 → 表情名 → native 淡入淡出。
-     * ATRI 四轴全开；Amadeus/Yuuka 只有头轴有效（最小脸层），其余区域回 Ignored
-     * ——「点了没动静」的假轴不做。上报给 agent 的 [stageTapRegion] 仍是 head/body
-     * 老语义——换引擎不换服务端契约。每次轻触一行 `Live2dTouch` 日志：真机验收的
-     * 硬证据通道（同 demo #1 的 dhvrm）。
+     * 舞台层认出的轻触（归一化坐标）→ **直达反应**（触摸刀 C6 的落点）。
+     *
+     * 链路：命中区（声明或兜底）→ 候选按能力门 + 表情资产闸筛 → 权重抽签 → 状态机 →
+     * `nativeApplyExpression`。整条在本地闭环，不等服务端：点了必有反应（真机投诉
+     * 2026-11-23「只能点一次」的根治语义保留），上报给 agent 的 region 语义不变。
+     *
+     * 没有可用反应时回 [TouchResult.Ignored]——「点了没动静」的假轴不做；
+     * 每一次轻触一行 `Live2dTouch` 日志（含 level/zone/cue），真机验收的硬证据通道。
      */
     override fun onTouch(event: AvatarTouch): TouchResult {
         if (event.kind != AvatarTouchKind.TAP) return TouchResult.Ignored
-        val region = live2dTapZone(event.x, event.y)
-        val before = reaction
-        reaction = if (fullWardrobe) {
-            Live2dTouchReaction.step(reaction, region)
-        } else {
-            Live2dTouchReaction.stepFaceOnly(reaction, region)
+        val facts = packFacts()
+        val declaration = facts.declaration ?: TouchZoneRouter.builtIn
+        val zone = TouchZoneRouter.hit(declaration, event.x, event.y)
+        val choice = TouchReactionDecision.resolveTap(
+            hit = zone,
+            modelOwnCues = facts.modelOwnCues,
+            supported = supportedCueKinds,
+            lastCueKey = lastCueKey,
+            roll = rollSource(),
+            state = reaction,
+            expressionGate = facts::isRegistered,
+        )
+        if (!choice.changed) {
+            Log.i(TAG, "tap model=$activeModelDir zone=${zone?.id ?: "-"} level=${choice.level} -> ignored")
+            return TouchResult.Ignored
         }
-        if (reaction == before) return TouchResult.Ignored
-        val expression = if (fullWardrobe) {
-            Live2dTouchReaction.expressionFor(reaction)
-        } else {
-            Live2dTouchReaction.expressionForFaceOnly(reaction)
-        }
+        reaction = choice.state
+        lastCueKey = choice.cue?.key()
+        val expression = Live2dTouchReaction.expressionFor(reaction)
         runtime?.takeIf { viewCreated }?.setExpression(expression)
+        // 命中区 id 就是上报给 agent 的 region（head/body/hand/foot 与旧词表一致）；万一声明里
+        // 用了新 id，退到旧的竖向二分，服务端契约不被换刀打断。日志保持 `tap model=… region=…`
+        // 前缀不变（真机验收脚本 grep 的就是它），换刀新增的 level/cue 追加在后面。
+        val region = choice.region ?: stageTapRegion(event.x, event.y)
         Log.i(
             TAG,
-            "tap model=$activeModelDir region=$region top=${reaction.top} shoes=${reaction.shoes} " +
-                "held=${reaction.held} face=${reaction.face} expression=$expression",
+            "tap model=$activeModelDir region=$region level=${choice.level} cue=${choice.cue?.key()} " +
+                "top=${reaction.top} shoes=${reaction.shoes} held=${reaction.held} face=${reaction.face} " +
+                "expression=$expression",
         )
         return TouchResult.Handled(region)
     }
 
     // ---- 换装托盘（长按呼出）：轴推进与分区点击共用同一状态机 ----
 
-    override fun wardrobeRows(): List<Live2dWardrobeRow> =
-        if (fullWardrobe) {
-            Live2dTouchReaction.wardrobeRows(reaction)
-        } else {
-            Live2dTouchReaction.wardrobeRows(reaction).filter { it.axis == Live2dWardrobeAxis.FACE }
+    /**
+     * 托盘行：可用轴由**表情资产**判定（这根轴上至少有一格表情在这个模型注册过），
+     * 不再按目录名写死。pending 轴（内衣/头饰）照旧灰显带原因——那是「声明出来的不可用」。
+     */
+    override fun wardrobeRows(): List<Live2dWardrobeRow> {
+        val facts = packFacts()
+        return Live2dTouchReaction.wardrobeRows(reaction).map { row ->
+            if (row.enabled && !Live2dTouchReaction.axisHasAssets(row.axis, reaction, facts::isRegistered)) {
+                row.copy(enabled = false, disabledReason = "这个形象的素材里没有对应表情")
+            } else {
+                row
+            }
         }
+    }
 
     override fun advanceWardrobe(axis: Live2dWardrobeAxis) {
-        if (!fullWardrobe && axis != Live2dWardrobeAxis.FACE) return
+        val facts = packFacts()
+        if (!Live2dTouchReaction.axisHasAssets(axis, reaction, facts::isRegistered)) return
+        val before = reaction
         reaction = Live2dTouchReaction.advanceWardrobe(reaction, axis)
-        val expression = if (fullWardrobe) {
-            Live2dTouchReaction.expressionFor(reaction)
-        } else {
-            Live2dTouchReaction.expressionForFaceOnly(reaction)
-        }
+        if (reaction == before) return
+        val expression = Live2dTouchReaction.expressionFor(reaction)
         runtime?.takeIf { viewCreated }?.setExpression(expression)
         Log.i(TAG, "wardrobe model=$activeModelDir axis=$axis expression=$expression")
     }
@@ -177,6 +221,8 @@ class Live2dDigitalHumanEngine(
         runtime(context).changeModel(targetDirName, "$targetDirName.model3.json")
         activeModelDir = targetDirName
         reaction = live2dReactionAfterModelSwitch(targetDirName)
+        lastCueKey = null
+        factsCache = null // 换形象 = 换包：声明与表情注册表都要重读
         Log.i(TAG, "hotswap model->$targetDirName")
         return true
     }
@@ -191,6 +237,7 @@ class Live2dDigitalHumanEngine(
 
     override fun createView(context: Context): View? {
         if (released) return null
+        hostContext = context
         // Pass the Activity-bearing host context through — not applicationContext — so
         // Live2dRuntime can SetActivityInstance / build GLSurfaceView the same way the
         // pre-facade adapter did.
@@ -202,6 +249,7 @@ class Live2dDigitalHumanEngine(
     }
 
     override fun availability(context: Context): DhEngineAvailability {
+        hostContext = context
         val status = runtime(context).availability()
         return DhEngineAvailability(
             id = id,
@@ -209,6 +257,28 @@ class Live2dDigitalHumanEngine(
             reason = status.reason,
             needsDownload = !status.available && status.reason == Live2dRuntime.REASON_NOT_DOWNLOADED,
         )
+    }
+
+    /**
+     * 当前形象包的触摸事实（声明 + 表情注册表 + 自带动作）。
+     *
+     * 读不到包（JVM 单测里没建 View、或素材还没下载）→ [Live2dPackFacts.EMPTY]：
+     * 命中退兜底分区、表情闸退成放行，也就是**与触摸刀之前完全一致**的行为，
+     * 而不是把「读不到」当成「什么都没有」而全盘 Ignored。
+     */
+    private fun packFacts(): Live2dPackFacts.Facts {
+        factsCache?.takeIf { it.first == activeModelDir }?.let { return it.second }
+        val ctx = hostContext ?: return Live2dPackFacts.EMPTY
+        val root = runCatching { DhLabBootstrap.assetStore(ctx).cacheRoot(EngineAssets.LIVE2D) }.getOrNull()
+            ?: return Live2dPackFacts.EMPTY
+        if (!root.isDirectory) return Live2dPackFacts.EMPTY
+        val facts = Live2dPackFacts.load(
+            Live2dPackFacts.modelDir(root, activeModelDir),
+            modelJsonName,
+        )
+        facts.errors.forEach { Log.w(TAG, "pack facts ($activeModelDir): $it") }
+        factsCache = activeModelDir to facts
+        return facts
     }
 
     private fun runtime(context: Context): Live2dRuntime =

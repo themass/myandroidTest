@@ -18,5 +18,3 @@ fun live2dHotSwapEligible(
 /** ATRI 有全套换装；换形象后触点状态归零，与新建引擎一致。 */
 fun live2dReactionAfterModelSwitch(modelDirName: String): Live2dTouchReactionState =
     Live2dTouchReactionState()
-
-fun live2dFullWardrobeForModel(modelDirName: String): Boolean = modelDirName == "ATRI"
