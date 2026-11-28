@@ -52,6 +52,23 @@ class SpeechTimeline(val speechId: String) {
         private set
 
     /**
+     * `speech.seg(idx==0)` 到达的单调时刻（由 [SpeechRegistry.onSeg] 的 `declaredAt` 写入）。
+     *
+     * 端侧首响计时的起点：`首帧音频归属时刻 − declaredAt` 就是「这句话从声明到出声」
+     * 的端上可见段（延迟刀 C3 的验收口径 `turn_first_audio`）。没写入过为 `null`。
+     */
+    var declaredAt: Long? = null
+        internal set
+
+    /**
+     * 端侧观测到的「这句的音频流已结束」：连续静音 ≥ 阈值（[SpeechRegistry.silenceGapMs]）
+     * 后由归属判定写入。`est_ms` 偏长时这是唯一能提前收尾「还在出声」的信号，
+     * 让流水线下句的首帧能提前标定。与 [state] 无关——`state` 只由协议事件驱动。
+     */
+    var streamClosed: Boolean = false
+        internal set
+
+    /**
      * 该 speech 的第一帧音频进入播放的单调钟时刻（§9.4）。`null` 表示还没开始播：
      * 此时段起点算不出来，必须缓存 cue 而不是猜一个值。
      */
@@ -125,6 +142,15 @@ class SpeechTimeline(val speechId: String) {
         if (!contains(idx)) return null
         return startOf(idx)?.plus(segmentList[idx].effectiveMs)
     }
+
+    /**
+     * 按估算时长累加出的**播放终点**（`t0 + Σ effective_ms`）。
+     *
+     * 流式交付下用来回答「这句话理论上还在不在出声」：并行合成的下一句 seg 会先于
+     * 上一句的音频播完到达，上一句没被作废、也没过这个点之前，新到的音频帧属于它。
+     * `t0` 未定返回 `null`。
+     */
+    fun estimatedEnd(): Long? = t0?.plus(totalEstMs)
 
     /**
      * 打断瞬间「实际说出口了多少个字」（P2 契约

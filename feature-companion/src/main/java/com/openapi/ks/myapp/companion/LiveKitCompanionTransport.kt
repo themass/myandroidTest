@@ -930,7 +930,8 @@ class LiveKitCompanionTransport(
         // §9.4：远端首帧就是"这句话的 t0"。没有这一步，所有 `before` /
         // `after` 锚点都解不出来，表现 cue 会挂在队列里直到 2 秒后过期。
         // 只在有待标定的时间线时才做，省掉稳态下每帧一次的无用计算。
-        if (speech.timebasePendingId() != null) {
+        // 便宜门不带归属判定（C3 流式交付下多条在飞），静音观察因此保持连续。
+        if (speech.hasUntimedPending()) {
             if (speech.onAudioFrame(
                     now = nowMono,
                     captureTs = absoluteCaptureTimestampMs,
@@ -938,6 +939,13 @@ class LiveKitCompanionTransport(
                     minRms = REMOTE_FIRST_AUDIO_RMS,
                 )
             ) {
+                // 端侧首响口径（延迟刀 C3）：这句话从 `speech.seg` 声明到第一帧出声的等待。
+                // 服务端 `first_frame_ms` 只覆盖合成段，这条补齐「端上何时听见」。
+                val timedId = speech.lastTimebaseId
+                val declared = timedId?.let { speech.timeline(it)?.declaredAt }
+                if (timedId != null && declared != null) {
+                    logInfo("attempt=$activeAttemptId event=turn_first_audio id=$timedId waitMs=${nowMono - declared}")
+                }
                 speechWake.trySend(Unit)
             }
         }
@@ -1291,7 +1299,8 @@ class LiveKitCompanionTransport(
             // ---- 语音时间线（§9）----
             "speech.seg" -> {
                 // 句级声明（§9.3）：先于引用它的 cue 与 TTS 到达。
-                val accepted = speech.onSeg(args)
+                // declaredAt 是端侧首响计时（turn_first_audio）的起点。
+                val accepted = speech.onSeg(args, declaredAt = SystemClock.elapsedRealtime())
                 if (!accepted) {
                     logWarn("attempt=$activeAttemptId event=speech_seg_rejected id=${args.optString("speech_id")} idx=${args.optString("idx")}")
                 } else {
