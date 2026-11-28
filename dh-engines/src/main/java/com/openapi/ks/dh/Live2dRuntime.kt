@@ -75,6 +75,8 @@ class Live2dRuntime internal constructor(
     private var started = false
     private var released = false
     private var gazeCaptured = false
+    /** EGL 重建自恢复决策层（buildGlView 期创建；GL 线程读写，主线程只在 changeModel 投递时读）。 */
+    private var glSceneRef: Live2dGlSceneRenderer? = null
 
     /**
      * 改 Cubism 场景的 JNI 调用（expression / mouth / gaze 触点）必须与
@@ -128,26 +130,35 @@ class Live2dRuntime internal constructor(
         JniBridgeJava.SetContext(appContext ?: host.applicationContext)
         val modelPath = File(root, modelDirName).absolutePath + File.separator
         val json = modelJsonName
-        var modelLoadedOnGl = false
+        // EGL 重建自恢复（真机潜在白屏，2026-11-28 P0-A 排查取证）：旧版 modelLoadedOnGl
+        // 闩锁只上装首次 surface——GLSurfaceView 默认不保留 EGL context，后台回前台 /
+        // surface 重建后 Cubism 的纹理/着色器句柄全失效且不重载，舞台永黑不自愈。
+        // 现在每次 onSurfaceCreated 都重新上装**当前**模型；决策层纯 JVM 单测钉死
+        // （Live2dGlSceneRendererTest）。fork .so 的 OnStart 幂等 + ChangeModelTo
+        // 先载后拆，重复 prepare 安全（见 live2d-native-fork.patch）。
+        val glScene = Live2dGlSceneRenderer(
+            onSurfaceCreatedNative = { JniBridgeJava.nativeOnSurfaceCreated() },
+            onSurfaceChangedNative = { w, h -> JniBridgeJava.nativeOnSurfaceChanged(w, h) },
+            onDrawFrameNative = { JniBridgeJava.nativeOnDrawFrame() },
+            prepareScene = { path, modelJson -> prepareLive2dScene(path, modelJson) },
+            ownerQuery = { nativeOwnership.isOwner(this) },
+            onSceneReloaded = {
+                // GL 重建会清掉 native 触摸捕获：复位闩锁，下一次注视重新 capture。
+                gazeCaptured = false
+                Log.i(TAG, "GL scene re-prepared after EGL recreation: $json")
+            },
+            initialModelPath = modelPath,
+            initialModelJson = json,
+        )
         val view = GLSurfaceView(host).apply {
             setEGLContextClientVersion(2)
             setRenderer(object : GLSurfaceView.Renderer {
-                override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
-                    JniBridgeJava.nativeOnSurfaceCreated()
-                    if (!modelLoadedOnGl) {
-                        modelLoadedOnGl = true
-                        prepareLive2dScene(modelPath, json)
-                        Log.i(TAG, "model load on GL surface: $json")
-                    }
-                }
+                override fun onSurfaceCreated(gl: GL10, config: EGLConfig) = glScene.onSurfaceCreated()
 
-                override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
-                    JniBridgeJava.nativeOnSurfaceChanged(width, height)
-                }
+                override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) =
+                    glScene.onSurfaceChanged(width, height)
 
-                override fun onDrawFrame(gl: GL10) {
-                    JniBridgeJava.nativeOnDrawFrame()
-                }
+                override fun onDrawFrame(gl: GL10) = glScene.onDrawFrame()
             })
             renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
         }
@@ -158,6 +169,7 @@ class Live2dRuntime internal constructor(
         // view 还没挂上就允许 setExpression 等调用（先建 view 后触发的顺序在通话页成立），
         // 此刻起所有场景变更走 GL 队列；queueEvent 在 surface 未创建时也会排队给 GL 线程。
         dispatcher = JniDispatcher { block -> view.queueEvent(block) }
+        glSceneRef = glScene
         started = true
         surface = view
         return view
@@ -217,10 +229,15 @@ class Live2dRuntime internal constructor(
         if (env.gateRejectFor(modelDirName, modelJsonName) != null) return
         val modelPath = File(root, modelDirName).absolutePath + File.separator
         val d = dispatcher ?: return
+        val scene = glSceneRef
         runCatching {
             d.post {
                 runCatching {
-                    prepareLive2dScene(modelPath, modelJsonName)
+                    // prepareAndTrack：成功才把「当前模型」指向新目录——EGL 重建后的
+                    // 重上装必须装用户切到的那张，而不是回落初始 ATRI（fork 先载后拆，
+                    // 失败时屏幕上还是旧模型，跟踪不能跟着脏）。
+                    if (scene != null) scene.prepareAndTrack(modelPath, modelJsonName)
+                    else prepareLive2dScene(modelPath, modelJsonName)
                 }
             }
         }
