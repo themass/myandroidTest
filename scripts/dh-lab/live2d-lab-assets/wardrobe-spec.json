@@ -76,5 +76,51 @@
 				{ "token": "white", "label": "白眼", "status": "active", "param": "Param22", "value": 30, "verifiedFrom": "expression1-16.exp3.json(atri_8)" }
 			]
 		}
-	]
+	],
+	"touchReactions": {
+		"comment": "触摸直达反应（超越 OLLMV 第四刀 C6，docs/research/2026-11-28-surpass-ollmv-synthesis.md:19）：点她哪里 → 她立刻怎么回应，不再靠 Kotlin 里的四个 enum 写死。命中纪律取自 docs/research/2026-11-28-waifu-desktop-pet-deepread.md §1 结论1 + §10.3 收紧2：① 区自带稳定 id（绝不复用 Cubism HitAreas[].Name，空名/重名会静默塌表），id 同时是防抖/仲裁的 key，所以小集合可枚举、与发给 agent 的 region 词表一致；② 重叠必须有显式优先序（priority 小的赢；全场每一家都是「未声明的第一个赢」）——body 铺满整条带、hand 只盖两臂，所以同一 y 带上两臂赢手、中列赢躯干；③ 区域附着在模型上不附着在动作上（shimeji 的 Hotspot 挂 Animation 每帧重建是反面），故 rects 只吃归一化坐标；④ 一个区可挂多条 rect（ATRI 两臂 = 一个区两条矩形）。rect = [x0,y0,x1,y1] 归一化、半开 [min,max)，贴舞台边那侧含端点；分区必须铺满 [0,1]²（留缝=点了没反应）。reactions 是候选池：kind=cycle 推进该槽到下一个值（v2 循环语义）、kind=variant 直接置成声明的变体、kind=motion 播动作（当前 fork 的 JNI 只有 nativeApplyExpression，motion 暂不可播→能力门过滤，不参与抽签）。weight 是池内相对权重（正整数），连点不机械重复；撞上当前值时自动退回该槽 cycle，保证每次都有可见变化（真机投诉 2026-11-23「只能点一次」的同一条教训）。变体只引用上面 slots 里 status=active 的槽与 token——不发明资产；每个 cue 必须有消费点（TouchZoneRouter/TouchReactionDecision）与测试（WardrobeTouchReactionsTest），否则就是死字段。",
+		"zones": [
+			{
+				"id": "head",
+				"label": "头",
+				"priority": 2,
+				"rects": [[0, 0, 1, 0.42]],
+				"reactions": [
+					{ "kind": "cycle", "slot": "face", "weight": 6 },
+					{ "kind": "variant", "slot": "face", "token": "blush", "weight": 3 },
+					{ "kind": "variant", "slot": "face", "token": "white", "weight": 1 }
+				]
+			},
+			{
+				"id": "hand",
+				"label": "手",
+				"priority": 0,
+				"rects": [[0, 0.42, 0.38, 0.57], [0.62, 0.42, 1, 0.57]],
+				"reactions": [
+					{ "kind": "cycle", "slot": "held", "weight": 6 },
+					{ "kind": "variant", "slot": "held", "token": "kani", "weight": 2 }
+				]
+			},
+			{
+				"id": "body",
+				"label": "躯干",
+				"priority": 1,
+				"rects": [[0, 0.42, 1, 0.57]],
+				"reactions": [
+					{ "kind": "cycle", "slot": "top", "weight": 6 },
+					{ "kind": "variant", "slot": "top", "token": "bikini", "weight": 1 }
+				]
+			},
+			{
+				"id": "foot",
+				"label": "脚",
+				"priority": 3,
+				"rects": [[0, 0.57, 1, 1]],
+				"reactions": [
+					{ "kind": "cycle", "slot": "shoes", "weight": 6 },
+					{ "kind": "variant", "slot": "shoes", "token": "sandal", "weight": 2 }
+				]
+			}
+		]
+	}
 }

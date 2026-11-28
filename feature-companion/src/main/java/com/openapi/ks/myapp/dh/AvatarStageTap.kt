@@ -22,6 +22,10 @@ internal fun stageTapRegion(nx: Float, ny: Float): String {
  * ATRI 立绘占 norm_y≈0.10–0.73；头是 0.42 以上的窄条；0.42–0.57 手臂向两侧
  * 展开（最宽到 x 0.33/0.71）；0.57 以下收窄成双腿直到脚。横向手判据取
  * |x−0.5|≥0.12：躯干中列宽约 ±0.1，臂展尖端在 ±0.17 以外，留了余量。
+ *
+ * 触摸刀 C6 之后**生产路径走 [TouchZoneRouter]**（声明优先、无声明用
+ * [TouchZoneRouter.builtIn]，几何与此处同一批实测值）。这个函数保留作**对照判据**：
+ * `TouchZoneRouterTest` 逐点钉「换刀不换分区手感」，删掉它测试会拦住并说明原因。
  */
 internal fun live2dTapZone(nx: Float, ny: Float): String {
     val x = nx.coerceIn(0f, 1f)
